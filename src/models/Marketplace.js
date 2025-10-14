@@ -198,11 +198,17 @@ const bookingSchema = new mongoose.Schema({
   payment: {
     status: {
       type: String,
-      enum: ['pending', 'paid', 'refunded'],
+      enum: ['pending', 'paid', 'refunded', 'failed'],
       default: 'pending'
     },
-    method: String,
+    method: {
+      type: String,
+      enum: ['cash', 'card', 'bank_transfer', 'paypal'],
+      default: 'cash'
+    },
     transactionId: String,
+    paypalOrderId: String,
+    paypalTransactionId: String,
     paidAt: Date
   },
   review: {

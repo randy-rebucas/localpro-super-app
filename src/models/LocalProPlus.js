@@ -200,12 +200,14 @@ const paymentSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['credit_card', 'bank_transfer', 'mobile_money', 'wallet'],
+    enum: ['credit_card', 'bank_transfer', 'mobile_money', 'wallet', 'paypal'],
     required: true
   },
   transactionId: String,
   externalReference: String,
   description: String,
+  paypalOrderId: String,
+  paypalSubscriptionId: String,
   metadata: mongoose.Schema.Types.Mixed
 }, {
   timestamps: true

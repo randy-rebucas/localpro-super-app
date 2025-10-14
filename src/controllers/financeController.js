@@ -1,6 +1,7 @@
 const { Loan, SalaryAdvance, Transaction } = require('../models/Finance');
 const User = require('../models/User');
 const EmailService = require('../services/emailService');
+const PayPalService = require('../services/paypalService');
 
 // @desc    Apply for loan
 // @route   POST /api/finance/loans/apply
@@ -291,6 +292,304 @@ const disburseLoan = async (req, res) => {
   }
 };
 
+// @desc    Make loan repayment with PayPal
+// @route   POST /api/finance/loans/:id/repay/paypal
+// @access  Private
+const repayLoanWithPayPal = async (req, res) => {
+  try {
+    const { amount, paymentDetails } = req.body;
+    const loanId = req.params.id;
+    const userId = req.user.id;
+
+    const loan = await Loan.findById(loanId);
+    if (!loan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Loan not found'
+      });
+    }
+
+    if (loan.borrower.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to make payments for this loan'
+      });
+    }
+
+    // Get user details for PayPal
+    const user = await User.findById(userId).select('firstName lastName email');
+    
+    // Create PayPal order for loan repayment
+    const orderData = {
+      amount: amount,
+      currency: loan.amount.currency,
+      description: `Loan repayment for loan #${loanId}`,
+      referenceId: `LOAN-REPAY-${loanId}`,
+      items: [{
+        name: 'Loan Repayment',
+        unit_amount: {
+          currency_code: loan.amount.currency,
+          value: amount.toFixed(2)
+        },
+        quantity: '1'
+      }]
+    };
+
+    const paypalOrderResult = await PayPalService.createOrder(orderData);
+    
+    if (!paypalOrderResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to create PayPal payment order'
+      });
+    }
+
+    // Create transaction record
+    const transaction = await Transaction.create({
+      user: userId,
+      type: 'loan_repayment',
+      amount: amount,
+      currency: loan.amount.currency,
+      direction: 'outbound',
+      reference: `LOAN-REPAY-${loanId}`,
+      status: 'pending',
+      paymentMethod: 'paypal',
+      paypalOrderId: paypalOrderResult.data.id,
+      metadata: { loanId, paymentDetails }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'PayPal payment order created for loan repayment',
+      data: {
+        transaction,
+        paypalApprovalUrl: paypalOrderResult.data.links.find(link => link.rel === 'approve')?.href
+      }
+    });
+  } catch (error) {
+    console.error('Repay loan with PayPal error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Approve PayPal loan repayment
+// @route   POST /api/finance/loans/repay/paypal/approve
+// @access  Private
+const approvePayPalLoanRepayment = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const userId = req.user.id;
+
+    // Capture the PayPal order
+    const captureResult = await PayPalService.captureOrder(orderId);
+    
+    if (!captureResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to capture PayPal payment'
+      });
+    }
+
+    // Find the transaction
+    const transaction = await Transaction.findOne({
+      user: userId,
+      paypalOrderId: orderId,
+      type: 'loan_repayment'
+    });
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
+
+    // Update transaction status
+    transaction.status = 'completed';
+    transaction.paypalTransactionId = captureResult.data.purchase_units[0].payments.captures[0].id;
+    await transaction.save();
+
+    // Update loan repayment schedule
+    const loanId = transaction.metadata.loanId;
+    const loan = await Loan.findById(loanId);
+    
+    if (loan) {
+      // Find the next pending payment
+      const nextPayment = loan.repayment.schedule.find(payment => payment.status === 'pending');
+      if (nextPayment) {
+        nextPayment.status = 'paid';
+        nextPayment.paidAt = new Date();
+        nextPayment.transactionId = transaction.paypalTransactionId;
+      }
+      
+      // Update total paid amount
+      loan.repayment.totalPaid += transaction.amount;
+      loan.repayment.remainingBalance = loan.amount.approved - loan.repayment.totalPaid;
+      
+      await loan.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'PayPal loan repayment approved successfully',
+      data: transaction
+    });
+  } catch (error) {
+    console.error('Approve PayPal loan repayment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Make salary advance repayment with PayPal
+// @route   POST /api/finance/salary-advances/:id/repay/paypal
+// @access  Private
+const repaySalaryAdvanceWithPayPal = async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const salaryAdvanceId = req.params.id;
+    const userId = req.user.id;
+
+    const salaryAdvance = await SalaryAdvance.findById(salaryAdvanceId);
+    if (!salaryAdvance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Salary advance not found'
+      });
+    }
+
+    if (salaryAdvance.employee.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to make payments for this salary advance'
+      });
+    }
+
+    // Get user details for PayPal
+    const user = await User.findById(userId).select('firstName lastName email');
+    
+    // Create PayPal order for salary advance repayment
+    const orderData = {
+      amount: amount,
+      currency: salaryAdvance.amount.currency,
+      description: `Salary advance repayment #${salaryAdvanceId}`,
+      referenceId: `SALARY-REPAY-${salaryAdvanceId}`,
+      items: [{
+        name: 'Salary Advance Repayment',
+        unit_amount: {
+          currency_code: salaryAdvance.amount.currency,
+          value: amount.toFixed(2)
+        },
+        quantity: '1'
+      }]
+    };
+
+    const paypalOrderResult = await PayPalService.createOrder(orderData);
+    
+    if (!paypalOrderResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to create PayPal payment order'
+      });
+    }
+
+    // Create transaction record
+    const transaction = await Transaction.create({
+      user: userId,
+      type: 'salary_advance',
+      amount: amount,
+      currency: salaryAdvance.amount.currency,
+      direction: 'outbound',
+      reference: `SALARY-REPAY-${salaryAdvanceId}`,
+      status: 'pending',
+      paymentMethod: 'paypal',
+      paypalOrderId: paypalOrderResult.data.id,
+      metadata: { salaryAdvanceId }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'PayPal payment order created for salary advance repayment',
+      data: {
+        transaction,
+        paypalApprovalUrl: paypalOrderResult.data.links.find(link => link.rel === 'approve')?.href
+      }
+    });
+  } catch (error) {
+    console.error('Repay salary advance with PayPal error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Approve PayPal salary advance repayment
+// @route   POST /api/finance/salary-advances/repay/paypal/approve
+// @access  Private
+const approvePayPalSalaryAdvanceRepayment = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const userId = req.user.id;
+
+    // Capture the PayPal order
+    const captureResult = await PayPalService.captureOrder(orderId);
+    
+    if (!captureResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to capture PayPal payment'
+      });
+    }
+
+    // Find the transaction
+    const transaction = await Transaction.findOne({
+      user: userId,
+      paypalOrderId: orderId,
+      type: 'salary_advance'
+    });
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
+
+    // Update transaction status
+    transaction.status = 'completed';
+    transaction.paypalTransactionId = captureResult.data.purchase_units[0].payments.captures[0].id;
+    await transaction.save();
+
+    // Update salary advance status
+    const salaryAdvanceId = transaction.metadata.salaryAdvanceId;
+    const salaryAdvance = await SalaryAdvance.findById(salaryAdvanceId);
+    
+    if (salaryAdvance) {
+      salaryAdvance.status = 'repaid';
+      salaryAdvance.repayment.repaidAt = new Date();
+      await salaryAdvance.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'PayPal salary advance repayment approved successfully',
+      data: transaction
+    });
+  } catch (error) {
+    console.error('Approve PayPal salary advance repayment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   applyForLoan,
   getUserLoans,
@@ -298,5 +597,9 @@ module.exports = {
   getUserSalaryAdvances,
   getUserTransactions,
   approveLoan,
-  disburseLoan
+  disburseLoan,
+  repayLoanWithPayPal,
+  approvePayPalLoanRepayment,
+  repaySalaryAdvanceWithPayPal,
+  approvePayPalSalaryAdvanceRepayment
 };

@@ -3,6 +3,7 @@ const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
+const PayPalService = require('../services/paypalService');
 const { uploaders } = require('../config/cloudinary');
 
 // @desc    Get all services
@@ -216,7 +217,7 @@ const deleteService = async (req, res) => {
 // @access  Private
 const createBooking = async (req, res) => {
   try {
-    const { serviceId, bookingDate, duration, address, specialInstructions } = req.body;
+    const { serviceId, bookingDate, duration, address, specialInstructions, paymentMethod } = req.body;
 
     const service = await Service.findById(serviceId);
     if (!service) {
@@ -263,10 +264,78 @@ const createBooking = async (req, res) => {
         basePrice: service.pricing.basePrice,
         totalAmount,
         currency: service.pricing.currency
+      },
+      payment: {
+        method: paymentMethod || 'cash',
+        status: paymentMethod === 'paypal' ? 'pending' : 'pending'
       }
     };
 
     const booking = await Booking.create(bookingData);
+
+    // Handle PayPal payment if selected
+    if (paymentMethod === 'paypal') {
+      try {
+        // Get user details for PayPal
+        const user = await User.findById(req.user.id).select('firstName lastName email');
+        
+        // Create PayPal order
+        const orderData = {
+          amount: totalAmount,
+          currency: service.pricing.currency,
+          description: `Service booking: ${service.title}`,
+          referenceId: booking._id.toString(),
+          items: [{
+            name: service.title,
+            unit_amount: {
+              currency_code: service.pricing.currency,
+              value: totalAmount.toFixed(2)
+            },
+            quantity: '1'
+          }],
+          shipping: address ? {
+            name: `${user.firstName} ${user.lastName}`,
+            address_line_1: address.street,
+            city: address.city,
+            state: address.state,
+            postal_code: address.zipCode,
+            country_code: address.country || 'US'
+          } : undefined
+        };
+
+        const paypalOrderResult = await PayPalService.createOrder(orderData);
+        
+        if (!paypalOrderResult.success) {
+          throw new Error('Failed to create PayPal order');
+        }
+
+        // Update booking with PayPal order ID
+        booking.payment.paypalOrderId = paypalOrderResult.data.id;
+        await booking.save();
+
+        // Populate the booking with service and user details
+        await booking.populate([
+          { path: 'service', select: 'title category pricing' },
+          { path: 'client', select: 'firstName lastName phoneNumber email' },
+          { path: 'provider', select: 'firstName lastName phoneNumber email' }
+        ]);
+
+        res.status(201).json({
+          success: true,
+          message: 'Booking created successfully with PayPal payment',
+          data: {
+            booking,
+            paypalApprovalUrl: paypalOrderResult.data.links.find(link => link.rel === 'approve')?.href
+          }
+        });
+        return;
+      } catch (paypalError) {
+        console.error('PayPal booking error:', paypalError);
+        // Fall back to regular booking creation
+        booking.payment.method = 'cash';
+        await booking.save();
+      }
+    }
 
     // Populate the booking with service and user details
     await booking.populate([
@@ -720,6 +789,120 @@ const getNearbyServices = async (req, res) => {
   }
 };
 
+// @desc    Handle PayPal booking payment approval
+// @route   POST /api/marketplace/bookings/paypal/approve
+// @access  Private
+const approvePayPalBooking = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const userId = req.user.id;
+
+    // Capture the PayPal order
+    const captureResult = await PayPalService.captureOrder(orderId);
+    
+    if (!captureResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to capture PayPal payment'
+      });
+    }
+
+    // Find the booking
+    const booking = await Booking.findOne({
+      client: userId,
+      'payment.paypalOrderId': orderId
+    });
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    // Update booking payment status
+    booking.payment.status = 'paid';
+    booking.payment.paypalTransactionId = captureResult.data.purchase_units[0].payments.captures[0].id;
+    booking.payment.paidAt = new Date();
+    await booking.save();
+
+    // Send booking confirmation email
+    await booking.populate([
+      { path: 'service', select: 'title category pricing' },
+      { path: 'client', select: 'firstName lastName phoneNumber email' },
+      { path: 'provider', select: 'firstName lastName phoneNumber email' }
+    ]);
+
+    if (booking.client.email) {
+      try {
+        await EmailService.sendBookingConfirmation(booking.client.email, booking);
+        console.log(`Booking confirmation email sent to: ${booking.client.email}`);
+      } catch (emailError) {
+        console.error('Failed to send booking confirmation email:', emailError);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'PayPal payment approved successfully',
+      data: booking
+    });
+  } catch (error) {
+    console.error('Approve PayPal booking error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get PayPal order details
+// @route   GET /api/marketplace/bookings/paypal/order/:orderId
+// @access  Private
+const getPayPalOrderDetails = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user.id;
+
+    // Verify the order belongs to the user
+    const booking = await Booking.findOne({
+      client: userId,
+      'payment.paypalOrderId': orderId
+    });
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    // Get order details from PayPal
+    const orderResult = await PayPalService.getOrder(orderId);
+    
+    if (!orderResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to get PayPal order details'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        booking,
+        paypalOrder: orderResult.data
+      }
+    });
+  } catch (error) {
+    console.error('Get PayPal order details error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getServices,
   getService,
@@ -732,5 +915,7 @@ module.exports = {
   getBookings,
   updateBookingStatus,
   uploadBookingPhotos,
-  addReview
+  addReview,
+  approvePayPalBooking,
+  getPayPalOrderDetails
 };

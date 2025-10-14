@@ -1,4 +1,6 @@
 const { SubscriptionPlan, UserSubscription, Payment, FeatureUsage } = require('../models/LocalProPlus');
+const User = require('../models/User');
+const PayPalService = require('../services/paypalService');
 
 // @desc    Get all subscription plans
 // @route   GET /api/localpro-plus/plans
@@ -126,6 +128,73 @@ const subscribeToPlan = async (req, res) => {
       paymentMethod,
       description: `Subscription to ${plan.name} plan`
     });
+
+    // Handle PayPal payment if selected
+    if (paymentMethod === 'paypal') {
+      try {
+        // Get user details for PayPal
+        const user = await User.findById(userId).select('firstName lastName email');
+        
+        // Create PayPal billing plan if it doesn't exist
+        const planData = {
+          name: `${plan.name} - ${billingCycle}`,
+          description: `LocalPro Plus ${plan.name} subscription (${billingCycle})`,
+          price: amount,
+          currency: plan.pricing.currency,
+          frequency: billingCycle === 'yearly' ? 'YEAR' : 'MONTH'
+        };
+
+        const billingPlanResult = await PayPalService.createBillingPlan(planData);
+        
+        if (!billingPlanResult.success) {
+          throw new Error('Failed to create PayPal billing plan');
+        }
+
+        // Create PayPal subscription
+        const subscriptionData = {
+          planId: billingPlanResult.data.id,
+          customId: subscription._id.toString(),
+          subscriber: {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          }
+        };
+
+        const paypalSubscriptionResult = await PayPalService.createSubscription(subscriptionData);
+        
+        if (!paypalSubscriptionResult.success) {
+          throw new Error('Failed to create PayPal subscription');
+        }
+
+        // Update payment with PayPal details
+        payment.paypalSubscriptionId = paypalSubscriptionResult.data.id;
+        await payment.save();
+
+        // Update subscription with PayPal details
+        subscription.payment.paypalSubscriptionId = paypalSubscriptionResult.data.id;
+        await subscription.save();
+
+        // Populate subscription details
+        await subscription.populate('plan', 'name type tier features');
+
+        res.status(201).json({
+          success: true,
+          message: 'PayPal subscription created successfully',
+          data: {
+            subscription,
+            payment,
+            paypalApprovalUrl: paypalSubscriptionResult.data.links.find(link => link.rel === 'approve')?.href
+          }
+        });
+        return;
+      } catch (paypalError) {
+        console.error('PayPal subscription error:', paypalError);
+        // Fall back to regular subscription creation
+        subscription.status = 'pending';
+        await subscription.save();
+      }
+    }
 
     // Populate subscription details
     await subscription.populate('plan', 'name type tier features');
@@ -382,6 +451,130 @@ const getUsageAnalytics = async (req, res) => {
   }
 };
 
+// @desc    Handle PayPal subscription approval
+// @route   POST /api/localpro-plus/paypal/approve
+// @access  Private
+const approvePayPalSubscription = async (req, res) => {
+  try {
+    const { subscriptionId } = req.body;
+    const userId = req.user.id;
+
+    // Get subscription details from PayPal
+    const paypalSubscriptionResult = await PayPalService.getSubscription(subscriptionId);
+    
+    if (!paypalSubscriptionResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid PayPal subscription'
+      });
+    }
+
+    const paypalSubscription = paypalSubscriptionResult.data;
+    
+    // Find our subscription record
+    const subscription = await UserSubscription.findOne({
+      user: userId,
+      'payment.paypalSubscriptionId': subscriptionId
+    });
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subscription not found'
+      });
+    }
+
+    // Update subscription status based on PayPal status
+    if (paypalSubscription.status === 'ACTIVE') {
+      subscription.status = 'active';
+      subscription.billing.startDate = new Date();
+      
+      // Update payment status
+      const payment = await Payment.findOne({
+        subscription: subscription._id,
+        paypalSubscriptionId: subscriptionId
+      });
+      
+      if (payment) {
+        payment.status = 'completed';
+        await payment.save();
+      }
+    }
+
+    await subscription.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'PayPal subscription approved successfully',
+      data: subscription
+    });
+  } catch (error) {
+    console.error('Approve PayPal subscription error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Cancel PayPal subscription
+// @route   POST /api/localpro-plus/paypal/cancel
+// @access  Private
+const cancelPayPalSubscription = async (req, res) => {
+  try {
+    const { subscriptionId, reason } = req.body;
+    const userId = req.user.id;
+
+    // Find our subscription record
+    const subscription = await UserSubscription.findOne({
+      user: userId,
+      'payment.paypalSubscriptionId': subscriptionId
+    });
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subscription not found'
+      });
+    }
+
+    // Cancel subscription in PayPal
+    const cancelResult = await PayPalService.cancelSubscription(
+      subscriptionId, 
+      reason || 'User requested cancellation'
+    );
+
+    if (!cancelResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to cancel PayPal subscription'
+      });
+    }
+
+    // Update local subscription
+    subscription.status = 'cancelled';
+    subscription.cancellation = {
+      requestedAt: new Date(),
+      reason: reason || 'User requested cancellation',
+      effectiveDate: new Date()
+    };
+
+    await subscription.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'PayPal subscription cancelled successfully',
+      data: subscription
+    });
+  } catch (error) {
+    console.error('Cancel PayPal subscription error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getSubscriptionPlans,
   getSubscriptionPlan,
@@ -390,5 +583,7 @@ module.exports = {
   cancelSubscription,
   getUserPayments,
   recordFeatureUsage,
-  getUsageAnalytics
+  getUsageAnalytics,
+  approvePayPalSubscription,
+  cancelPayPalSubscription
 };

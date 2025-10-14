@@ -7,7 +7,11 @@ const {
   getUserSalaryAdvances,
   getUserTransactions,
   approveLoan,
-  disburseLoan
+  disburseLoan,
+  repayLoanWithPayPal,
+  approvePayPalLoanRepayment,
+  repaySalaryAdvanceWithPayPal,
+  approvePayPalSalaryAdvanceRepayment
 } = require('../controllers/financeController');
 
 const router = express.Router();
@@ -29,5 +33,11 @@ router.get('/transactions', getUserTransactions);
 // Admin routes
 router.put('/loans/:id/approve', authorize('admin'), approveLoan);
 router.put('/loans/:id/disburse', authorize('admin'), disburseLoan);
+
+// PayPal payment routes
+router.post('/loans/:id/repay/paypal', repayLoanWithPayPal);
+router.post('/loans/repay/paypal/approve', approvePayPalLoanRepayment);
+router.post('/salary-advances/:id/repay/paypal', repaySalaryAdvanceWithPayPal);
+router.post('/salary-advances/repay/paypal/approve', approvePayPalSalaryAdvanceRepayment);
 
 module.exports = router;

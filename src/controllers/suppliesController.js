@@ -1,6 +1,7 @@
 const { Product, SubscriptionKit, Order } = require('../models/Supplies');
 const User = require('../models/User');
 const EmailService = require('../services/emailService');
+const PayPalService = require('../services/paypalService');
 
 // @desc    Get all products
 // @route   GET /api/supplies/products
@@ -182,7 +183,7 @@ const getSubscriptionKit = async (req, res) => {
 // @access  Private
 const createOrder = async (req, res) => {
   try {
-    const { items, subscriptionKitId, shippingAddress } = req.body;
+    const { items, subscriptionKitId, shippingAddress, paymentMethod } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({
@@ -220,10 +221,78 @@ const createOrder = async (req, res) => {
       subscriptionKit: subscriptionKitId,
       totalAmount,
       shippingAddress,
-      isSubscription: !!subscriptionKitId
+      isSubscription: !!subscriptionKitId,
+      payment: {
+        method: paymentMethod || 'cash',
+        status: paymentMethod === 'paypal' ? 'pending' : 'pending'
+      }
     };
 
     const order = await Order.create(orderData);
+
+    // Handle PayPal payment if selected
+    if (paymentMethod === 'paypal') {
+      try {
+        // Get user details for PayPal
+        const user = await User.findById(req.user.id).select('firstName lastName email');
+        
+        // Create PayPal order
+        const paypalOrderData = {
+          amount: totalAmount,
+          currency: 'USD',
+          description: `Supplies order #${order._id}`,
+          referenceId: order._id.toString(),
+          items: orderItems.map(item => ({
+            name: item.product.name || 'Product',
+            unit_amount: {
+              currency_code: 'USD',
+              value: item.price.toFixed(2)
+            },
+            quantity: item.quantity.toString()
+          })),
+          shipping: shippingAddress ? {
+            name: `${user.firstName} ${user.lastName}`,
+            address_line_1: shippingAddress.street,
+            city: shippingAddress.city,
+            state: shippingAddress.state,
+            postal_code: shippingAddress.zipCode,
+            country_code: shippingAddress.country || 'US'
+          } : undefined
+        };
+
+        const paypalOrderResult = await PayPalService.createOrder(paypalOrderData);
+        
+        if (!paypalOrderResult.success) {
+          throw new Error('Failed to create PayPal order');
+        }
+
+        // Update order with PayPal order ID
+        order.payment.paypalOrderId = paypalOrderResult.data.id;
+        await order.save();
+
+        // Populate order details
+        await order.populate([
+          { path: 'items.product', select: 'name pricing images' },
+          { path: 'subscriptionKit', select: 'name pricing frequency' },
+          { path: 'customer', select: 'firstName lastName email' }
+        ]);
+
+        res.status(201).json({
+          success: true,
+          message: 'Order created successfully with PayPal payment',
+          data: {
+            order,
+            paypalApprovalUrl: paypalOrderResult.data.links.find(link => link.rel === 'approve')?.href
+          }
+        });
+        return;
+      } catch (paypalError) {
+        console.error('PayPal order error:', paypalError);
+        // Fall back to regular order creation
+        order.payment.method = 'cash';
+        await order.save();
+      }
+    }
 
     // Populate order details
     await order.populate([
@@ -417,6 +486,121 @@ const subscribeToKit = async (req, res) => {
   }
 };
 
+// @desc    Handle PayPal order payment approval
+// @route   POST /api/supplies/orders/paypal/approve
+// @access  Private
+const approvePayPalOrder = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const userId = req.user.id;
+
+    // Capture the PayPal order
+    const captureResult = await PayPalService.captureOrder(orderId);
+    
+    if (!captureResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to capture PayPal payment'
+      });
+    }
+
+    // Find the order
+    const order = await Order.findOne({
+      customer: userId,
+      'payment.paypalOrderId': orderId
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Update order payment status
+    order.payment.status = 'paid';
+    order.payment.paypalTransactionId = captureResult.data.purchase_units[0].payments.captures[0].id;
+    order.payment.paidAt = new Date();
+    order.status = 'confirmed';
+    await order.save();
+
+    // Send order confirmation email
+    await order.populate([
+      { path: 'items.product', select: 'name pricing images' },
+      { path: 'subscriptionKit', select: 'name pricing frequency' },
+      { path: 'customer', select: 'firstName lastName email' }
+    ]);
+
+    if (order.customer.email) {
+      try {
+        await EmailService.sendOrderConfirmation(order.customer.email, order);
+        console.log(`Order confirmation email sent to: ${order.customer.email}`);
+      } catch (emailError) {
+        console.error('Failed to send order confirmation email:', emailError);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'PayPal payment approved successfully',
+      data: order
+    });
+  } catch (error) {
+    console.error('Approve PayPal order error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get PayPal order details for supplies
+// @route   GET /api/supplies/orders/paypal/order/:orderId
+// @access  Private
+const getPayPalOrderDetails = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user.id;
+
+    // Verify the order belongs to the user
+    const order = await Order.findOne({
+      customer: userId,
+      'payment.paypalOrderId': orderId
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Get order details from PayPal
+    const paypalOrderResult = await PayPalService.getOrder(orderId);
+    
+    if (!paypalOrderResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to get PayPal order details'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        order,
+        paypalOrder: paypalOrderResult.data
+      }
+    });
+  } catch (error) {
+    console.error('Get PayPal order details error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getProducts,
   getProduct,
@@ -426,5 +610,7 @@ module.exports = {
   createOrder,
   getOrders,
   updateOrderStatus,
-  subscribeToKit
+  subscribeToKit,
+  approvePayPalOrder,
+  getPayPalOrderDetails
 };

@@ -9,7 +9,9 @@ const {
   createOrder,
   getOrders,
   updateOrderStatus,
-  subscribeToKit
+  subscribeToKit,
+  approvePayPalOrder,
+  getPayPalOrderDetails
 } = require('../controllers/suppliesController');
 
 const router = express.Router();
@@ -33,5 +35,9 @@ router.put('/orders/:id/status', updateOrderStatus);
 
 // Subscription routes
 router.post('/subscribe', subscribeToKit);
+
+// PayPal routes
+router.post('/orders/paypal/approve', approvePayPalOrder);
+router.get('/orders/paypal/order/:orderId', getPayPalOrderDetails);
 
 module.exports = router;

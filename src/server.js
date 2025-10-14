@@ -20,6 +20,7 @@ const trustVerificationRoutes = require('./routes/trustVerification');
 const communicationRoutes = require('./routes/communication');
 const analyticsRoutes = require('./routes/analytics');
 const mapsRoutes = require('./routes/maps');
+const paypalRoutes = require('./routes/paypal');
 
 const app = express();
 
@@ -259,6 +260,7 @@ app.use('/api/trust-verification', trustVerificationRoutes);
 app.use('/api/communication', communicationRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/maps', mapsRoutes);
+app.use('/api/paypal', paypalRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

@@ -186,8 +186,14 @@ const orderSchema = new mongoose.Schema({
       enum: ['pending', 'paid', 'failed', 'refunded'],
       default: 'pending'
     },
-    method: String,
+    method: {
+      type: String,
+      enum: ['cash', 'card', 'bank_transfer', 'paypal'],
+      default: 'cash'
+    },
     transactionId: String,
+    paypalOrderId: String,
+    paypalTransactionId: String,
     paidAt: Date
   },
   shipping: {

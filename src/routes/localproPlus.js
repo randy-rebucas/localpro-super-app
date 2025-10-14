@@ -8,7 +8,9 @@ const {
   cancelSubscription,
   getUserPayments,
   recordFeatureUsage,
-  getUsageAnalytics
+  getUsageAnalytics,
+  approvePayPalSubscription,
+  cancelPayPalSubscription
 } = require('../controllers/localproPlusController');
 
 const router = express.Router();
@@ -31,5 +33,9 @@ router.get('/payments', getUserPayments);
 // Usage tracking routes
 router.post('/usage', recordFeatureUsage);
 router.get('/usage/analytics', getUsageAnalytics);
+
+// PayPal routes
+router.post('/paypal/approve', approvePayPalSubscription);
+router.post('/paypal/cancel', cancelPayPalSubscription);
 
 module.exports = router;
