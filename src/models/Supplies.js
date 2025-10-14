@@ -59,7 +59,12 @@ const productSchema = new mongoose.Schema({
     color: String,
     warranty: String
   },
-  images: [String],
+  images: [{
+    url: String,
+    publicId: String,
+    thumbnail: String,
+    alt: String
+  }],
   tags: [String],
   isActive: {
     type: Boolean,

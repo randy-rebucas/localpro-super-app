@@ -64,7 +64,12 @@ const serviceSchema = new mongoose.Schema({
     type: [String], // Array of zip codes or cities
     required: true
   },
-  images: [String],
+  images: [{
+    url: String,
+    publicId: String,
+    thumbnail: String,
+    alt: String
+  }],
   features: [String],
   requirements: [String],
   // Enhanced service features inspired by LocalPro
@@ -216,7 +221,11 @@ const bookingSchema = new mongoose.Schema({
       value: { type: Number, min: 1, max: 5 }
     },
     wouldRecommend: { type: Boolean, default: false },
-    photos: [String]
+    photos: [{
+      url: String,
+      publicId: String,
+      thumbnail: String
+    }]
   },
   // Enhanced booking features
   communication: {
@@ -247,6 +256,7 @@ const bookingSchema = new mongoose.Schema({
   documents: [{
     name: String,
     url: String,
+    publicId: String,
     type: String,
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -254,8 +264,16 @@ const bookingSchema = new mongoose.Schema({
     },
     uploadedAt: { type: Date, default: Date.now }
   }],
-  beforePhotos: [String],
-  afterPhotos: [String],
+  beforePhotos: [{
+    url: String,
+    publicId: String,
+    thumbnail: String
+  }],
+  afterPhotos: [{
+    url: String,
+    publicId: String,
+    thumbnail: String
+  }],
   completionNotes: String,
   clientSatisfaction: {
     rating: { type: Number, min: 1, max: 5 },

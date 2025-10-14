@@ -39,7 +39,11 @@ const userSchema = new mongoose.Schema({
     expires: '5m'
   },
   profile: {
-    avatar: String,
+    avatar: {
+      url: String,
+      publicId: String,
+      thumbnail: String
+    },
     bio: String,
     address: {
       street: String,
@@ -78,7 +82,11 @@ const userSchema = new mongoose.Schema({
       issuer: String,
       issueDate: Date,
       expiryDate: Date,
-      documentUrl: String
+      document: {
+        url: String,
+        publicId: String,
+        filename: String
+      }
     }],
     insurance: {
       hasInsurance: { type: Boolean, default: false },
@@ -86,7 +94,11 @@ const userSchema = new mongoose.Schema({
       policyNumber: String,
       coverageAmount: Number,
       expiryDate: Date,
-      documentUrl: String
+      document: {
+        url: String,
+        publicId: String,
+        filename: String
+      }
     },
     backgroundCheck: {
       status: {
@@ -95,12 +107,20 @@ const userSchema = new mongoose.Schema({
         default: 'pending'
       },
       completedAt: Date,
-      documentUrl: String
+      document: {
+        url: String,
+        publicId: String,
+        filename: String
+      }
     },
     portfolio: [{
       title: String,
       description: String,
-      images: [String],
+      images: [{
+        url: String,
+        publicId: String,
+        thumbnail: String
+      }],
       category: String,
       completedAt: Date
     }],

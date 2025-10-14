@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const TwilioService = require('../services/twilioService');
+const CloudinaryService = require('../services/cloudinaryService');
+const { uploaders } = require('../config/cloudinary');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -181,6 +183,147 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// @desc    Upload profile avatar
+// @route   POST /api/auth/upload-avatar
+// @access  Private
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Upload to Cloudinary
+    const uploadResult = await CloudinaryService.uploadFile(
+      req.file, 
+      'localpro/users/profiles'
+    );
+
+    if (!uploadResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload avatar',
+        error: uploadResult.error
+      });
+    }
+
+    // Delete old avatar if exists
+    if (user.profile.avatar && user.profile.avatar.publicId) {
+      await CloudinaryService.deleteFile(user.profile.avatar.publicId);
+    }
+
+    // Update user profile with new avatar
+    user.profile.avatar = {
+      url: uploadResult.data.secure_url,
+      publicId: uploadResult.data.public_id,
+      thumbnail: CloudinaryService.getOptimizedUrl(uploadResult.data.public_id, 'thumbnail')
+    };
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Avatar uploaded successfully',
+      data: {
+        avatar: user.profile.avatar
+      }
+    });
+  } catch (error) {
+    console.error('Upload avatar error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Upload portfolio images
+// @route   POST /api/auth/upload-portfolio
+// @access  Private
+const uploadPortfolioImages = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded'
+      });
+    }
+
+    const userId = req.user.id;
+    const { title, description, category } = req.body;
+
+    if (!title || !description || !category) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title, description, and category are required'
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Upload multiple files to Cloudinary
+    const uploadResult = await CloudinaryService.uploadMultipleFiles(
+      req.files, 
+      'localpro/users/portfolio'
+    );
+
+    if (!uploadResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload portfolio images',
+        error: uploadResult.error
+      });
+    }
+
+    // Create portfolio entry
+    const portfolioEntry = {
+      title,
+      description,
+      category,
+      images: uploadResult.data.map(file => ({
+        url: file.secure_url,
+        publicId: file.public_id,
+        thumbnail: CloudinaryService.getOptimizedUrl(file.public_id, 'thumbnail')
+      })),
+      completedAt: new Date()
+    };
+
+    user.profile.portfolio.push(portfolioEntry);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Portfolio images uploaded successfully',
+      data: portfolioEntry
+    });
+  } catch (error) {
+    console.error('Upload portfolio images error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 // @desc    Logout user
 // @route   POST /api/auth/logout
 // @access  Private
@@ -208,5 +351,7 @@ module.exports = {
   verifyCode,
   getMe,
   updateProfile,
+  uploadAvatar,
+  uploadPortfolioImages,
   logout
 };

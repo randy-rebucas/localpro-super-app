@@ -89,13 +89,19 @@ const rentalItemSchema = new mongoose.Schema({
     deposit: Number,
     insuranceRequired: { type: Boolean, default: false }
   },
-  images: [String],
+  images: [{
+    url: String,
+    publicId: String,
+    thumbnail: String,
+    alt: String
+  }],
   documents: [{
     type: {
       type: String,
       enum: ['manual', 'warranty', 'insurance', 'license', 'other']
     },
     url: String,
+    publicId: String,
     name: String
   }],
   maintenance: {
@@ -199,7 +205,11 @@ const rentalSchema = new mongoose.Schema({
       enum: ['excellent', 'good', 'fair', 'poor', 'damaged']
     },
     notes: String,
-    images: [String]
+    images: [{
+      url: String,
+      publicId: String,
+      thumbnail: String
+    }]
   },
   status: {
     type: String,

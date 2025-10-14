@@ -1,5 +1,7 @@
 const { Service, Booking } = require('../models/Marketplace');
 const User = require('../models/User');
+const CloudinaryService = require('../services/cloudinaryService');
+const { uploaders } = require('../config/cloudinary');
 
 // @desc    Get all services
 // @route   GET /api/marketplace/services
@@ -340,12 +342,162 @@ const updateBookingStatus = async (req, res) => {
   }
 };
 
+// @desc    Upload service images
+// @route   POST /api/marketplace/services/:id/images
+// @access  Private (Provider)
+const uploadServiceImages = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded'
+      });
+    }
+
+    const serviceId = req.params.id;
+    const service = await Service.findById(serviceId);
+
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: 'Service not found'
+      });
+    }
+
+    // Check if user is the provider
+    if (service.provider.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to upload images for this service'
+      });
+    }
+
+    // Upload multiple files to Cloudinary
+    const uploadResult = await CloudinaryService.uploadMultipleFiles(
+      req.files, 
+      'localpro/marketplace'
+    );
+
+    if (!uploadResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload service images',
+        error: uploadResult.error
+      });
+    }
+
+    // Add new images to service
+    const newImages = uploadResult.data.map(file => ({
+      url: file.secure_url,
+      publicId: file.public_id,
+      thumbnail: CloudinaryService.getOptimizedUrl(file.public_id, 'thumbnail'),
+      alt: `Service image for ${service.title}`
+    }));
+
+    service.images.push(...newImages);
+    await service.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Service images uploaded successfully',
+      data: newImages
+    });
+  } catch (error) {
+    console.error('Upload service images error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Upload booking photos
+// @route   POST /api/marketplace/bookings/:id/photos
+// @access  Private
+const uploadBookingPhotos = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded'
+      });
+    }
+
+    const { type } = req.body; // 'before' or 'after'
+    const bookingId = req.params.id;
+
+    if (!type || !['before', 'after'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Type must be either "before" or "after"'
+      });
+    }
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    // Check if user is authorized
+    if (booking.client.toString() !== req.user.id && booking.provider.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to upload photos for this booking'
+      });
+    }
+
+    // Upload multiple files to Cloudinary
+    const uploadResult = await CloudinaryService.uploadMultipleFiles(
+      req.files, 
+      `localpro/marketplace/bookings/${bookingId}`
+    );
+
+    if (!uploadResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload booking photos',
+        error: uploadResult.error
+      });
+    }
+
+    // Add photos to appropriate array
+    const newPhotos = uploadResult.data.map(file => ({
+      url: file.secure_url,
+      publicId: file.public_id,
+      thumbnail: CloudinaryService.getOptimizedUrl(file.public_id, 'thumbnail')
+    }));
+
+    if (type === 'before') {
+      booking.beforePhotos.push(...newPhotos);
+    } else {
+      booking.afterPhotos.push(...newPhotos);
+    }
+
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: `${type} photos uploaded successfully`,
+      data: newPhotos
+    });
+  } catch (error) {
+    console.error('Upload booking photos error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 // @desc    Add review to booking
 // @route   POST /api/marketplace/bookings/:id/review
 // @access  Private
 const addReview = async (req, res) => {
   try {
-    const { rating, comment } = req.body;
+    const { rating, comment, categories } = req.body;
     const bookingId = req.params.id;
 
     const booking = await Booking.findById(bookingId);
@@ -378,9 +530,28 @@ const addReview = async (req, res) => {
       });
     }
 
+    // Handle review photos if uploaded
+    let reviewPhotos = [];
+    if (req.files && req.files.length > 0) {
+      const uploadResult = await CloudinaryService.uploadMultipleFiles(
+        req.files, 
+        `localpro/marketplace/reviews/${bookingId}`
+      );
+
+      if (uploadResult.success) {
+        reviewPhotos = uploadResult.data.map(file => ({
+          url: file.secure_url,
+          publicId: file.public_id,
+          thumbnail: CloudinaryService.getOptimizedUrl(file.public_id, 'thumbnail')
+        }));
+      }
+    }
+
     booking.review = {
       rating,
       comment,
+      categories,
+      photos: reviewPhotos,
       createdAt: new Date()
     };
 
@@ -415,8 +586,10 @@ module.exports = {
   createService,
   updateService,
   deleteService,
+  uploadServiceImages,
   createBooking,
   getBookings,
   updateBookingStatus,
+  uploadBookingPhotos,
   addReview
 };

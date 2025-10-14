@@ -7,8 +7,11 @@ const {
   getEnrollments,
   updateProgress,
   getCertifications,
+  uploadCourseThumbnail,
+  uploadCourseContent,
   createCourse
 } = require('../controllers/academyController');
+const { uploaders } = require('../config/cloudinary');
 
 const router = express.Router();
 
@@ -22,6 +25,8 @@ router.use(auth);
 
 // Course routes
 router.post('/courses', authorize('instructor', 'admin'), createCourse);
+router.post('/courses/:id/thumbnail', authorize('instructor', 'admin'), uploaders.academy.single('thumbnail'), uploadCourseThumbnail);
+router.post('/courses/:id/content', authorize('instructor', 'admin'), uploaders.academy.single('content'), uploadCourseContent);
 
 // Enrollment routes
 router.post('/enroll', enrollInCourse);

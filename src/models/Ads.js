@@ -40,6 +40,7 @@ const advertiserSchema = new mongoose.Schema({
         enum: ['business_license', 'tax_certificate', 'insurance', 'other']
       },
       url: String,
+      publicId: String,
       uploadedAt: Date
     }],
     verifiedAt: Date,
@@ -106,13 +107,25 @@ const adCampaignSchema = new mongoose.Schema({
   content: {
     headline: String,
     body: String,
-    images: [String],
-    video: String,
+    images: [{
+      url: String,
+      publicId: String,
+      thumbnail: String
+    }],
+    video: {
+      url: String,
+      publicId: String,
+      thumbnail: String
+    },
     callToAction: {
       text: String,
       url: String
     },
-    logo: String
+    logo: {
+      url: String,
+      publicId: String,
+      thumbnail: String
+    }
   },
   budget: {
     total: {

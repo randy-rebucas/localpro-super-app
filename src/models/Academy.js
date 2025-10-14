@@ -62,7 +62,11 @@ const courseSchema = new mongoose.Schema({
         enum: ['video', 'text', 'quiz', 'practical'],
         default: 'video'
       },
-      content: String, // URL or text content
+      content: {
+        url: String,
+        publicId: String,
+        type: String // 'video', 'document', 'image', 'text'
+      },
       isFree: { type: Boolean, default: false }
     }]
   }],
@@ -110,7 +114,11 @@ const courseSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  thumbnail: String,
+  thumbnail: {
+    url: String,
+    publicId: String,
+    thumbnail: String
+  },
   tags: [String]
 }, {
   timestamps: true
@@ -163,7 +171,8 @@ const enrollmentSchema = new mongoose.Schema({
     issued: { type: Boolean, default: false },
     issuedAt: Date,
     certificateId: String,
-    downloadUrl: String
+    downloadUrl: String,
+    publicId: String
   }
 }, {
   timestamps: true

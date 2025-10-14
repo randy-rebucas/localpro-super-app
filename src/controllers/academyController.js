@@ -1,4 +1,6 @@
 const { Course, Enrollment, Certification } = require('../models/Academy');
+const CloudinaryService = require('../services/cloudinaryService');
+const { uploaders } = require('../config/cloudinary');
 
 // @desc    Get all courses
 // @route   GET /api/academy/courses
@@ -275,6 +277,180 @@ const getCertifications = async (req, res) => {
   }
 };
 
+// @desc    Upload course thumbnail
+// @route   POST /api/academy/courses/:id/thumbnail
+// @access  Private (Instructor)
+const uploadCourseThumbnail = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+
+    const courseId = req.params.id;
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Check if user is the instructor
+    if (course.instructor.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to upload thumbnail for this course'
+      });
+    }
+
+    // Upload to Cloudinary
+    const uploadResult = await CloudinaryService.uploadFile(
+      req.file, 
+      'localpro/academy/thumbnails'
+    );
+
+    if (!uploadResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload thumbnail',
+        error: uploadResult.error
+      });
+    }
+
+    // Delete old thumbnail if exists
+    if (course.thumbnail && course.thumbnail.publicId) {
+      await CloudinaryService.deleteFile(course.thumbnail.publicId);
+    }
+
+    // Update course thumbnail
+    course.thumbnail = {
+      url: uploadResult.data.secure_url,
+      publicId: uploadResult.data.public_id,
+      thumbnail: CloudinaryService.getOptimizedUrl(uploadResult.data.public_id, 'thumbnail')
+    };
+
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Course thumbnail uploaded successfully',
+      data: {
+        thumbnail: course.thumbnail
+      }
+    });
+  } catch (error) {
+    console.error('Upload course thumbnail error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Upload course content
+// @route   POST /api/academy/courses/:id/content
+// @access  Private (Instructor)
+const uploadCourseContent = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+
+    const { moduleId, lessonId, contentType } = req.body; // contentType: 'video', 'document', 'image'
+    const courseId = req.params.id;
+
+    if (!moduleId || !lessonId || !contentType) {
+      return res.status(400).json({
+        success: false,
+        message: 'Module ID, lesson ID, and content type are required'
+      });
+    }
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Check if user is the instructor
+    if (course.instructor.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to upload content for this course'
+      });
+    }
+
+    // Find the module and lesson
+    const module = course.curriculum.id(moduleId);
+    if (!module) {
+      return res.status(404).json({
+        success: false,
+        message: 'Module not found'
+      });
+    }
+
+    const lesson = module.lessons.id(lessonId);
+    if (!lesson) {
+      return res.status(404).json({
+        success: false,
+        message: 'Lesson not found'
+      });
+    }
+
+    // Upload to Cloudinary
+    const uploadResult = await CloudinaryService.uploadFile(
+      req.file, 
+      `localpro/academy/courses/${courseId}/content`
+    );
+
+    if (!uploadResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload content',
+        error: uploadResult.error
+      });
+    }
+
+    // Delete old content if exists
+    if (lesson.content && lesson.content.publicId) {
+      await CloudinaryService.deleteFile(lesson.content.publicId);
+    }
+
+    // Update lesson content
+    lesson.content = {
+      url: uploadResult.data.secure_url,
+      publicId: uploadResult.data.public_id,
+      type: contentType
+    };
+
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Course content uploaded successfully',
+      data: {
+        content: lesson.content
+      }
+    });
+  } catch (error) {
+    console.error('Upload course content error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 // @desc    Create course (Instructor)
 // @route   POST /api/academy/courses
 // @access  Private (Instructor)
@@ -308,5 +484,7 @@ module.exports = {
   getEnrollments,
   updateProgress,
   getCertifications,
+  uploadCourseThumbnail,
+  uploadCourseContent,
   createCourse
 };
