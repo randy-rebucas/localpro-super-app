@@ -13,7 +13,8 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **🔧 Rentals**: Tool and vehicle rental platform
 - **📢 Advertising**: Platform for hardware stores and suppliers
 - **🏢 FacilityCare**: Janitorial, landscaping, and pest control services
-- **⭐ LocalPro Plus**: Premium subscription system
+- **⭐ LocalPro Plus**: Premium subscription system with PayPal integration
+- **💳 PayPal Integration**: Complete payment processing for all features
 - **🗺️ Google Maps**: Location services and mapping integration
 - **📧 Email Service**: Multi-provider email notifications
 
@@ -23,8 +24,8 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - Role-based access control
 - Real-time SMS verification
 - Advanced search and filtering
-- Payment processing integration
-- Subscription management
+- Complete PayPal payment processing (one-time & recurring)
+- Full subscription management with automatic billing
 - Analytics and reporting
 - File upload support
 - Rate limiting and security
@@ -44,6 +45,7 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **Security**: Helmet, CORS, Rate Limiting
 - **Logging**: Morgan
 - **Email Service**: Resend, SendGrid, SMTP (Nodemailer)
+- **Payment Processing**: PayPal Server SDK + REST API
 - **Maps & Location**: Google Maps APIs
 - **File Storage**: Cloudinary
 
@@ -52,6 +54,7 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - Node.js (v14 or higher)
 - MongoDB (v4.4 or higher)
 - Twilio account for SMS verification
+- PayPal Developer account for payment processing
 - Google Maps API key (optional)
 - Email service account (Resend, SendGrid, or SMTP)
 - Git
@@ -117,6 +120,12 @@ EMAIL_SERVICE=resend
 # GOOGLE_MAPS_GEOCODING_API_KEY=your-google-maps-geocoding-api-key
 # GOOGLE_MAPS_PLACES_API_KEY=your-google-maps-places-api-key
 # GOOGLE_MAPS_DISTANCE_MATRIX_API_KEY=your-google-maps-distance-matrix-api-key
+
+# PayPal Configuration (Required for payment features)
+# PAYPAL_CLIENT_ID=your-paypal-client-id
+# PAYPAL_CLIENT_SECRET=your-paypal-client-secret
+# PAYPAL_MODE=sandbox
+# PAYPAL_WEBHOOK_ID=your-paypal-webhook-id
 ```
 
 **Note**: The app includes development mode support for Twilio. If Twilio credentials are not provided, the app will:
@@ -269,6 +278,22 @@ GET  /api/localpro-plus/subscription       # Get user subscription
 PUT  /api/localpro-plus/subscription/cancel # Cancel subscription
 GET  /api/localpro-plus/payments           # Get user payments
 POST /api/localpro-plus/usage              # Record feature usage
+POST /api/localpro-plus/paypal/approve     # Approve PayPal subscription
+POST /api/localpro-plus/paypal/cancel      # Cancel PayPal subscription
+```
+
+### PayPal Payment Endpoints
+```
+POST /api/paypal/webhook                   # PayPal webhook handler
+GET  /api/paypal/webhook/events            # Get webhook events (Admin)
+POST /api/marketplace/bookings/paypal/approve # Approve PayPal booking payment
+GET  /api/marketplace/bookings/paypal/order/:orderId # Get PayPal order details
+POST /api/supplies/orders/paypal/approve   # Approve PayPal supplies order
+GET  /api/supplies/orders/paypal/order/:orderId # Get PayPal order details
+POST /api/finance/loans/:id/repay/paypal   # Repay loan with PayPal
+POST /api/finance/loans/repay/paypal/approve # Approve PayPal loan repayment
+POST /api/finance/salary-advances/:id/repay/paypal # Repay salary advance with PayPal
+POST /api/finance/salary-advances/repay/paypal/approve # Approve PayPal salary advance repayment
 ```
 
 ### Google Maps & Location Endpoints
@@ -302,6 +327,13 @@ GET  /api/maps/test                        # Test API connection (Admin)
 - **Subscription**: LocalPro Plus subscriptions
 
 ## 🆕 New Features
+
+### 💳 PayPal Payment Integration
+- **Complete payment processing**: One-time payments and recurring subscriptions
+- **Multi-feature support**: Marketplace bookings, supplies orders, financial services, LocalPro Plus subscriptions
+- **Subscription management**: Full recurring billing with automatic renewals
+- **Webhook handling**: Real-time payment notifications and status updates
+- **Production ready**: Sandbox and production environment support
 
 ### 📧 Email Service Integration
 - **Multi-provider support**: Resend, SendGrid, and SMTP
@@ -388,14 +420,15 @@ For support, email support@localpro.com or join our Slack channel.
 
 - [x] Google Maps integration
 - [x] Email service integration
+- [x] PayPal payment integration
 - [x] Location-based services
 - [x] Service area validation
 - [x] Distance calculations
+- [x] Subscription management
 - [ ] Mobile app integration
 - [ ] Real-time notifications
 - [ ] Advanced analytics dashboard
 - [ ] Multi-language support
-- [ ] Payment gateway integration
 - [ ] AI-powered recommendations
 - [ ] Blockchain integration for contracts
 - [ ] IoT device integration

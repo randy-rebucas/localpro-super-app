@@ -1,0 +1,726 @@
+{
+  "info": {
+    "name": "LocalPro Super App - PayPal Integration",
+    "description": "Complete PayPal payment integration endpoints for LocalPro Super App",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paypal_order_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paypal_subscription_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Send Verification Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/send-code",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "send-code"]
+            }
+          }
+        },
+        {
+          "name": "Verify Code & Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"code\": \"123456\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify-code",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "verify-code"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.token) {",
+                  "        pm.collectionVariables.set('jwt_token', response.data.token);",
+                  "        pm.collectionVariables.set('user_id', response.data.user._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LocalPro Plus - PayPal Subscriptions",
+      "item": [
+        {
+          "name": "Get Subscription Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/localpro-plus/plans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "localpro-plus", "plans"]
+            }
+          }
+        },
+        {
+          "name": "Subscribe with PayPal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"plan_id_here\",\n  \"billingCycle\": \"monthly\",\n  \"paymentMethod\": \"paypal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/localpro-plus/subscribe",
+              "host": ["{{base_url}}"],
+              "path": ["api", "localpro-plus", "subscribe"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.paypalApprovalUrl) {",
+                  "        console.log('PayPal Approval URL:', response.data.paypalApprovalUrl);",
+                  "    }",
+                  "    if (response.data && response.data.subscription && response.data.subscription.payment && response.data.subscription.payment.paypalSubscriptionId) {",
+                  "        pm.collectionVariables.set('paypal_subscription_id', response.data.subscription.payment.paypalSubscriptionId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve PayPal Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"{{paypal_subscription_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/localpro-plus/paypal/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "localpro-plus", "paypal", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Cancel PayPal Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"{{paypal_subscription_id}}\",\n  \"reason\": \"User requested cancellation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/localpro-plus/paypal/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "localpro-plus", "paypal", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Get User Subscription",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/localpro-plus/subscription",
+              "host": ["{{base_url}}"],
+              "path": ["api", "localpro-plus", "subscription"]
+            }
+          }
+        },
+        {
+          "name": "Get User Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/localpro-plus/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "localpro-plus", "payments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Marketplace - PayPal Bookings",
+      "item": [
+        {
+          "name": "Get Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/services",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "services"]
+            }
+          }
+        },
+        {
+          "name": "Create Booking with PayPal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"service_id_here\",\n  \"scheduledDate\": \"2024-01-15T10:00:00Z\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"coordinates\": {\n      \"lat\": 40.7128,\n      \"lng\": -74.0060\n    }\n  },\n  \"notes\": \"Please call before arriving\",\n  \"paymentMethod\": \"paypal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "bookings"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.paypalApprovalUrl) {",
+                  "        console.log('PayPal Approval URL:', response.data.paypalApprovalUrl);",
+                  "    }",
+                  "    if (response.data && response.data.booking && response.data.booking.paypalOrderId) {",
+                  "        pm.collectionVariables.set('paypal_order_id', response.data.booking.paypalOrderId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve PayPal Booking Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{paypal_order_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/bookings/paypal/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "bookings", "paypal", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Get PayPal Order Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/bookings/paypal/order/{{paypal_order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "bookings", "paypal", "order", "{{paypal_order_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get User Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "bookings"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Supplies - PayPal Orders",
+      "item": [
+        {
+          "name": "Get Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/supplies/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "supplies", "products"]
+            }
+          }
+        },
+        {
+          "name": "Create Order with PayPal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"product_id_here\",\n      \"quantity\": 2,\n      \"price\": 25.99\n    }\n  ],\n  \"shippingAddress\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"country\": \"US\"\n  },\n  \"paymentMethod\": \"paypal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/supplies/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "supplies", "orders"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.paypalApprovalUrl) {",
+                  "        console.log('PayPal Approval URL:', response.data.paypalApprovalUrl);",
+                  "    }",
+                  "    if (response.data && response.data.order && response.data.order.paypalOrderId) {",
+                  "        pm.collectionVariables.set('paypal_order_id', response.data.order.paypalOrderId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve PayPal Order Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{paypal_order_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/supplies/orders/paypal/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "supplies", "orders", "paypal", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Get PayPal Order Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/supplies/orders/paypal/order/{{paypal_order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "supplies", "orders", "paypal", "order", "{{paypal_order_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get User Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/supplies/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "supplies", "orders"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance - PayPal Repayments",
+      "item": [
+        {
+          "name": "Get User Loans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/finance/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "finance", "loans"]
+            }
+          }
+        },
+        {
+          "name": "Repay Loan with PayPal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100.00,\n  \"paymentMethod\": \"paypal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/finance/loans/:loanId/repay/paypal",
+              "host": ["{{base_url}}"],
+              "path": ["api", "finance", "loans", ":loanId", "repay", "paypal"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.paypalApprovalUrl) {",
+                  "        console.log('PayPal Approval URL:', response.data.paypalApprovalUrl);",
+                  "    }",
+                  "    if (response.data && response.data.paypalOrderId) {",
+                  "        pm.collectionVariables.set('paypal_order_id', response.data.paypalOrderId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve PayPal Loan Repayment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{paypal_order_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/finance/loans/repay/paypal/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "finance", "loans", "repay", "paypal", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Get User Salary Advances",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/finance/salary-advances",
+              "host": ["{{base_url}}"],
+              "path": ["api", "finance", "salary-advances"]
+            }
+          }
+        },
+        {
+          "name": "Repay Salary Advance with PayPal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50.00,\n  \"paymentMethod\": \"paypal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/finance/salary-advances/:salaryAdvanceId/repay/paypal",
+              "host": ["{{base_url}}"],
+              "path": ["api", "finance", "salary-advances", ":salaryAdvanceId", "repay", "paypal"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.paypalApprovalUrl) {",
+                  "        console.log('PayPal Approval URL:', response.data.paypalApprovalUrl);",
+                  "    }",
+                  "    if (response.data && response.data.paypalOrderId) {",
+                  "        pm.collectionVariables.set('paypal_order_id', response.data.paypalOrderId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve PayPal Salary Advance Repayment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{paypal_order_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/finance/salary-advances/repay/paypal/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "finance", "salary-advances", "repay", "paypal", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Get User Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/finance/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "finance", "transactions"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PayPal Webhooks",
+      "item": [
+        {
+          "name": "PayPal Webhook Handler",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PayPal-Transmission-Id",
+                "value": "webhook-transmission-id",
+                "type": "text"
+              },
+              {
+                "key": "PayPal-Cert-Id",
+                "value": "webhook-cert-id",
+                "type": "text"
+              },
+              {
+                "key": "PayPal-Transmission-Sig",
+                "value": "webhook-signature",
+                "type": "text"
+              },
+              {
+                "key": "PayPal-Transmission-Time",
+                "value": "2024-01-01T00:00:00Z",
+                "type": "text"
+              },
+              {
+                "key": "PayPal-Auth-Algo",
+                "value": "SHA256withRSA",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"WH-2W42680HY53905350-67976317FL5552\",\n  \"event_type\": \"PAYMENT.CAPTURE.COMPLETED\",\n  \"create_time\": \"2024-01-01T00:00:00Z\",\n  \"resource_type\": \"capture\",\n  \"resource_version\": \"2.0\",\n  \"event_version\": \"1.0\",\n  \"summary\": \"Payment completed for $ 10.00 USD\",\n  \"resource\": {\n    \"amount\": {\n      \"currency_code\": \"USD\",\n      \"value\": \"10.00\"\n    },\n    \"final_capture\": true,\n    \"seller_protection\": {\n      \"status\": \"ELIGIBLE\",\n      \"dispute_categories\": [\"ITEM_NOT_RECEIVED\", \"UNAUTHORIZED_TRANSACTION\"]\n    },\n    \"seller_receivable_breakdown\": {\n      \"gross_amount\": {\n        \"currency_code\": \"USD\",\n        \"value\": \"10.00\"\n      },\n      \"paypal_fee\": {\n        \"currency_code\": \"USD\",\n        \"value\": \"0.59\"\n      },\n      \"net_amount\": {\n        \"currency_code\": \"USD\",\n        \"value\": \"9.41\"\n      }\n    },\n    \"id\": \"2GG279541U471931P\",\n    \"status\": \"COMPLETED\",\n    \"supplementary_data\": {\n      \"related_ids\": {\n        \"order_id\": \"5O190127TN364715T\"\n      }\n    }\n  },\n  \"links\": [\n    {\n      \"href\": \"https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-2W42680HY53905350-67976317FL5552\",\n      \"rel\": \"self\",\n      \"method\": \"GET\"\n    },\n    {\n      \"href\": \"https://api.sandbox.paypal.com/v1/notifications/webhooks-events/WH-2W42680HY53905350-67976317FL5552/resend\",\n      \"rel\": \"resend\",\n      \"method\": \"POST\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/paypal/webhook",
+              "host": ["{{base_url}}"],
+              "path": ["api", "paypal", "webhook"]
+            }
+          }
+        },
+        {
+          "name": "Get Webhook Events (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/paypal/webhook/events",
+              "host": ["{{base_url}}"],
+              "path": ["api", "paypal", "webhook", "events"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test Data Setup",
+      "item": [
+        {
+          "name": "Create Test Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"House Cleaning\",\n  \"description\": \"Professional house cleaning service\",\n  \"category\": \"cleaning\",\n  \"price\": 50.00,\n  \"currency\": \"USD\",\n  \"duration\": 120,\n  \"serviceArea\": {\n    \"type\": \"Polygon\",\n    \"coordinates\": [[\n      [-74.006, 40.7128],\n      [-74.006, 40.7228],\n      [-73.996, 40.7228],\n      [-73.996, 40.7128],\n      [-74.006, 40.7128]\n    ]]\n  },\n  \"availability\": {\n    \"monday\": [\"09:00-17:00\"],\n    \"tuesday\": [\"09:00-17:00\"],\n    \"wednesday\": [\"09:00-17:00\"],\n    \"thursday\": [\"09:00-17:00\"],\n    \"friday\": [\"09:00-17:00\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/services",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "services"]
+            }
+          }
+        },
+        {
+          "name": "Create Test Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cleaning Supplies Kit\",\n  \"description\": \"Complete cleaning supplies kit\",\n  \"category\": \"cleaning\",\n  \"price\": 25.99,\n  \"currency\": \"USD\",\n  \"stock\": 100,\n  \"images\": [\"https://example.com/image1.jpg\"],\n  \"specifications\": {\n    \"weight\": \"2.5 lbs\",\n    \"dimensions\": \"12x8x4 inches\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/supplies/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "supplies", "products"]
+            }
+          }
+        },
+        {
+          "name": "Apply for Test Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 500.00,\n  \"purpose\": \"Equipment purchase\",\n  \"repaymentPeriod\": 6,\n  \"monthlyIncome\": 3000.00,\n  \"employmentStatus\": \"employed\",\n  \"employerName\": \"Test Company\",\n  \"employmentDuration\": 12\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/finance/loans/apply",
+              "host": ["{{base_url}}"],
+              "path": ["api", "finance", "loans", "apply"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
