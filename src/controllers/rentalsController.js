@@ -1,4 +1,5 @@
 const { RentalItem, Rental } = require('../models/Rentals');
+const GoogleMapsService = require('../services/googleMapsService');
 
 // @desc    Get all rental items
 // @route   GET /api/rentals/items
@@ -22,7 +23,16 @@ const getRentalItems = async (req, res) => {
     if (category) filter.category = category;
     if (subcategory) filter.subcategory = subcategory;
     if (location) {
-      filter['location.address.city'] = new RegExp(location, 'i');
+      // Enhanced location filtering with Google Maps
+      if (req.query.coordinates) {
+        const coordinates = JSON.parse(req.query.coordinates);
+        const radius = parseInt(req.query.radius) || 50000; // Default 50km radius
+        
+        // For now, use text-based filtering, but this could be enhanced with geospatial queries
+        filter['location.address.city'] = new RegExp(location, 'i');
+      } else {
+        filter['location.address.city'] = new RegExp(location, 'i');
+      }
     }
     if (minPrice || maxPrice) {
       filter['pricing.daily'] = {};

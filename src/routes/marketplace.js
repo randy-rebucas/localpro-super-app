@@ -3,6 +3,7 @@ const { auth, authorize } = require('../middleware/auth');
 const {
   getServices,
   getService,
+  getNearbyServices,
   createService,
   updateService,
   deleteService,
@@ -19,6 +20,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/services', getServices);
+router.get('/services/nearby', getNearbyServices);
 router.get('/services/:id', getService);
 
 // Protected routes

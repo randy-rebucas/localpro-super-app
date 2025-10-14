@@ -14,6 +14,8 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **📢 Advertising**: Platform for hardware stores and suppliers
 - **🏢 FacilityCare**: Janitorial, landscaping, and pest control services
 - **⭐ LocalPro Plus**: Premium subscription system
+- **🗺️ Google Maps**: Location services and mapping integration
+- **📧 Email Service**: Multi-provider email notifications
 
 ### Key Features
 - RESTful API with comprehensive endpoints
@@ -26,6 +28,11 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - Analytics and reporting
 - File upload support
 - Rate limiting and security
+- **Location-based services with Google Maps**
+- **Email notifications (Resend, SendGrid, SMTP)**
+- **Service area validation**
+- **Distance calculations and travel time**
+- **Places search and autocomplete**
 
 ## 🛠️ Tech Stack
 
@@ -36,12 +43,17 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **Validation**: Joi
 - **Security**: Helmet, CORS, Rate Limiting
 - **Logging**: Morgan
+- **Email Service**: Resend, SendGrid, SMTP (Nodemailer)
+- **Maps & Location**: Google Maps APIs
+- **File Storage**: Cloudinary
 
 ## 📋 Prerequisites
 
 - Node.js (v14 or higher)
 - MongoDB (v4.4 or higher)
 - Twilio account for SMS verification
+- Google Maps API key (optional)
+- Email service account (Resend, SendGrid, or SMTP)
 - Git
 
 ## 🚀 Quick Start
@@ -67,7 +79,7 @@ Update the `.env` file with your configuration. **For development, you only need
 ```env
 # Server Configuration
 NODE_ENV=development
-PORT=5000
+PORT=4000
 FRONTEND_URL=http://localhost:3000
 
 # Database
@@ -81,6 +93,30 @@ JWT_SECRET=your-super-secret-jwt-key-here
 # TWILIO_AUTH_TOKEN=your-twilio-auth-token
 # TWILIO_VERIFY_SERVICE_SID=your-twilio-verify-service-sid
 # TWILIO_PHONE_NUMBER=your-twilio-phone-number
+
+# Email Service Configuration (Optional)
+# Option 1: Resend (Recommended - Modern API)
+# RESEND_API_KEY=re_xxxxxxxxx
+# FROM_EMAIL=noreply@yourdomain.com
+
+# Option 2: SendGrid (API-based)
+# SENDGRID_API_KEY=your-sendgrid-api-key
+
+# Option 3: SMTP (SMTP-based)
+# SMTP_HOST=smtp.hostinger.com
+# SMTP_PORT=587
+# SMTP_SECURE=false
+# SMTP_USER=your-email@yourdomain.com
+# SMTP_PASS=your-email-password
+
+# Email Settings
+EMAIL_SERVICE=resend
+
+# Google Maps Configuration (Optional)
+# GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+# GOOGLE_MAPS_GEOCODING_API_KEY=your-google-maps-geocoding-api-key
+# GOOGLE_MAPS_PLACES_API_KEY=your-google-maps-places-api-key
+# GOOGLE_MAPS_DISTANCE_MATRIX_API_KEY=your-google-maps-distance-matrix-api-key
 ```
 
 **Note**: The app includes development mode support for Twilio. If Twilio credentials are not provided, the app will:
@@ -93,7 +129,7 @@ JWT_SECRET=your-super-secret-jwt-key-here
 npm run dev
 ```
 
-The API will be available at `http://localhost:5000`
+The API will be available at `http://localhost:4000`
 
 ### 5. Quick Development Setup
 
@@ -104,7 +140,7 @@ If you want to get started quickly without setting up external services:
 echo "JWT_SECRET=localpro-dev-secret-key-12345" > .env
 echo "MONGODB_URI=mongodb://localhost:27017/localpro-super-app" >> .env
 echo "NODE_ENV=development" >> .env
-echo "PORT=5000" >> .env
+echo "PORT=4000" >> .env
 ```
 
 2. **Start MongoDB** (if not already running):
@@ -122,17 +158,22 @@ sudo systemctl start mongod
 3. **Test the API**:
 ```bash
 # Health check
-curl http://localhost:5000/health
+curl http://localhost:4000/health
 
 # Send verification code (will use mock SMS)
-curl -X POST http://localhost:5000/api/auth/send-code \
+curl -X POST http://localhost:4000/api/auth/send-code \
   -H "Content-Type: application/json" \
   -d '{"phoneNumber": "+1234567890"}'
 
 # Verify code (use any 6-digit code like "123456")
-curl -X POST http://localhost:5000/api/auth/verify-code \
+curl -X POST http://localhost:4000/api/auth/verify-code \
   -H "Content-Type: application/json" \
   -d '{"phoneNumber": "+1234567890", "code": "123456", "firstName": "John", "lastName": "Doe"}'
+
+# Test Google Maps geocoding (requires API key)
+curl -X POST http://localhost:4000/api/maps/geocode \
+  -H "Content-Type: application/json" \
+  -d '{"address": "New York, NY"}'
 ```
 
 ## 📚 API Documentation
@@ -149,6 +190,7 @@ POST /api/auth/logout             # Logout user
 ### Marketplace Endpoints
 ```
 GET    /api/marketplace/services           # Get all services
+GET    /api/marketplace/services/nearby    # Get nearby services with distance
 GET    /api/marketplace/services/:id       # Get single service
 POST   /api/marketplace/services           # Create service (Provider)
 PUT    /api/marketplace/services/:id       # Update service (Provider)
@@ -229,6 +271,19 @@ GET  /api/localpro-plus/payments           # Get user payments
 POST /api/localpro-plus/usage              # Record feature usage
 ```
 
+### Google Maps & Location Endpoints
+```
+POST /api/maps/geocode                     # Convert address to coordinates
+POST /api/maps/reverse-geocode             # Convert coordinates to address
+POST /api/maps/places/search               # Search for places
+GET  /api/maps/places/:placeId             # Get place details
+POST /api/maps/distance                    # Calculate distance between points
+POST /api/maps/nearby                      # Find nearby places
+POST /api/maps/validate-service-area       # Validate service area coverage
+POST /api/maps/analyze-coverage            # Analyze service coverage (Protected)
+GET  /api/maps/test                        # Test API connection (Admin)
+```
+
 ## 🗄️ Database Models
 
 ### Core Models
@@ -245,6 +300,29 @@ POST /api/localpro-plus/usage              # Record feature usage
 - **AdCampaign**: Advertising campaigns
 - **Contract**: Facility care contracts
 - **Subscription**: LocalPro Plus subscriptions
+
+## 🆕 New Features
+
+### 📧 Email Service Integration
+- **Multi-provider support**: Resend, SendGrid, and SMTP
+- **Automatic email notifications**: Welcome emails, booking confirmations, order confirmations, loan approvals
+- **Easy configuration**: Switch between providers via environment variables
+- **Fallback handling**: Graceful degradation when email service fails
+
+### 🗺️ Google Maps Integration
+- **Geocoding**: Convert addresses to coordinates and vice versa
+- **Places Search**: Find and search for local businesses
+- **Distance Calculations**: Real-time distance and travel time estimates
+- **Service Area Validation**: Verify if locations are within service coverage
+- **Location-based Search**: Find services within specified radius
+- **Coverage Analysis**: Analyze service provider coverage areas
+
+### 🔧 Enhanced Controllers
+- **Marketplace**: Location-based service search with distance calculations
+- **Rentals**: Enhanced location filtering and distance calculations
+- **Supplies**: Email notifications for orders and subscriptions
+- **Finance**: Email notifications for loan approvals
+- **Authentication**: Welcome emails for new users
 
 ## 🔒 Security Features
 
@@ -308,6 +386,11 @@ For support, email support@localpro.com or join our Slack channel.
 
 ## 🗺️ Roadmap
 
+- [x] Google Maps integration
+- [x] Email service integration
+- [x] Location-based services
+- [x] Service area validation
+- [x] Distance calculations
 - [ ] Mobile app integration
 - [ ] Real-time notifications
 - [ ] Advanced analytics dashboard

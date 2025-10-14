@@ -1,9 +1,9 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, supplies, academy, finance, rentals, advertising, facility care, and premium subscriptions. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, and business insights.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, and email notifications. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, location-based services, and multi-provider email support.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "auth": {
     "type": "bearer",
@@ -18,7 +18,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:5000",
+      "value": "http://localhost:4000",
       "type": "string"
     },
     {
@@ -275,6 +275,45 @@
                 {
                   "key": "sortOrder",
                   "value": "desc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Nearby Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/services/nearby?lat=40.7580&lng=-73.9855&radius=50000&category=cleaning&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketplace", "services", "nearby"],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "40.7580"
+                },
+                {
+                  "key": "lng",
+                  "value": "-73.9855"
+                },
+                {
+                  "key": "radius",
+                  "value": "50000"
+                },
+                {
+                  "key": "category",
+                  "value": "cleaning"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
                 }
               ]
             }
@@ -1625,6 +1664,191 @@
               "raw": "{{baseUrl}}/api/analytics/dashboard",
               "host": ["{{baseUrl}}"],
               "path": ["api", "analytics", "dashboard"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Google Maps",
+      "item": [
+        {
+          "name": "Geocode Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"1600 Amphitheatre Parkway, Mountain View, CA\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/geocode",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "geocode"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reverse Geocode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat\": 37.4220656,\n  \"lng\": -122.0840897\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/reverse-geocode",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "reverse-geocode"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Places",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input\": \"restaurants near Times Square\",\n  \"options\": {\n    \"types\": \"establishment\",\n    \"location\": \"40.7580,-73.9855\",\n    \"radius\": 1000\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/places/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "places", "search"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Place Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/places/ChIJ2eUgeAK6j4ARbn5u_wAGqWA",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "places", "ChIJ2eUgeAK6j4ARbn5u_wAGqWA"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculate Distance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": {\n    \"lat\": 37.4220656,\n    \"lng\": -122.0840897\n  },\n  \"destination\": {\n    \"lat\": 37.7749,\n    \"lng\": -122.4194\n  },\n  \"options\": {\n    \"units\": \"imperial\",\n    \"mode\": \"driving\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/distance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "distance"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find Nearby Places",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": {\n    \"lat\": 40.7580,\n    \"lng\": -73.9855\n  },\n  \"radius\": 1000,\n  \"type\": \"restaurant\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/nearby",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "nearby"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Service Area",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coordinates\": {\n    \"lat\": 40.7580,\n    \"lng\": -73.9855\n  },\n  \"serviceAreas\": [\"New York\", \"NYC\", \"Manhattan\", \"Brooklyn\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/validate-service-area",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "validate-service-area"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze Service Coverage",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerLocation\": {\n    \"lat\": 40.7580,\n    \"lng\": -73.9855\n  },\n  \"serviceAreas\": [\"New York\", \"Brooklyn\", \"Queens\"],\n  \"maxDistance\": 50000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/analyze-coverage",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "analyze-coverage"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Test Google Maps API Connection",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "test"]
             }
           },
           "response": []

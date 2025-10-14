@@ -2,6 +2,7 @@ const { Service, Booking } = require('../models/Marketplace');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
+const GoogleMapsService = require('../services/googleMapsService');
 const { uploaders } = require('../config/cloudinary');
 
 // @desc    Get all services
@@ -27,7 +28,19 @@ const getServices = async (req, res) => {
 
     if (category) filter.category = category;
     if (subcategory) filter.subcategory = subcategory;
-    if (location) filter.serviceArea = { $in: [new RegExp(location, 'i')] };
+    if (location) {
+      // Enhanced location filtering with Google Maps
+      if (req.query.coordinates) {
+        // If coordinates are provided, find services within radius
+        const coordinates = JSON.parse(req.query.coordinates);
+        const radius = parseInt(req.query.radius) || 50000; // Default 50km radius
+        
+        // For now, use text-based filtering, but this could be enhanced with geospatial queries
+        filter.serviceArea = { $in: [new RegExp(location, 'i')] };
+      } else {
+        filter.serviceArea = { $in: [new RegExp(location, 'i')] };
+      }
+    }
     if (minPrice || maxPrice) {
       filter['pricing.basePrice'] = {};
       if (minPrice) filter['pricing.basePrice'].$gte = Number(minPrice);
@@ -219,6 +232,23 @@ const createBooking = async (req, res) => {
       totalAmount = service.pricing.basePrice * duration;
     } else {
       totalAmount = service.pricing.basePrice;
+    }
+
+    // Validate service area if address coordinates are provided
+    if (address.coordinates) {
+      const serviceAreaValidation = await GoogleMapsService.validateServiceArea(
+        address.coordinates,
+        service.serviceArea
+      );
+
+      if (!serviceAreaValidation.success || !serviceAreaValidation.isInServiceArea) {
+        return res.status(400).json({
+          success: false,
+          message: 'Service is not available in this location',
+          locationInfo: serviceAreaValidation.locationInfo,
+          availableAreas: service.serviceArea
+        });
+      }
     }
 
     const bookingData = {
@@ -592,9 +622,108 @@ const addReview = async (req, res) => {
   }
 };
 
+// @desc    Get services with distance calculation
+// @route   GET /api/marketplace/services/nearby
+// @access  Public
+const getNearbyServices = async (req, res) => {
+  try {
+    const {
+      lat,
+      lng,
+      radius = 50000, // Default 50km radius
+      category,
+      subcategory,
+      minPrice,
+      maxPrice,
+      rating,
+      page = 1,
+      limit = 10
+    } = req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({
+        success: false,
+        message: 'Latitude and longitude are required'
+      });
+    }
+
+    const coordinates = { lat: parseFloat(lat), lng: parseFloat(lng) };
+
+    // Build filter object
+    const filter = { isActive: true };
+
+    if (category) filter.category = category;
+    if (subcategory) filter.subcategory = subcategory;
+    if (minPrice || maxPrice) {
+      filter['pricing.basePrice'] = {};
+      if (minPrice) filter['pricing.basePrice'].$gte = Number(minPrice);
+      if (maxPrice) filter['pricing.basePrice'].$lte = Number(maxPrice);
+    }
+    if (rating) filter['rating.average'] = { $gte: Number(rating) };
+
+    const skip = (page - 1) * limit;
+
+    const services = await Service.find(filter)
+      .populate('provider', 'firstName lastName profile.avatar profile.rating')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    // Calculate distances for each service
+    const servicesWithDistance = await Promise.all(
+      services.map(async (service) => {
+        const serviceData = service.toObject();
+        
+        // Get provider's location (assuming they have coordinates in their profile)
+        const provider = await User.findById(service.provider._id).select('profile.address.coordinates');
+        
+        if (provider?.profile?.address?.coordinates) {
+          const distanceResult = await GoogleMapsService.calculateDistance(
+            coordinates,
+            provider.profile.address.coordinates
+          );
+
+          if (distanceResult.success) {
+            serviceData.distance = distanceResult.distance;
+            serviceData.duration = distanceResult.duration;
+            serviceData.isWithinRange = distanceResult.distance.value <= parseInt(radius);
+          }
+        }
+
+        return serviceData;
+      })
+    );
+
+    // Filter services within radius
+    const nearbyServices = servicesWithDistance.filter(service => 
+      service.isWithinRange !== false
+    );
+
+    const total = nearbyServices.length;
+
+    res.status(200).json({
+      success: true,
+      count: nearbyServices.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: nearbyServices,
+      searchLocation: coordinates,
+      searchRadius: parseInt(radius)
+    });
+  } catch (error) {
+    console.error('Get nearby services error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getServices,
   getService,
+  getNearbyServices,
   createService,
   updateService,
   deleteService,

@@ -19,6 +19,7 @@ const localproPlusRoutes = require('./routes/localproPlus');
 const trustVerificationRoutes = require('./routes/trustVerification');
 const communicationRoutes = require('./routes/communication');
 const analyticsRoutes = require('./routes/analytics');
+const mapsRoutes = require('./routes/maps');
 
 const app = express();
 
@@ -200,6 +201,21 @@ app.get('/', (req, res) => {
           { method: 'GET', path: '/platform', description: 'Get platform analytics', auth: true, roles: ['admin'] },
           { method: 'GET', path: '/dashboard', description: 'Get dashboard data', auth: true }
         ]
+      },
+      maps: {
+        base: '/api/maps',
+        description: 'Google Maps integration and location services',
+        routes: [
+          { method: 'POST', path: '/geocode', description: 'Convert address to coordinates', auth: false },
+          { method: 'POST', path: '/reverse-geocode', description: 'Convert coordinates to address', auth: false },
+          { method: 'POST', path: '/places/search', description: 'Search for places', auth: false },
+          { method: 'GET', path: '/places/:placeId', description: 'Get place details', auth: false },
+          { method: 'POST', path: '/distance', description: 'Calculate distance between points', auth: false },
+          { method: 'POST', path: '/nearby', description: 'Find nearby places', auth: false },
+          { method: 'POST', path: '/validate-service-area', description: 'Validate service area coverage', auth: false },
+          { method: 'POST', path: '/analyze-coverage', description: 'Analyze service coverage', auth: true },
+          { method: 'GET', path: '/test', description: 'Test Google Maps API connection', auth: true, roles: ['admin'] }
+        ]
       }
     },
     authentication: {
@@ -242,6 +258,7 @@ app.use('/api/localpro-plus', localproPlusRoutes);
 app.use('/api/trust-verification', trustVerificationRoutes);
 app.use('/api/communication', communicationRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/maps', mapsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
