@@ -1,9 +1,9 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services, supplies, academy, finance, rentals, advertising, facility care, and premium subscriptions.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, supplies, academy, finance, rentals, advertising, facility care, and premium subscriptions. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, and business insights.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "auth": {
     "type": "bearer",
@@ -63,6 +63,36 @@
     },
     {
       "key": "campaignId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "verificationRequestId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "disputeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "conversationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "messageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notificationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "participantId",
       "value": "",
       "type": "string"
     }
@@ -222,7 +252,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/marketplace/services?category=cleaning&page=1&limit=10",
+              "raw": "{{baseUrl}}/api/marketplace/services?category=cleaning&page=1&limit=10&sortBy=rating.average&sortOrder=desc",
               "host": ["{{baseUrl}}"],
               "path": ["api", "marketplace", "services"],
               "query": [
@@ -237,6 +267,14 @@
                 {
                   "key": "limit",
                   "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "rating.average"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
                 }
               ]
             }
@@ -282,7 +320,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Professional House Cleaning\",\n  \"description\": \"Complete house cleaning service including kitchen, bathrooms, living areas, and bedrooms.\",\n  \"category\": \"cleaning\",\n  \"subcategory\": \"house_cleaning\",\n  \"pricing\": {\n    \"type\": \"hourly\",\n    \"basePrice\": 25,\n    \"currency\": \"USD\"\n  },\n  \"serviceArea\": [\"10001\", \"10002\", \"10003\"],\n  \"features\": [\"Eco-friendly products\", \"Insured service\", \"Same-day booking\"],\n  \"requirements\": [\"Access to water\", \"Parking available\"]\n}"
+              "raw": "{\n  \"title\": \"Professional House Cleaning\",\n  \"description\": \"Complete house cleaning service including kitchen, bathrooms, living areas, and bedrooms.\",\n  \"category\": \"cleaning\",\n  \"subcategory\": \"house_cleaning\",\n  \"pricing\": {\n    \"type\": \"hourly\",\n    \"basePrice\": 25,\n    \"currency\": \"USD\"\n  },\n  \"serviceArea\": [\"10001\", \"10002\", \"10003\"],\n  \"features\": [\"Eco-friendly products\", \"Insured service\", \"Same-day booking\"],\n  \"requirements\": [\"Access to water\", \"Parking available\"],\n  \"serviceType\": \"one_time\",\n  \"estimatedDuration\": {\n    \"min\": 2,\n    \"max\": 6\n  },\n  \"teamSize\": 2,\n  \"equipmentProvided\": true,\n  \"materialsIncluded\": false,\n  \"warranty\": {\n    \"hasWarranty\": true,\n    \"duration\": 30,\n    \"description\": \"30-day satisfaction guarantee\"\n  },\n  \"insurance\": {\n    \"covered\": true,\n    \"coverageAmount\": 1000000\n  },\n  \"emergencyService\": {\n    \"available\": true,\n    \"surcharge\": 50,\n    \"responseTime\": \"within 2 hours\"\n  },\n  \"servicePackages\": [\n    {\n      \"name\": \"Basic Cleaning\",\n      \"description\": \"Standard house cleaning\",\n      \"price\": 75,\n      \"features\": [\"Living areas\", \"Kitchen\", \"Bathrooms\"],\n      \"duration\": 3\n    },\n    {\n      \"name\": \"Deep Cleaning\",\n      \"description\": \"Comprehensive deep cleaning\",\n      \"price\": 150,\n      \"features\": [\"Everything in Basic\", \"Inside appliances\", \"Baseboards\", \"Light fixtures\"],\n      \"duration\": 6\n    }\n  ],\n  \"addOns\": [\n    {\n      \"name\": \"Window Cleaning\",\n      \"description\": \"Interior and exterior windows\",\n      \"price\": 25,\n      \"category\": \"cleaning\"\n    },\n    {\n      \"name\": \"Refrigerator Cleaning\",\n      \"description\": \"Deep clean inside refrigerator\",\n      \"price\": 30,\n      \"category\": \"cleaning\"\n    }\n  ]\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/marketplace/services",
@@ -318,7 +356,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"bookingDate\": \"2024-02-15T10:00:00Z\",\n  \"duration\": 3,\n  \"address\": {\n    \"street\": \"456 Oak Ave\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"country\": \"USA\"\n  },\n  \"specialInstructions\": \"Please use eco-friendly products only\"\n}"
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"bookingDate\": \"2024-02-15T10:00:00Z\",\n  \"duration\": 3,\n  \"address\": {\n    \"street\": \"456 Oak Ave\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"country\": \"USA\",\n    \"coordinates\": {\n      \"lat\": 40.7128,\n      \"lng\": -74.0060\n    }\n  },\n  \"specialInstructions\": \"Please use eco-friendly products only. Ring doorbell twice.\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/marketplace/bookings",
@@ -381,7 +419,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent service! Very professional and thorough.\"\n}"
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent service! Very professional and thorough.\",\n  \"categories\": {\n    \"quality\": 5,\n    \"timeliness\": 4,\n    \"communication\": 5,\n    \"value\": 5\n  },\n  \"wouldRecommend\": true,\n  \"photos\": [\n    \"https://example.com/review-photos/after1.jpg\",\n    \"https://example.com/review-photos/after2.jpg\"\n  ]\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/marketplace/bookings/{{bookingId}}/review",
@@ -1210,6 +1248,383 @@
                   "value": "30d"
                 }
               ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Trust & Verification",
+      "item": [
+        {
+          "name": "Submit Verification Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"identity\",\n  \"documents\": [\n    {\n      \"name\": \"driver_license.jpg\",\n      \"url\": \"https://example.com/documents/driver_license.jpg\",\n      \"type\": \"image\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "verify"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Verification Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/requests?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "requests"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Review Verification Request (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"notes\": \"Identity verification approved\",\n  \"rejectionReason\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/requests/{{verificationRequestId}}/review",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "requests", "{{verificationRequestId}}", "review"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trust Score",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/trust-score",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "trust-score"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Dispute",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"type\": \"service_quality\",\n  \"description\": \"Service was not completed as promised\",\n  \"evidence\": [\n    {\n      \"type\": \"photo\",\n      \"url\": \"https://example.com/evidence/photo1.jpg\",\n      \"description\": \"Before photo showing incomplete work\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/disputes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "disputes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Disputes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/disputes?role=complainant",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "disputes"],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "complainant"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolve Dispute (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Dispute resolved in favor of complainant\",\n  \"outcome\": \"favor_complainant\",\n  \"refundAmount\": 100,\n  \"penaltyPoints\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/disputes/{{disputeId}}/resolve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "disputes", "{{disputeId}}", "resolve"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Communication",
+      "item": [
+        {
+          "name": "Create or Get Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participantId\": \"{{participantId}}\",\n  \"bookingId\": \"{{bookingId}}\",\n  \"type\": \"booking\",\n  \"subject\": \"Service Discussion\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Conversations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations?status=active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversationId\": \"{{conversationId}}\",\n  \"content\": \"Hello, I have a question about the service\",\n  \"type\": \"text\",\n  \"attachments\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Conversation Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}/messages?page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations", "{{conversationId}}", "messages"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/notifications?isRead=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "notifications"],
+              "query": [
+                {
+                  "key": "isRead",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "notifications", "{{notificationId}}", "read"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All Notifications as Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "notifications", "read-all"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Track Analytics Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"service_view\",\n  \"category\": \"marketplace\",\n  \"subcategory\": \"cleaning\",\n  \"metadata\": {\n    \"serviceId\": \"{{serviceId}}\",\n    \"userId\": \"{{userId}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/track",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "track"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/user?period=monthly",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "user"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "monthly"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Service Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/services/{{serviceId}}?period=monthly",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "services", "{{serviceId}}"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "monthly"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Platform Analytics (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/platform?period=monthly",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "platform"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "monthly"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Dashboard Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "dashboard"]
             }
           },
           "response": []

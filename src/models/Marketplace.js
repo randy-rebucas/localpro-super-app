@@ -12,7 +12,13 @@ const serviceSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['cleaning', 'plumbing', 'electrical', 'moving', 'other'],
+    enum: [
+      'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 
+      'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 
+      'appliance_repair', 'locksmith', 'handyman', 'home_security',
+      'pool_maintenance', 'pest_control', 'carpet_cleaning', 'window_cleaning',
+      'gutter_cleaning', 'power_washing', 'snow_removal', 'other'
+    ],
     required: true
   },
   subcategory: {
@@ -61,6 +67,56 @@ const serviceSchema = new mongoose.Schema({
   images: [String],
   features: [String],
   requirements: [String],
+  // Enhanced service features inspired by LocalPro
+  serviceType: {
+    type: String,
+    enum: ['one_time', 'recurring', 'emergency', 'maintenance', 'installation'],
+    default: 'one_time'
+  },
+  estimatedDuration: {
+    min: Number, // minimum hours
+    max: Number  // maximum hours
+  },
+  teamSize: {
+    type: Number,
+    default: 1,
+    min: 1
+  },
+  equipmentProvided: {
+    type: Boolean,
+    default: true
+  },
+  materialsIncluded: {
+    type: Boolean,
+    default: false
+  },
+  warranty: {
+    hasWarranty: { type: Boolean, default: false },
+    duration: Number, // in days
+    description: String
+  },
+  insurance: {
+    covered: { type: Boolean, default: false },
+    coverageAmount: Number
+  },
+  emergencyService: {
+    available: { type: Boolean, default: false },
+    surcharge: Number,
+    responseTime: String // e.g., "within 2 hours"
+  },
+  servicePackages: [{
+    name: String,
+    description: String,
+    price: Number,
+    features: [String],
+    duration: Number
+  }],
+  addOns: [{
+    name: String,
+    description: String,
+    price: Number,
+    category: String
+  }],
   isActive: {
     type: Boolean,
     default: true
@@ -151,7 +207,60 @@ const bookingSchema = new mongoose.Schema({
       max: 5
     },
     comment: String,
-    createdAt: Date
+    createdAt: Date,
+    // Enhanced review system
+    categories: {
+      quality: { type: Number, min: 1, max: 5 },
+      timeliness: { type: Number, min: 1, max: 5 },
+      communication: { type: Number, min: 1, max: 5 },
+      value: { type: Number, min: 1, max: 5 }
+    },
+    wouldRecommend: { type: Boolean, default: false },
+    photos: [String]
+  },
+  // Enhanced booking features
+  communication: {
+    messages: [{
+      sender: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      message: String,
+      timestamp: { type: Date, default: Date.now },
+      type: {
+        type: String,
+        enum: ['text', 'image', 'file'],
+        default: 'text'
+      }
+    }],
+    lastMessageAt: Date
+  },
+  timeline: [{
+    status: String,
+    timestamp: { type: Date, default: Date.now },
+    note: String,
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  }],
+  documents: [{
+    name: String,
+    url: String,
+    type: String,
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    uploadedAt: { type: Date, default: Date.now }
+  }],
+  beforePhotos: [String],
+  afterPhotos: [String],
+  completionNotes: String,
+  clientSatisfaction: {
+    rating: { type: Number, min: 1, max: 5 },
+    feedback: String,
+    submittedAt: Date
   }
 }, {
   timestamps: true
