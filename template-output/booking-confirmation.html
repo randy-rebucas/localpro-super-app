@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation - LocalPro</title>
+    <style>
+        /* Reset styles */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+        }
+
+        /* Remove blue links for clients that don't support them */
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: none !important;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+        }
+
+        /* Main styles */
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+            min-width: 100%;
+            height: 100%;
+            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .logo {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+            margin: 0;
+        }
+
+        .email-body {
+            padding: 40px 30px;
+        }
+
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 30px 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .footer-text {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 0 0 10px 0;
+        }
+
+        .footer-links {
+            margin: 15px 0;
+        }
+
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        .social-links {
+            margin: 20px 0;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .content-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 30px 0;
+        }
+
+        /* Responsive styles */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+            .email-body {
+                padding: 20px 15px !important;
+            }
+            .email-header {
+                padding: 20px 15px !important;
+            }
+            .logo {
+                font-size: 24px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <h1 class="logo">LocalPro</h1>
+        </div>
+
+        <!-- Body -->
+        <div class="email-body">
+            <h1 style="color: #667eea; margin-bottom: 20px;">Booking Confirmed! ✅</h1>
+
+<p>Hi <strong>Jane Smith</strong>,</p>
+
+<p>Great news! Your service booking has been confirmed. We're excited to connect you with a trusted LocalPro professional.</p>
+
+<div class="content-box">
+    <h3 style="color: #667eea; margin-top: 0;">📋 Booking Details</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold; width: 40%;">Service:</td>
+            <td style="padding: 8px 0;">House Cleaning</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Category:</td>
+            <td style="padding: 8px 0;">Cleaning</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Date & Time:</td>
+            <td style="padding: 8px 0;">Monday, January 15, 2024 at 10:00 AM</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Duration:</td>
+            <td style="padding: 8px 0;">3 hours</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Total Amount:</td>
+            <td style="padding: 8px 0; font-size: 18px; font-weight: bold; color: #667eea;">$150</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Status:</td>
+            <td style="padding: 8px 0;">
+                <span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                    confirmed
+                </span>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="content-box">
+    <h3 style="color: #667eea; margin-top: 0;">📍 Service Location</h3>
+    <p style="margin: 0;">
+        <strong>{{address.street}}</strong><br>
+        {{address.city}}, {{address.state}} {{address.zipCode}}<br>
+        {{address.country}}
+    </p>
+    
+    <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 0 4px 4px 0;">
+        <strong>Special Instructions:</strong><br>
+        Please use eco-friendly cleaning products
+    </div>
+    
+</div>
+
+<div class="content-box">
+    <h3 style="color: #667eea; margin-top: 0;">👨‍🔧 Service Provider</h3>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="width: 60px; height: 60px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px;">
+            MJ
+        </div>
+        <div>
+            <h4 style="margin: 0; color: #333;">Mike Johnson</h4>
+            <p style="margin: 5px 0 0 0; color: #666;">4.8 ⭐ (127 reviews)</p>
+            <p style="margin: 5px 0 0 0; color: #666;">📞 +1 (555) 123-4567</p>
+        </div>
+    </div>
+</div>
+
+<div class="highlight info">
+    <h4 style="margin-top: 0; color: #0c5460;">📱 What's Next?</h4>
+    <ul style="margin-bottom: 0; padding-left: 20px;">
+        <li>You'll receive a reminder 24 hours before your scheduled service</li>
+        <li>Your service provider will contact you 1 hour before arrival</li>
+        <li>Track your booking status in real-time through the LocalPro app</li>
+        <li>After service completion, you can rate and review your experience</li>
+    </ul>
+</div>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="https://app.localpro.com/bookings/booking_123456" class="btn">View Booking Details</a>
+    <a href="https://app.localpro.com/contact" class="btn btn-secondary">Contact Support</a>
+</div>
+
+<div class="divider"></div>
+
+<h3 style="color: #667eea;">💡 Important Reminders</h3>
+
+<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h4 style="margin-top: 0; color: #667eea;">Before Your Service:</h4>
+    <ul style="margin-bottom: 0; padding-left: 20px;">
+        <li>Ensure the service area is accessible</li>
+        <li>Remove any valuable or fragile items from the work area</li>
+        <li>Have your payment method ready</li>
+        <li>Be available to answer any questions from your service provider</li>
+    </ul>
+</div>
+
+<div class="highlight warning">
+    <h4 style="margin-top: 0; color: #856404;">⚠️ Cancellation Policy</h4>
+    <p style="margin-bottom: 0;">
+        You can cancel or reschedule your booking up to 2 hours before the scheduled time without any charges. 
+        <a href="https://app.localpro.com/bookings/booking_123456/cancel" style="color: #856404;">Cancel or reschedule here</a>.
+    </p>
+</div>
+
+<p>If you have any questions or need to make changes to your booking, please don't hesitate to contact us or your service provider directly.</p>
+
+<p>Thank you for choosing LocalPro. We look forward to providing you with an excellent service experience!</p>
+
+<p>Best regards,<br>
+<strong>The LocalPro Team</strong></p>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="email-footer">
+            <p class="footer-text">
+                <strong>LocalPro Super App</strong><br>
+                Your trusted platform for local services, supplies, and financial solutions.
+            </p>
+            
+            <div class="footer-links">
+                <a href="https://localpro.com">Website</a>
+                <a href="https://localpro.com/support">Support</a>
+                <a href="https://localpro.com/privacy">Privacy Policy</a>
+                <a href="https://localpro.com/terms">Terms of Service</a>
+            </div>
+
+            <div class="social-links">
+                <a href="https://facebook.com/localpro">Facebook</a>
+                <a href="https://twitter.com/localpro">Twitter</a>
+                <a href="https://linkedin.com/company/localpro">LinkedIn</a>
+                <a href="https://instagram.com/localpro">Instagram</a>
+            </div>
+
+            <p class="footer-text">
+                © 2025 LocalPro. All rights reserved.<br>
+                You received this email because you're a valued LocalPro user.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
