@@ -1,0 +1,1220 @@
+{
+  "info": {
+    "name": "LocalPro Super App API",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services, supplies, academy, finance, rentals, advertising, facility care, and premium subscriptions.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "serviceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "courseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "loanId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "rentalItemId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "campaignId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Send Verification Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('Verification code sent successfully');",
+                  "    console.log('Check console for mock verification code if in development mode');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/send-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "send-code"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Code & Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.token) {",
+                  "        pm.collectionVariables.set('authToken', response.token);",
+                  "        pm.collectionVariables.set('userId', response.user.id);",
+                  "        console.log('Authentication successful, token saved');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"code\": \"123456\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "verify-code"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"profile\": {\n    \"bio\": \"Professional service provider\",\n    \"address\": {\n      \"street\": \"123 Main St\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"zipCode\": \"10001\",\n      \"country\": \"USA\"\n    },\n    \"skills\": [\"cleaning\", \"maintenance\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Marketplace",
+      "item": [
+        {
+          "name": "Get All Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/services?category=cleaning&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketplace", "services"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "cleaning"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Service",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketplace", "services", "{{serviceId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Service (Provider)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('serviceId', response.data._id);",
+                  "    console.log('Service created, ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional House Cleaning\",\n  \"description\": \"Complete house cleaning service including kitchen, bathrooms, living areas, and bedrooms.\",\n  \"category\": \"cleaning\",\n  \"subcategory\": \"house_cleaning\",\n  \"pricing\": {\n    \"type\": \"hourly\",\n    \"basePrice\": 25,\n    \"currency\": \"USD\"\n  },\n  \"serviceArea\": [\"10001\", \"10002\", \"10003\"],\n  \"features\": [\"Eco-friendly products\", \"Insured service\", \"Same-day booking\"],\n  \"requirements\": [\"Access to water\", \"Parking available\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketplace", "services"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('bookingId', response.data._id);",
+                  "    console.log('Booking created, ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"bookingDate\": \"2024-02-15T10:00:00Z\",\n  \"duration\": 3,\n  \"address\": {\n    \"street\": \"456 Oak Ave\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"country\": \"USA\"\n  },\n  \"specialInstructions\": \"Please use eco-friendly products only\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketplace", "bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/bookings?type=client",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketplace", "bookings"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "client"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Booking Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/bookings/{{bookingId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketplace", "bookings", "{{bookingId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent service! Very professional and thorough.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/bookings/{{bookingId}}/review",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketplace", "bookings", "{{bookingId}}", "review"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Supplies & Materials",
+      "item": [
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies/products?category=cleaning_supplies&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies", "products"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "cleaning_supplies"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies", "products", "{{productId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product (Supplier)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('productId', response.data._id);",
+                  "    console.log('Product created, ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Eco-Friendly All-Purpose Cleaner\",\n  \"description\": \"Biodegradable all-purpose cleaner safe for all surfaces\",\n  \"category\": \"cleaning_supplies\",\n  \"subcategory\": \"cleaners\",\n  \"brand\": \"GreenClean\",\n  \"sku\": \"GC-APC-001\",\n  \"pricing\": {\n    \"retailPrice\": 12.99,\n    \"wholesalePrice\": 8.99,\n    \"currency\": \"USD\"\n  },\n  \"inventory\": {\n    \"quantity\": 100,\n    \"minStock\": 10,\n    \"maxStock\": 200,\n    \"location\": \"Warehouse A\"\n  },\n  \"specifications\": {\n    \"weight\": \"32 oz\",\n    \"material\": \"Plant-based ingredients\",\n    \"color\": \"Clear\"\n  },\n  \"isSubscriptionEligible\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Subscription Kits",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies/subscription-kits",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies", "subscription-kits"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product\": \"{{productId}}\",\n      \"quantity\": 2\n    }\n  ],\n  \"shippingAddress\": {\n    \"street\": \"789 Pine St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"country\": \"USA\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies", "orders"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies", "orders"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Academy",
+      "item": [
+        {
+          "name": "Get All Courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/academy/courses?category=cleaning&level=beginner",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "academy", "courses"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "cleaning"
+                },
+                {
+                  "key": "level",
+                  "value": "beginner"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Course",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/academy/courses/{{courseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "academy", "courses", "{{courseId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Course (Instructor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('courseId', response.data._id);",
+                  "    console.log('Course created, ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional Cleaning Techniques\",\n  \"description\": \"Learn advanced cleaning techniques for residential and commercial properties\",\n  \"category\": \"cleaning\",\n  \"level\": \"intermediate\",\n  \"duration\": {\n    \"hours\": 8,\n    \"weeks\": 2\n  },\n  \"pricing\": {\n    \"regularPrice\": 199,\n    \"currency\": \"USD\"\n  },\n  \"curriculum\": [\n    {\n      \"module\": \"Introduction to Professional Cleaning\",\n      \"lessons\": [\n        {\n          \"title\": \"Cleaning Fundamentals\",\n          \"description\": \"Basic principles of effective cleaning\",\n          \"duration\": 60,\n          \"type\": \"video\"\n        }\n      ]\n    }\n  ],\n  \"learningOutcomes\": [\n    \"Master professional cleaning techniques\",\n    \"Understand safety protocols\",\n    \"Learn time management skills\"\n  ],\n  \"certification\": {\n    \"isAvailable\": true,\n    \"name\": \"Professional Cleaning Certificate\",\n    \"issuer\": \"LocalPro Academy\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/academy/courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "academy", "courses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Enroll in Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{courseId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/academy/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "academy", "enroll"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/academy/enrollments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "academy", "enrollments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Certifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/academy/certifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "academy", "certifications"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "item": [
+        {
+          "name": "Apply for Loan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('loanId', response.data._id);",
+                  "    console.log('Loan application submitted, ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"micro_loan\",\n  \"amount\": 5000,\n  \"purpose\": \"Equipment purchase for cleaning business\",\n  \"term\": {\n    \"duration\": 12,\n    \"interestRate\": 8.5,\n    \"repaymentFrequency\": \"monthly\"\n  },\n  \"documents\": [\n    {\n      \"type\": \"income_proof\",\n      \"url\": \"https://example.com/income-proof.pdf\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/loans/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "loans", "apply"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Loans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/loans",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "loans"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply for Salary Advance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000,\n  \"employerId\": \"{{userId}}\",\n  \"salary\": 3000,\n  \"nextPayDate\": \"2024-02-28\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/salary-advance/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "salary-advance", "apply"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Salary Advances",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/salary-advances",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "salary-advances"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "transactions"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Rentals",
+      "item": [
+        {
+          "name": "Get All Rental Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/items?category=tools&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "items"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "tools"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Rental Item",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/items/{{rentalItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "items", "{{rentalItemId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Rental Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('rentalItemId', response.data._id);",
+                  "    console.log('Rental item created, ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Professional Pressure Washer\",\n  \"description\": \"High-pressure washer for cleaning driveways, patios, and exterior surfaces\",\n  \"category\": \"tools\",\n  \"subcategory\": \"cleaning_equipment\",\n  \"pricing\": {\n    \"hourly\": 15,\n    \"daily\": 75,\n    \"weekly\": 300,\n    \"monthly\": 1000,\n    \"currency\": \"USD\"\n  },\n  \"location\": {\n    \"address\": {\n      \"street\": \"123 Tool St\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"zipCode\": \"10001\",\n      \"country\": \"USA\"\n    },\n    \"pickupRequired\": true,\n    \"deliveryAvailable\": true,\n    \"deliveryFee\": 25\n  },\n  \"specifications\": {\n    \"brand\": \"ProClean\",\n    \"model\": \"PC-2000\",\n    \"condition\": \"excellent\",\n    \"features\": [\"Adjustable pressure\", \"Multiple nozzles\", \"Hose included\"]\n  },\n  \"requirements\": {\n    \"minAge\": 18,\n    \"licenseRequired\": false,\n    \"deposit\": 100,\n    \"insuranceRequired\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "items"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Rental Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": \"{{rentalItemId}}\",\n  \"startDate\": \"2024-02-15T09:00:00Z\",\n  \"endDate\": \"2024-02-15T17:00:00Z\",\n  \"pickupLocation\": {\n    \"address\": \"123 Tool St, New York, NY 10001\",\n    \"coordinates\": {\n      \"lat\": 40.7128,\n      \"lng\": -74.0060\n    }\n  },\n  \"contactPerson\": \"John Doe\",\n  \"contactPhone\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/book",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "book"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Rentals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals?type=renter",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "renter"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Advertising",
+      "item": [
+        {
+          "name": "Get Active Ads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/active?category=hardware_stores&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "active"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "hardware_stores"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register as Advertiser",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"businessName\": \"ABC Hardware Store\",\n  \"businessType\": \"hardware_store\",\n  \"description\": \"Full-service hardware store serving the community for 20+ years\",\n  \"contact\": {\n    \"email\": \"info@abchardware.com\",\n    \"phone\": \"+1234567890\",\n    \"website\": \"https://abchardware.com\",\n    \"address\": {\n      \"street\": \"456 Hardware Ave\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"zipCode\": \"10001\",\n      \"country\": \"USA\"\n    }\n  },\n  \"documents\": [\n    {\n      \"type\": \"business_license\",\n      \"url\": \"https://example.com/business-license.pdf\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/advertisers/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "advertisers", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Ad Campaign",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('campaignId', response.data._id);",
+                  "    console.log('Ad campaign created, ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional Tools Sale\",\n  \"description\": \"Get 20% off on all professional cleaning tools this month\",\n  \"type\": \"banner\",\n  \"category\": \"hardware_stores\",\n  \"targetAudience\": {\n    \"demographics\": {\n      \"ageRange\": [25, 55],\n      \"location\": [\"New York\", \"Brooklyn\", \"Queens\"]\n    },\n    \"behavior\": {\n      \"userTypes\": [\"providers\", \"clients\"],\n      \"activityLevel\": \"active\"\n    }\n  },\n  \"content\": {\n    \"headline\": \"Professional Tools Sale - 20% Off!\",\n    \"body\": \"Upgrade your cleaning business with professional-grade tools. Limited time offer!\",\n    \"callToAction\": {\n      \"text\": \"Shop Now\",\n      \"url\": \"https://abchardware.com/sale\"\n    }\n  },\n  \"budget\": {\n    \"total\": 1000,\n    \"daily\": 50,\n    \"currency\": \"USD\"\n  },\n  \"bidding\": {\n    \"strategy\": \"cpc\",\n    \"bidAmount\": 2.50,\n    \"maxBid\": 5.00\n  },\n  \"schedule\": {\n    \"startDate\": \"2024-02-01T00:00:00Z\",\n    \"endDate\": \"2024-02-29T23:59:59Z\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/campaigns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "campaigns"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Advertiser Campaigns",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/campaigns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "campaigns"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record Ad Impression",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"type\": \"impression\",\n  \"context\": {\n    \"page\": \"marketplace\",\n    \"section\": \"services\",\n    \"position\": \"top\"\n  },\n  \"device\": \"mobile\",\n  \"location\": {\n    \"ip\": \"192.168.1.1\",\n    \"country\": \"USA\",\n    \"city\": \"New York\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/impression",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "impression"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "FacilityCare",
+      "item": [
+        {
+          "name": "Get Facility Care Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/services?category=janitorial&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "services"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "janitorial"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Facility Care Service (Provider)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Office Cleaning Service\",\n  \"description\": \"Comprehensive office cleaning including desks, floors, restrooms, and common areas\",\n  \"category\": \"janitorial\",\n  \"pricing\": {\n    \"type\": \"monthly\",\n    \"basePrice\": 500,\n    \"currency\": \"USD\"\n  },\n  \"serviceArea\": [\"10001\", \"10002\", \"10003\"],\n  \"features\": [\"Eco-friendly products\", \"Flexible scheduling\", \"Insured service\"],\n  \"requirements\": [\"After-hours access\", \"Storage space for supplies\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "services"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Contract",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"facility\": {\n    \"name\": \"ABC Corporate Office\",\n    \"address\": {\n      \"street\": \"789 Business Blvd\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"zipCode\": \"10001\",\n      \"country\": \"USA\"\n    },\n    \"size\": {\n      \"area\": 5000,\n      \"unit\": \"sqft\"\n    },\n    \"type\": \"office\"\n  },\n  \"contractDetails\": {\n    \"startDate\": \"2024-02-01\",\n    \"endDate\": \"2024-12-31\",\n    \"duration\": 11,\n    \"frequency\": \"weekly\",\n    \"scope\": [\"Office cleaning\", \"Restroom maintenance\", \"Trash removal\"],\n    \"specialRequirements\": [\"Use eco-friendly products only\"]\n  },\n  \"pricing\": {\n    \"basePrice\": 500,\n    \"frequency\": \"monthly\",\n    \"totalAmount\": 5500,\n    \"currency\": \"USD\"\n  },\n  \"payment\": {\n    \"terms\": \"net_30\",\n    \"method\": \"bank_transfer\",\n    \"autoPay\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/contracts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "contracts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Contracts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/contracts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "contracts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"subscriptionType\": \"janitorial\",\n  \"plan\": {\n    \"name\": \"Standard Cleaning Plan\",\n    \"features\": [\"Weekly cleaning\", \"Restroom maintenance\", \"Trash removal\"],\n    \"frequency\": \"weekly\",\n    \"price\": 125,\n    \"currency\": \"USD\"\n  },\n  \"schedule\": {\n    \"startDate\": \"2024-02-01\",\n    \"nextService\": \"2024-02-08\"\n  },\n  \"preferences\": {\n    \"preferredTime\": \"after 6 PM\",\n    \"contactMethod\": \"phone\",\n    \"specialInstructions\": \"Use eco-friendly products only\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/subscribe",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "subscribe"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "LocalPro Plus",
+      "item": [
+        {
+          "name": "Get Subscription Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/plans?type=provider",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "plans"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "provider"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Subscribe to Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"{{planId}}\",\n  \"billingCycle\": \"monthly\",\n  \"paymentMethod\": \"credit_card\",\n  \"paymentDetails\": {\n    \"cardLast4\": \"1234\",\n    \"accountType\": \"visa\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/subscribe",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "subscribe"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Subscription",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/subscription",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "subscription"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "payments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record Feature Usage",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"feature\": \"marketplace\",\n  \"action\": \"create_listing\",\n  \"details\": {\n    \"resource\": \"service\",\n    \"amount\": 1\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/usage",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "usage"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Usage Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/usage/analytics?period=30d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "usage", "analytics"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "30d"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
