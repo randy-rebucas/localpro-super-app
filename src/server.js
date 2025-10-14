@@ -16,6 +16,9 @@ const rentalsRoutes = require('./routes/rentals');
 const adsRoutes = require('./routes/ads');
 const facilityCareRoutes = require('./routes/facilityCare');
 const localproPlusRoutes = require('./routes/localproPlus');
+const trustVerificationRoutes = require('./routes/trustVerification');
+const communicationRoutes = require('./routes/communication');
+const analyticsRoutes = require('./routes/analytics');
 
 const app = express();
 
@@ -160,6 +163,43 @@ app.get('/', (req, res) => {
           { method: 'GET', path: '/subscription', description: 'Get subscription status', auth: true },
           { method: 'POST', path: '/cancel', description: 'Cancel subscription', auth: true }
         ]
+      },
+      trustVerification: {
+        base: '/api/trust-verification',
+        description: 'Trust and verification system',
+        routes: [
+          { method: 'POST', path: '/verify', description: 'Submit verification request', auth: true },
+          { method: 'GET', path: '/requests', description: 'Get verification requests', auth: true },
+          { method: 'PUT', path: '/requests/:id/review', description: 'Review verification request', auth: true, roles: ['admin'] },
+          { method: 'GET', path: '/trust-score', description: 'Get user trust score', auth: true },
+          { method: 'POST', path: '/disputes', description: 'Create dispute', auth: true },
+          { method: 'GET', path: '/disputes', description: 'Get user disputes', auth: true },
+          { method: 'PUT', path: '/disputes/:id/resolve', description: 'Resolve dispute', auth: true, roles: ['admin'] }
+        ]
+      },
+      communication: {
+        base: '/api/communication',
+        description: 'Real-time communication and messaging',
+        routes: [
+          { method: 'POST', path: '/conversations', description: 'Create or get conversation', auth: true },
+          { method: 'GET', path: '/conversations', description: 'Get user conversations', auth: true },
+          { method: 'POST', path: '/messages', description: 'Send message', auth: true },
+          { method: 'GET', path: '/conversations/:id/messages', description: 'Get conversation messages', auth: true },
+          { method: 'GET', path: '/notifications', description: 'Get user notifications', auth: true },
+          { method: 'PUT', path: '/notifications/:id/read', description: 'Mark notification as read', auth: true },
+          { method: 'PUT', path: '/notifications/read-all', description: 'Mark all notifications as read', auth: true }
+        ]
+      },
+      analytics: {
+        base: '/api/analytics',
+        description: 'Analytics and insights dashboard',
+        routes: [
+          { method: 'POST', path: '/track', description: 'Track analytics event', auth: true },
+          { method: 'GET', path: '/user', description: 'Get user analytics', auth: true },
+          { method: 'GET', path: '/services/:serviceId', description: 'Get service analytics', auth: true },
+          { method: 'GET', path: '/platform', description: 'Get platform analytics', auth: true, roles: ['admin'] },
+          { method: 'GET', path: '/dashboard', description: 'Get dashboard data', auth: true }
+        ]
       }
     },
     authentication: {
@@ -199,6 +239,9 @@ app.use('/api/rentals', rentalsRoutes);
 app.use('/api/ads', adsRoutes);
 app.use('/api/facility-care', facilityCareRoutes);
 app.use('/api/localpro-plus', localproPlusRoutes);
+app.use('/api/trust-verification', trustVerificationRoutes);
+app.use('/api/communication', communicationRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
