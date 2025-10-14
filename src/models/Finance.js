@@ -208,13 +208,18 @@ const transactionSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['bank_transfer', 'mobile_money', 'card', 'cash', 'paypal'],
+    enum: ['bank_transfer', 'mobile_money', 'card', 'cash', 'paypal', 'paymaya'],
     default: 'bank_transfer'
   },
   transactionId: String,
   externalReference: String,
   paypalOrderId: String,
   paypalTransactionId: String,
+  paymayaReferenceNumber: String,
+  paymayaCheckoutId: String,
+  paymayaPaymentId: String,
+  paymayaInvoiceId: String,
+  paymayaTransactionId: String,
   metadata: mongoose.Schema.Types.Mixed
 }, {
   timestamps: true

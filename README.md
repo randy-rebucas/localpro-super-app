@@ -13,8 +13,9 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **🔧 Rentals**: Tool and vehicle rental platform
 - **📢 Advertising**: Platform for hardware stores and suppliers
 - **🏢 FacilityCare**: Janitorial, landscaping, and pest control services
-- **⭐ LocalPro Plus**: Premium subscription system with PayPal integration
+- **⭐ LocalPro Plus**: Premium subscription system with PayPal and PayMaya integration
 - **💳 PayPal Integration**: Complete payment processing for all features
+- **💳 PayMaya Integration**: Alternative payment processing for Philippines market
 - **🗺️ Google Maps**: Location services and mapping integration
 - **📧 Email Service**: Multi-provider email notifications
 
@@ -45,7 +46,7 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **Security**: Helmet, CORS, Rate Limiting
 - **Logging**: Morgan
 - **Email Service**: Resend, SendGrid, SMTP (Nodemailer)
-- **Payment Processing**: PayPal Server SDK + REST API
+- **Payment Processing**: PayPal Server SDK + REST API, PayMaya API
 - **Maps & Location**: Google Maps APIs
 - **File Storage**: Cloudinary
 
@@ -55,6 +56,7 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - MongoDB (v4.4 or higher)
 - Twilio account for SMS verification
 - PayPal Developer account for payment processing
+- PayMaya Business account for Philippines payment processing
 - Google Maps API key (optional)
 - Email service account (Resend, SendGrid, or SMTP)
 - Git
@@ -126,6 +128,12 @@ EMAIL_SERVICE=resend
 # PAYPAL_CLIENT_SECRET=your-paypal-client-secret
 # PAYPAL_MODE=sandbox
 # PAYPAL_WEBHOOK_ID=your-paypal-webhook-id
+
+# PayMaya Configuration (Required for Philippines payment features)
+# PAYMAYA_PUBLIC_KEY=your-paymaya-public-key
+# PAYMAYA_SECRET_KEY=your-paymaya-secret-key
+# PAYMAYA_MODE=sandbox
+# PAYMAYA_WEBHOOK_SECRET=your-paymaya-webhook-secret
 ```
 
 **Note**: The app includes development mode support for Twilio. If Twilio credentials are not provided, the app will:
@@ -296,6 +304,19 @@ POST /api/finance/salary-advances/:id/repay/paypal # Repay salary advance with P
 POST /api/finance/salary-advances/repay/paypal/approve # Approve PayPal salary advance repayment
 ```
 
+### PayMaya Payment Endpoints
+```
+POST /api/paymaya/checkout                 # Create PayMaya checkout session
+GET  /api/paymaya/checkout/:checkoutId     # Get checkout details
+POST /api/paymaya/payment                  # Create PayMaya payment
+GET  /api/paymaya/payment/:paymentId       # Get payment details
+POST /api/paymaya/invoice                  # Create PayMaya invoice
+GET  /api/paymaya/invoice/:invoiceId       # Get invoice details
+POST /api/paymaya/webhook                  # PayMaya webhook handler
+GET  /api/paymaya/webhook/events           # Get webhook events (Admin)
+GET  /api/paymaya/config/validate          # Validate PayMaya configuration (Admin)
+```
+
 ### Google Maps & Location Endpoints
 ```
 POST /api/maps/geocode                     # Convert address to coordinates
@@ -333,6 +354,14 @@ GET  /api/maps/test                        # Test API connection (Admin)
 - **Multi-feature support**: Marketplace bookings, supplies orders, financial services, LocalPro Plus subscriptions
 - **Subscription management**: Full recurring billing with automatic renewals
 - **Webhook handling**: Real-time payment notifications and status updates
+- **Production ready**: Sandbox and production environment support
+
+### 💳 PayMaya Payment Integration
+- **Philippines-focused payment processing**: Checkout, Payment Vault, and Invoice APIs
+- **Multi-payment method support**: Cards, e-wallets, bank transfers
+- **Secure transactions**: PCI-DSS compliant with 3D Secure authentication
+- **Webhook notifications**: Real-time payment status updates
+- **PHP currency support**: Native support for Philippine Peso
 - **Production ready**: Sandbox and production environment support
 
 ### 📧 Email Service Integration
@@ -421,6 +450,7 @@ For support, email support@localpro.com or join our Slack channel.
 - [x] Google Maps integration
 - [x] Email service integration
 - [x] PayPal payment integration
+- [x] PayMaya payment integration
 - [x] Location-based services
 - [x] Service area validation
 - [x] Distance calculations

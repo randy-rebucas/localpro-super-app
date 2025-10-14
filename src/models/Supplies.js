@@ -188,12 +188,17 @@ const orderSchema = new mongoose.Schema({
     },
     method: {
       type: String,
-      enum: ['cash', 'card', 'bank_transfer', 'paypal'],
+      enum: ['cash', 'card', 'bank_transfer', 'paypal', 'paymaya'],
       default: 'cash'
     },
     transactionId: String,
     paypalOrderId: String,
     paypalTransactionId: String,
+    paymayaReferenceNumber: String,
+    paymayaCheckoutId: String,
+    paymayaPaymentId: String,
+    paymayaInvoiceId: String,
+    paymayaTransactionId: String,
     paidAt: Date
   },
   shipping: {

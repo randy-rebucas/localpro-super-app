@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, and email notifications. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, location-based services, and multi-provider email support.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, location-based services, multi-provider email support, and dual payment gateway integration.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -93,6 +93,21 @@
     },
     {
       "key": "participantId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "checkoutId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paymentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invoiceId",
       "value": "",
       "type": "string"
     }
@@ -1849,6 +1864,250 @@
               "raw": "{{baseUrl}}/api/maps/test",
               "host": ["{{baseUrl}}"],
               "path": ["api", "maps", "test"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "PayPal",
+      "item": [
+        {
+          "name": "PayPal Webhook Handler",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event_type\": \"PAYMENT.CAPTURE.COMPLETED\",\n  \"resource\": {\n    \"id\": \"payment-capture-id\",\n    \"status\": \"COMPLETED\",\n    \"amount\": {\n      \"currency_code\": \"USD\",\n      \"value\": \"100.00\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/paypal/webhook",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "paypal", "webhook"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get PayPal Webhook Events (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/paypal/webhook/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "paypal", "webhook", "events"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "PayMaya",
+      "item": [
+        {
+          "name": "Create PayMaya Checkout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('checkoutId', response.data.checkoutId);",
+                  "    console.log('PayMaya checkout created, ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totalAmount\": 1000.00,\n  \"currency\": \"PHP\",\n  \"description\": \"Service payment\",\n  \"referenceId\": \"ORDER-12345\",\n  \"buyer\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+639171234567\"\n  },\n  \"items\": [\n    {\n      \"name\": \"Cleaning Service\",\n      \"code\": \"CLEAN-001\",\n      \"description\": \"House cleaning service\",\n      \"quantity\": 1,\n      \"totalAmount\": {\n        \"amount\": \"1000.00\",\n        \"currency\": \"PHP\"\n      }\n    }\n  ],\n  \"redirectUrl\": {\n    \"success\": \"https://yourdomain.com/payment/success\",\n    \"failure\": \"https://yourdomain.com/payment/failure\",\n    \"cancel\": \"https://yourdomain.com/payment/cancel\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/paymaya/checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "paymaya", "checkout"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get PayMaya Checkout Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymaya/checkout/{{checkoutId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "paymaya", "checkout", "{{checkoutId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create PayMaya Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('paymentId', response.data.paymentId);",
+                  "    console.log('PayMaya payment created, ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vaultId\": \"vault-12345\",\n  \"amount\": 1000.00,\n  \"currency\": \"PHP\",\n  \"referenceId\": \"PAYMENT-12345\",\n  \"buyer\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\"\n  },\n  \"description\": \"Subscription payment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/paymaya/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "paymaya", "payment"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get PayMaya Payment Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymaya/payment/{{paymentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "paymaya", "payment", "{{paymentId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create PayMaya Invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('invoiceId', response.data.invoiceId);",
+                  "    console.log('PayMaya invoice created, ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000.00,\n  \"currency\": \"PHP\",\n  \"description\": \"Service invoice\",\n  \"referenceId\": \"INVOICE-12345\",\n  \"buyer\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\"\n  },\n  \"redirectUrl\": {\n    \"success\": \"https://yourdomain.com/payment/success\",\n    \"failure\": \"https://yourdomain.com/payment/failure\",\n    \"cancel\": \"https://yourdomain.com/payment/cancel\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/paymaya/invoice",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "paymaya", "invoice"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get PayMaya Invoice Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymaya/invoice/{{invoiceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "paymaya", "invoice", "{{invoiceId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PayMaya Webhook Handler",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-paymaya-signature",
+                "value": "webhook-signature-here"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"CHECKOUT_SUCCESS\",\n  \"data\": {\n    \"checkoutId\": \"checkout-12345\",\n    \"requestReferenceNumber\": \"ORDER-12345\",\n    \"status\": \"SUCCESS\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/paymaya/webhook",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "paymaya", "webhook"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get PayMaya Webhook Events (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymaya/webhook/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "paymaya", "webhook", "events"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate PayMaya Configuration (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymaya/config/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "paymaya", "config", "validate"]
             }
           },
           "response": []

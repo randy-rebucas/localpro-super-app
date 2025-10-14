@@ -21,6 +21,7 @@ const communicationRoutes = require('./routes/communication');
 const analyticsRoutes = require('./routes/analytics');
 const mapsRoutes = require('./routes/maps');
 const paypalRoutes = require('./routes/paypal');
+const paymayaRoutes = require('./routes/paymaya');
 
 const app = express();
 
@@ -217,6 +218,29 @@ app.get('/', (req, res) => {
           { method: 'POST', path: '/analyze-coverage', description: 'Analyze service coverage', auth: true },
           { method: 'GET', path: '/test', description: 'Test Google Maps API connection', auth: true, roles: ['admin'] }
         ]
+      },
+      paypal: {
+        base: '/api/paypal',
+        description: 'PayPal payment processing and webhooks',
+        routes: [
+          { method: 'POST', path: '/webhook', description: 'PayPal webhook handler', auth: false },
+          { method: 'GET', path: '/webhook/events', description: 'Get webhook events', auth: true, roles: ['admin'] }
+        ]
+      },
+      paymaya: {
+        base: '/api/paymaya',
+        description: 'PayMaya payment processing and webhooks',
+        routes: [
+          { method: 'POST', path: '/checkout', description: 'Create PayMaya checkout session', auth: true },
+          { method: 'GET', path: '/checkout/:checkoutId', description: 'Get checkout details', auth: true },
+          { method: 'POST', path: '/payment', description: 'Create PayMaya payment', auth: true },
+          { method: 'GET', path: '/payment/:paymentId', description: 'Get payment details', auth: true },
+          { method: 'POST', path: '/invoice', description: 'Create PayMaya invoice', auth: true },
+          { method: 'GET', path: '/invoice/:invoiceId', description: 'Get invoice details', auth: true },
+          { method: 'POST', path: '/webhook', description: 'PayMaya webhook handler', auth: false },
+          { method: 'GET', path: '/webhook/events', description: 'Get webhook events', auth: true, roles: ['admin'] },
+          { method: 'GET', path: '/config/validate', description: 'Validate PayMaya configuration', auth: true, roles: ['admin'] }
+        ]
       }
     },
     authentication: {
@@ -261,6 +285,7 @@ app.use('/api/communication', communicationRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/maps', mapsRoutes);
 app.use('/api/paypal', paypalRoutes);
+app.use('/api/paymaya', paymayaRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
