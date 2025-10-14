@@ -1,6 +1,7 @@
 const { Service, Booking } = require('../models/Marketplace');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
+const EmailService = require('../services/emailService');
 const { uploaders } = require('../config/cloudinary');
 
 // @desc    Get all services
@@ -240,9 +241,20 @@ const createBooking = async (req, res) => {
     // Populate the booking with service and user details
     await booking.populate([
       { path: 'service', select: 'title category pricing' },
-      { path: 'client', select: 'firstName lastName phoneNumber' },
-      { path: 'provider', select: 'firstName lastName phoneNumber' }
+      { path: 'client', select: 'firstName lastName phoneNumber email' },
+      { path: 'provider', select: 'firstName lastName phoneNumber email' }
     ]);
+
+    // Send booking confirmation email to client if email is available
+    if (booking.client.email) {
+      try {
+        await EmailService.sendBookingConfirmation(booking.client.email, booking);
+        console.log(`Booking confirmation email sent to: ${booking.client.email}`);
+      } catch (emailError) {
+        console.error('Failed to send booking confirmation email:', emailError);
+        // Don't fail the booking if email fails
+      }
+    }
 
     res.status(201).json({
       success: true,

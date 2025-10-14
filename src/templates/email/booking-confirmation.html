@@ -1,0 +1,112 @@
+<h1 style="color: #667eea; margin-bottom: 20px;">Booking Confirmed! ✅</h1>
+
+<p>Hi <strong>{{clientName}}</strong>,</p>
+
+<p>Great news! Your service booking has been confirmed. We're excited to connect you with a trusted LocalPro professional.</p>
+
+<div class="content-box">
+    <h3 style="color: #667eea; margin-top: 0;">📋 Booking Details</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold; width: 40%;">Service:</td>
+            <td style="padding: 8px 0;">{{serviceTitle}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Category:</td>
+            <td style="padding: 8px 0;">{{serviceCategory}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Date & Time:</td>
+            <td style="padding: 8px 0;">{{bookingDate}} at {{bookingTime}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Duration:</td>
+            <td style="padding: 8px 0;">{{duration}} hours</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Total Amount:</td>
+            <td style="padding: 8px 0; font-size: 18px; font-weight: bold; color: #667eea;">${{totalAmount}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Status:</td>
+            <td style="padding: 8px 0;">
+                <span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                    {{status}}
+                </span>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="content-box">
+    <h3 style="color: #667eea; margin-top: 0;">📍 Service Location</h3>
+    <p style="margin: 0;">
+        <strong>{{address.street}}</strong><br>
+        {{address.city}}, {{address.state}} {{address.zipCode}}<br>
+        {{address.country}}
+    </p>
+    {{#if specialInstructions}}
+    <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 0 4px 4px 0;">
+        <strong>Special Instructions:</strong><br>
+        {{specialInstructions}}
+    </div>
+    {{/if}}
+</div>
+
+<div class="content-box">
+    <h3 style="color: #667eea; margin-top: 0;">👨‍🔧 Service Provider</h3>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="width: 60px; height: 60px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px;">
+            {{providerInitials}}
+        </div>
+        <div>
+            <h4 style="margin: 0; color: #333;">{{providerName}}</h4>
+            <p style="margin: 5px 0 0 0; color: #666;">{{providerRating}} ⭐ ({{providerReviewCount}} reviews)</p>
+            <p style="margin: 5px 0 0 0; color: #666;">📞 {{providerPhone}}</p>
+        </div>
+    </div>
+</div>
+
+<div class="highlight info">
+    <h4 style="margin-top: 0; color: #0c5460;">📱 What's Next?</h4>
+    <ul style="margin-bottom: 0; padding-left: 20px;">
+        <li>You'll receive a reminder 24 hours before your scheduled service</li>
+        <li>Your service provider will contact you 1 hour before arrival</li>
+        <li>Track your booking status in real-time through the LocalPro app</li>
+        <li>After service completion, you can rate and review your experience</li>
+    </ul>
+</div>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{app_url}}/bookings/{{bookingId}}" class="btn">View Booking Details</a>
+    <a href="{{app_url}}/contact" class="btn btn-secondary">Contact Support</a>
+</div>
+
+<div class="divider"></div>
+
+<h3 style="color: #667eea;">💡 Important Reminders</h3>
+
+<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h4 style="margin-top: 0; color: #667eea;">Before Your Service:</h4>
+    <ul style="margin-bottom: 0; padding-left: 20px;">
+        <li>Ensure the service area is accessible</li>
+        <li>Remove any valuable or fragile items from the work area</li>
+        <li>Have your payment method ready</li>
+        <li>Be available to answer any questions from your service provider</li>
+    </ul>
+</div>
+
+<div class="highlight warning">
+    <h4 style="margin-top: 0; color: #856404;">⚠️ Cancellation Policy</h4>
+    <p style="margin-bottom: 0;">
+        You can cancel or reschedule your booking up to 2 hours before the scheduled time without any charges. 
+        <a href="{{app_url}}/bookings/{{bookingId}}/cancel" style="color: #856404;">Cancel or reschedule here</a>.
+    </p>
+</div>
+
+<p>If you have any questions or need to make changes to your booking, please don't hesitate to contact us or your service provider directly.</p>
+
+<p>Thank you for choosing LocalPro. We look forward to providing you with an excellent service experience!</p>
+
+<p>Best regards,<br>
+<strong>The LocalPro Team</strong></p>

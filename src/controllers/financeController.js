@@ -1,4 +1,6 @@
 const { Loan, SalaryAdvance, Transaction } = require('../models/Finance');
+const User = require('../models/User');
+const EmailService = require('../services/emailService');
 
 // @desc    Apply for loan
 // @route   POST /api/finance/loans/apply
@@ -199,6 +201,20 @@ const approveLoan = async (req, res) => {
     };
 
     await loan.save();
+
+    // Populate loan with borrower details for email
+    await loan.populate('borrower', 'firstName lastName email');
+
+    // Send loan approval email to borrower if email is available
+    if (loan.borrower.email) {
+      try {
+        await EmailService.sendLoanApproval(loan.borrower.email, loan);
+        console.log(`Loan approval email sent to: ${loan.borrower.email}`);
+      } catch (emailError) {
+        console.error('Failed to send loan approval email:', emailError);
+        // Don't fail the approval if email fails
+      }
+    }
 
     res.status(200).json({
       success: true,

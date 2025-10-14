@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const TwilioService = require('../services/twilioService');
 const CloudinaryService = require('../services/cloudinaryService');
+const EmailService = require('../services/emailService');
 const { uploaders } = require('../config/cloudinary');
 
 // Generate JWT Token
@@ -101,6 +102,17 @@ const verifyCode = async (req, res) => {
         email,
         isVerified: true
       });
+
+      // Send welcome email to new user if email is provided
+      if (email) {
+        try {
+          await EmailService.sendWelcomeEmail(email, firstName);
+          console.log(`Welcome email sent to: ${email}`);
+        } catch (emailError) {
+          console.error('Failed to send welcome email:', emailError);
+          // Don't fail the registration if email fails
+        }
+      }
     }
 
     // Generate token

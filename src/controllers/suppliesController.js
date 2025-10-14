@@ -1,4 +1,6 @@
 const { Product, SubscriptionKit, Order } = require('../models/Supplies');
+const User = require('../models/User');
+const EmailService = require('../services/emailService');
 
 // @desc    Get all products
 // @route   GET /api/supplies/products
@@ -226,8 +228,20 @@ const createOrder = async (req, res) => {
     // Populate order details
     await order.populate([
       { path: 'items.product', select: 'name pricing images' },
-      { path: 'subscriptionKit', select: 'name pricing frequency' }
+      { path: 'subscriptionKit', select: 'name pricing frequency' },
+      { path: 'customer', select: 'firstName lastName email' }
     ]);
+
+    // Send order confirmation email to customer if email is available
+    if (order.customer.email) {
+      try {
+        await EmailService.sendOrderConfirmation(order.customer.email, order);
+        console.log(`Order confirmation email sent to: ${order.customer.email}`);
+      } catch (emailError) {
+        console.error('Failed to send order confirmation email:', emailError);
+        // Don't fail the order if email fails
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -373,7 +387,21 @@ const subscribeToKit = async (req, res) => {
     const order = await Order.create(orderData);
 
     // Populate order details
-    await order.populate('subscriptionKit', 'name pricing frequency');
+    await order.populate([
+      { path: 'subscriptionKit', select: 'name pricing frequency' },
+      { path: 'customer', select: 'firstName lastName email' }
+    ]);
+
+    // Send order confirmation email to customer if email is available
+    if (order.customer.email) {
+      try {
+        await EmailService.sendOrderConfirmation(order.customer.email, order);
+        console.log(`Subscription confirmation email sent to: ${order.customer.email}`);
+      } catch (emailError) {
+        console.error('Failed to send subscription confirmation email:', emailError);
+        // Don't fail the subscription if email fails
+      }
+    }
 
     res.status(201).json({
       success: true,
