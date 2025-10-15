@@ -62,261 +62,50 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     baseUrl: `${req.protocol}://${req.get('host')}`,
-    documentation: {
-      healthCheck: '/health',
-      apiBase: '/api'
+    
+    // Summarized Info
+    summary: {
+      description: 'LocalPro Super App - A comprehensive platform connecting local service providers with customers',
+      features: [
+        'Service Marketplace & Bookings',
+        'Learning Academy & Certifications', 
+        'Equipment & Supplies Management',
+        'Financial Management & Payments',
+        'Job Board & Employment',
+        'Trust & Verification System',
+        'Real-time Communication',
+        'Analytics & Insights',
+        'Referral System & Rewards',
+        'Agency Management'
+      ],
+      totalEndpoints: 15,
+      authentication: 'Bearer Token',
+      rateLimit: '100 requests per 15 minutes'
     },
-    endpoints: {
-      auth: {
-        base: '/api/auth',
-        description: 'Authentication and user management',
-        routes: [
-          { method: 'POST', path: '/send-code', description: 'Send verification code', auth: false },
-          { method: 'POST', path: '/verify-code', description: 'Verify code and login', auth: false },
-          { method: 'GET', path: '/me', description: 'Get current user profile', auth: true },
-          { method: 'PUT', path: '/profile', description: 'Update user profile', auth: true },
-          { method: 'POST', path: '/logout', description: 'Logout user', auth: true }
-        ]
-      },
-      marketplace: {
-        base: '/api/marketplace',
-        description: 'Service marketplace and bookings',
-        routes: [
-          { method: 'GET', path: '/services', description: 'Get all services', auth: false },
-          { method: 'GET', path: '/services/:id', description: 'Get service by ID', auth: false },
-          { method: 'POST', path: '/services', description: 'Create new service', auth: true, roles: ['provider', 'admin'] },
-          { method: 'PUT', path: '/services/:id', description: 'Update service', auth: true, roles: ['provider', 'admin'] },
-          { method: 'DELETE', path: '/services/:id', description: 'Delete service', auth: true, roles: ['provider', 'admin'] },
-          { method: 'POST', path: '/bookings', description: 'Create booking', auth: true },
-          { method: 'GET', path: '/bookings', description: 'Get user bookings', auth: true },
-          { method: 'PUT', path: '/bookings/:id/status', description: 'Update booking status', auth: true },
-          { method: 'POST', path: '/bookings/:id/review', description: 'Add review to booking', auth: true }
-        ]
-      },
-      academy: {
-        base: '/api/academy',
-        description: 'Learning academy and courses',
-        routes: [
-          { method: 'GET', path: '/courses', description: 'Get all courses', auth: false },
-          { method: 'GET', path: '/courses/:id', description: 'Get course by ID', auth: false },
-          { method: 'GET', path: '/certifications', description: 'Get available certifications', auth: false },
-          { method: 'POST', path: '/courses', description: 'Create new course', auth: true, roles: ['instructor', 'admin'] },
-          { method: 'POST', path: '/enroll', description: 'Enroll in course', auth: true },
-          { method: 'GET', path: '/enrollments', description: 'Get user enrollments', auth: true },
-          { method: 'PUT', path: '/enrollments/:id/progress', description: 'Update course progress', auth: true }
-        ]
-      },
-      supplies: {
-        base: '/api/supplies',
-        description: 'Equipment and supplies management',
-        routes: [
-          { method: 'GET', path: '/', description: 'Get all supplies', auth: false },
-          { method: 'GET', path: '/:id', description: 'Get supply by ID', auth: false },
-          { method: 'POST', path: '/', description: 'Create new supply', auth: true, roles: ['admin'] },
-          { method: 'PUT', path: '/:id', description: 'Update supply', auth: true, roles: ['admin'] },
-          { method: 'DELETE', path: '/:id', description: 'Delete supply', auth: true, roles: ['admin'] }
-        ]
-      },
-      finance: {
-        base: '/api/finance',
-        description: 'Financial management and transactions',
-        routes: [
-          { method: 'GET', path: '/transactions', description: 'Get user transactions', auth: true },
-          { method: 'POST', path: '/transactions', description: 'Create transaction', auth: true },
-          { method: 'GET', path: '/balance', description: 'Get account balance', auth: true },
-          { method: 'POST', path: '/payments', description: 'Process payment', auth: true }
-        ]
-      },
-      rentals: {
-        base: '/api/rentals',
-        description: 'Equipment rental services',
-        routes: [
-          { method: 'GET', path: '/', description: 'Get available rentals', auth: false },
-          { method: 'GET', path: '/:id', description: 'Get rental by ID', auth: false },
-          { method: 'POST', path: '/', description: 'Create rental booking', auth: true },
-          { method: 'GET', path: '/my-rentals', description: 'Get user rentals', auth: true },
-          { method: 'PUT', path: '/:id/status', description: 'Update rental status', auth: true }
-        ]
-      },
-      ads: {
-        base: '/api/ads',
-        description: 'Advertising and promotions',
-        routes: [
-          { method: 'GET', path: '/', description: 'Get all ads', auth: false },
-          { method: 'GET', path: '/:id', description: 'Get ad by ID', auth: false },
-          { method: 'POST', path: '/', description: 'Create new ad', auth: true, roles: ['admin'] },
-          { method: 'PUT', path: '/:id', description: 'Update ad', auth: true, roles: ['admin'] },
-          { method: 'DELETE', path: '/:id', description: 'Delete ad', auth: true, roles: ['admin'] }
-        ]
-      },
-      facilityCare: {
-        base: '/api/facility-care',
-        description: 'Facility maintenance and care services',
-        routes: [
-          { method: 'GET', path: '/services', description: 'Get facility care services', auth: false },
-          { method: 'GET', path: '/services/:id', description: 'Get service by ID', auth: false },
-          { method: 'POST', path: '/services', description: 'Create service request', auth: true },
-          { method: 'GET', path: '/requests', description: 'Get user service requests', auth: true },
-          { method: 'PUT', path: '/requests/:id/status', description: 'Update request status', auth: true }
-        ]
-      },
-      localproPlus: {
-        base: '/api/localpro-plus',
-        description: 'LocalPro Plus premium features',
-        routes: [
-          { method: 'GET', path: '/features', description: 'Get premium features', auth: true },
-          { method: 'POST', path: '/subscribe', description: 'Subscribe to LocalPro Plus', auth: true },
-          { method: 'GET', path: '/subscription', description: 'Get subscription status', auth: true },
-          { method: 'POST', path: '/cancel', description: 'Cancel subscription', auth: true }
-        ]
-      },
-      trustVerification: {
-        base: '/api/trust-verification',
-        description: 'Trust and verification system',
-        routes: [
-          { method: 'POST', path: '/verify', description: 'Submit verification request', auth: true },
-          { method: 'GET', path: '/requests', description: 'Get verification requests', auth: true },
-          { method: 'PUT', path: '/requests/:id/review', description: 'Review verification request', auth: true, roles: ['admin'] },
-          { method: 'GET', path: '/trust-score', description: 'Get user trust score', auth: true },
-          { method: 'POST', path: '/disputes', description: 'Create dispute', auth: true },
-          { method: 'GET', path: '/disputes', description: 'Get user disputes', auth: true },
-          { method: 'PUT', path: '/disputes/:id/resolve', description: 'Resolve dispute', auth: true, roles: ['admin'] }
-        ]
-      },
-      communication: {
-        base: '/api/communication',
-        description: 'Real-time communication and messaging',
-        routes: [
-          { method: 'POST', path: '/conversations', description: 'Create or get conversation', auth: true },
-          { method: 'GET', path: '/conversations', description: 'Get user conversations', auth: true },
-          { method: 'POST', path: '/messages', description: 'Send message', auth: true },
-          { method: 'GET', path: '/conversations/:id/messages', description: 'Get conversation messages', auth: true },
-          { method: 'GET', path: '/notifications', description: 'Get user notifications', auth: true },
-          { method: 'PUT', path: '/notifications/:id/read', description: 'Mark notification as read', auth: true },
-          { method: 'PUT', path: '/notifications/read-all', description: 'Mark all notifications as read', auth: true }
-        ]
-      },
-      analytics: {
-        base: '/api/analytics',
-        description: 'Analytics and insights dashboard',
-        routes: [
-          { method: 'POST', path: '/track', description: 'Track analytics event', auth: true },
-          { method: 'GET', path: '/user', description: 'Get user analytics', auth: true },
-          { method: 'GET', path: '/services/:serviceId', description: 'Get service analytics', auth: true },
-          { method: 'GET', path: '/platform', description: 'Get platform analytics', auth: true, roles: ['admin'] },
-          { method: 'GET', path: '/dashboard', description: 'Get dashboard data', auth: true }
-        ]
-      },
-      maps: {
-        base: '/api/maps',
-        description: 'Google Maps integration and location services',
-        routes: [
-          { method: 'POST', path: '/geocode', description: 'Convert address to coordinates', auth: false },
-          { method: 'POST', path: '/reverse-geocode', description: 'Convert coordinates to address', auth: false },
-          { method: 'POST', path: '/places/search', description: 'Search for places', auth: false },
-          { method: 'GET', path: '/places/:placeId', description: 'Get place details', auth: false },
-          { method: 'POST', path: '/distance', description: 'Calculate distance between points', auth: false },
-          { method: 'POST', path: '/nearby', description: 'Find nearby places', auth: false },
-          { method: 'POST', path: '/validate-service-area', description: 'Validate service area coverage', auth: false },
-          { method: 'POST', path: '/analyze-coverage', description: 'Analyze service coverage', auth: true },
-          { method: 'GET', path: '/test', description: 'Test Google Maps API connection', auth: true, roles: ['admin'] }
-        ]
-      },
-      paypal: {
-        base: '/api/paypal',
-        description: 'PayPal payment processing and webhooks',
-        routes: [
-          { method: 'POST', path: '/webhook', description: 'PayPal webhook handler', auth: false },
-          { method: 'GET', path: '/webhook/events', description: 'Get webhook events', auth: true, roles: ['admin'] }
-        ]
-      },
-      paymaya: {
-        base: '/api/paymaya',
-        description: 'PayMaya payment processing and webhooks',
-        routes: [
-          { method: 'POST', path: '/checkout', description: 'Create PayMaya checkout session', auth: true },
-          { method: 'GET', path: '/checkout/:checkoutId', description: 'Get checkout details', auth: true },
-          { method: 'POST', path: '/payment', description: 'Create PayMaya payment', auth: true },
-          { method: 'GET', path: '/payment/:paymentId', description: 'Get payment details', auth: true },
-          { method: 'POST', path: '/invoice', description: 'Create PayMaya invoice', auth: true },
-          { method: 'GET', path: '/invoice/:invoiceId', description: 'Get invoice details', auth: true },
-          { method: 'POST', path: '/webhook', description: 'PayMaya webhook handler', auth: false },
-          { method: 'GET', path: '/webhook/events', description: 'Get webhook events', auth: true, roles: ['admin'] },
-          { method: 'GET', path: '/config/validate', description: 'Validate PayMaya configuration', auth: true, roles: ['admin'] }
-        ]
-      },
-      jobs: {
-        base: '/api/jobs',
-        description: 'Job board and employment opportunities',
-        routes: [
-          { method: 'GET', path: '/', description: 'Get all jobs', auth: false },
-          { method: 'GET', path: '/search', description: 'Search jobs with filters', auth: false },
-          { method: 'GET', path: '/:id', description: 'Get job by ID', auth: false },
-          { method: 'POST', path: '/', description: 'Create new job posting', auth: true, roles: ['provider', 'admin'] },
-          { method: 'PUT', path: '/:id', description: 'Update job posting', auth: true, roles: ['provider', 'admin'] },
-          { method: 'DELETE', path: '/:id', description: 'Delete job posting', auth: true, roles: ['provider', 'admin'] },
-          { method: 'POST', path: '/:id/apply', description: 'Apply for job', auth: true },
-          { method: 'GET', path: '/my-applications', description: 'Get user job applications', auth: true },
-          { method: 'GET', path: '/my-jobs', description: 'Get employer job postings', auth: true, roles: ['provider', 'admin'] },
-          { method: 'GET', path: '/:id/applications', description: 'Get job applications', auth: true, roles: ['provider', 'admin'] },
-          { method: 'PUT', path: '/:id/applications/:applicationId/status', description: 'Update application status', auth: true, roles: ['provider', 'admin'] },
-          { method: 'POST', path: '/:id/logo', description: 'Upload company logo', auth: true, roles: ['provider', 'admin'] },
-          { method: 'GET', path: '/:id/stats', description: 'Get job statistics', auth: true, roles: ['provider', 'admin'] }
-        ]
-      },
-      referrals: {
-        base: '/api/referrals',
-        description: 'Referral system and rewards management',
-        routes: [
-          { method: 'GET', path: '/me', description: 'Get user referral information', auth: true },
-          { method: 'GET', path: '/stats', description: 'Get referral statistics', auth: true },
-          { method: 'GET', path: '/links', description: 'Get referral links and sharing options', auth: true },
-          { method: 'GET', path: '/rewards', description: 'Get referral rewards history', auth: true },
-          { method: 'POST', path: '/invite', description: 'Send referral invitations', auth: true },
-          { method: 'PUT', path: '/preferences', description: 'Update referral preferences', auth: true },
-          { method: 'POST', path: '/validate', description: 'Validate referral code', auth: false },
-          { method: 'POST', path: '/track', description: 'Track referral click', auth: false },
-          { method: 'GET', path: '/leaderboard', description: 'Get referral leaderboard', auth: false },
-          { method: 'POST', path: '/process', description: 'Process referral completion', auth: true, roles: ['admin'] },
-          { method: 'GET', path: '/analytics', description: 'Get referral analytics', auth: true, roles: ['admin'] }
-        ]
-      },
-      agencies: {
-        base: '/api/agencies',
-        description: 'Agency management and provider coordination',
-        routes: [
-          { method: 'GET', path: '/', description: 'Get all agencies', auth: false },
-          { method: 'GET', path: '/:id', description: 'Get agency by ID', auth: false },
-          { method: 'POST', path: '/', description: 'Create new agency', auth: true },
-          { method: 'PUT', path: '/:id', description: 'Update agency', auth: true },
-          { method: 'DELETE', path: '/:id', description: 'Delete agency', auth: true },
-          { method: 'POST', path: '/:id/logo', description: 'Upload agency logo', auth: true },
-          { method: 'POST', path: '/:id/providers', description: 'Add provider to agency', auth: true },
-          { method: 'DELETE', path: '/:id/providers/:providerId', description: 'Remove provider from agency', auth: true },
-          { method: 'PUT', path: '/:id/providers/:providerId/status', description: 'Update provider status', auth: true },
-          { method: 'POST', path: '/:id/admins', description: 'Add admin to agency', auth: true },
-          { method: 'DELETE', path: '/:id/admins/:adminId', description: 'Remove admin from agency', auth: true },
-          { method: 'GET', path: '/:id/analytics', description: 'Get agency analytics', auth: true },
-          { method: 'GET', path: '/my/agencies', description: 'Get my agencies', auth: true },
-          { method: 'POST', path: '/join', description: 'Join agency', auth: true },
-          { method: 'POST', path: '/leave', description: 'Leave agency', auth: true }
-        ]
-      }
+
+    // Company Info
+    company: {
+      name: 'LocalPro Super App',
+      tagline: 'Connecting Local Professionals with Opportunities',
+      mission: 'Empowering local service providers and creating opportunities for growth and success',
+      founded: '2024',
+      location: 'Philippines'
     },
-    authentication: {
-      type: 'Bearer Token',
-      header: 'Authorization: Bearer <token>',
-      note: 'Some endpoints require specific roles (admin, provider, instructor)'
+
+    // Contact Info
+    contact: {
+      support: 'api-support@localpro.com',
+      technical: 'tech@localpro.com',
+      business: 'business@localpro.com',
+      documentation: 'Contact API support for detailed documentation'
     },
-    rateLimiting: {
-      window: '15 minutes',
-      limit: '100 requests per IP',
-      scope: '/api/*'
-    },
-    support: {
-      documentation: 'Contact API support for detailed documentation',
-      version: '1.0.0',
-      lastUpdated: new Date().toISOString()
+
+    // Postman Collection Link
+    postmanCollection: {
+      name: 'LocalPro-Super-App-API',
+      description: 'Complete API collection with all endpoints and examples',
+      link: `${req.protocol}://${req.get('host')}/LocalPro-Super-App-API.postman_collection.json`,
+      openInNewTab: true
     }
   });
 });
@@ -328,6 +117,13 @@ app.get('/health', (req, res) => {
     message: 'LocalPro Super App API is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Serve Postman collection
+app.get('/LocalPro-Super-App-API.postman_collection.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', 'attachment; filename="LocalPro-Super-App-API.postman_collection.json"');
+  res.sendFile('LocalPro-Super-App-API.postman_collection.json', { root: '.' });
 });
 
 // API Routes
