@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, location-based services, multi-provider email support, and dual payment gateway integration.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, location-based services, multi-provider email support, and dual payment gateway integration.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -128,6 +128,11 @@
     },
     {
       "key": "applicationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "referralId",
       "value": "",
       "type": "string"
     }
@@ -3039,6 +3044,253 @@
               "raw": "{{baseUrl}}/api/jobs/{{jobId}}/stats",
               "host": ["{{baseUrl}}"],
               "path": ["api", "jobs", "{{jobId}}", "stats"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Referral System",
+      "item": [
+        {
+          "name": "Get My Referrals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/me?timeRange=30&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "referrals", "me"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Referral Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/stats?timeRange=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "referrals", "stats"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Referral Links",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/links",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "referrals", "links"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Referral Rewards History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/rewards?page=1&limit=10&status=processed",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "referrals", "rewards"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "processed"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Referral Invitations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emails\": [\"friend1@example.com\", \"friend2@example.com\"],\n  \"phoneNumbers\": [\"+1234567890\"],\n  \"message\": \"Join me on LocalPro! It's an amazing platform for local services.\",\n  \"method\": \"email\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/invite",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "referrals", "invite"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Referral Preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"autoShare\": true,\n  \"shareOnSocial\": false,\n  \"emailNotifications\": true,\n  \"smsNotifications\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "referrals", "preferences"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Referral Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"referralCode\": \"AB123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "referrals", "validate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Track Referral Click",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"referralCode\": \"AB123456\",\n  \"trackingData\": {\n    \"source\": \"email\",\n    \"campaign\": \"summer2024\",\n    \"ipAddress\": \"192.168.1.1\",\n    \"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\",\n    \"referrerUrl\": \"https://example.com\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/track",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "referrals", "track"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Referral Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/leaderboard?limit=10&timeRange=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "referrals", "leaderboard"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "timeRange",
+                  "value": "30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Process Referral Completion (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"referralId\": \"{{referralId}}\",\n  \"triggerAction\": {\n    \"type\": \"booking\",\n    \"referenceId\": \"64a1b2c3d4e5f6789abcdef1\",\n    \"referenceType\": \"Booking\",\n    \"amount\": 150.00,\n    \"currency\": \"USD\",\n    \"completedAt\": \"2024-01-15T10:30:00.000Z\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/process",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "referrals", "process"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Referral Analytics (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/analytics?timeRange=30&groupBy=day",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "referrals", "analytics"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30"
+                },
+                {
+                  "key": "groupBy",
+                  "value": "day"
+                }
+              ]
             }
           },
           "response": []

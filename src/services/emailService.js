@@ -454,6 +454,78 @@ class EmailService {
   }
 
   /**
+   * Send referral invitation email
+   * @param {string} to - Recipient email
+   * @param {object} data - Referral invitation data
+   * @returns {Promise<object>} Send result
+   */
+  async sendReferralInvitation(to, data) {
+    try {
+      const subject = `${data.referrerName} invited you to join LocalPro!`;
+      
+      const templateData = {
+        ...data,
+        dashboard_url: `${process.env.FRONTEND_URL}/dashboard`,
+        website_url: process.env.FRONTEND_URL,
+        support_url: `${process.env.FRONTEND_URL}/support`,
+        privacy_url: `${process.env.FRONTEND_URL}/privacy`,
+        terms_url: `${process.env.FRONTEND_URL}/terms`,
+        facebook_url: process.env.FACEBOOK_URL || '#',
+        twitter_url: process.env.TWITTER_URL || '#',
+        linkedin_url: process.env.LINKEDIN_URL || '#',
+        instagram_url: process.env.INSTAGRAM_URL || '#',
+        current_year: new Date().getFullYear()
+      };
+
+      const html = await templateEngine.renderTemplate(
+        'referral-invitation',
+        templateData
+      );
+
+      return await this.sendEmail(to, subject, html);
+    } catch (error) {
+      console.error('Error sending referral invitation:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Send referral reward notification email
+   * @param {string} to - Recipient email
+   * @param {object} data - Reward notification data
+   * @returns {Promise<object>} Send result
+   */
+  async sendReferralRewardNotification(to, data) {
+    try {
+      const subject = `🎉 You earned $${data.rewardAmount} from your referral!`;
+      
+      const templateData = {
+        ...data,
+        dashboard_url: `${process.env.FRONTEND_URL}/referrals`,
+        website_url: process.env.FRONTEND_URL,
+        support_url: `${process.env.FRONTEND_URL}/support`,
+        privacy_url: `${process.env.FRONTEND_URL}/privacy`,
+        terms_url: `${process.env.FRONTEND_URL}/terms`,
+        facebook_url: process.env.FACEBOOK_URL || '#',
+        twitter_url: process.env.TWITTER_URL || '#',
+        linkedin_url: process.env.LINKEDIN_URL || '#',
+        instagram_url: process.env.INSTAGRAM_URL || '#',
+        current_year: new Date().getFullYear()
+      };
+
+      const html = await templateEngine.renderTemplate(
+        'referral-reward-notification',
+        templateData
+      );
+
+      return await this.sendEmail(to, subject, html);
+    } catch (error) {
+      console.error('Error sending referral reward notification:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Test email configuration
    * @returns {Promise<object>} Test result
    */

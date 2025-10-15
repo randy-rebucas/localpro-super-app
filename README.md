@@ -8,6 +8,7 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **🔐 Authentication**: SMS-based authentication with Twilio integration
 - **🏪 Marketplace**: Service marketplace (cleaning, plumbing, electrical, moving)
 - **💼 Job Board**: Employment platform for job postings and applications
+- **🤝 Referral System**: Comprehensive referral and rewards platform
 - **📦 Supplies & Materials**: Product catalog with subscription kits
 - **🎓 Academy**: Training courses and certification programs
 - **💰 Finance**: Salary advances and micro-loans
@@ -38,6 +39,8 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **Places search and autocomplete**
 - **Job board with application tracking**
 - **Company profiles and job analytics**
+- **Referral system with rewards and tier system**
+- **Automated referral processing across all modules**
 
 ## 🛠️ Tech Stack
 
@@ -238,6 +241,21 @@ POST   /api/jobs/:id/logo                  # Upload company logo
 GET    /api/jobs/:id/stats                 # Get job statistics
 ```
 
+### Referral System Endpoints
+```
+GET    /api/referrals/me                   # Get user referral information
+GET    /api/referrals/stats                # Get referral statistics
+GET    /api/referrals/links                # Get referral links and sharing options
+GET    /api/referrals/rewards              # Get referral rewards history
+POST   /api/referrals/invite               # Send referral invitations
+PUT    /api/referrals/preferences          # Update referral preferences
+POST   /api/referrals/validate             # Validate referral code
+POST   /api/referrals/track                # Track referral click
+GET    /api/referrals/leaderboard          # Get referral leaderboard
+POST   /api/referrals/process              # Process referral completion (Admin)
+GET    /api/referrals/analytics            # Get referral analytics (Admin)
+```
+
 ### Supplies & Materials Endpoints
 ```
 GET  /api/supplies/products                # Get all products
@@ -357,6 +375,7 @@ GET  /api/maps/test                        # Test API connection (Admin)
 - **Service**: Marketplace services with pricing and availability
 - **Booking**: Service bookings with status tracking
 - **Job**: Job postings with applications and analytics
+- **Referral**: Referral tracking with rewards and analytics
 - **Product**: Supplies and materials catalog
 - **Order**: Product orders and subscriptions
 - **Course**: Training courses and curriculum
@@ -369,6 +388,17 @@ GET  /api/maps/test                        # Test API connection (Admin)
 - **Subscription**: LocalPro Plus subscriptions
 
 ## 🆕 New Features
+
+### 🤝 Referral System Module
+- **Comprehensive referral platform**: Complete referral tracking and rewards system
+- **Multiple reward types**: Credits, discounts, subscription extensions, and cash rewards
+- **Tier system**: Bronze, Silver, Gold, and Platinum referral tiers with increasing benefits
+- **Automated processing**: Automatic referral completion across all platform modules
+- **Analytics dashboard**: Detailed referral statistics and performance metrics
+- **Leaderboard system**: Compete with other users for top referrer status
+- **Email notifications**: Automated invitation and reward notification emails
+- **Fraud prevention**: Built-in validation and anti-fraud mechanisms
+- **Social sharing**: Multiple sharing options including email, SMS, and social media
 
 ### 💼 Job Board Module
 - **Complete employment platform**: Job postings, applications, and hiring management
@@ -412,6 +442,7 @@ GET  /api/maps/test                        # Test API connection (Admin)
 ### 🔧 Enhanced Controllers
 - **Marketplace**: Location-based service search with distance calculations
 - **Job Board**: Complete job posting and application management system
+- **Referral System**: Comprehensive referral tracking and automated reward processing
 - **Rentals**: Enhanced location filtering and distance calculations
 - **Supplies**: Email notifications for orders and subscriptions
 - **Finance**: Email notifications for loan approvals
@@ -484,6 +515,7 @@ For support, email support@localpro.com or join our Slack channel.
 - [x] PayPal payment integration
 - [x] PayMaya payment integration
 - [x] Job board module
+- [x] Referral system module
 - [x] Location-based services
 - [x] Service area validation
 - [x] Distance calculations
@@ -493,7 +525,9 @@ For support, email support@localpro.com or join our Slack channel.
 - [ ] Advanced analytics dashboard
 - [ ] Multi-language support
 - [ ] AI-powered job matching
+- [ ] AI-powered referral matching
 - [ ] Video interview integration
 - [ ] Skills assessment platform
+- [ ] Referral gamification features
 - [ ] Blockchain integration for contracts
 - [ ] IoT device integration

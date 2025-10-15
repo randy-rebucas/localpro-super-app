@@ -23,6 +23,7 @@ const mapsRoutes = require('./routes/maps');
 const paypalRoutes = require('./routes/paypal');
 const paymayaRoutes = require('./routes/paymaya');
 const jobsRoutes = require('./routes/jobs');
+const referralsRoutes = require('./routes/referrals');
 
 const app = express();
 
@@ -261,6 +262,23 @@ app.get('/', (req, res) => {
           { method: 'POST', path: '/:id/logo', description: 'Upload company logo', auth: true, roles: ['provider', 'admin'] },
           { method: 'GET', path: '/:id/stats', description: 'Get job statistics', auth: true, roles: ['provider', 'admin'] }
         ]
+      },
+      referrals: {
+        base: '/api/referrals',
+        description: 'Referral system and rewards management',
+        routes: [
+          { method: 'GET', path: '/me', description: 'Get user referral information', auth: true },
+          { method: 'GET', path: '/stats', description: 'Get referral statistics', auth: true },
+          { method: 'GET', path: '/links', description: 'Get referral links and sharing options', auth: true },
+          { method: 'GET', path: '/rewards', description: 'Get referral rewards history', auth: true },
+          { method: 'POST', path: '/invite', description: 'Send referral invitations', auth: true },
+          { method: 'PUT', path: '/preferences', description: 'Update referral preferences', auth: true },
+          { method: 'POST', path: '/validate', description: 'Validate referral code', auth: false },
+          { method: 'POST', path: '/track', description: 'Track referral click', auth: false },
+          { method: 'GET', path: '/leaderboard', description: 'Get referral leaderboard', auth: false },
+          { method: 'POST', path: '/process', description: 'Process referral completion', auth: true, roles: ['admin'] },
+          { method: 'GET', path: '/analytics', description: 'Get referral analytics', auth: true, roles: ['admin'] }
+        ]
       }
     },
     authentication: {
@@ -307,6 +325,7 @@ app.use('/api/maps', mapsRoutes);
 app.use('/api/paypal', paypalRoutes);
 app.use('/api/paymaya', paymayaRoutes);
 app.use('/api/jobs', jobsRoutes);
+app.use('/api/referrals', referralsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

@@ -215,6 +215,40 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0,
     max: 100
+  },
+  // Referral system integration
+  referral: {
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
+    referredBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    referralSource: {
+      type: String,
+      enum: ['email', 'sms', 'social_media', 'direct_link', 'qr_code', 'app_share']
+    },
+    referralStats: {
+      totalReferrals: { type: Number, default: 0 },
+      successfulReferrals: { type: Number, default: 0 },
+      totalRewardsEarned: { type: Number, default: 0 },
+      totalRewardsPaid: { type: Number, default: 0 },
+      lastReferralAt: Date,
+      referralTier: {
+        type: String,
+        enum: ['bronze', 'silver', 'gold', 'platinum'],
+        default: 'bronze'
+      }
+    },
+    referralPreferences: {
+      autoShare: { type: Boolean, default: true },
+      shareOnSocial: { type: Boolean, default: false },
+      emailNotifications: { type: Boolean, default: true },
+      smsNotifications: { type: Boolean, default: false }
+    }
   }
 }, {
   timestamps: true
@@ -291,6 +325,65 @@ userSchema.methods.updateResponseTime = function(responseTimeMinutes) {
     this.responseTime.totalResponses += 1;
     this.responseTime.average = (totalTime + responseTimeMinutes) / this.responseTime.totalResponses;
   }
+};
+
+// Method to generate referral code
+userSchema.methods.generateReferralCode = function() {
+  if (!this.referral.referralCode) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    
+    // Generate 8-character code with user initials
+    const initials = (this.firstName.charAt(0) + this.lastName.charAt(0)).toUpperCase();
+    result = initials;
+    
+    // Add 6 random characters
+    for (let i = 0; i < 6; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    
+    this.referral.referralCode = result;
+  }
+  return this.referral.referralCode;
+};
+
+// Method to update referral stats
+userSchema.methods.updateReferralStats = function(type, amount = 0) {
+  if (type === 'referral_made') {
+    this.referral.referralStats.totalReferrals += 1;
+    this.referral.referralStats.lastReferralAt = new Date();
+  } else if (type === 'referral_completed') {
+    this.referral.referralStats.successfulReferrals += 1;
+  } else if (type === 'reward_earned') {
+    this.referral.referralStats.totalRewardsEarned += amount;
+  } else if (type === 'reward_paid') {
+    this.referral.referralStats.totalRewardsPaid += amount;
+  }
+  
+  // Update referral tier based on successful referrals
+  const successfulReferrals = this.referral.referralStats.successfulReferrals;
+  if (successfulReferrals >= 50) {
+    this.referral.referralStats.referralTier = 'platinum';
+  } else if (successfulReferrals >= 20) {
+    this.referral.referralStats.referralTier = 'gold';
+  } else if (successfulReferrals >= 5) {
+    this.referral.referralStats.referralTier = 'silver';
+  } else {
+    this.referral.referralStats.referralTier = 'bronze';
+  }
+  
+  return this.save();
+};
+
+// Method to get referral link
+userSchema.methods.getReferralLink = function(baseUrl = process.env.FRONTEND_URL) {
+  const referralCode = this.generateReferralCode();
+  return `${baseUrl}/signup?ref=${referralCode}`;
+};
+
+// Method to check if user was referred
+userSchema.methods.wasReferred = function() {
+  return !!this.referral.referredBy;
 };
 
 module.exports = mongoose.model('User', userSchema);
