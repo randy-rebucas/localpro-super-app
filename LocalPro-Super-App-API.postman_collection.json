@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, and audit logging. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, and regulatory compliance features.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, audit logging, and provider system. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, regulatory compliance features, client-to-provider upgrade system, comprehensive onboarding, verification management, and provider analytics dashboard.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -148,6 +148,11 @@
     },
     {
       "key": "providerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "auditId",
       "value": "",
       "type": "string"
     },
@@ -6727,6 +6732,251 @@
               "raw": "{{baseUrl}}/api/audit-logs/metadata/categories",
               "host": ["{{baseUrl}}"],
               "path": ["api", "audit-logs", "metadata", "categories"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Provider System",
+      "item": [
+        {
+          "name": "Get All Providers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers?category=cleaning&city=New York&state=NY&minRating=4.0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "cleaning",
+                  "description": "Service category filter"
+                },
+                {
+                  "key": "city",
+                  "value": "New York",
+                  "description": "City filter"
+                },
+                {
+                  "key": "state",
+                  "value": "NY",
+                  "description": "State filter"
+                },
+                {
+                  "key": "minRating",
+                  "value": "4.0",
+                  "description": "Minimum rating filter"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Provider",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/{{providerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "{{providerId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Provider Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/profile/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "profile", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Provider Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerType\": \"individual\",\n  \"professionalInfo\": {\n    \"specialties\": [{\n      \"category\": \"cleaning\",\n      \"subcategories\": [\"house_cleaning\", \"office_cleaning\"],\n      \"experience\": 5,\n      \"hourlyRate\": 25,\n      \"serviceAreas\": [{\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"radius\": 10\n      }]\n    }],\n    \"languages\": [\"English\", \"Spanish\"],\n    \"availability\": {\n      \"monday\": {\"start\": \"09:00\", \"end\": \"17:00\", \"available\": true},\n      \"tuesday\": {\"start\": \"09:00\", \"end\": \"17:00\", \"available\": true}\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Provider Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"professionalInfo\": {\n    \"specialties\": [{\n      \"category\": \"cleaning\",\n      \"hourlyRate\": 30\n    }]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Onboarding Step",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"step\": \"professional_info\",\n  \"data\": {\n    \"specialties\": [{\n      \"category\": \"cleaning\",\n      \"experience\": 5\n    }]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/onboarding/step",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "onboarding", "step"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Provider Documents",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "documents",
+                  "type": "file",
+                  "src": "insurance.pdf"
+                },
+                {
+                  "key": "documentType",
+                  "value": "insurance",
+                  "type": "text"
+                },
+                {
+                  "key": "category",
+                  "value": "general_liability",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/documents/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "documents", "upload"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Provider Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/dashboard/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "dashboard", "overview"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Provider Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/analytics/performance?timeframe=30d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "analytics", "performance"],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "30d",
+                  "description": "Timeframe: 7d, 30d, 90d, 1y"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Providers (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/admin/all?status=pending&providerType=individual",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "admin", "all"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "Provider status filter"
+                },
+                {
+                  "key": "providerType",
+                  "value": "individual",
+                  "description": "Provider type filter"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Provider Status (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\",\n  \"notes\": \"Profile approved after verification\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/admin/{{providerId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "admin", "{{providerId}}", "status"]
             }
           },
           "response": []

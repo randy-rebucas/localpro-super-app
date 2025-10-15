@@ -31,6 +31,7 @@ const agenciesRoutes = require('./routes/agencies');
 const settingsRoutes = require('./routes/settings');
 const errorMonitoringRoutes = require('./routes/errorMonitoring');
 const auditLogsRoutes = require('./routes/auditLogs');
+const providersRoutes = require('./routes/providers');
 
 const app = express();
 
@@ -159,6 +160,7 @@ app.use('/api/agencies', agenciesRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/error-monitoring', errorMonitoringRoutes);
 app.use('/api/audit-logs', auditLogsRoutes);
+app.use('/api/providers', providersRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
