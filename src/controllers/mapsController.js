@@ -1,4 +1,3 @@
-// Google Maps controller for location-based functionality
 const GoogleMapsService = require('../services/googleMapsService');
 
 // @desc    Geocode an address to get coordinates
@@ -17,17 +16,18 @@ const geocodeAddress = async (req, res) => {
 
     const result = await GoogleMapsService.geocodeAddress(address);
 
-    if (result.success) {
-      res.status(200).json({
-        success: true,
-        data: result
-      });
-    } else {
-      res.status(400).json({
+    if (!result.success) {
+      return res.status(400).json({
         success: false,
-        message: result.error
+        message: 'Failed to geocode address',
+        error: result.error
       });
     }
+
+    res.status(200).json({
+      success: true,
+      data: result.data
+    });
   } catch (error) {
     console.error('Geocode address error:', error);
     res.status(500).json({
@@ -51,19 +51,21 @@ const reverseGeocode = async (req, res) => {
       });
     }
 
-    const result = await GoogleMapsService.reverseGeocode(lat, lng);
+    const coordinates = { lat: parseFloat(lat), lng: parseFloat(lng) };
+    const result = await GoogleMapsService.reverseGeocode(coordinates);
 
-    if (result.success) {
-      res.status(200).json({
-        success: true,
-        data: result
-      });
-    } else {
-      res.status(400).json({
+    if (!result.success) {
+      return res.status(400).json({
         success: false,
-        message: result.error
+        message: 'Failed to reverse geocode coordinates',
+        error: result.error
       });
     }
+
+    res.status(200).json({
+      success: true,
+      data: result.data
+    });
   } catch (error) {
     console.error('Reverse geocode error:', error);
     res.status(500).json({
@@ -73,35 +75,43 @@ const reverseGeocode = async (req, res) => {
   }
 };
 
-// @desc    Search for places using text input
+// @desc    Search for places
 // @route   POST /api/maps/places/search
 // @access  Public
 const searchPlaces = async (req, res) => {
   try {
-    const { input, options = {} } = req.body;
+    const { query, location, radius, type } = req.body;
 
-    if (!input) {
+    if (!query) {
       return res.status(400).json({
         success: false,
-        message: 'Search input is required'
+        message: 'Search query is required'
       });
     }
 
-    const result = await GoogleMapsService.searchPlaces(input, options);
+    const searchOptions = {
+      query,
+      location,
+      radius: radius ? parseInt(radius) : undefined,
+      type
+    };
 
-    if (result.success) {
-      res.status(200).json({
-        success: true,
-        data: result
-      });
-    } else {
-      res.status(400).json({
+    const result = await GoogleMapsService.searchPlaces(searchOptions);
+
+    if (!result.success) {
+      return res.status(400).json({
         success: false,
-        message: result.error
+        message: 'Failed to search places',
+        error: result.error
       });
     }
+
+    res.status(200).json({
+      success: true,
+      data: result.data
+    });
   } catch (error) {
-    console.error('Places search error:', error);
+    console.error('Search places error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -109,7 +119,7 @@ const searchPlaces = async (req, res) => {
   }
 };
 
-// @desc    Get place details by place ID
+// @desc    Get place details
 // @route   GET /api/maps/places/:placeId
 // @access  Public
 const getPlaceDetails = async (req, res) => {
@@ -125,17 +135,18 @@ const getPlaceDetails = async (req, res) => {
 
     const result = await GoogleMapsService.getPlaceDetails(placeId);
 
-    if (result.success) {
-      res.status(200).json({
-        success: true,
-        data: result
-      });
-    } else {
-      res.status(400).json({
+    if (!result.success) {
+      return res.status(400).json({
         success: false,
-        message: result.error
+        message: 'Failed to get place details',
+        error: result.error
       });
     }
+
+    res.status(200).json({
+      success: true,
+      data: result.data
+    });
   } catch (error) {
     console.error('Get place details error:', error);
     res.status(500).json({
@@ -150,7 +161,7 @@ const getPlaceDetails = async (req, res) => {
 // @access  Public
 const calculateDistance = async (req, res) => {
   try {
-    const { origin, destination, options = {} } = req.body;
+    const { origin, destination, mode = 'driving' } = req.body;
 
     if (!origin || !destination) {
       return res.status(400).json({
@@ -159,19 +170,20 @@ const calculateDistance = async (req, res) => {
       });
     }
 
-    const result = await GoogleMapsService.calculateDistance(origin, destination, options);
+    const result = await GoogleMapsService.calculateDistance(origin, destination, mode);
 
-    if (result.success) {
-      res.status(200).json({
-        success: true,
-        data: result
-      });
-    } else {
-      res.status(400).json({
+    if (!result.success) {
+      return res.status(400).json({
         success: false,
-        message: result.error
+        message: 'Failed to calculate distance',
+        error: result.error
       });
     }
+
+    res.status(200).json({
+      success: true,
+      data: result.data
+    });
   } catch (error) {
     console.error('Calculate distance error:', error);
     res.status(500).json({
@@ -186,28 +198,36 @@ const calculateDistance = async (req, res) => {
 // @access  Public
 const findNearbyPlaces = async (req, res) => {
   try {
-    const { location, radius, type } = req.body;
+    const { location, radius, type, keyword } = req.body;
 
-    if (!location || !radius || !type) {
+    if (!location) {
       return res.status(400).json({
         success: false,
-        message: 'Location, radius, and type are required'
+        message: 'Location is required'
       });
     }
 
-    const result = await GoogleMapsService.findNearbyPlaces(location, radius, type);
+    const searchOptions = {
+      location,
+      radius: radius ? parseInt(radius) : 5000,
+      type,
+      keyword
+    };
 
-    if (result.success) {
-      res.status(200).json({
-        success: true,
-        data: result
-      });
-    } else {
-      res.status(400).json({
+    const result = await GoogleMapsService.findNearbyPlaces(searchOptions);
+
+    if (!result.success) {
+      return res.status(400).json({
         success: false,
-        message: result.error
+        message: 'Failed to find nearby places',
+        error: result.error
       });
     }
+
+    res.status(200).json({
+      success: true,
+      data: result.data
+    });
   } catch (error) {
     console.error('Find nearby places error:', error);
     res.status(500).json({
@@ -233,17 +253,18 @@ const validateServiceArea = async (req, res) => {
 
     const result = await GoogleMapsService.validateServiceArea(coordinates, serviceAreas);
 
-    if (result.success) {
-      res.status(200).json({
-        success: true,
-        data: result
-      });
-    } else {
-      res.status(400).json({
+    if (!result.success) {
+      return res.status(400).json({
         success: false,
-        message: result.error
+        message: 'Failed to validate service area',
+        error: result.error
       });
     }
+
+    res.status(200).json({
+      success: true,
+      data: result.data
+    });
   } catch (error) {
     console.error('Validate service area error:', error);
     res.status(500).json({
@@ -253,37 +274,34 @@ const validateServiceArea = async (req, res) => {
   }
 };
 
-// @desc    Analyze service coverage for a provider
+// @desc    Analyze service coverage
 // @route   POST /api/maps/analyze-coverage
 // @access  Private
 const analyzeServiceCoverage = async (req, res) => {
   try {
-    const { providerLocation, serviceAreas, maxDistance } = req.body;
+    const { serviceAreas, analysisType = 'basic' } = req.body;
 
-    if (!providerLocation || !serviceAreas) {
+    if (!serviceAreas) {
       return res.status(400).json({
         success: false,
-        message: 'Provider location and service areas are required'
+        message: 'Service areas are required'
       });
     }
 
-    const result = await GoogleMapsService.analyzeServiceCoverage(
-      providerLocation,
-      serviceAreas,
-      maxDistance
-    );
+    const result = await GoogleMapsService.analyzeServiceCoverage(serviceAreas, analysisType);
 
-    if (result.success) {
-      res.status(200).json({
-        success: true,
-        data: result
-      });
-    } else {
-      res.status(400).json({
+    if (!result.success) {
+      return res.status(400).json({
         success: false,
-        message: result.error
+        message: 'Failed to analyze service coverage',
+        error: result.error
       });
     }
+
+    res.status(200).json({
+      success: true,
+      data: result.data
+    });
   } catch (error) {
     console.error('Analyze service coverage error:', error);
     res.status(500).json({
@@ -300,19 +318,21 @@ const testConnection = async (req, res) => {
   try {
     const result = await GoogleMapsService.testConnection();
 
-    if (result.success) {
-      res.status(200).json({
-        success: true,
-        data: result
-      });
-    } else {
-      res.status(400).json({
+    if (!result.success) {
+      return res.status(400).json({
         success: false,
-        message: result.error
+        message: 'Google Maps API connection failed',
+        error: result.error
       });
     }
+
+    res.status(200).json({
+      success: true,
+      message: 'Google Maps API connection successful',
+      data: result.data
+    });
   } catch (error) {
-    console.error('Test connection error:', error);
+    console.error('Test Google Maps connection error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

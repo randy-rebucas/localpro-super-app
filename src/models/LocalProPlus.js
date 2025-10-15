@@ -4,82 +4,44 @@ const subscriptionPlanSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true
+    unique: true
   },
   description: {
     type: String,
     required: true
   },
-  type: {
-    type: String,
-    enum: ['provider', 'client', 'enterprise'],
-    required: true
-  },
-  tier: {
-    type: String,
-    enum: ['basic', 'premium', 'enterprise'],
-    required: true
-  },
-  pricing: {
+  price: {
     monthly: {
       type: Number,
       required: true
     },
-    yearly: Number,
+    yearly: {
+      type: Number,
+      required: true
+    },
     currency: {
       type: String,
       default: 'USD'
     }
   },
-  features: {
-    marketplace: {
-      maxListings: Number,
-      featuredListings: Number,
-      prioritySupport: { type: Boolean, default: false }
+  features: [{
+    name: String,
+    description: String,
+    included: {
+      type: Boolean,
+      default: true
     },
-    supplies: {
-      discount: Number, // percentage
-      freeShipping: { type: Boolean, default: false },
-      subscriptionKits: { type: Boolean, default: false }
-    },
-    academy: {
-      freeCourses: Number,
-      certificationAccess: { type: Boolean, default: false },
-      liveSessions: { type: Boolean, default: false }
-    },
-    finance: {
-      loanEligibility: { type: Boolean, default: false },
-      lowerInterestRates: Number,
-      fasterApproval: { type: Boolean, default: false }
-    },
-    rentals: {
-      discount: Number,
-      priorityBooking: { type: Boolean, default: false },
-      insuranceIncluded: { type: Boolean, default: false }
-    },
-    ads: {
-      adCredits: Number,
-      advancedTargeting: { type: Boolean, default: false },
-      analytics: { type: Boolean, default: false }
-    },
-    facilityCare: {
-      contractManagement: { type: Boolean, default: false },
-      performanceTracking: { type: Boolean, default: false },
-      prioritySupport: { type: Boolean, default: false }
-    },
-    general: {
-      prioritySupport: { type: Boolean, default: false },
-      advancedAnalytics: { type: Boolean, default: false },
-      apiAccess: { type: Boolean, default: false },
-      whiteLabeling: { type: Boolean, default: false }
-    }
-  },
+    limit: Number, // null means unlimited
+    unit: String // e.g., 'per_month', 'per_booking', 'per_user'
+  }],
   limits: {
-    maxUsers: Number,
-    maxProjects: Number,
-    storageLimit: String, // e.g., "10GB"
-    apiCalls: Number
+    maxServices: Number,
+    maxBookings: Number,
+    maxProviders: Number,
+    maxStorage: Number, // in MB
+    maxApiCalls: Number
   },
+  benefits: [String],
   isActive: {
     type: Boolean,
     default: true
@@ -87,6 +49,10 @@ const subscriptionPlanSchema = new mongoose.Schema({
   isPopular: {
     type: Boolean,
     default: false
+  },
+  sortOrder: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true
@@ -108,63 +74,109 @@ const userSubscriptionSchema = new mongoose.Schema({
     enum: ['active', 'cancelled', 'expired', 'suspended', 'pending'],
     default: 'pending'
   },
-  billing: {
-    cycle: {
-      type: String,
-      enum: ['monthly', 'yearly'],
-      required: true
-    },
-    startDate: {
-      type: Date,
-      required: true
-    },
-    endDate: Date,
-    nextBillingDate: Date,
-    amount: {
-      type: Number,
-      required: true
-    },
-    currency: {
-      type: String,
-      default: 'USD'
-    }
+  billingCycle: {
+    type: String,
+    enum: ['monthly', 'yearly'],
+    default: 'monthly'
   },
-  payment: {
-    method: {
-      type: String,
-      enum: ['credit_card', 'bank_transfer', 'mobile_money', 'wallet'],
-      required: true
-    },
-    details: {
-      cardLast4: String,
-      bankName: String,
-      accountType: String
-    },
-    autoRenew: {
-      type: Boolean,
-      default: true
-    }
+  startDate: {
+    type: Date,
+    default: Date.now
+  },
+  endDate: Date,
+  nextBillingDate: Date,
+  cancelledAt: Date,
+  cancellationReason: String,
+  paymentMethod: {
+    type: String,
+    enum: ['paypal', 'paymaya', 'stripe', 'bank_transfer'],
+    default: 'paypal'
+  },
+  paymentDetails: {
+    paypalSubscriptionId: String,
+    paymayaSubscriptionId: String,
+    stripeSubscriptionId: String,
+    lastPaymentId: String,
+    lastPaymentDate: Date,
+    nextPaymentAmount: Number
   },
   usage: {
-    marketplaceListings: { type: Number, default: 0 },
-    adCredits: { type: Number, default: 0 },
-    apiCalls: { type: Number, default: 0 },
-    storageUsed: { type: Number, default: 0 } // in MB
+    services: {
+      current: {
+        type: Number,
+        default: 0
+      },
+      limit: Number
+    },
+    bookings: {
+      current: {
+        type: Number,
+        default: 0
+      },
+      limit: Number
+    },
+    storage: {
+      current: {
+        type: Number,
+        default: 0
+      },
+      limit: Number
+    },
+    apiCalls: {
+      current: {
+        type: Number,
+        default: 0
+      },
+      limit: Number
+    }
   },
-  benefits: {
-    activated: [String], // List of activated benefits
-    used: [{
-      benefit: String,
-      usedAt: Date,
-      amount: Number
-    }]
+  features: {
+    prioritySupport: {
+      type: Boolean,
+      default: false
+    },
+    advancedAnalytics: {
+      type: Boolean,
+      default: false
+    },
+    customBranding: {
+      type: Boolean,
+      default: false
+    },
+    apiAccess: {
+      type: Boolean,
+      default: false
+    },
+    whiteLabel: {
+      type: Boolean,
+      default: false
+    }
   },
-  cancellation: {
-    requestedAt: Date,
+  trial: {
+    isTrial: {
+      type: Boolean,
+      default: false
+    },
+    trialEndDate: Date,
+    trialUsed: {
+      type: Boolean,
+      default: false
+    }
+  },
+  history: [{
+    action: {
+      type: String,
+      enum: ['subscribed', 'upgraded', 'downgraded', 'cancelled', 'renewed', 'suspended', 'reactivated']
+    },
+    fromPlan: String,
+    toPlan: String,
+    timestamp: {
+      type: Date,
+      default: Date.now
+    },
     reason: String,
-    effectiveDate: Date,
-    refundAmount: Number
-  }
+    amount: Number
+  }]
 }, {
   timestamps: true
 });
@@ -188,11 +200,6 @@ const paymentSchema = new mongoose.Schema({
     type: String,
     default: 'USD'
   },
-  type: {
-    type: String,
-    enum: ['subscription', 'upgrade', 'downgrade', 'renewal', 'refund'],
-    required: true
-  },
   status: {
     type: String,
     enum: ['pending', 'completed', 'failed', 'refunded', 'cancelled'],
@@ -200,21 +207,33 @@ const paymentSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['credit_card', 'bank_transfer', 'mobile_money', 'wallet', 'paypal', 'paymaya'],
+    enum: ['paypal', 'paymaya', 'stripe', 'bank_transfer'],
     required: true
   },
-  transactionId: String,
-  externalReference: String,
+  paymentDetails: {
+    transactionId: String,
+    paypalOrderId: String,
+    paypalPaymentId: String,
+    paymayaCheckoutId: String,
+    paymayaPaymentId: String,
+    stripePaymentIntentId: String,
+    bankReference: String
+  },
+  billingPeriod: {
+    startDate: Date,
+    endDate: Date
+  },
   description: String,
-  paypalOrderId: String,
-  paypalSubscriptionId: String,
-  paypalTransactionId: String,
-  paymayaReferenceNumber: String,
-  paymayaCheckoutId: String,
-  paymayaPaymentId: String,
-  paymayaInvoiceId: String,
-  paymayaTransactionId: String,
-  metadata: mongoose.Schema.Types.Mixed
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
+  processedAt: Date,
+  failedAt: Date,
+  failureReason: String,
+  refundedAt: Date,
+  refundAmount: Number,
+  refundReason: String
 }, {
   timestamps: true
 });
@@ -232,16 +251,23 @@ const featureUsageSchema = new mongoose.Schema({
   },
   feature: {
     type: String,
-    required: true
+    required: true,
+    enum: [
+      'service_creation', 'booking_management', 'analytics_view',
+      'api_call', 'file_upload', 'email_notification', 'sms_notification',
+      'custom_branding', 'priority_support', 'advanced_search'
+    ]
   },
-  action: {
-    type: String,
-    required: true
-  },
-  details: {
-    resource: String,
-    amount: Number,
-    metadata: mongoose.Schema.Types.Mixed
+  usage: {
+    count: {
+      type: Number,
+      default: 1
+    },
+    amount: Number, // for features that have monetary value
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
+    }
   },
   timestamp: {
     type: Date,
@@ -252,23 +278,125 @@ const featureUsageSchema = new mongoose.Schema({
 });
 
 // Indexes
-subscriptionPlanSchema.index({ type: 1, tier: 1 });
-subscriptionPlanSchema.index({ isActive: 1 });
-
 userSubscriptionSchema.index({ user: 1 });
-userSubscriptionSchema.index({ plan: 1 });
 userSubscriptionSchema.index({ status: 1 });
-userSubscriptionSchema.index({ 'billing.nextBillingDate': 1 });
+userSubscriptionSchema.index({ nextBillingDate: 1 });
+userSubscriptionSchema.index({ 'paymentDetails.paypalSubscriptionId': 1 });
+userSubscriptionSchema.index({ 'paymentDetails.paymayaSubscriptionId': 1 });
 
 paymentSchema.index({ user: 1 });
 paymentSchema.index({ subscription: 1 });
 paymentSchema.index({ status: 1 });
 paymentSchema.index({ createdAt: -1 });
 
-featureUsageSchema.index({ user: 1 });
+featureUsageSchema.index({ user: 1, feature: 1 });
 featureUsageSchema.index({ subscription: 1 });
-featureUsageSchema.index({ feature: 1 });
 featureUsageSchema.index({ timestamp: -1 });
+
+// Virtual for subscription duration
+userSubscriptionSchema.virtual('duration').get(function() {
+  if (this.endDate) {
+    return Math.ceil((this.endDate - this.startDate) / (1000 * 60 * 60 * 24));
+  }
+  return Math.ceil((new Date() - this.startDate) / (1000 * 60 * 60 * 24));
+});
+
+// Virtual for days until renewal
+userSubscriptionSchema.virtual('daysUntilRenewal').get(function() {
+  if (this.nextBillingDate) {
+    return Math.ceil((this.nextBillingDate - new Date()) / (1000 * 60 * 60 * 24));
+  }
+  return 0;
+});
+
+// Method to check if subscription is active
+userSubscriptionSchema.methods.isActive = function() {
+  return this.status === 'active' && (!this.endDate || this.endDate > new Date());
+};
+
+// Method to check if user has access to feature
+userSubscriptionSchema.methods.hasFeatureAccess = function(featureName) {
+  if (!this.isActive()) return false;
+  
+  const plan = this.plan;
+  if (!plan) return false;
+  
+  const feature = plan.features.find(f => f.name === featureName);
+  return feature && feature.included;
+};
+
+// Method to check usage limit
+userSubscriptionSchema.methods.checkUsageLimit = function(featureName) {
+  if (!this.hasFeatureAccess(featureName)) return false;
+  
+  const plan = this.plan;
+  const feature = plan.features.find(f => f.name === featureName);
+  
+  if (!feature || !feature.limit) return true; // Unlimited
+  
+  const currentUsage = this.usage[featureName]?.current || 0;
+  return currentUsage < feature.limit;
+};
+
+// Method to increment usage
+userSubscriptionSchema.methods.incrementUsage = function(featureName, amount = 1) {
+  if (!this.usage[featureName]) {
+    this.usage[featureName] = { current: 0 };
+  }
+  
+  this.usage[featureName].current += amount;
+  return this.save();
+};
+
+// Method to cancel subscription
+userSubscriptionSchema.methods.cancel = function(reason = 'User requested cancellation') {
+  this.status = 'cancelled';
+  this.cancelledAt = new Date();
+  this.cancellationReason = reason;
+  
+  this.history.push({
+    action: 'cancelled',
+    reason: reason,
+    timestamp: new Date()
+  });
+  
+  return this.save();
+};
+
+// Method to renew subscription
+userSubscriptionSchema.methods.renew = function() {
+  const now = new Date();
+  const billingCycle = this.billingCycle === 'yearly' ? 365 : 30;
+  
+  this.nextBillingDate = new Date(now.getTime() + billingCycle * 24 * 60 * 60 * 1000);
+  this.endDate = this.nextBillingDate;
+  
+  this.history.push({
+    action: 'renewed',
+    timestamp: now
+  });
+  
+  return this.save();
+};
+
+// Static method to get active subscriptions
+userSubscriptionSchema.statics.getActiveSubscriptions = function() {
+  return this.find({
+    status: 'active',
+    $or: [
+      { endDate: { $exists: false } },
+      { endDate: { $gt: new Date() } }
+    ]
+  }).populate('user plan');
+};
+
+// Static method to get subscriptions due for renewal
+userSubscriptionSchema.statics.getSubscriptionsDueForRenewal = function() {
+  return this.find({
+    status: 'active',
+    nextBillingDate: { $lte: new Date() }
+  }).populate('user plan');
+};
 
 module.exports = {
   SubscriptionPlan: mongoose.model('SubscriptionPlan', subscriptionPlanSchema),

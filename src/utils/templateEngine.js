@@ -1,77 +1,101 @@
-// Simple template engine for email templates
 const fs = require('fs');
 const path = require('path');
 
 class TemplateEngine {
   constructor() {
-    this.templateCache = new Map();
+    this.templates = new Map();
     this.templateDir = path.join(__dirname, '../templates/email');
+    this.loadTemplates();
   }
 
   /**
-   * Load template from file system
-   * @param {string} templateName - Name of the template file (without .html)
-   * @returns {string} Template content
+   * Load all email templates from the templates directory
    */
-  loadTemplate(templateName) {
-    if (this.templateCache.has(templateName)) {
-      return this.templateCache.get(templateName);
-    }
-
+  loadTemplates() {
     try {
-      const templatePath = path.join(this.templateDir, `${templateName}.html`);
-      const templateContent = fs.readFileSync(templatePath, 'utf8');
-      this.templateCache.set(templateName, templateContent);
-      return templateContent;
+      if (fs.existsSync(this.templateDir)) {
+        const files = fs.readdirSync(this.templateDir);
+        files.forEach(file => {
+          if (file.endsWith('.html')) {
+            const templateName = file.replace('.html', '');
+            const templatePath = path.join(this.templateDir, file);
+            const templateContent = fs.readFileSync(templatePath, 'utf8');
+            this.templates.set(templateName, templateContent);
+          }
+        });
+      }
     } catch (error) {
-      console.error(`Error loading template ${templateName}:`, error);
-      throw new Error(`Template ${templateName} not found`);
+      console.error('Error loading email templates:', error);
     }
   }
 
   /**
-   * Load base template
-   * @returns {string} Base template content
+   * Render a template with data
+   * @param {string} templateName - Name of the template
+   * @param {object} data - Data to inject into the template
+   * @returns {string} Rendered HTML
    */
-  loadBaseTemplate() {
-    return this.loadTemplate('base');
+  render(templateName, data = {}) {
+    const template = this.templates.get(templateName);
+    if (!template) {
+      throw new Error(`Template '${templateName}' not found`);
+    }
+
+    return this.replacePlaceholders(template, data);
   }
 
   /**
-   * Simple template variable replacement
-   * @param {string} template - Template string
-   * @param {object} variables - Variables to replace
-   * @returns {string} Rendered template
+   * Render a template with data (alias for render)
+   * @param {string} templateName - Name of the template
+   * @param {object} data - Data to inject into the template
+   * @returns {string} Rendered HTML
    */
-  replaceVariables(template, variables) {
-    let rendered = template;
+  async renderTemplate(templateName, data = {}) {
+    return this.render(templateName, data);
+  }
 
-    // Replace simple variables {{variable}}
-    Object.keys(variables).forEach(key => {
-      const regex = new RegExp(`{{${key}}}`, 'g');
-      rendered = rendered.replace(regex, variables[key] || '');
+  /**
+   * Replace placeholders in template with data
+   * @param {string} template - Template content
+   * @param {object} data - Data to replace placeholders
+   * @returns {string} Processed template
+   */
+  replacePlaceholders(template, data) {
+    let processedTemplate = template;
+
+    // Replace simple placeholders {{key}}
+    processedTemplate = processedTemplate.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+      return data[key] !== undefined ? data[key] : match;
+    });
+
+    // Replace nested placeholders {{object.key}}
+    processedTemplate = processedTemplate.replace(/\{\{(\w+)\.(\w+)\}\}/g, (match, objKey, propKey) => {
+      return data[objKey] && data[objKey][propKey] !== undefined ? data[objKey][propKey] : match;
+    });
+
+    // Replace array placeholders {{array[index]}}
+    processedTemplate = processedTemplate.replace(/\{\{(\w+)\[(\d+)\]\}\}/g, (match, arrayKey, index) => {
+      return data[arrayKey] && data[arrayKey][parseInt(index)] !== undefined ? data[arrayKey][parseInt(index)] : match;
     });
 
     // Handle conditional blocks {{#if condition}}...{{/if}}
-    rendered = this.processConditionals(rendered, variables);
+    processedTemplate = this.processConditionals(processedTemplate, data);
 
-    // Handle loops {{#each items}}...{{/each}}
-    rendered = this.processLoops(rendered, variables);
+    // Handle loops {{#each array}}...{{/each}}
+    processedTemplate = this.processLoops(processedTemplate, data);
 
-    return rendered;
+    return processedTemplate;
   }
 
   /**
-   * Process conditional blocks
-   * @param {string} template - Template string
-   * @param {object} variables - Variables object
+   * Process conditional blocks in template
+   * @param {string} template - Template content
+   * @param {object} data - Data for conditionals
    * @returns {string} Processed template
    */
-  processConditionals(template, variables) {
-    const conditionalRegex = /{{#if\s+(\w+)}}(.*?){{\/if}}/gs;
-    
-    return template.replace(conditionalRegex, (match, condition, content) => {
-      if (variables[condition]) {
+  processConditionals(template, data) {
+    return template.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, condition, content) => {
+      if (data[condition]) {
         return content;
       }
       return '';
@@ -79,83 +103,69 @@ class TemplateEngine {
   }
 
   /**
-   * Process loop blocks
-   * @param {string} template - Template string
-   * @param {object} variables - Variables object
+   * Process loop blocks in template
+   * @param {string} template - Template content
+   * @param {object} data - Data for loops
    * @returns {string} Processed template
    */
-  processLoops(template, variables) {
-    const loopRegex = /{{#each\s+(\w+)}}(.*?){{\/each}}/gs;
-    
-    return template.replace(loopRegex, (match, arrayName, content) => {
-      const array = variables[arrayName];
-      if (!Array.isArray(array)) {
-        return '';
+  processLoops(template, data) {
+    return template.replace(/\{\{#each\s+(\w+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (match, arrayKey, content) => {
+      if (Array.isArray(data[arrayKey])) {
+        return data[arrayKey].map(item => {
+          let itemContent = content;
+          // Replace {{this}} with current item
+          itemContent = itemContent.replace(/\{\{this\}\}/g, item);
+          // Replace {{this.property}} with item property
+          itemContent = itemContent.replace(/\{\{this\.(\w+)\}\}/g, (match, prop) => {
+            return item[prop] !== undefined ? item[prop] : match;
+          });
+          return itemContent;
+        }).join('');
       }
-
-      return array.map(item => {
-        let itemContent = content;
-        Object.keys(item).forEach(key => {
-          const regex = new RegExp(`{{${key}}}`, 'g');
-          itemContent = itemContent.replace(regex, item[key] || '');
-        });
-        return itemContent;
-      }).join('');
+      return '';
     });
   }
 
   /**
-   * Render a complete email template
-   * @param {string} templateName - Name of the template
-   * @param {object} variables - Variables to replace
-   * @returns {string} Complete HTML email
+   * Get list of available templates
+   * @returns {Array} Array of template names
    */
-  render(templateName, variables) {
-    try {
-      // Load base template
-      const baseTemplate = this.loadBaseTemplate();
-      
-      // Load content template
-      const contentTemplate = this.loadTemplate(templateName);
-      
-      // Prepare variables with defaults
-      const templateVariables = {
-        current_year: new Date().getFullYear(),
-        website_url: process.env.WEBSITE_URL || 'https://localpro.com',
-        support_url: process.env.SUPPORT_URL || 'https://localpro.com/support',
-        privacy_url: process.env.PRIVACY_URL || 'https://localpro.com/privacy',
-        terms_url: process.env.TERMS_URL || 'https://localpro.com/terms',
-        app_url: process.env.APP_URL || 'https://app.localpro.com',
-        facebook_url: process.env.FACEBOOK_URL || 'https://facebook.com/localpro',
-        twitter_url: process.env.TWITTER_URL || 'https://twitter.com/localpro',
-        linkedin_url: process.env.LINKEDIN_URL || 'https://linkedin.com/company/localpro',
-        instagram_url: process.env.INSTAGRAM_URL || 'https://instagram.com/localpro',
-        app_store_url: process.env.APP_STORE_URL || 'https://apps.apple.com/app/localpro',
-        play_store_url: process.env.PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.localpro',
-        app_store_badge: process.env.APP_STORE_BADGE || 'https://via.placeholder.com/120x40/000000/FFFFFF?text=App+Store',
-        play_store_badge: process.env.PLAY_STORE_BADGE || 'https://via.placeholder.com/120x40/000000/FFFFFF?text=Google+Play',
-        ...variables
-      };
-
-      // Replace content in base template
-      const renderedContent = this.replaceVariables(contentTemplate, templateVariables);
-      const finalTemplate = this.replaceVariables(baseTemplate, {
-        ...templateVariables,
-        content: renderedContent
-      });
-
-      return finalTemplate;
-    } catch (error) {
-      console.error(`Error rendering template ${templateName}:`, error);
-      throw error;
-    }
+  getAvailableTemplates() {
+    return Array.from(this.templates.keys());
   }
 
   /**
-   * Clear template cache
+   * Check if template exists
+   * @param {string} templateName - Name of the template
+   * @returns {boolean} Whether template exists
    */
-  clearCache() {
-    this.templateCache.clear();
+  hasTemplate(templateName) {
+    return this.templates.has(templateName);
+  }
+
+  /**
+   * Add or update a template
+   * @param {string} templateName - Name of the template
+   * @param {string} content - Template content
+   */
+  setTemplate(templateName, content) {
+    this.templates.set(templateName, content);
+  }
+
+  /**
+   * Remove a template
+   * @param {string} templateName - Name of the template
+   */
+  removeTemplate(templateName) {
+    this.templates.delete(templateName);
+  }
+
+  /**
+   * Reload templates from disk
+   */
+  reloadTemplates() {
+    this.templates.clear();
+    this.loadTemplates();
   }
 }
 

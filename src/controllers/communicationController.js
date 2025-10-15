@@ -1,80 +1,35 @@
-const { Conversation, Message, Notification } = require('../models/Communication');
+const Communication = require('../models/Communication');
 const User = require('../models/User');
-const { Booking } = require('../models/Marketplace');
-
-// @desc    Create or get conversation
-// @route   POST /api/communication/conversations
-// @access  Private
-const createOrGetConversation = async (req, res) => {
-  try {
-    const { participantId, bookingId, type = 'general', subject } = req.body;
-    const userId = req.user.id;
-
-    // Check if conversation already exists
-    let conversation = await Conversation.findOne({
-      participants: {
-        $all: [
-          { $elemMatch: { user: userId } },
-          { $elemMatch: { user: participantId } }
-        ]
-      },
-      booking: bookingId || null
-    });
-
-    if (!conversation) {
-      conversation = await Conversation.create({
-        participants: [
-          { user: userId, role: req.user.role },
-          { user: participantId, role: 'client' } // This should be determined based on user role
-        ],
-        booking: bookingId,
-        type: type,
-        subject: subject
-      });
-    }
-
-    await conversation.populate([
-      { path: 'participants.user', select: 'firstName lastName profile.avatar' },
-      { path: 'booking', select: 'service status' }
-    ]);
-
-    res.status(200).json({
-      success: true,
-      data: conversation
-    });
-  } catch (error) {
-    console.error('Create conversation error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
+const EmailService = require('../services/emailService');
+const TwilioService = require('../services/twilioService');
 
 // @desc    Get user conversations
 // @route   GET /api/communication/conversations
 // @access  Private
 const getConversations = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { status = 'active', type } = req.query;
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
 
-    const filter = {
-      'participants.user': userId,
-      status: status
-    };
+    const conversations = await Communication.find({
+      participants: req.user.id
+    })
+    .populate('participants', 'firstName lastName profile.avatar')
+    .populate('lastMessage.sender', 'firstName lastName profile.avatar')
+    .sort({ updatedAt: -1 })
+    .skip(skip)
+    .limit(Number(limit));
 
-    if (type) filter.type = type;
-
-    const conversations = await Conversation.find(filter)
-      .populate('participants.user', 'firstName lastName profile.avatar')
-      .populate('booking', 'service status')
-      .populate('lastMessage.sender', 'firstName lastName')
-      .sort({ 'lastMessage.timestamp': -1 });
+    const total = await Communication.countDocuments({
+      participants: req.user.id
+    });
 
     res.status(200).json({
       success: true,
       count: conversations.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
       data: conversations
     });
   } catch (error) {
@@ -86,15 +41,15 @@ const getConversations = async (req, res) => {
   }
 };
 
-// @desc    Send message
-// @route   POST /api/communication/messages
+// @desc    Get single conversation
+// @route   GET /api/communication/conversations/:id
 // @access  Private
-const sendMessage = async (req, res) => {
+const getConversation = async (req, res) => {
   try {
-    const { conversationId, content, type = 'text', attachments } = req.body;
-    const senderId = req.user.id;
+    const conversation = await Communication.findById(req.params.id)
+      .populate('participants', 'firstName lastName profile.avatar')
+      .populate('messages.sender', 'firstName lastName profile.avatar');
 
-    const conversation = await Conversation.findById(conversationId);
     if (!conversation) {
       return res.status(404).json({
         success: false,
@@ -102,59 +57,149 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    // Check if user is participant
-    const isParticipant = conversation.participants.some(
-      p => p.user.toString() === senderId
-    );
-
-    if (!isParticipant) {
+    // Check if user is a participant
+    if (!conversation.participants.some(p => p._id.toString() === req.user.id)) {
       return res.status(403).json({
         success: false,
-        message: 'You are not a participant in this conversation'
+        message: 'Not authorized to view this conversation'
       });
     }
 
-    const message = await Message.create({
-      conversation: conversationId,
-      sender: senderId,
-      content: content,
-      type: type,
-      attachments: attachments || []
+    // Mark messages as read for this user
+    conversation.messages.forEach(message => {
+      if (!message.readBy.includes(req.user.id)) {
+        message.readBy.push(req.user.id);
+      }
     });
 
-    // Update conversation
-    conversation.lastMessage = {
-      content: content,
-      sender: senderId,
-      timestamp: new Date()
-    };
-    conversation.unreadCount += 1;
     await conversation.save();
 
-    // Create notifications for other participants
-    const otherParticipants = conversation.participants.filter(
-      p => p.user.toString() !== senderId
-    );
+    res.status(200).json({
+      success: true,
+      data: conversation
+    });
+  } catch (error) {
+    console.error('Get conversation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
 
-    for (const participant of otherParticipants) {
-      await Notification.create({
-        user: participant.user,
-        type: 'message_received',
-        title: 'New Message',
-        message: `You have a new message from ${req.user.firstName}`,
-        data: {
-          conversationId: conversationId,
-          messageId: message._id,
-          senderId: senderId
-        },
-        channels: {
-          inApp: true,
-          push: true
-        }
+// @desc    Create new conversation
+// @route   POST /api/communication/conversations
+// @access  Private
+const createConversation = async (req, res) => {
+  try {
+    const { participants, type = 'direct', metadata = {} } = req.body;
+
+    if (!participants || !Array.isArray(participants) || participants.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Participants are required'
       });
     }
 
-    await message.populate('sender', 'firstName lastName profile.avatar');
+    // Add current user to participants
+    const allParticipants = [...new Set([req.user.id, ...participants])];
+
+    // Check if conversation already exists
+    const existingConversation = await Communication.findOne({
+      participants: { $all: allParticipants },
+      type
+    });
+
+    if (existingConversation) {
+      return res.status(200).json({
+        success: true,
+        message: 'Conversation already exists',
+        data: existingConversation
+      });
+    }
+
+    const conversation = await Communication.create({
+      participants: allParticipants,
+      type,
+      metadata,
+      messages: []
+    });
+
+    await conversation.populate('participants', 'firstName lastName profile.avatar');
+
+    res.status(201).json({
+      success: true,
+      message: 'Conversation created successfully',
+      data: conversation
+    });
+  } catch (error) {
+    console.error('Create conversation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Send message
+// @route   POST /api/communication/conversations/:id/messages
+// @access  Private
+const sendMessage = async (req, res) => {
+  try {
+    const { content, type = 'text', metadata = {} } = req.body;
+
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message content is required'
+      });
+    }
+
+    const conversation = await Communication.findById(req.params.id);
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Conversation not found'
+      });
+    }
+
+    // Check if user is a participant
+    if (!conversation.participants.includes(req.user.id)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to send messages in this conversation'
+      });
+    }
+
+    const message = {
+      sender: req.user.id,
+      content,
+      type,
+      metadata,
+      timestamp: new Date(),
+      readBy: [req.user.id]
+    };
+
+    conversation.messages.push(message);
+    conversation.lastMessage = message;
+    conversation.updatedAt = new Date();
+
+    await conversation.save();
+
+    // Populate sender info
+    await conversation.populate('lastMessage.sender', 'firstName lastName profile.avatar');
+
+    // Send push notification to other participants
+    const otherParticipants = conversation.participants.filter(p => p.toString() !== req.user.id);
+    
+    // TODO: Implement push notification service
+    // await PushNotificationService.sendNotification({
+    //   recipients: otherParticipants,
+    //   title: 'New Message',
+    //   body: content,
+    //   data: { conversationId: conversation._id }
+    // });
 
     res.status(201).json({
       success: true,
@@ -170,16 +215,13 @@ const sendMessage = async (req, res) => {
   }
 };
 
-// @desc    Get conversation messages
-// @route   GET /api/communication/conversations/:id/messages
+// @desc    Mark messages as read
+// @route   PUT /api/communication/conversations/:id/read
 // @access  Private
-const getMessages = async (req, res) => {
+const markAsRead = async (req, res) => {
   try {
-    const conversationId = req.params.id;
-    const userId = req.user.id;
-    const { page = 1, limit = 50 } = req.query;
+    const conversation = await Communication.findById(req.params.id);
 
-    const conversation = await Conversation.findById(conversationId);
     if (!conversation) {
       return res.status(404).json({
         success: false,
@@ -187,58 +229,29 @@ const getMessages = async (req, res) => {
       });
     }
 
-    // Check if user is participant
-    const isParticipant = conversation.participants.some(
-      p => p.user.toString() === userId
-    );
-
-    if (!isParticipant) {
+    // Check if user is a participant
+    if (!conversation.participants.includes(req.user.id)) {
       return res.status(403).json({
         success: false,
-        message: 'You are not a participant in this conversation'
+        message: 'Not authorized to mark messages as read in this conversation'
       });
     }
 
-    const skip = (page - 1) * limit;
-
-    const messages = await Message.find({
-      conversation: conversationId,
-      'deleted.isDeleted': false
-    })
-      .populate('sender', 'firstName lastName profile.avatar')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit));
-
-    // Mark messages as read
-    await Message.updateMany(
-      {
-        conversation: conversationId,
-        sender: { $ne: userId },
-        'readBy.user': { $ne: userId }
-      },
-      {
-        $push: { readBy: { user: userId, readAt: new Date() } },
-        $set: { isRead: true }
-      }
-    );
-
-    // Update conversation unread count
-    conversation.unreadCount = 0;
-    conversation.participants.forEach(p => {
-      if (p.user.toString() === userId) {
-        p.lastReadAt = new Date();
+    // Mark all messages as read for this user
+    conversation.messages.forEach(message => {
+      if (!message.readBy.includes(req.user.id)) {
+        message.readBy.push(req.user.id);
       }
     });
+
     await conversation.save();
 
     res.status(200).json({
       success: true,
-      count: messages.length,
-      data: messages.reverse()
+      message: 'Messages marked as read'
     });
   } catch (error) {
-    console.error('Get messages error:', error);
+    console.error('Mark as read error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -246,75 +259,36 @@ const getMessages = async (req, res) => {
   }
 };
 
-// @desc    Get user notifications
-// @route   GET /api/communication/notifications
+// @desc    Delete conversation
+// @route   DELETE /api/communication/conversations/:id
 // @access  Private
-const getNotifications = async (req, res) => {
+const deleteConversation = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { isRead, type, page = 1, limit = 20 } = req.query;
+    const conversation = await Communication.findById(req.params.id);
 
-    const filter = { user: userId };
-    if (isRead !== undefined) filter.isRead = isRead === 'true';
-    if (type) filter.type = type;
-
-    const skip = (page - 1) * limit;
-
-    const notifications = await Notification.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit));
-
-    const total = await Notification.countDocuments(filter);
-
-    res.status(200).json({
-      success: true,
-      count: notifications.length,
-      total,
-      page: Number(page),
-      pages: Math.ceil(total / limit),
-      data: notifications
-    });
-  } catch (error) {
-    console.error('Get notifications error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Mark notification as read
-// @route   PUT /api/communication/notifications/:id/read
-// @access  Private
-const markNotificationAsRead = async (req, res) => {
-  try {
-    const notificationId = req.params.id;
-    const userId = req.user.id;
-
-    const notification = await Notification.findOne({
-      _id: notificationId,
-      user: userId
-    });
-
-    if (!notification) {
+    if (!conversation) {
       return res.status(404).json({
         success: false,
-        message: 'Notification not found'
+        message: 'Conversation not found'
       });
     }
 
-    notification.isRead = true;
-    notification.readAt = new Date();
-    await notification.save();
+    // Check if user is a participant
+    if (!conversation.participants.includes(req.user.id)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this conversation'
+      });
+    }
+
+    await Communication.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
-      message: 'Notification marked as read',
-      data: notification
+      message: 'Conversation deleted successfully'
     });
   } catch (error) {
-    console.error('Mark notification as read error:', error);
+    console.error('Delete conversation error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -322,24 +296,313 @@ const markNotificationAsRead = async (req, res) => {
   }
 };
 
-// @desc    Mark all notifications as read
-// @route   PUT /api/communication/notifications/read-all
+// @desc    Send email notification
+// @route   POST /api/communication/email
 // @access  Private
-const markAllNotificationsAsRead = async (req, res) => {
+const sendEmailNotification = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const { to, subject, template, data } = req.body;
 
-    await Notification.updateMany(
-      { user: userId, isRead: false },
-      { isRead: true, readAt: new Date() }
-    );
+    if (!to || !subject || !template) {
+      return res.status(400).json({
+        success: false,
+        message: 'To, subject, and template are required'
+      });
+    }
+
+    const result = await EmailService.sendEmail({
+      to,
+      subject,
+      template,
+      data
+    });
+
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send email',
+        error: result.error
+      });
+    }
 
     res.status(200).json({
       success: true,
-      message: 'All notifications marked as read'
+      message: 'Email sent successfully'
     });
   } catch (error) {
-    console.error('Mark all notifications as read error:', error);
+    console.error('Send email notification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Send SMS notification
+// @route   POST /api/communication/sms
+// @access  Private
+const sendSMSNotification = async (req, res) => {
+  try {
+    const { to, message } = req.body;
+
+    if (!to || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'To and message are required'
+      });
+    }
+
+    const result = await TwilioService.sendSMS(to, message);
+
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send SMS',
+        error: result.error
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'SMS sent successfully'
+    });
+  } catch (error) {
+    console.error('Send SMS notification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get unread message count
+// @route   GET /api/communication/unread-count
+// @access  Private
+const getUnreadCount = async (req, res) => {
+  try {
+    const conversations = await Communication.find({
+      participants: req.user.id
+    });
+
+    let unreadCount = 0;
+
+    conversations.forEach(conversation => {
+      conversation.messages.forEach(message => {
+        if (!message.readBy.includes(req.user.id)) {
+          unreadCount++;
+        }
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      data: { unreadCount }
+    });
+  } catch (error) {
+    console.error('Get unread count error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Search conversations
+// @route   GET /api/communication/search
+// @access  Private
+const searchConversations = async (req, res) => {
+  try {
+    const { query, page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+
+    if (!query) {
+      return res.status(400).json({
+        success: false,
+        message: 'Search query is required'
+      });
+    }
+
+    const conversations = await Communication.find({
+      participants: req.user.id,
+      'messages.content': new RegExp(query, 'i')
+    })
+    .populate('participants', 'firstName lastName profile.avatar')
+    .populate('lastMessage.sender', 'firstName lastName profile.avatar')
+    .sort({ updatedAt: -1 })
+    .skip(skip)
+    .limit(Number(limit));
+
+    const total = await Communication.countDocuments({
+      participants: req.user.id,
+      'messages.content': new RegExp(query, 'i')
+    });
+
+    res.status(200).json({
+      success: true,
+      count: conversations.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: conversations
+    });
+  } catch (error) {
+    console.error('Search conversations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get conversation with user
+// @route   GET /api/communication/conversation-with/:userId
+// @access  Private
+const getConversationWithUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const conversation = await Communication.findOne({
+      participants: { $all: [req.user.id, userId] },
+      type: 'direct'
+    })
+    .populate('participants', 'firstName lastName profile.avatar')
+    .populate('messages.sender', 'firstName lastName profile.avatar');
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Conversation not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: conversation
+    });
+  } catch (error) {
+    console.error('Get conversation with user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Update message
+// @route   PUT /api/communication/conversations/:id/messages/:messageId
+// @access  Private
+const updateMessage = async (req, res) => {
+  try {
+    const { content } = req.body;
+
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message content is required'
+      });
+    }
+
+    const conversation = await Communication.findById(req.params.id);
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Conversation not found'
+      });
+    }
+
+    // Check if user is a participant
+    if (!conversation.participants.includes(req.user.id)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update messages in this conversation'
+      });
+    }
+
+    const message = conversation.messages.id(req.params.messageId);
+
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: 'Message not found'
+      });
+    }
+
+    // Check if user is the sender
+    if (message.sender.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this message'
+      });
+    }
+
+    message.content = content;
+    message.updatedAt = new Date();
+
+    await conversation.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Message updated successfully',
+      data: message
+    });
+  } catch (error) {
+    console.error('Update message error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Delete message
+// @route   DELETE /api/communication/conversations/:id/messages/:messageId
+// @access  Private
+const deleteMessage = async (req, res) => {
+  try {
+    const conversation = await Communication.findById(req.params.id);
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Conversation not found'
+      });
+    }
+
+    // Check if user is a participant
+    if (!conversation.participants.includes(req.user.id)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete messages in this conversation'
+      });
+    }
+
+    const message = conversation.messages.id(req.params.messageId);
+
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: 'Message not found'
+      });
+    }
+
+    // Check if user is the sender
+    if (message.sender.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this message'
+      });
+    }
+
+    message.remove();
+    await conversation.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Message deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete message error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -348,11 +611,17 @@ const markAllNotificationsAsRead = async (req, res) => {
 };
 
 module.exports = {
-  createOrGetConversation,
   getConversations,
+  getConversation,
+  createConversation,
   sendMessage,
-  getMessages,
-  getNotifications,
-  markNotificationAsRead,
-  markAllNotificationsAsRead
+  markAsRead,
+  deleteConversation,
+  sendEmailNotification,
+  sendSMSNotification,
+  getUnreadCount,
+  searchConversations,
+  getConversationWithUser,
+  updateMessage,
+  deleteMessage
 };

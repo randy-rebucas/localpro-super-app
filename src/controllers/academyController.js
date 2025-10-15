@@ -1,47 +1,64 @@
-const { Course, Enrollment, Certification } = require('../models/Academy');
+const Academy = require('../models/Academy');
+const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
-const { uploaders } = require('../config/cloudinary');
+const EmailService = require('../services/emailService');
 
-// @desc    Get all courses
+// @desc    Get all academy courses
 // @route   GET /api/academy/courses
 // @access  Public
 const getCourses = async (req, res) => {
   try {
     const {
+      search,
       category,
       level,
-      partner,
-      minPrice,
-      maxPrice,
+      instructor,
       page = 1,
       limit = 10,
       sortBy = 'createdAt',
       sortOrder = 'desc'
     } = req.query;
 
+    // Build filter object
     const filter = { isActive: true };
 
-    if (category) filter.category = category;
-    if (level) filter.level = level;
-    if (partner) filter['partner.name'] = new RegExp(partner, 'i');
-    if (minPrice || maxPrice) {
-      filter['pricing.regularPrice'] = {};
-      if (minPrice) filter['pricing.regularPrice'].$gte = Number(minPrice);
-      if (maxPrice) filter['pricing.regularPrice'].$lte = Number(maxPrice);
+    // Text search
+    if (search) {
+      filter.$or = [
+        { title: new RegExp(search, 'i') },
+        { description: new RegExp(search, 'i') },
+        { tags: new RegExp(search, 'i') }
+      ];
     }
 
+    // Category filter
+    if (category) {
+      filter.category = category;
+    }
+
+    // Level filter
+    if (level) {
+      filter.level = level;
+    }
+
+    // Instructor filter
+    if (instructor) {
+      filter.instructor = instructor;
+    }
+
+    // Build sort object
     const sort = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const skip = (page - 1) * limit;
 
-    const courses = await Course.find(filter)
-      .populate('instructor', 'firstName lastName profile.avatar profile.experience')
+    const courses = await Academy.find(filter)
+      .populate('instructor', 'firstName lastName profile.avatar profile.bio')
       .sort(sort)
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await Course.countDocuments(filter);
+    const total = await Academy.countDocuments(filter);
 
     res.status(200).json({
       success: true,
@@ -65,8 +82,10 @@ const getCourses = async (req, res) => {
 // @access  Public
 const getCourse = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id)
-      .populate('instructor', 'firstName lastName profile.avatar profile.experience profile.skills');
+    const course = await Academy.findById(req.params.id)
+      .populate('instructor', 'firstName lastName profile.avatar profile.bio profile.rating')
+      .populate('enrollments.user', 'firstName lastName profile.avatar')
+      .populate('reviews.user', 'firstName lastName profile.avatar');
 
     if (!course) {
       return res.status(404).json({
@@ -74,6 +93,10 @@ const getCourse = async (req, res) => {
         message: 'Course not found'
       });
     }
+
+    // Increment view count
+    course.views += 1;
+    await course.save();
 
     res.status(200).json({
       success: true,
@@ -88,15 +111,41 @@ const getCourse = async (req, res) => {
   }
 };
 
-// @desc    Enroll in course
-// @route   POST /api/academy/enroll
+// @desc    Create new course
+// @route   POST /api/academy/courses
 // @access  Private
-const enrollInCourse = async (req, res) => {
+const createCourse = async (req, res) => {
   try {
-    const { courseId } = req.body;
-    const userId = req.user.id;
+    const courseData = {
+      ...req.body,
+      instructor: req.user.id
+    };
 
-    const course = await Course.findById(courseId);
+    const course = await Academy.create(courseData);
+
+    await course.populate('instructor', 'firstName lastName profile.avatar');
+
+    res.status(201).json({
+      success: true,
+      message: 'Course created successfully',
+      data: course
+    });
+  } catch (error) {
+    console.error('Create course error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Update course
+// @route   PUT /api/academy/courses/:id
+// @access  Private
+const updateCourse = async (req, res) => {
+  try {
+    let course = await Academy.findById(req.params.id);
+
     if (!course) {
       return res.status(404).json({
         success: false,
@@ -104,146 +153,26 @@ const enrollInCourse = async (req, res) => {
       });
     }
 
-    // Check if already enrolled
-    const existingEnrollment = await Enrollment.findOne({
-      student: userId,
-      course: courseId
-    });
-
-    if (existingEnrollment) {
-      return res.status(400).json({
-        success: false,
-        message: 'Already enrolled in this course'
-      });
-    }
-
-    // Check enrollment capacity
-    if (course.enrollment.maxCapacity && course.enrollment.current >= course.enrollment.maxCapacity) {
-      return res.status(400).json({
-        success: false,
-        message: 'Course is full'
-      });
-    }
-
-    const enrollmentData = {
-      student: userId,
-      course: courseId,
-      payment: {
-        amount: course.pricing.regularPrice,
-        currency: course.pricing.currency
-      }
-    };
-
-    const enrollment = await Enrollment.create(enrollmentData);
-
-    // Update course enrollment count
-    course.enrollment.current += 1;
-    await course.save();
-
-    // Populate enrollment details
-    await enrollment.populate([
-      { path: 'course', select: 'title category instructor pricing' },
-      { path: 'student', select: 'firstName lastName email' }
-    ]);
-
-    res.status(201).json({
-      success: true,
-      message: 'Enrolled successfully',
-      data: enrollment
-    });
-  } catch (error) {
-    console.error('Enroll in course error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Get user enrollments
-// @route   GET /api/academy/enrollments
-// @access  Private
-const getEnrollments = async (req, res) => {
-  try {
-    const { status } = req.query;
-    const userId = req.user.id;
-
-    const filter = { student: userId };
-    if (status) filter.status = status;
-
-    const enrollments = await Enrollment.find(filter)
-      .populate('course', 'title category instructor pricing duration')
-      .sort({ enrollmentDate: -1 });
-
-    res.status(200).json({
-      success: true,
-      count: enrollments.length,
-      data: enrollments
-    });
-  } catch (error) {
-    console.error('Get enrollments error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Update lesson progress
-// @route   PUT /api/academy/enrollments/:id/progress
-// @access  Private
-const updateProgress = async (req, res) => {
-  try {
-    const { lessonId } = req.body;
-    const enrollmentId = req.params.id;
-
-    const enrollment = await Enrollment.findById(enrollmentId);
-    if (!enrollment) {
-      return res.status(404).json({
-        success: false,
-        message: 'Enrollment not found'
-      });
-    }
-
-    // Check if user is the student
-    if (enrollment.student.toString() !== req.user.id) {
+    // Check if user is the instructor
+    if (course.instructor.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to update this enrollment'
+        message: 'Not authorized to update this course'
       });
     }
 
-    // Check if lesson already completed
-    const alreadyCompleted = enrollment.progress.completedLessons.find(
-      lesson => lesson.lessonId === lessonId
-    );
-
-    if (!alreadyCompleted) {
-      enrollment.progress.completedLessons.push({
-        lessonId,
-        completedAt: new Date()
-      });
-
-      // Calculate overall progress
-      const course = await Course.findById(enrollment.course);
-      if (course) {
-        const totalLessons = course.curriculum.reduce(
-          (total, module) => total + module.lessons.length, 0
-        );
-        const completedCount = enrollment.progress.completedLessons.length;
-        enrollment.progress.overallProgress = Math.round((completedCount / totalLessons) * 100);
-      }
-
-      await enrollment.save();
-    }
+    course = await Academy.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    });
 
     res.status(200).json({
       success: true,
-      message: 'Progress updated successfully',
-      data: enrollment
+      message: 'Course updated successfully',
+      data: course
     });
   } catch (error) {
-    console.error('Update progress error:', error);
+    console.error('Update course error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -251,25 +180,38 @@ const updateProgress = async (req, res) => {
   }
 };
 
-// @desc    Get certifications
-// @route   GET /api/academy/certifications
-// @access  Public
-const getCertifications = async (req, res) => {
+// @desc    Delete course
+// @route   DELETE /api/academy/courses/:id
+// @access  Private
+const deleteCourse = async (req, res) => {
   try {
-    const { category } = req.query;
+    const course = await Academy.findById(req.params.id);
 
-    const filter = { isActive: true };
-    if (category) filter.category = category;
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
 
-    const certifications = await Certification.find(filter).sort({ name: 1 });
+    // Check if user is the instructor
+    if (course.instructor.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this course'
+      });
+    }
+
+    // Soft delete
+    course.isActive = false;
+    await course.save();
 
     res.status(200).json({
       success: true,
-      count: certifications.length,
-      data: certifications
+      message: 'Course deleted successfully'
     });
   } catch (error) {
-    console.error('Get certifications error:', error);
+    console.error('Delete course error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -279,7 +221,7 @@ const getCertifications = async (req, res) => {
 
 // @desc    Upload course thumbnail
 // @route   POST /api/academy/courses/:id/thumbnail
-// @access  Private (Instructor)
+// @access  Private
 const uploadCourseThumbnail = async (req, res) => {
   try {
     if (!req.file) {
@@ -289,8 +231,7 @@ const uploadCourseThumbnail = async (req, res) => {
       });
     }
 
-    const courseId = req.params.id;
-    const course = await Course.findById(courseId);
+    const course = await Academy.findById(req.params.id);
 
     if (!course) {
       return res.status(404).json({
@@ -326,21 +267,18 @@ const uploadCourseThumbnail = async (req, res) => {
       await CloudinaryService.deleteFile(course.thumbnail.publicId);
     }
 
-    // Update course thumbnail
+    // Update course with new thumbnail
     course.thumbnail = {
       url: uploadResult.data.secure_url,
-      publicId: uploadResult.data.public_id,
-      thumbnail: CloudinaryService.getOptimizedUrl(uploadResult.data.public_id, 'thumbnail')
+      publicId: uploadResult.data.public_id
     };
 
     await course.save();
 
     res.status(200).json({
       success: true,
-      message: 'Course thumbnail uploaded successfully',
-      data: {
-        thumbnail: course.thumbnail
-      }
+      message: 'Thumbnail uploaded successfully',
+      data: course.thumbnail
     });
   } catch (error) {
     console.error('Upload course thumbnail error:', error);
@@ -351,10 +289,10 @@ const uploadCourseThumbnail = async (req, res) => {
   }
 };
 
-// @desc    Upload course content
-// @route   POST /api/academy/courses/:id/content
-// @access  Private (Instructor)
-const uploadCourseContent = async (req, res) => {
+// @desc    Upload course video
+// @route   POST /api/academy/courses/:id/videos
+// @access  Private
+const uploadCourseVideo = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -363,17 +301,7 @@ const uploadCourseContent = async (req, res) => {
       });
     }
 
-    const { moduleId, lessonId, contentType } = req.body; // contentType: 'video', 'document', 'image'
-    const courseId = req.params.id;
-
-    if (!moduleId || !lessonId || !contentType) {
-      return res.status(400).json({
-        success: false,
-        message: 'Module ID, lesson ID, and content type are required'
-      });
-    }
-
-    const course = await Course.findById(courseId);
+    const course = await Academy.findById(req.params.id);
 
     if (!course) {
       return res.status(404).json({
@@ -386,64 +314,43 @@ const uploadCourseContent = async (req, res) => {
     if (course.instructor.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to upload content for this course'
-      });
-    }
-
-    // Find the module and lesson
-    const module = course.curriculum.id(moduleId);
-    if (!module) {
-      return res.status(404).json({
-        success: false,
-        message: 'Module not found'
-      });
-    }
-
-    const lesson = module.lessons.id(lessonId);
-    if (!lesson) {
-      return res.status(404).json({
-        success: false,
-        message: 'Lesson not found'
+        message: 'Not authorized to upload videos for this course'
       });
     }
 
     // Upload to Cloudinary
     const uploadResult = await CloudinaryService.uploadFile(
       req.file, 
-      `localpro/academy/courses/${courseId}/content`
+      'localpro/academy/videos'
     );
 
     if (!uploadResult.success) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to upload content',
+        message: 'Failed to upload video',
         error: uploadResult.error
       });
     }
 
-    // Delete old content if exists
-    if (lesson.content && lesson.content.publicId) {
-      await CloudinaryService.deleteFile(lesson.content.publicId);
-    }
-
-    // Update lesson content
-    lesson.content = {
+    // Add video to course
+    const video = {
+      title: req.body.title || 'Untitled Video',
       url: uploadResult.data.secure_url,
       publicId: uploadResult.data.public_id,
-      type: contentType
+      duration: req.body.duration || 0,
+      order: course.videos.length + 1
     };
 
+    course.videos.push(video);
     await course.save();
 
     res.status(200).json({
       success: true,
-      message: 'Course content uploaded successfully',
-      data: {
-        content: lesson.content
-      }
+      message: 'Video uploaded successfully',
+      data: video
     });
   } catch (error) {
-    console.error('Upload course content error:', error);
+    console.error('Upload course video error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -451,25 +358,475 @@ const uploadCourseContent = async (req, res) => {
   }
 };
 
-// @desc    Create course (Instructor)
-// @route   POST /api/academy/courses
-// @access  Private (Instructor)
-const createCourse = async (req, res) => {
+// @desc    Delete course video
+// @route   DELETE /api/academy/courses/:id/videos/:videoId
+// @access  Private
+const deleteCourseVideo = async (req, res) => {
   try {
-    const courseData = {
-      ...req.body,
-      instructor: req.user.id
+    const { videoId } = req.params;
+
+    const course = await Academy.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Check if user is the instructor
+    if (course.instructor.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete videos for this course'
+      });
+    }
+
+    const video = course.videos.id(videoId);
+
+    if (!video) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video not found'
+      });
+    }
+
+    // Delete from Cloudinary
+    await CloudinaryService.deleteFile(video.publicId);
+
+    // Remove from course
+    video.remove();
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Video deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete course video error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Enroll in course
+// @route   POST /api/academy/courses/:id/enroll
+// @access  Private
+const enrollInCourse = async (req, res) => {
+  try {
+    const course = await Academy.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    if (!course.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Course is not available'
+      });
+    }
+
+    // Check if user is already enrolled
+    const existingEnrollment = course.enrollments.find(
+      enrollment => enrollment.user.toString() === req.user.id
+    );
+
+    if (existingEnrollment) {
+      return res.status(400).json({
+        success: false,
+        message: 'You are already enrolled in this course'
+      });
+    }
+
+    // Add enrollment
+    const enrollment = {
+      user: req.user.id,
+      enrolledAt: new Date(),
+      progress: 0,
+      status: 'active'
     };
 
-    const course = await Course.create(courseData);
+    course.enrollments.push(enrollment);
+    await course.save();
+
+    // Send notification email to instructor
+    const instructor = await User.findById(course.instructor);
+    await EmailService.sendEmail({
+      to: instructor.email,
+      subject: 'New Course Enrollment',
+      template: 'course-enrollment',
+      data: {
+        courseTitle: course.title,
+        studentName: `${req.user.firstName} ${req.user.lastName}`,
+        enrolledAt: enrollment.enrolledAt
+      }
+    });
 
     res.status(201).json({
       success: true,
-      message: 'Course created successfully',
-      data: course
+      message: 'Successfully enrolled in course',
+      data: enrollment
     });
   } catch (error) {
-    console.error('Create course error:', error);
+    console.error('Enroll in course error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Update course progress
+// @route   PUT /api/academy/courses/:id/progress
+// @access  Private
+const updateCourseProgress = async (req, res) => {
+  try {
+    const { progress, completedVideos } = req.body;
+
+    if (progress === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Progress is required'
+      });
+    }
+
+    const course = await Academy.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Find user's enrollment
+    const enrollment = course.enrollments.find(
+      enrollment => enrollment.user.toString() === req.user.id
+    );
+
+    if (!enrollment) {
+      return res.status(404).json({
+        success: false,
+        message: 'You are not enrolled in this course'
+      });
+    }
+
+    // Update progress
+    enrollment.progress = Math.min(100, Math.max(0, progress));
+    enrollment.completedVideos = completedVideos || enrollment.completedVideos;
+    enrollment.lastAccessed = new Date();
+
+    // Mark as completed if progress is 100%
+    if (enrollment.progress === 100) {
+      enrollment.status = 'completed';
+      enrollment.completedAt = new Date();
+    }
+
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Course progress updated successfully',
+      data: enrollment
+    });
+  } catch (error) {
+    console.error('Update course progress error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Add course review
+// @route   POST /api/academy/courses/:id/reviews
+// @access  Private
+const addCourseReview = async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rating must be between 1 and 5'
+      });
+    }
+
+    const course = await Academy.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Check if user is enrolled and has completed the course
+    const enrollment = course.enrollments.find(
+      enrollment => enrollment.user.toString() === req.user.id
+    );
+
+    if (!enrollment) {
+      return res.status(403).json({
+        success: false,
+        message: 'You must be enrolled in this course to review it'
+      });
+    }
+
+    if (enrollment.status !== 'completed') {
+      return res.status(403).json({
+        success: false,
+        message: 'You must complete the course before reviewing it'
+      });
+    }
+
+    // Check if user has already reviewed
+    const existingReview = course.reviews.find(
+      review => review.user.toString() === req.user.id
+    );
+
+    if (existingReview) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have already reviewed this course'
+      });
+    }
+
+    const review = {
+      user: req.user.id,
+      rating,
+      comment,
+      createdAt: new Date()
+    };
+
+    course.reviews.push(review);
+
+    // Update average rating
+    const totalRating = course.reviews.reduce((sum, review) => sum + review.rating, 0);
+    course.averageRating = totalRating / course.reviews.length;
+
+    await course.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Review added successfully',
+      data: review
+    });
+  } catch (error) {
+    console.error('Add course review error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get user's enrolled courses
+// @route   GET /api/academy/my-courses
+// @access  Private
+const getMyCourses = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Build filter
+    const filter = { 'enrollments.user': req.user.id };
+    if (status) filter['enrollments.status'] = status;
+
+    const courses = await Academy.find(filter)
+      .populate('instructor', 'firstName lastName profile.avatar')
+      .sort({ 'enrollments.enrolledAt': -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    // Extract user's enrollment data
+    const userCourses = courses.map(course => {
+      const enrollment = course.enrollments.find(
+        enrollment => enrollment.user.toString() === req.user.id
+      );
+      return {
+        ...course.toObject(),
+        enrollment
+      };
+    });
+
+    const total = await Academy.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      count: userCourses.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: userCourses
+    });
+  } catch (error) {
+    console.error('Get my courses error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get user's created courses
+// @route   GET /api/academy/my-created-courses
+// @access  Private
+const getMyCreatedCourses = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const courses = await Academy.find({ instructor: req.user.id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Academy.countDocuments({ instructor: req.user.id });
+
+    res.status(200).json({
+      success: true,
+      count: courses.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: courses
+    });
+  } catch (error) {
+    console.error('Get my created courses error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get course categories
+// @route   GET /api/academy/categories
+// @access  Public
+const getCourseCategories = async (req, res) => {
+  try {
+    const categories = await Academy.aggregate([
+      {
+        $match: { isActive: true }
+      },
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: categories
+    });
+  } catch (error) {
+    console.error('Get course categories error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get featured courses
+// @route   GET /api/academy/featured
+// @access  Public
+const getFeaturedCourses = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const courses = await Academy.find({
+      isActive: true,
+      isFeatured: true
+    })
+    .populate('instructor', 'firstName lastName profile.avatar')
+    .sort({ createdAt: -1 })
+    .limit(Number(limit));
+
+    res.status(200).json({
+      success: true,
+      count: courses.length,
+      data: courses
+    });
+  } catch (error) {
+    console.error('Get featured courses error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get course statistics
+// @route   GET /api/academy/statistics
+// @access  Private (Admin only)
+const getCourseStatistics = async (req, res) => {
+  try {
+    // Get total courses
+    const totalCourses = await Academy.countDocuments();
+
+    // Get courses by category
+    const coursesByCategory = await Academy.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    // Get total enrollments
+    const totalEnrollments = await Academy.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalEnrollments: { $sum: { $size: '$enrollments' } }
+        }
+      }
+    ]);
+
+    // Get monthly trends
+    const monthlyTrends = await Academy.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalCourses,
+        coursesByCategory,
+        totalEnrollments: totalEnrollments[0]?.totalEnrollments || 0,
+        monthlyTrends
+      }
+    });
+  } catch (error) {
+    console.error('Get course statistics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -480,11 +837,18 @@ const createCourse = async (req, res) => {
 module.exports = {
   getCourses,
   getCourse,
-  enrollInCourse,
-  getEnrollments,
-  updateProgress,
-  getCertifications,
+  createCourse,
+  updateCourse,
+  deleteCourse,
   uploadCourseThumbnail,
-  uploadCourseContent,
-  createCourse
+  uploadCourseVideo,
+  deleteCourseVideo,
+  enrollInCourse,
+  updateCourseProgress,
+  addCourseReview,
+  getMyCourses,
+  getMyCreatedCourses,
+  getCourseCategories,
+  getFeaturedCourses,
+  getCourseStatistics
 };

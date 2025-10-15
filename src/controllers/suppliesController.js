@@ -1,20 +1,20 @@
-const { Product, SubscriptionKit, Order } = require('../models/Supplies');
+const Supplies = require('../models/Supplies');
 const User = require('../models/User');
+const CloudinaryService = require('../services/cloudinaryService');
+const GoogleMapsService = require('../services/googleMapsService');
 const EmailService = require('../services/emailService');
-const PayPalService = require('../services/paypalService');
 
-// @desc    Get all products
-// @route   GET /api/supplies/products
+// @desc    Get all supplies
+// @route   GET /api/supplies
 // @access  Public
-const getProducts = async (req, res) => {
+const getSupplies = async (req, res) => {
   try {
     const {
+      search,
       category,
-      subcategory,
-      brand,
+      location,
       minPrice,
       maxPrice,
-      isSubscriptionEligible,
       page = 1,
       limit = 10,
       sortBy = 'createdAt',
@@ -24,16 +24,30 @@ const getProducts = async (req, res) => {
     // Build filter object
     const filter = { isActive: true };
 
-    if (category) filter.category = category;
-    if (subcategory) filter.subcategory = subcategory;
-    if (brand) filter.brand = new RegExp(brand, 'i');
-    if (minPrice || maxPrice) {
-      filter['pricing.retailPrice'] = {};
-      if (minPrice) filter['pricing.retailPrice'].$gte = Number(minPrice);
-      if (maxPrice) filter['pricing.retailPrice'].$lte = Number(maxPrice);
+    // Text search
+    if (search) {
+      filter.$or = [
+        { title: new RegExp(search, 'i') },
+        { description: new RegExp(search, 'i') },
+        { tags: new RegExp(search, 'i') }
+      ];
     }
-    if (isSubscriptionEligible !== undefined) {
-      filter.isSubscriptionEligible = isSubscriptionEligible === 'true';
+
+    // Category filter
+    if (category) {
+      filter.category = category;
+    }
+
+    // Location filter
+    if (location) {
+      filter['location.city'] = new RegExp(location, 'i');
+    }
+
+    // Price filter
+    if (minPrice || maxPrice) {
+      filter['pricing.price'] = {};
+      if (minPrice) filter['pricing.price'].$gte = Number(minPrice);
+      if (maxPrice) filter['pricing.price'].$lte = Number(maxPrice);
     }
 
     // Build sort object
@@ -42,24 +56,24 @@ const getProducts = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    const products = await Product.find(filter)
-      .populate('supplier', 'firstName lastName businessName')
+    const supplies = await Supplies.find(filter)
+      .populate('supplier', 'firstName lastName profile.avatar profile.rating')
       .sort(sort)
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await Product.countDocuments(filter);
+    const total = await Supplies.countDocuments(filter);
 
     res.status(200).json({
       success: true,
-      count: products.length,
+      count: supplies.length,
       total,
       page: Number(page),
       pages: Math.ceil(total / limit),
-      data: products
+      data: supplies
     });
   } catch (error) {
-    console.error('Get products error:', error);
+    console.error('Get supplies error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -67,27 +81,33 @@ const getProducts = async (req, res) => {
   }
 };
 
-// @desc    Get single product
-// @route   GET /api/supplies/products/:id
+// @desc    Get single supply item
+// @route   GET /api/supplies/:id
 // @access  Public
-const getProduct = async (req, res) => {
+const getSupply = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id)
-      .populate('supplier', 'firstName lastName businessName contact');
+    const supply = await Supplies.findById(req.params.id)
+      .populate('supplier', 'firstName lastName profile.avatar profile.bio profile.rating')
+      .populate('orders.user', 'firstName lastName profile.avatar')
+      .populate('reviews.user', 'firstName lastName profile.avatar');
 
-    if (!product) {
+    if (!supply) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found'
+        message: 'Supply item not found'
       });
     }
 
+    // Increment view count
+    supply.views += 1;
+    await supply.save();
+
     res.status(200).json({
       success: true,
-      data: product
+      data: supply
     });
   } catch (error) {
-    console.error('Get product error:', error);
+    console.error('Get supply error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -95,25 +115,46 @@ const getProduct = async (req, res) => {
   }
 };
 
-// @desc    Create new product
-// @route   POST /api/supplies/products
-// @access  Private (Supplier)
-const createProduct = async (req, res) => {
+// @desc    Create new supply item
+// @route   POST /api/supplies
+// @access  Private
+const createSupply = async (req, res) => {
   try {
-    const productData = {
+    const supplyData = {
       ...req.body,
       supplier: req.user.id
     };
 
-    const product = await Product.create(productData);
+    // Geocode location if provided
+    if (supplyData.location?.street) {
+      try {
+        const address = `${supplyData.location.street}, ${supplyData.location.city}, ${supplyData.location.state}`;
+        const geocodeResult = await GoogleMapsService.geocodeAddress(address);
+        
+        if (geocodeResult.success && geocodeResult.data.length > 0) {
+          const location = geocodeResult.data[0];
+          supplyData.location.coordinates = {
+            lat: location.geometry.location.lat,
+            lng: location.geometry.location.lng
+          };
+        }
+      } catch (geocodeError) {
+        console.error('Geocoding error:', geocodeError);
+        // Continue without geocoding if it fails
+      }
+    }
+
+    const supply = await Supplies.create(supplyData);
+
+    await supply.populate('supplier', 'firstName lastName profile.avatar');
 
     res.status(201).json({
       success: true,
-      message: 'Product created successfully',
-      data: product
+      message: 'Supply item created successfully',
+      data: supply
     });
   } catch (error) {
-    console.error('Create product error:', error);
+    console.error('Create supply error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -121,56 +162,60 @@ const createProduct = async (req, res) => {
   }
 };
 
-// @desc    Get subscription kits
-// @route   GET /api/supplies/subscription-kits
-// @access  Public
-const getSubscriptionKits = async (req, res) => {
+// @desc    Update supply item
+// @route   PUT /api/supplies/:id
+// @access  Private
+const updateSupply = async (req, res) => {
   try {
-    const { category, targetAudience } = req.query;
+    let supply = await Supplies.findById(req.params.id);
 
-    const filter = { isActive: true };
-    if (category) filter.category = category;
-    if (targetAudience) filter.targetAudience = { $in: [new RegExp(targetAudience, 'i')] };
-
-    const kits = await SubscriptionKit.find(filter)
-      .populate('products.product', 'name pricing images')
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      count: kits.length,
-      data: kits
-    });
-  } catch (error) {
-    console.error('Get subscription kits error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Get single subscription kit
-// @route   GET /api/supplies/subscription-kits/:id
-// @access  Public
-const getSubscriptionKit = async (req, res) => {
-  try {
-    const kit = await SubscriptionKit.findById(req.params.id)
-      .populate('products.product', 'name description pricing images specifications');
-
-    if (!kit) {
+    if (!supply) {
       return res.status(404).json({
         success: false,
-        message: 'Subscription kit not found'
+        message: 'Supply item not found'
       });
     }
 
+    // Check if user is the supplier
+    if (supply.supplier.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this supply item'
+      });
+    }
+
+    // Geocode location if changed
+    if (req.body.location?.street && 
+        req.body.location.street !== supply.location.street) {
+      try {
+        const address = `${req.body.location.street}, ${req.body.location.city}, ${req.body.location.state}`;
+        const geocodeResult = await GoogleMapsService.geocodeAddress(address);
+        
+        if (geocodeResult.success && geocodeResult.data.length > 0) {
+          const location = geocodeResult.data[0];
+          req.body.location.coordinates = {
+            lat: location.geometry.location.lat,
+            lng: location.geometry.location.lng
+          };
+        }
+      } catch (geocodeError) {
+        console.error('Geocoding error:', geocodeError);
+        // Continue without geocoding if it fails
+      }
+    }
+
+    supply = await Supplies.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    });
+
     res.status(200).json({
       success: true,
-      data: kit
+      message: 'Supply item updated successfully',
+      data: supply
     });
   } catch (error) {
-    console.error('Get subscription kit error:', error);
+    console.error('Update supply error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -178,178 +223,248 @@ const getSubscriptionKit = async (req, res) => {
   }
 };
 
-// @desc    Create order
-// @route   POST /api/supplies/orders
+// @desc    Delete supply item
+// @route   DELETE /api/supplies/:id
 // @access  Private
-const createOrder = async (req, res) => {
+const deleteSupply = async (req, res) => {
   try {
-    const { items, subscriptionKitId, shippingAddress, paymentMethod } = req.body;
+    const supply = await Supplies.findById(req.params.id);
 
-    if (!items || items.length === 0) {
+    if (!supply) {
+      return res.status(404).json({
+        success: false,
+        message: 'Supply item not found'
+      });
+    }
+
+    // Check if user is the supplier
+    if (supply.supplier.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this supply item'
+      });
+    }
+
+    // Soft delete
+    supply.isActive = false;
+    await supply.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Supply item deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete supply error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Upload supply images
+// @route   POST /api/supplies/:id/images
+// @access  Private
+const uploadSupplyImages = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Order items are required'
+        message: 'No files uploaded'
       });
     }
 
-    // Calculate total amount
-    let totalAmount = 0;
-    const orderItems = [];
+    const supply = await Supplies.findById(req.params.id);
 
-    for (const item of items) {
-      const product = await Product.findById(item.product);
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: `Product ${item.product} not found`
-        });
-      }
-
-      const itemTotal = product.pricing.retailPrice * item.quantity;
-      totalAmount += itemTotal;
-
-      orderItems.push({
-        product: item.product,
-        quantity: item.quantity,
-        price: product.pricing.retailPrice
+    if (!supply) {
+      return res.status(404).json({
+        success: false,
+        message: 'Supply item not found'
       });
     }
 
-    const orderData = {
-      customer: req.user.id,
-      items: orderItems,
-      subscriptionKit: subscriptionKitId,
-      totalAmount,
-      shippingAddress,
-      isSubscription: !!subscriptionKitId,
-      payment: {
-        method: paymentMethod || 'cash',
-        status: paymentMethod === 'paypal' ? 'pending' : 'pending'
-      }
+    // Check if user is the supplier
+    if (supply.supplier.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to upload images for this supply item'
+      });
+    }
+
+    const uploadPromises = req.files.map(file => 
+      CloudinaryService.uploadFile(file, 'localpro/supplies')
+    );
+
+    const uploadResults = await Promise.all(uploadPromises);
+
+    const successfulUploads = uploadResults
+      .filter(result => result.success)
+      .map(result => ({
+        url: result.data.secure_url,
+        publicId: result.data.public_id
+      }));
+
+    if (successfulUploads.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload any images'
+      });
+    }
+
+    // Add new images to supply
+    supply.images = [...supply.images, ...successfulUploads];
+    await supply.save();
+
+    res.status(200).json({
+      success: true,
+      message: `${successfulUploads.length} image(s) uploaded successfully`,
+      data: successfulUploads
+    });
+  } catch (error) {
+    console.error('Upload supply images error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Delete supply image
+// @route   DELETE /api/supplies/:id/images/:imageId
+// @access  Private
+const deleteSupplyImage = async (req, res) => {
+  try {
+    const { imageId } = req.params;
+
+    const supply = await Supplies.findById(req.params.id);
+
+    if (!supply) {
+      return res.status(404).json({
+        success: false,
+        message: 'Supply item not found'
+      });
+    }
+
+    // Check if user is the supplier
+    if (supply.supplier.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete images for this supply item'
+      });
+    }
+
+    const image = supply.images.id(imageId);
+
+    if (!image) {
+      return res.status(404).json({
+        success: false,
+        message: 'Image not found'
+      });
+    }
+
+    // Delete from Cloudinary
+    await CloudinaryService.deleteFile(image.publicId);
+
+    // Remove from supply
+    image.remove();
+    await supply.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Image deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete supply image error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Order supply item
+// @route   POST /api/supplies/:id/order
+// @access  Private
+const orderSupply = async (req, res) => {
+  try {
+    const { 
+      quantity,
+      deliveryAddress,
+      specialInstructions,
+      contactInfo
+    } = req.body;
+
+    if (!quantity || !deliveryAddress) {
+      return res.status(400).json({
+        success: false,
+        message: 'Quantity and delivery address are required'
+      });
+    }
+
+    const supply = await Supplies.findById(req.params.id);
+
+    if (!supply) {
+      return res.status(404).json({
+        success: false,
+        message: 'Supply item not found'
+      });
+    }
+
+    // Check if supply is available
+    if (!supply.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Supply item is not available'
+      });
+    }
+
+    // Check if quantity is available
+    if (supply.inventory.quantity < quantity) {
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient quantity available'
+      });
+    }
+
+    // Calculate total cost
+    const totalCost = supply.pricing.price * quantity;
+
+    const order = {
+      user: req.user.id,
+      quantity,
+      totalCost,
+      deliveryAddress,
+      specialInstructions,
+      contactInfo,
+      status: 'pending',
+      createdAt: new Date()
     };
 
-    const order = await Order.create(orderData);
+    supply.orders.push(order);
+    await supply.save();
 
-    // Handle PayPal payment if selected
-    if (paymentMethod === 'paypal') {
-      try {
-        // Get user details for PayPal
-        const user = await User.findById(req.user.id).select('firstName lastName email');
-        
-        // Create PayPal order
-        const paypalOrderData = {
-          amount: totalAmount,
-          currency: 'USD',
-          description: `Supplies order #${order._id}`,
-          referenceId: order._id.toString(),
-          items: orderItems.map(item => ({
-            name: item.product.name || 'Product',
-            unit_amount: {
-              currency_code: 'USD',
-              value: item.price.toFixed(2)
-            },
-            quantity: item.quantity.toString()
-          })),
-          shipping: shippingAddress ? {
-            name: `${user.firstName} ${user.lastName}`,
-            address_line_1: shippingAddress.street,
-            city: shippingAddress.city,
-            state: shippingAddress.state,
-            postal_code: shippingAddress.zipCode,
-            country_code: shippingAddress.country || 'US'
-          } : undefined
-        };
-
-        const paypalOrderResult = await PayPalService.createOrder(paypalOrderData);
-        
-        if (!paypalOrderResult.success) {
-          throw new Error('Failed to create PayPal order');
-        }
-
-        // Update order with PayPal order ID
-        order.payment.paypalOrderId = paypalOrderResult.data.id;
-        await order.save();
-
-        // Populate order details
-        await order.populate([
-          { path: 'items.product', select: 'name pricing images' },
-          { path: 'subscriptionKit', select: 'name pricing frequency' },
-          { path: 'customer', select: 'firstName lastName email' }
-        ]);
-
-        res.status(201).json({
-          success: true,
-          message: 'Order created successfully with PayPal payment',
-          data: {
-            order,
-            paypalApprovalUrl: paypalOrderResult.data.links.find(link => link.rel === 'approve')?.href
-          }
-        });
-        return;
-      } catch (paypalError) {
-        console.error('PayPal order error:', paypalError);
-        // Fall back to regular order creation
-        order.payment.method = 'cash';
-        await order.save();
+    // Send notification email to supplier
+    await EmailService.sendEmail({
+      to: supply.supplier.email,
+      subject: 'New Supply Order',
+      template: 'order-confirmation',
+      data: {
+        supplyTitle: supply.title,
+        clientName: `${req.user.firstName} ${req.user.lastName}`,
+        quantity,
+        totalCost,
+        deliveryAddress,
+        specialInstructions
       }
-    }
-
-    // Populate order details
-    await order.populate([
-      { path: 'items.product', select: 'name pricing images' },
-      { path: 'subscriptionKit', select: 'name pricing frequency' },
-      { path: 'customer', select: 'firstName lastName email' }
-    ]);
-
-    // Send order confirmation email to customer if email is available
-    if (order.customer.email) {
-      try {
-        await EmailService.sendOrderConfirmation(order.customer.email, order);
-        console.log(`Order confirmation email sent to: ${order.customer.email}`);
-      } catch (emailError) {
-        console.error('Failed to send order confirmation email:', emailError);
-        // Don't fail the order if email fails
-      }
-    }
+    });
 
     res.status(201).json({
       success: true,
-      message: 'Order created successfully',
+      message: 'Supply item ordered successfully',
       data: order
     });
   } catch (error) {
-    console.error('Create order error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Get user orders
-// @route   GET /api/supplies/orders
-// @access  Private
-const getOrders = async (req, res) => {
-  try {
-    const { status, isSubscription } = req.query;
-    const userId = req.user.id;
-
-    const filter = { customer: userId };
-    if (status) filter.status = status;
-    if (isSubscription !== undefined) filter.isSubscription = isSubscription === 'true';
-
-    const orders = await Order.find(filter)
-      .populate('items.product', 'name pricing images')
-      .populate('subscriptionKit', 'name pricing frequency')
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      count: orders.length,
-      data: orders
-    });
-  } catch (error) {
-    console.error('Get orders error:', error);
+    console.error('Order supply error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -358,14 +473,39 @@ const getOrders = async (req, res) => {
 };
 
 // @desc    Update order status
-// @route   PUT /api/supplies/orders/:id/status
+// @route   PUT /api/supplies/:id/orders/:orderId/status
 // @access  Private
 const updateOrderStatus = async (req, res) => {
   try {
+    const { orderId } = req.params;
     const { status } = req.body;
-    const orderId = req.params.id;
 
-    const order = await Order.findById(orderId);
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status is required'
+      });
+    }
+
+    const supply = await Supplies.findById(req.params.id);
+
+    if (!supply) {
+      return res.status(404).json({
+        success: false,
+        message: 'Supply item not found'
+      });
+    }
+
+    // Check if user is the supplier
+    if (supply.supplier.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update order status'
+      });
+    }
+
+    const order = supply.orders.id(orderId);
+
     if (!order) {
       return res.status(404).json({
         success: false,
@@ -373,23 +513,29 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
-    // Check if user is the customer or supplier
-    const isCustomer = order.customer.toString() === req.user.id;
-    const isSupplier = req.user.role === 'supplier' || req.user.role === 'admin';
-
-    if (!isCustomer && !isSupplier) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to update this order'
-      });
-    }
-
     order.status = status;
-    if (status === 'delivered') {
-      order.shipping.actualDelivery = new Date();
+    order.updatedAt = new Date();
+
+    // Update inventory if order is completed
+    if (status === 'completed') {
+      supply.inventory.quantity -= order.quantity;
     }
 
-    await order.save();
+    await supply.save();
+
+    // Send notification email to client
+    const client = await User.findById(order.user);
+    await EmailService.sendEmail({
+      to: client.email,
+      subject: 'Supply Order Status Update',
+      template: 'application-status-update',
+      data: {
+        supplyTitle: supply.title,
+        status,
+        quantity: order.quantity,
+        totalCost: order.totalCost
+      }
+    });
 
     res.status(200).json({
       success: true,
@@ -405,80 +551,76 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-// @desc    Subscribe to subscription kit
-// @route   POST /api/supplies/subscribe
+// @desc    Add supply review
+// @route   POST /api/supplies/:id/reviews
 // @access  Private
-const subscribeToKit = async (req, res) => {
+const addSupplyReview = async (req, res) => {
   try {
-    const { kitId, frequency, shippingAddress } = req.body;
+    const { rating, comment } = req.body;
 
-    const kit = await SubscriptionKit.findById(kitId);
-    if (!kit) {
-      return res.status(404).json({
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
         success: false,
-        message: 'Subscription kit not found'
+        message: 'Rating must be between 1 and 5'
       });
     }
 
-    // Calculate pricing based on frequency
-    let price = 0;
-    switch (frequency) {
-      case 'weekly':
-        price = kit.pricing.monthlyPrice / 4;
-        break;
-      case 'bi-weekly':
-        price = kit.pricing.monthlyPrice / 2;
-        break;
-      case 'monthly':
-        price = kit.pricing.monthlyPrice;
-        break;
-      case 'quarterly':
-        price = kit.pricing.quarterlyPrice;
-        break;
-      default:
-        price = kit.pricing.monthlyPrice;
+    const supply = await Supplies.findById(req.params.id);
+
+    if (!supply) {
+      return res.status(404).json({
+        success: false,
+        message: 'Supply item not found'
+      });
     }
 
-    // Create subscription order
-    const orderData = {
-      customer: req.user.id,
-      subscriptionKit: kitId,
-      totalAmount: price,
-      shippingAddress,
-      isSubscription: true,
-      subscriptionDetails: {
-        frequency,
-        nextDelivery: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-        isActive: true
-      }
+    // Check if user has ordered this supply
+    const hasOrdered = supply.orders.some(order => 
+      order.user.toString() === req.user.id && 
+      order.status === 'completed'
+    );
+
+    if (!hasOrdered) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only review supply items you have ordered and completed'
+      });
+    }
+
+    // Check if user has already reviewed
+    const existingReview = supply.reviews.find(review => 
+      review.user.toString() === req.user.id
+    );
+
+    if (existingReview) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have already reviewed this supply item'
+      });
+    }
+
+    const review = {
+      user: req.user.id,
+      rating,
+      comment,
+      createdAt: new Date()
     };
 
-    const order = await Order.create(orderData);
+    supply.reviews.push(review);
 
-    // Populate order details
-    await order.populate([
-      { path: 'subscriptionKit', select: 'name pricing frequency' },
-      { path: 'customer', select: 'firstName lastName email' }
-    ]);
+    // Update average rating
+    const totalRating = supply.reviews.reduce((sum, review) => sum + review.rating, 0);
+    supply.averageRating = totalRating / supply.reviews.length;
 
-    // Send order confirmation email to customer if email is available
-    if (order.customer.email) {
-      try {
-        await EmailService.sendOrderConfirmation(order.customer.email, order);
-        console.log(`Subscription confirmation email sent to: ${order.customer.email}`);
-      } catch (emailError) {
-        console.error('Failed to send subscription confirmation email:', emailError);
-        // Don't fail the subscription if email fails
-      }
-    }
+    await supply.save();
 
     res.status(201).json({
       success: true,
-      message: 'Subscription created successfully',
-      data: order
+      message: 'Review added successfully',
+      data: review
     });
   } catch (error) {
-    console.error('Subscribe to kit error:', error);
+    console.error('Add supply review error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -486,67 +628,31 @@ const subscribeToKit = async (req, res) => {
   }
 };
 
-// @desc    Handle PayPal order payment approval
-// @route   POST /api/supplies/orders/paypal/approve
+// @desc    Get user's supply items
+// @route   GET /api/supplies/my-supplies
 // @access  Private
-const approvePayPalOrder = async (req, res) => {
+const getMySupplies = async (req, res) => {
   try {
-    const { orderId } = req.body;
-    const userId = req.user.id;
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
 
-    // Capture the PayPal order
-    const captureResult = await PayPalService.captureOrder(orderId);
-    
-    if (!captureResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: 'Failed to capture PayPal payment'
-      });
-    }
+    const supplies = await Supplies.find({ supplier: req.user.id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
 
-    // Find the order
-    const order = await Order.findOne({
-      customer: userId,
-      'payment.paypalOrderId': orderId
-    });
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
-      });
-    }
-
-    // Update order payment status
-    order.payment.status = 'paid';
-    order.payment.paypalTransactionId = captureResult.data.purchase_units[0].payments.captures[0].id;
-    order.payment.paidAt = new Date();
-    order.status = 'confirmed';
-    await order.save();
-
-    // Send order confirmation email
-    await order.populate([
-      { path: 'items.product', select: 'name pricing images' },
-      { path: 'subscriptionKit', select: 'name pricing frequency' },
-      { path: 'customer', select: 'firstName lastName email' }
-    ]);
-
-    if (order.customer.email) {
-      try {
-        await EmailService.sendOrderConfirmation(order.customer.email, order);
-        console.log(`Order confirmation email sent to: ${order.customer.email}`);
-      } catch (emailError) {
-        console.error('Failed to send order confirmation email:', emailError);
-      }
-    }
+    const total = await Supplies.countDocuments({ supplier: req.user.id });
 
     res.status(200).json({
       success: true,
-      message: 'PayPal payment approved successfully',
-      data: order
+      count: supplies.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: supplies
     });
   } catch (error) {
-    console.error('Approve PayPal order error:', error);
+    console.error('Get my supplies error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -554,46 +660,236 @@ const approvePayPalOrder = async (req, res) => {
   }
 };
 
-// @desc    Get PayPal order details for supplies
-// @route   GET /api/supplies/orders/paypal/order/:orderId
+// @desc    Get user's supply orders
+// @route   GET /api/supplies/my-orders
 // @access  Private
-const getPayPalOrderDetails = async (req, res) => {
+const getMySupplyOrders = async (req, res) => {
   try {
-    const { orderId } = req.params;
-    const userId = req.user.id;
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
 
-    // Verify the order belongs to the user
-    const order = await Order.findOne({
-      customer: userId,
-      'payment.paypalOrderId': orderId
+    const supplies = await Supplies.find({
+      'orders.user': req.user.id
+    })
+    .populate('supplier', 'firstName lastName profile.avatar')
+    .sort({ 'orders.createdAt': -1 })
+    .skip(skip)
+    .limit(Number(limit));
+
+    // Extract orders for the user
+    const userOrders = [];
+    supplies.forEach(supply => {
+      supply.orders.forEach(order => {
+        if (order.user.toString() === req.user.id) {
+          userOrders.push({
+            ...order.toObject(),
+            supply: {
+              _id: supply._id,
+              title: supply.title,
+              supplier: supply.supplier
+            }
+          });
+        }
+      });
     });
 
-    if (!order) {
-      return res.status(404).json({
+    res.status(200).json({
+      success: true,
+      count: userOrders.length,
+      data: userOrders
+    });
+  } catch (error) {
+    console.error('Get my supply orders error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get nearby supply items
+// @route   GET /api/supplies/nearby
+// @access  Public
+const getNearbySupplies = async (req, res) => {
+  try {
+    const { lat, lng, radius = 10, page = 1, limit = 10 } = req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({
         success: false,
-        message: 'Order not found'
+        message: 'Latitude and longitude are required'
       });
     }
 
-    // Get order details from PayPal
-    const paypalOrderResult = await PayPalService.getOrder(orderId);
-    
-    if (!paypalOrderResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: 'Failed to get PayPal order details'
-      });
-    }
+    const skip = (page - 1) * limit;
+
+    const supplies = await Supplies.find({
+      isActive: true,
+      'location.coordinates': {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(lng), parseFloat(lat)]
+          },
+          $maxDistance: radius * 1000 // Convert km to meters
+        }
+      }
+    })
+    .populate('supplier', 'firstName lastName profile.avatar profile.rating')
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(Number(limit));
+
+    const total = await Supplies.countDocuments({
+      isActive: true,
+      'location.coordinates': {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(lng), parseFloat(lat)]
+          },
+          $maxDistance: radius * 1000
+        }
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      count: supplies.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: supplies
+    });
+  } catch (error) {
+    console.error('Get nearby supplies error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get supply categories
+// @route   GET /api/supplies/categories
+// @access  Public
+const getSupplyCategories = async (req, res) => {
+  try {
+    const categories = await Supplies.aggregate([
+      {
+        $match: { isActive: true }
+      },
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: categories
+    });
+  } catch (error) {
+    console.error('Get supply categories error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get featured supply items
+// @route   GET /api/supplies/featured
+// @access  Public
+const getFeaturedSupplies = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const supplies = await Supplies.find({
+      isActive: true,
+      isFeatured: true
+    })
+    .populate('supplier', 'firstName lastName profile.avatar')
+    .sort({ createdAt: -1 })
+    .limit(Number(limit));
+
+    res.status(200).json({
+      success: true,
+      count: supplies.length,
+      data: supplies
+    });
+  } catch (error) {
+    console.error('Get featured supplies error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get supply statistics
+// @route   GET /api/supplies/statistics
+// @access  Private (Admin only)
+const getSupplyStatistics = async (req, res) => {
+  try {
+    // Get total supplies
+    const totalSupplies = await Supplies.countDocuments();
+
+    // Get supplies by category
+    const suppliesByCategory = await Supplies.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    // Get total orders
+    const totalOrders = await Supplies.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: { $size: '$orders' } }
+        }
+      }
+    ]);
+
+    // Get monthly trends
+    const monthlyTrends = await Supplies.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
 
     res.status(200).json({
       success: true,
       data: {
-        order,
-        paypalOrder: paypalOrderResult.data
+        totalSupplies,
+        suppliesByCategory,
+        totalOrders: totalOrders[0]?.totalOrders || 0,
+        monthlyTrends
       }
     });
   } catch (error) {
-    console.error('Get PayPal order details error:', error);
+    console.error('Get supply statistics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -602,15 +898,20 @@ const getPayPalOrderDetails = async (req, res) => {
 };
 
 module.exports = {
-  getProducts,
-  getProduct,
-  createProduct,
-  getSubscriptionKits,
-  getSubscriptionKit,
-  createOrder,
-  getOrders,
+  getSupplies,
+  getSupply,
+  createSupply,
+  updateSupply,
+  deleteSupply,
+  uploadSupplyImages,
+  deleteSupplyImage,
+  orderSupply,
   updateOrderStatus,
-  subscribeToKit,
-  approvePayPalOrder,
-  getPayPalOrderDetails
+  addSupplyReview,
+  getMySupplies,
+  getMySupplyOrders,
+  getNearbySupplies,
+  getSupplyCategories,
+  getFeaturedSupplies,
+  getSupplyStatistics
 };

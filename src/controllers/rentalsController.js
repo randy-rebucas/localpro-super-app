@@ -1,14 +1,17 @@
-const { RentalItem, Rental } = require('../models/Rentals');
+const Rentals = require('../models/Rentals');
+const User = require('../models/User');
+const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
+const EmailService = require('../services/emailService');
 
 // @desc    Get all rental items
-// @route   GET /api/rentals/items
+// @route   GET /api/rentals
 // @access  Public
-const getRentalItems = async (req, res) => {
+const getRentals = async (req, res) => {
   try {
     const {
+      search,
       category,
-      subcategory,
       location,
       minPrice,
       maxPrice,
@@ -18,51 +21,59 @@ const getRentalItems = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    const filter = { isActive: true, 'availability.isAvailable': true };
+    // Build filter object
+    const filter = { isActive: true };
 
-    if (category) filter.category = category;
-    if (subcategory) filter.subcategory = subcategory;
+    // Text search
+    if (search) {
+      filter.$or = [
+        { title: new RegExp(search, 'i') },
+        { description: new RegExp(search, 'i') },
+        { tags: new RegExp(search, 'i') }
+      ];
+    }
+
+    // Category filter
+    if (category) {
+      filter.category = category;
+    }
+
+    // Location filter
     if (location) {
-      // Enhanced location filtering with Google Maps
-      if (req.query.coordinates) {
-        const coordinates = JSON.parse(req.query.coordinates);
-        const radius = parseInt(req.query.radius) || 50000; // Default 50km radius
-        
-        // For now, use text-based filtering, but this could be enhanced with geospatial queries
-        filter['location.address.city'] = new RegExp(location, 'i');
-      } else {
-        filter['location.address.city'] = new RegExp(location, 'i');
-      }
-    }
-    if (minPrice || maxPrice) {
-      filter['pricing.daily'] = {};
-      if (minPrice) filter['pricing.daily'].$gte = Number(minPrice);
-      if (maxPrice) filter['pricing.daily'].$lte = Number(maxPrice);
+      filter['location.city'] = new RegExp(location, 'i');
     }
 
+    // Price filter
+    if (minPrice || maxPrice) {
+      filter['pricing.dailyRate'] = {};
+      if (minPrice) filter['pricing.dailyRate'].$gte = Number(minPrice);
+      if (maxPrice) filter['pricing.dailyRate'].$lte = Number(maxPrice);
+    }
+
+    // Build sort object
     const sort = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const skip = (page - 1) * limit;
 
-    const items = await RentalItem.find(filter)
+    const rentals = await Rentals.find(filter)
       .populate('owner', 'firstName lastName profile.avatar profile.rating')
       .sort(sort)
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await RentalItem.countDocuments(filter);
+    const total = await Rentals.countDocuments(filter);
 
     res.status(200).json({
       success: true,
-      count: items.length,
+      count: rentals.length,
       total,
       page: Number(page),
       pages: Math.ceil(total / limit),
-      data: items
+      data: rentals
     });
   } catch (error) {
-    console.error('Get rental items error:', error);
+    console.error('Get rentals error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -71,26 +82,32 @@ const getRentalItems = async (req, res) => {
 };
 
 // @desc    Get single rental item
-// @route   GET /api/rentals/items/:id
+// @route   GET /api/rentals/:id
 // @access  Public
-const getRentalItem = async (req, res) => {
+const getRental = async (req, res) => {
   try {
-    const item = await RentalItem.findById(req.params.id)
-      .populate('owner', 'firstName lastName profile.avatar profile.rating profile.experience');
+    const rental = await Rentals.findById(req.params.id)
+      .populate('owner', 'firstName lastName profile.avatar profile.bio profile.rating')
+      .populate('bookings.user', 'firstName lastName profile.avatar')
+      .populate('reviews.user', 'firstName lastName profile.avatar');
 
-    if (!item) {
+    if (!rental) {
       return res.status(404).json({
         success: false,
         message: 'Rental item not found'
       });
     }
 
+    // Increment view count
+    rental.views += 1;
+    await rental.save();
+
     res.status(200).json({
       success: true,
-      data: item
+      data: rental
     });
   } catch (error) {
-    console.error('Get rental item error:', error);
+    console.error('Get rental error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -98,127 +115,42 @@ const getRentalItem = async (req, res) => {
   }
 };
 
-// @desc    Create rental item
-// @route   POST /api/rentals/items
+// @desc    Create new rental item
+// @route   POST /api/rentals
 // @access  Private
-const createRentalItem = async (req, res) => {
+const createRental = async (req, res) => {
   try {
-    const itemData = {
+    const rentalData = {
       ...req.body,
       owner: req.user.id
     };
 
-    const item = await RentalItem.create(itemData);
+    // Geocode location if provided
+    if (rentalData.location?.street) {
+      try {
+        const address = `${rentalData.location.street}, ${rentalData.location.city}, ${rentalData.location.state}`;
+        const geocodeResult = await GoogleMapsService.geocodeAddress(address);
+        
+        if (geocodeResult.success && geocodeResult.data.length > 0) {
+          const location = geocodeResult.data[0];
+          rentalData.location.coordinates = {
+            lat: location.geometry.location.lat,
+            lng: location.geometry.location.lng
+          };
+        }
+      } catch (geocodeError) {
+        console.error('Geocoding error:', geocodeError);
+        // Continue without geocoding if it fails
+      }
+    }
+
+    const rental = await Rentals.create(rentalData);
+
+    await rental.populate('owner', 'firstName lastName profile.avatar');
 
     res.status(201).json({
       success: true,
       message: 'Rental item created successfully',
-      data: item
-    });
-  } catch (error) {
-    console.error('Create rental item error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Create rental booking
-// @route   POST /api/rentals/book
-// @access  Private
-const createRental = async (req, res) => {
-  try {
-    const {
-      itemId,
-      startDate,
-      endDate,
-      pickupLocation,
-      contactPerson,
-      contactPhone
-    } = req.body;
-
-    const item = await RentalItem.findById(itemId);
-    if (!item) {
-      return res.status(404).json({
-        success: false,
-        message: 'Rental item not found'
-      });
-    }
-
-    // Check availability
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const duration = Math.ceil((end - start) / (1000 * 60 * 60)); // in hours
-
-    // Calculate pricing
-    let rate = 0;
-    let period = 'hourly';
-    
-    if (duration >= 24 * 30) { // Monthly
-      rate = item.pricing.monthly;
-      period = 'monthly';
-    } else if (duration >= 24 * 7) { // Weekly
-      rate = item.pricing.weekly;
-      period = 'weekly';
-    } else if (duration >= 24) { // Daily
-      rate = item.pricing.daily;
-      period = 'daily';
-    } else { // Hourly
-      rate = item.pricing.hourly;
-      period = 'hourly';
-    }
-
-    const subtotal = rate * Math.ceil(duration / (period === 'hourly' ? 1 : period === 'daily' ? 24 : period === 'weekly' ? 24 * 7 : 24 * 30));
-    const deliveryFee = item.location.deliveryAvailable ? item.location.deliveryFee || 0 : 0;
-    const deposit = item.requirements.deposit || 0;
-    const totalAmount = subtotal + deliveryFee + deposit;
-
-    const rentalData = {
-      item: itemId,
-      renter: req.user.id,
-      owner: item.owner,
-      rentalPeriod: {
-        startDate: start,
-        endDate: end,
-        duration
-      },
-      pricing: {
-        rate,
-        period,
-        subtotal,
-        deliveryFee,
-        deposit,
-        totalAmount,
-        currency: item.pricing.currency
-      },
-      pickup: {
-        location: pickupLocation,
-        contactPerson,
-        contactPhone
-      }
-    };
-
-    const rental = await Rental.create(rentalData);
-
-    // Update item availability
-    item.availability.schedule.push({
-      startDate: start,
-      endDate: end,
-      reason: 'rented'
-    });
-    await item.save();
-
-    // Populate rental details
-    await rental.populate([
-      { path: 'item', select: 'name category specifications images' },
-      { path: 'renter', select: 'firstName lastName phoneNumber' },
-      { path: 'owner', select: 'firstName lastName phoneNumber' }
-    ]);
-
-    res.status(201).json({
-      success: true,
-      message: 'Rental booking created successfully',
       data: rental
     });
   } catch (error) {
@@ -230,38 +162,60 @@ const createRental = async (req, res) => {
   }
 };
 
-// @desc    Get user rentals
-// @route   GET /api/rentals
+// @desc    Update rental item
+// @route   PUT /api/rentals/:id
 // @access  Private
-const getUserRentals = async (req, res) => {
+const updateRental = async (req, res) => {
   try {
-    const { status, type = 'all' } = req.query;
-    const userId = req.user.id;
+    let rental = await Rentals.findById(req.params.id);
 
-    let filter = {};
-    if (type === 'renter') {
-      filter.renter = userId;
-    } else if (type === 'owner') {
-      filter.owner = userId;
-    } else {
-      filter.$or = [{ renter: userId }, { owner: userId }];
+    if (!rental) {
+      return res.status(404).json({
+        success: false,
+        message: 'Rental item not found'
+      });
     }
 
-    if (status) filter.status = status;
+    // Check if user is the owner
+    if (rental.owner.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this rental item'
+      });
+    }
 
-    const rentals = await Rental.find(filter)
-      .populate('item', 'name category specifications images')
-      .populate('renter', 'firstName lastName phoneNumber')
-      .populate('owner', 'firstName lastName phoneNumber')
-      .sort({ createdAt: -1 });
+    // Geocode location if changed
+    if (req.body.location?.street && 
+        req.body.location.street !== rental.location.street) {
+      try {
+        const address = `${req.body.location.street}, ${req.body.location.city}, ${req.body.location.state}`;
+        const geocodeResult = await GoogleMapsService.geocodeAddress(address);
+        
+        if (geocodeResult.success && geocodeResult.data.length > 0) {
+          const location = geocodeResult.data[0];
+          req.body.location.coordinates = {
+            lat: location.geometry.location.lat,
+            lng: location.geometry.location.lng
+          };
+        }
+      } catch (geocodeError) {
+        console.error('Geocoding error:', geocodeError);
+        // Continue without geocoding if it fails
+      }
+    }
+
+    rental = await Rentals.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    });
 
     res.status(200).json({
       success: true,
-      count: rentals.length,
-      data: rentals
+      message: 'Rental item updated successfully',
+      data: rental
     });
   } catch (error) {
-    console.error('Get user rentals error:', error);
+    console.error('Update rental error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -269,44 +223,38 @@ const getUserRentals = async (req, res) => {
   }
 };
 
-// @desc    Update rental status
-// @route   PUT /api/rentals/:id/status
+// @desc    Delete rental item
+// @route   DELETE /api/rentals/:id
 // @access  Private
-const updateRentalStatus = async (req, res) => {
+const deleteRental = async (req, res) => {
   try {
-    const { status } = req.body;
-    const rentalId = req.params.id;
+    const rental = await Rentals.findById(req.params.id);
 
-    const rental = await Rental.findById(rentalId);
     if (!rental) {
       return res.status(404).json({
         success: false,
-        message: 'Rental not found'
+        message: 'Rental item not found'
       });
     }
 
-    // Check if user is authorized to update this rental
-    if (rental.renter.toString() !== req.user.id && rental.owner.toString() !== req.user.id) {
+    // Check if user is the owner
+    if (rental.owner.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to update this rental'
+        message: 'Not authorized to delete this rental item'
       });
     }
 
-    rental.status = status;
-    if (status === 'completed') {
-      rental.return.actualTime = new Date();
-    }
-
+    // Soft delete
+    rental.isActive = false;
     await rental.save();
 
     res.status(200).json({
       success: true,
-      message: 'Rental status updated successfully',
-      data: rental
+      message: 'Rental item deleted successfully'
     });
   } catch (error) {
-    console.error('Update rental status error:', error);
+    console.error('Delete rental error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -314,65 +262,381 @@ const updateRentalStatus = async (req, res) => {
   }
 };
 
-// @desc    Add review to rental
-// @route   POST /api/rentals/:id/review
+// @desc    Upload rental images
+// @route   POST /api/rentals/:id/images
+// @access  Private
+const uploadRentalImages = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded'
+      });
+    }
+
+    const rental = await Rentals.findById(req.params.id);
+
+    if (!rental) {
+      return res.status(404).json({
+        success: false,
+        message: 'Rental item not found'
+      });
+    }
+
+    // Check if user is the owner
+    if (rental.owner.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to upload images for this rental item'
+      });
+    }
+
+    const uploadPromises = req.files.map(file => 
+      CloudinaryService.uploadFile(file, 'localpro/rentals')
+    );
+
+    const uploadResults = await Promise.all(uploadPromises);
+
+    const successfulUploads = uploadResults
+      .filter(result => result.success)
+      .map(result => ({
+        url: result.data.secure_url,
+        publicId: result.data.public_id
+      }));
+
+    if (successfulUploads.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload any images'
+      });
+    }
+
+    // Add new images to rental
+    rental.images = [...rental.images, ...successfulUploads];
+    await rental.save();
+
+    res.status(200).json({
+      success: true,
+      message: `${successfulUploads.length} image(s) uploaded successfully`,
+      data: successfulUploads
+    });
+  } catch (error) {
+    console.error('Upload rental images error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Delete rental image
+// @route   DELETE /api/rentals/:id/images/:imageId
+// @access  Private
+const deleteRentalImage = async (req, res) => {
+  try {
+    const { imageId } = req.params;
+
+    const rental = await Rentals.findById(req.params.id);
+
+    if (!rental) {
+      return res.status(404).json({
+        success: false,
+        message: 'Rental item not found'
+      });
+    }
+
+    // Check if user is the owner
+    if (rental.owner.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete images for this rental item'
+      });
+    }
+
+    const image = rental.images.id(imageId);
+
+    if (!image) {
+      return res.status(404).json({
+        success: false,
+        message: 'Image not found'
+      });
+    }
+
+    // Delete from Cloudinary
+    await CloudinaryService.deleteFile(image.publicId);
+
+    // Remove from rental
+    image.remove();
+    await rental.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Image deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete rental image error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Book rental item
+// @route   POST /api/rentals/:id/book
+// @access  Private
+const bookRental = async (req, res) => {
+  try {
+    const { 
+      startDate,
+      endDate,
+      quantity = 1,
+      specialRequests,
+      contactInfo
+    } = req.body;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Start date and end date are required'
+      });
+    }
+
+    const rental = await Rentals.findById(req.params.id);
+
+    if (!rental) {
+      return res.status(404).json({
+        success: false,
+        message: 'Rental item not found'
+      });
+    }
+
+    // Check if rental is available
+    if (!rental.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rental item is not available'
+      });
+    }
+
+    // Check if dates are valid
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const now = new Date();
+
+    if (start <= now) {
+      return res.status(400).json({
+        success: false,
+        message: 'Start date must be in the future'
+      });
+    }
+
+    if (end <= start) {
+      return res.status(400).json({
+        success: false,
+        message: 'End date must be after start date'
+      });
+    }
+
+    // Check availability
+    const isAvailable = rental.checkAvailability(start, end, quantity);
+    if (!isAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rental item is not available for the selected dates'
+      });
+    }
+
+    // Calculate total cost
+    const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    const totalCost = rental.pricing.dailyRate * days * quantity;
+
+    const booking = {
+      user: req.user.id,
+      startDate: start,
+      endDate: end,
+      quantity,
+      totalCost,
+      specialRequests,
+      contactInfo,
+      status: 'pending',
+      createdAt: new Date()
+    };
+
+    rental.bookings.push(booking);
+    await rental.save();
+
+    // Send notification email to owner
+    await EmailService.sendEmail({
+      to: rental.owner.email,
+      subject: 'New Rental Booking',
+      template: 'booking-confirmation',
+      data: {
+        rentalTitle: rental.title,
+        clientName: `${req.user.firstName} ${req.user.lastName}`,
+        startDate,
+        endDate,
+        quantity,
+        totalCost,
+        specialRequests
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Rental item booked successfully',
+      data: booking
+    });
+  } catch (error) {
+    console.error('Book rental error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Update booking status
+// @route   PUT /api/rentals/:id/bookings/:bookingId/status
+// @access  Private
+const updateBookingStatus = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status is required'
+      });
+    }
+
+    const rental = await Rentals.findById(req.params.id);
+
+    if (!rental) {
+      return res.status(404).json({
+        success: false,
+        message: 'Rental item not found'
+      });
+    }
+
+    // Check if user is the owner
+    if (rental.owner.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update booking status'
+      });
+    }
+
+    const booking = rental.bookings.id(bookingId);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    booking.status = status;
+    booking.updatedAt = new Date();
+
+    await rental.save();
+
+    // Send notification email to client
+    const client = await User.findById(booking.user);
+    await EmailService.sendEmail({
+      to: client.email,
+      subject: 'Rental Booking Status Update',
+      template: 'application-status-update',
+      data: {
+        rentalTitle: rental.title,
+        status,
+        startDate: booking.startDate,
+        endDate: booking.endDate
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Booking status updated successfully',
+      data: booking
+    });
+  } catch (error) {
+    console.error('Update booking status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Add rental review
+// @route   POST /api/rentals/:id/reviews
 // @access  Private
 const addRentalReview = async (req, res) => {
   try {
     const { rating, comment } = req.body;
-    const rentalId = req.params.id;
 
-    const rental = await Rental.findById(rentalId);
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rating must be between 1 and 5'
+      });
+    }
+
+    const rental = await Rentals.findById(req.params.id);
+
     if (!rental) {
       return res.status(404).json({
         success: false,
-        message: 'Rental not found'
+        message: 'Rental item not found'
       });
     }
 
-    // Check if user is the renter and rental is completed
-    if (rental.renter.toString() !== req.user.id) {
+    // Check if user has booked this rental
+    const hasBooked = rental.bookings.some(booking => 
+      booking.user.toString() === req.user.id && 
+      booking.status === 'completed'
+    );
+
+    if (!hasBooked) {
       return res.status(403).json({
         success: false,
-        message: 'Only the renter can add a review'
+        message: 'You can only review rental items you have booked and completed'
       });
     }
 
-    if (rental.status !== 'completed') {
+    // Check if user has already reviewed
+    const existingReview = rental.reviews.find(review => 
+      review.user.toString() === req.user.id
+    );
+
+    if (existingReview) {
       return res.status(400).json({
         success: false,
-        message: 'Can only review completed rentals'
+        message: 'You have already reviewed this rental item'
       });
     }
 
-    if (rental.review) {
-      return res.status(400).json({
-        success: false,
-        message: 'Review already exists for this rental'
-      });
-    }
-
-    rental.review = {
+    const review = {
+      user: req.user.id,
       rating,
       comment,
       createdAt: new Date()
     };
 
+    rental.reviews.push(review);
+
+    // Update average rating
+    const totalRating = rental.reviews.reduce((sum, review) => sum + review.rating, 0);
+    rental.averageRating = totalRating / rental.reviews.length;
+
     await rental.save();
 
-    // Update item rating
-    const item = await RentalItem.findById(rental.item);
-    if (item) {
-      const totalRating = item.rating.average * item.rating.count + rating;
-      item.rating.count += 1;
-      item.rating.average = totalRating / item.rating.count;
-      await item.save();
-    }
-
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: 'Review added successfully',
-      data: rental
+      data: review
     });
   } catch (error) {
     console.error('Add rental review error:', error);
@@ -383,12 +647,290 @@ const addRentalReview = async (req, res) => {
   }
 };
 
+// @desc    Get user's rental items
+// @route   GET /api/rentals/my-rentals
+// @access  Private
+const getMyRentals = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const rentals = await Rentals.find({ owner: req.user.id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Rentals.countDocuments({ owner: req.user.id });
+
+    res.status(200).json({
+      success: true,
+      count: rentals.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: rentals
+    });
+  } catch (error) {
+    console.error('Get my rentals error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get user's rental bookings
+// @route   GET /api/rentals/my-bookings
+// @access  Private
+const getMyRentalBookings = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const rentals = await Rentals.find({
+      'bookings.user': req.user.id
+    })
+    .populate('owner', 'firstName lastName profile.avatar')
+    .sort({ 'bookings.createdAt': -1 })
+    .skip(skip)
+    .limit(Number(limit));
+
+    // Extract bookings for the user
+    const userBookings = [];
+    rentals.forEach(rental => {
+      rental.bookings.forEach(booking => {
+        if (booking.user.toString() === req.user.id) {
+          userBookings.push({
+            ...booking.toObject(),
+            rental: {
+              _id: rental._id,
+              title: rental.title,
+              owner: rental.owner
+            }
+          });
+        }
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      count: userBookings.length,
+      data: userBookings
+    });
+  } catch (error) {
+    console.error('Get my rental bookings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get nearby rental items
+// @route   GET /api/rentals/nearby
+// @access  Public
+const getNearbyRentals = async (req, res) => {
+  try {
+    const { lat, lng, radius = 10, page = 1, limit = 10 } = req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({
+        success: false,
+        message: 'Latitude and longitude are required'
+      });
+    }
+
+    const skip = (page - 1) * limit;
+
+    const rentals = await Rentals.find({
+      isActive: true,
+      'location.coordinates': {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(lng), parseFloat(lat)]
+          },
+          $maxDistance: radius * 1000 // Convert km to meters
+        }
+      }
+    })
+    .populate('owner', 'firstName lastName profile.avatar profile.rating')
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(Number(limit));
+
+    const total = await Rentals.countDocuments({
+      isActive: true,
+      'location.coordinates': {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(lng), parseFloat(lat)]
+          },
+          $maxDistance: radius * 1000
+        }
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      count: rentals.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: rentals
+    });
+  } catch (error) {
+    console.error('Get nearby rentals error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get rental categories
+// @route   GET /api/rentals/categories
+// @access  Public
+const getRentalCategories = async (req, res) => {
+  try {
+    const categories = await Rentals.aggregate([
+      {
+        $match: { isActive: true }
+      },
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: categories
+    });
+  } catch (error) {
+    console.error('Get rental categories error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get featured rental items
+// @route   GET /api/rentals/featured
+// @access  Public
+const getFeaturedRentals = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const rentals = await Rentals.find({
+      isActive: true,
+      isFeatured: true
+    })
+    .populate('owner', 'firstName lastName profile.avatar')
+    .sort({ createdAt: -1 })
+    .limit(Number(limit));
+
+    res.status(200).json({
+      success: true,
+      count: rentals.length,
+      data: rentals
+    });
+  } catch (error) {
+    console.error('Get featured rentals error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get rental statistics
+// @route   GET /api/rentals/statistics
+// @access  Private (Admin only)
+const getRentalStatistics = async (req, res) => {
+  try {
+    // Get total rentals
+    const totalRentals = await Rentals.countDocuments();
+
+    // Get rentals by category
+    const rentalsByCategory = await Rentals.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    // Get total bookings
+    const totalBookings = await Rentals.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalBookings: { $sum: { $size: '$bookings' } }
+        }
+      }
+    ]);
+
+    // Get monthly trends
+    const monthlyTrends = await Rentals.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalRentals,
+        rentalsByCategory,
+        totalBookings: totalBookings[0]?.totalBookings || 0,
+        monthlyTrends
+      }
+    });
+  } catch (error) {
+    console.error('Get rental statistics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
-  getRentalItems,
-  getRentalItem,
-  createRentalItem,
+  getRentals,
+  getRental,
   createRental,
-  getUserRentals,
-  updateRentalStatus,
-  addRentalReview
+  updateRental,
+  deleteRental,
+  uploadRentalImages,
+  deleteRentalImage,
+  bookRental,
+  updateBookingStatus,
+  addRentalReview,
+  getMyRentals,
+  getMyRentalBookings,
+  getNearbyRentals,
+  getRentalCategories,
+  getFeaturedRentals,
+  getRentalStatistics
 };

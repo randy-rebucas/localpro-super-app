@@ -1,33 +1,185 @@
-const { AnalyticsEvent, ServiceAnalytics, UserAnalytics, PlatformAnalytics } = require('../models/Analytics');
+const Analytics = require('../models/Analytics');
 const User = require('../models/User');
-const { Service, Booking } = require('../models/Marketplace');
+const Marketplace = require('../models/Marketplace');
+const Job = require('../models/Job');
+const Referral = require('../models/Referral');
+const Agency = require('../models/Agency');
 
-// @desc    Track analytics event
-// @route   POST /api/analytics/track
+// @desc    Get analytics overview
+// @route   GET /api/analytics/overview
 // @access  Private
-const trackEvent = async (req, res) => {
+const getAnalyticsOverview = async (req, res) => {
   try {
-    const { event, category, subcategory, metadata } = req.body;
-    const userId = req.user.id;
+    const { startDate, endDate } = req.query;
 
-    const analyticsEvent = await AnalyticsEvent.create({
-      user: userId,
-      event: event,
-      category: category,
-      subcategory: subcategory,
-      metadata: metadata,
-      sessionId: req.sessionID,
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.timestamp = {};
+      if (startDate) dateFilter.timestamp.$gte = new Date(startDate);
+      if (endDate) dateFilter.timestamp.$lte = new Date(endDate);
+    }
 
-    res.status(201).json({
+    // Get total users
+    const totalUsers = await User.countDocuments();
+
+    // Get total services
+    const totalServices = await Marketplace.countDocuments({ type: 'service' });
+
+    // Get total jobs
+    const totalJobs = await Job.countDocuments();
+
+    // Get total agencies
+    const totalAgencies = await Agency.countDocuments({ isActive: true });
+
+    // Get total referrals
+    const totalReferrals = await Referral.countDocuments();
+
+    // Get user registrations by month
+    const userRegistrations = await User.aggregate([
+      {
+        $match: dateFilter
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    // Get service categories
+    const serviceCategories = await Marketplace.aggregate([
+      {
+        $match: { type: 'service' }
+      },
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    // Get job categories
+    const jobCategories = await Job.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    // Get top performing providers
+    const topProviders = await User.aggregate([
+      {
+        $match: { role: 'provider' }
+      },
+      {
+        $lookup: {
+          from: 'marketplaces',
+          localField: '_id',
+          foreignField: 'provider',
+          as: 'services'
+        }
+      },
+      {
+        $lookup: {
+          from: 'marketplaces',
+          localField: '_id',
+          foreignField: 'bookings.provider',
+          as: 'bookings'
+        }
+      },
+      {
+        $project: {
+          firstName: 1,
+          lastName: 1,
+          'profile.avatar': 1,
+          'profile.rating': 1,
+          serviceCount: { $size: '$services' },
+          bookingCount: { $size: '$bookings' }
+        }
+      },
+      {
+        $sort: { 'profile.rating': -1, bookingCount: -1 }
+      },
+      {
+        $limit: 10
+      }
+    ]);
+
+    // Get revenue analytics
+    const revenueAnalytics = await Marketplace.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          status: 'completed',
+          ...dateFilter
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          totalRevenue: { $sum: '$pricing.total' },
+          bookingCount: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    // Get referral analytics
+    const referralAnalytics = await Referral.aggregate([
+      {
+        $match: dateFilter
+      },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+          totalReward: { $sum: '$rewardConfiguration.totalReward' }
+        }
+      }
+    ]);
+
+    res.status(200).json({
       success: true,
-      message: 'Event tracked successfully',
-      data: analyticsEvent
+      data: {
+        overview: {
+          totalUsers,
+          totalServices,
+          totalJobs,
+          totalAgencies,
+          totalReferrals
+        },
+        userRegistrations,
+        serviceCategories,
+        jobCategories,
+        topProviders,
+        revenueAnalytics,
+        referralAnalytics
+      }
     });
   } catch (error) {
-    console.error('Track event error:', error);
+    console.error('Get analytics overview error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -36,70 +188,102 @@ const trackEvent = async (req, res) => {
 };
 
 // @desc    Get user analytics
-// @route   GET /api/analytics/user
+// @route   GET /api/analytics/users
 // @access  Private
 const getUserAnalytics = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { period = 'monthly', startDate, endDate } = req.query;
+    const { startDate, endDate } = req.query;
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+      if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
     }
 
-    // Get user analytics data
-    const filter = { user: userId, period: period };
-    if (startDate && endDate) {
-      filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
-    }
+    // Get user registrations by day
+    const userRegistrations = await User.aggregate([
+      {
+        $match: dateFilter
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+            day: { $dayOfMonth: '$createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 }
+      }
+    ]);
 
-    const analytics = await UserAnalytics.find(filter)
-      .sort({ date: -1 })
-      .limit(12); // Last 12 periods
+    // Get users by role
+    const usersByRole = await User.aggregate([
+      {
+        $group: {
+          _id: '$role',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
 
-    // Get recent events
-    const recentEvents = await AnalyticsEvent.find({ user: userId })
-      .sort({ timestamp: -1 })
-      .limit(20);
+    // Get users by location
+    const usersByLocation = await User.aggregate([
+      {
+        $match: { 'profile.address.city': { $exists: true } }
+      },
+      {
+        $group: {
+          _id: '$profile.address.city',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      },
+      {
+        $limit: 20
+      }
+    ]);
 
-    // Calculate summary metrics
-    const summary = {
-      totalBookings: 0,
-      totalEarned: 0,
-      totalSpent: 0,
-      averageRating: 0,
-      completionRate: 0,
-      responseTime: 0
-    };
-
-    if (analytics.length > 0) {
-      const latest = analytics[0];
-      summary.totalBookings = latest.metrics.bookingsCreated + latest.metrics.bookingsReceived;
-      summary.totalEarned = latest.metrics.totalEarned;
-      summary.totalSpent = latest.metrics.totalSpent;
-      summary.averageRating = latest.metrics.averageRating;
-      summary.completionRate = latest.metrics.completionRate;
-      summary.responseTime = latest.metrics.responseTime;
-    }
+    // Get user engagement metrics
+    const userEngagement = await User.aggregate([
+      {
+        $project: {
+          role: 1,
+          'profile.rating': 1,
+          'profile.experience': 1,
+          'profile.skills': 1,
+          hasAvatar: { $cond: [{ $ne: ['$profile.avatar', null] }, 1, 0] },
+          hasBio: { $cond: [{ $ne: ['$profile.bio', null] }, 1, 0] },
+          hasSkills: { $cond: [{ $gt: [{ $size: { $ifNull: ['$profile.skills', []] } }, 0] }, 1, 0] }
+        }
+      },
+      {
+        $group: {
+          _id: '$role',
+          totalUsers: { $sum: 1 },
+          avgRating: { $avg: '$profile.rating' },
+          avgExperience: { $avg: '$profile.experience' },
+          usersWithAvatar: { $sum: '$hasAvatar' },
+          usersWithBio: { $sum: '$hasBio' },
+          usersWithSkills: { $sum: '$hasSkills' }
+        }
+      }
+    ]);
 
     res.status(200).json({
       success: true,
       data: {
-        user: {
-          id: user._id,
-          name: user.fullName,
-          role: user.role,
-          trustScore: user.trustScore,
-          rating: user.profile.rating,
-          totalReviews: user.profile.totalReviews
-        },
-        analytics: analytics,
-        recentEvents: recentEvents,
-        summary: summary
+        userRegistrations,
+        usersByRole,
+        usersByLocation,
+        userEngagement
       }
     });
   } catch (error) {
@@ -111,63 +295,261 @@ const getUserAnalytics = async (req, res) => {
   }
 };
 
-// @desc    Get service analytics
-// @route   GET /api/analytics/services/:serviceId
+// @desc    Get marketplace analytics
+// @route   GET /api/analytics/marketplace
 // @access  Private
-const getServiceAnalytics = async (req, res) => {
+const getMarketplaceAnalytics = async (req, res) => {
   try {
-    const serviceId = req.params.serviceId;
-    const userId = req.user.id;
-    const { period = 'monthly', startDate, endDate } = req.query;
+    const { startDate, endDate } = req.query;
 
-    const service = await Service.findById(serviceId);
-    if (!service) {
-      return res.status(404).json({
-        success: false,
-        message: 'Service not found'
-      });
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+      if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
     }
 
-    // Check if user owns the service
-    if (service.provider.toString() !== userId && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'You are not authorized to view this service analytics'
-      });
-    }
+    // Get service analytics
+    const serviceAnalytics = await Marketplace.aggregate([
+      {
+        $match: { type: 'service', ...dateFilter }
+      },
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 },
+          avgPrice: { $avg: '$pricing.basePrice' },
+          totalViews: { $sum: '$views' }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
 
-    const filter = { service: serviceId, period: period };
-    if (startDate && endDate) {
-      filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
-    }
+    // Get booking analytics
+    const bookingAnalytics = await Marketplace.aggregate([
+      {
+        $match: { type: 'booking', ...dateFilter }
+      },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+          totalRevenue: { $sum: '$pricing.total' }
+        }
+      }
+    ]);
 
-    const analytics = await ServiceAnalytics.find(filter)
-      .sort({ date: -1 })
-      .limit(12);
+    // Get top services by bookings
+    const topServices = await Marketplace.aggregate([
+      {
+        $match: { type: 'service' }
+      },
+      {
+        $lookup: {
+          from: 'marketplaces',
+          localField: '_id',
+          foreignField: 'service',
+          as: 'bookings'
+        }
+      },
+      {
+        $project: {
+          title: 1,
+          category: 1,
+          'pricing.basePrice': 1,
+          bookingCount: { $size: '$bookings' },
+          totalRevenue: {
+            $sum: '$bookings.pricing.total'
+          }
+        }
+      },
+      {
+        $sort: { bookingCount: -1 }
+      },
+      {
+        $limit: 20
+      }
+    ]);
 
-    // Get service events
-    const serviceEvents = await AnalyticsEvent.find({
-      event: { $in: ['service_view', 'service_search', 'booking_created'] },
-      'metadata.serviceId': serviceId
-    })
-      .sort({ timestamp: -1 })
-      .limit(50);
+    // Get provider performance
+    const providerPerformance = await User.aggregate([
+      {
+        $match: { role: 'provider' }
+      },
+      {
+        $lookup: {
+          from: 'marketplaces',
+          localField: '_id',
+          foreignField: 'provider',
+          as: 'services'
+        }
+      },
+      {
+        $lookup: {
+          from: 'marketplaces',
+          localField: '_id',
+          foreignField: 'bookings.provider',
+          as: 'bookings'
+        }
+      },
+      {
+        $project: {
+          firstName: 1,
+          lastName: 1,
+          'profile.avatar': 1,
+          'profile.rating': 1,
+          serviceCount: { $size: '$services' },
+          bookingCount: { $size: '$bookings' },
+          totalRevenue: {
+            $sum: '$bookings.pricing.total'
+          }
+        }
+      },
+      {
+        $sort: { totalRevenue: -1 }
+      },
+      {
+        $limit: 20
+      }
+    ]);
 
     res.status(200).json({
       success: true,
       data: {
-        service: {
-          id: service._id,
-          title: service.title,
-          category: service.category,
-          rating: service.rating
-        },
-        analytics: analytics,
-        events: serviceEvents
+        serviceAnalytics,
+        bookingAnalytics,
+        topServices,
+        providerPerformance
       }
     });
   } catch (error) {
-    console.error('Get service analytics error:', error);
+    console.error('Get marketplace analytics error:', error);
+    res.status(500).json({
+        success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get job board analytics
+// @route   GET /api/analytics/jobs
+// @access  Private
+const getJobAnalytics = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+      if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
+    }
+
+    // Get job analytics by category
+    const jobAnalytics = await Job.aggregate([
+      {
+        $match: dateFilter
+      },
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 },
+          avgSalary: { $avg: '$salary.max' },
+          totalApplications: { $sum: { $size: '$applications' } }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    // Get job status analytics
+    const jobStatusAnalytics = await Job.aggregate([
+      {
+        $match: dateFilter
+      },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get top employers
+    const topEmployers = await Job.aggregate([
+      {
+        $match: dateFilter
+      },
+      {
+        $group: {
+          _id: '$employer',
+          jobCount: { $sum: 1 },
+          totalApplications: { $sum: { $size: '$applications' } }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'employer'
+        }
+      },
+      {
+        $unwind: '$employer'
+      },
+      {
+        $project: {
+          employerName: { $concat: ['$employer.firstName', ' ', '$employer.lastName'] },
+          jobCount: 1,
+          totalApplications: 1
+        }
+      },
+      {
+        $sort: { jobCount: -1 }
+      },
+      {
+        $limit: 20
+      }
+    ]);
+
+    // Get application analytics
+    const applicationAnalytics = await Job.aggregate([
+      {
+        $unwind: '$applications'
+      },
+      {
+        $match: {
+          'applications.createdAt': {
+            $gte: startDate ? new Date(startDate) : new Date('2020-01-01'),
+            $lte: endDate ? new Date(endDate) : new Date()
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$applications.status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        jobAnalytics,
+        jobStatusAnalytics,
+        topEmployers,
+        applicationAnalytics
+      }
+    });
+  } catch (error) {
+    console.error('Get job analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -175,170 +557,279 @@ const getServiceAnalytics = async (req, res) => {
   }
 };
 
-// @desc    Get platform analytics (Admin only)
-// @route   GET /api/analytics/platform
-// @access  Private (Admin)
-const getPlatformAnalytics = async (req, res) => {
+// @desc    Get referral analytics
+// @route   GET /api/analytics/referrals
+// @access  Private
+const getReferralAnalytics = async (req, res) => {
   try {
-    const { period = 'monthly', startDate, endDate } = req.query;
+    const { startDate, endDate } = req.query;
 
-    const filter = { period: period };
-    if (startDate && endDate) {
-      filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+      if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
     }
 
-    const analytics = await PlatformAnalytics.find(filter)
-      .sort({ date: -1 })
-      .limit(12);
+    // Get referral analytics by status
+    const referralStatusAnalytics = await Referral.aggregate([
+      {
+        $match: dateFilter
+      },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+          totalReward: { $sum: '$rewardConfiguration.totalReward' }
+        }
+      }
+    ]);
 
-    // Get recent platform events
-    const recentEvents = await AnalyticsEvent.find({})
+    // Get referral analytics by type
+    const referralTypeAnalytics = await Referral.aggregate([
+      {
+        $match: dateFilter
+      },
+      {
+        $group: {
+          _id: '$referralType',
+          count: { $sum: 1 },
+          totalReward: { $sum: '$rewardConfiguration.totalReward' }
+        }
+      }
+    ]);
+
+    // Get top referrers
+    const topReferrers = await Referral.aggregate([
+      {
+        $match: dateFilter
+      },
+      {
+        $group: {
+          _id: '$referrer',
+          referralCount: { $sum: 1 },
+          totalReward: { $sum: '$rewardConfiguration.totalReward' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'referrer'
+        }
+      },
+      {
+        $unwind: '$referrer'
+      },
+      {
+        $project: {
+          referrerName: { $concat: ['$referrer.firstName', ' ', '$referrer.lastName'] },
+          referralCount: 1,
+          totalReward: 1
+        }
+      },
+      {
+        $sort: { referralCount: -1 }
+      },
+      {
+        $limit: 20
+      }
+    ]);
+
+    // Get referral conversion rates
+    const referralConversion = await Referral.aggregate([
+      {
+        $match: dateFilter
+      },
+      {
+        $group: {
+          _id: null,
+          totalReferrals: { $sum: 1 },
+          completedReferrals: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'completed'] }, 1, 0]
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          totalReferrals: 1,
+          completedReferrals: 1,
+          conversionRate: {
+            $multiply: [
+              { $divide: ['$completedReferrals', '$totalReferrals'] },
+              100
+            ]
+          }
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        referralStatusAnalytics,
+        referralTypeAnalytics,
+        topReferrers,
+        referralConversion
+      }
+    });
+  } catch (error) {
+    console.error('Get referral analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get agency analytics
+// @route   GET /api/analytics/agencies
+// @access  Private
+const getAgencyAnalytics = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+      if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
+    }
+
+    // Get agency analytics
+    const agencyAnalytics = await Agency.aggregate([
+      {
+        $match: { isActive: true, ...dateFilter }
+      },
+      {
+        $project: {
+          name: 1,
+          'analytics.totalBookings': 1,
+          'analytics.totalRevenue': 1,
+          'analytics.averageRating': 1,
+          providerCount: { $size: '$providers' },
+          adminCount: { $size: '$admins' }
+        }
+      },
+      {
+        $sort: { 'analytics.totalRevenue': -1 }
+      }
+    ]);
+
+    // Get agency performance metrics
+    const agencyPerformance = await Agency.aggregate([
+      {
+        $match: { isActive: true }
+      },
+      {
+        $project: {
+          name: 1,
+          'analytics.totalBookings': 1,
+          'analytics.totalRevenue': 1,
+          'analytics.averageRating': 1,
+          providerCount: { $size: '$providers' },
+          revenuePerProvider: {
+            $divide: [
+              '$analytics.totalRevenue',
+              { $size: '$providers' }
+            ]
+          }
+        }
+      },
+      {
+        $sort: { revenuePerProvider: -1 }
+      },
+      {
+        $limit: 20
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        agencyAnalytics,
+        agencyPerformance
+      }
+    });
+  } catch (error) {
+    console.error('Get agency analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Track analytics event
+// @route   POST /api/analytics/track
+// @access  Private
+const trackEvent = async (req, res) => {
+  try {
+    const { eventType, module, data } = req.body;
+
+    if (!eventType || !module) {
+      return res.status(400).json({
+        success: false,
+        message: 'Event type and module are required'
+      });
+    }
+
+    const analytics = await Analytics.create({
+      eventType,
+      user: req.user.id,
+      module,
+      data,
+      timestamp: new Date()
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Event tracked successfully',
+      data: analytics
+    });
+  } catch (error) {
+    console.error('Track event error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get custom analytics
+// @route   GET /api/analytics/custom
+// @access  Private
+const getCustomAnalytics = async (req, res) => {
+  try {
+    const { eventType, module, startDate, endDate } = req.query;
+
+    // Build filter
+    const filter = {};
+    if (eventType) filter.eventType = eventType;
+    if (module) filter.module = module;
+    if (startDate || endDate) {
+      filter.timestamp = {};
+      if (startDate) filter.timestamp.$gte = new Date(startDate);
+      if (endDate) filter.timestamp.$lte = new Date(endDate);
+    }
+
+    const analytics = await Analytics.find(filter)
+      .populate('user', 'firstName lastName profile.avatar')
       .sort({ timestamp: -1 })
       .limit(100);
 
-    // Calculate growth metrics
-    const growth = {
-      userGrowth: 0,
-      serviceGrowth: 0,
-      bookingGrowth: 0,
-      revenueGrowth: 0
-    };
-
-    if (analytics.length >= 2) {
-      const current = analytics[0];
-      const previous = analytics[1];
-
-      growth.userGrowth = ((current.metrics.totalUsers - previous.metrics.totalUsers) / previous.metrics.totalUsers) * 100;
-      growth.serviceGrowth = ((current.metrics.totalServices - previous.metrics.totalServices) / previous.metrics.totalServices) * 100;
-      growth.bookingGrowth = ((current.metrics.totalBookings - previous.metrics.totalBookings) / previous.metrics.totalBookings) * 100;
-      growth.revenueGrowth = ((current.metrics.totalRevenue - previous.metrics.totalRevenue) / previous.metrics.totalRevenue) * 100;
-    }
-
     res.status(200).json({
       success: true,
-      data: {
-        analytics: analytics,
-        recentEvents: recentEvents,
-        growth: growth
-      }
+      count: analytics.length,
+      data: analytics
     });
   } catch (error) {
-    console.error('Get platform analytics error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Get analytics dashboard data
-// @route   GET /api/analytics/dashboard
-// @access  Private
-const getDashboardData = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    let dashboardData = {};
-
-    if (user.role === 'admin') {
-      // Admin dashboard
-      const totalUsers = await User.countDocuments();
-      const totalServices = await Service.countDocuments();
-      const totalBookings = await Booking.countDocuments();
-      const completedBookings = await Booking.countDocuments({ status: 'completed' });
-
-      const recentUsers = await User.find()
-        .sort({ createdAt: -1 })
-        .limit(10)
-        .select('firstName lastName role createdAt');
-
-      const recentBookings = await Booking.find()
-        .populate('service', 'title')
-        .populate('client', 'firstName lastName')
-        .sort({ createdAt: -1 })
-        .limit(10);
-
-      dashboardData = {
-        overview: {
-          totalUsers,
-          totalServices,
-          totalBookings,
-          completedBookings,
-          completionRate: totalBookings > 0 ? (completedBookings / totalBookings) * 100 : 0
-        },
-        recentUsers,
-        recentBookings
-      };
-    } else if (user.role === 'provider') {
-      // Provider dashboard
-      const userServices = await Service.find({ provider: userId });
-      const userBookings = await Booking.find({ provider: userId });
-      const completedBookings = await Booking.find({ provider: userId, status: 'completed' });
-
-      const monthlyEarnings = await Booking.aggregate([
-        { $match: { provider: userId, status: 'completed' } },
-        {
-          $group: {
-            _id: {
-              year: { $year: '$createdAt' },
-              month: { $month: '$createdAt' }
-            },
-            totalEarnings: { $sum: '$pricing.totalAmount' }
-          }
-        },
-        { $sort: { '_id.year': -1, '_id.month': -1 } },
-        { $limit: 6 }
-      ]);
-
-      dashboardData = {
-        overview: {
-          totalServices: userServices.length,
-          totalBookings: userBookings.length,
-          completedBookings: completedBookings.length,
-          completionRate: userBookings.length > 0 ? (completedBookings.length / userBookings.length) * 100 : 0,
-          averageRating: user.profile.rating,
-          trustScore: user.trustScore
-        },
-        monthlyEarnings,
-        recentBookings: await Booking.find({ provider: userId })
-          .populate('service', 'title')
-          .populate('client', 'firstName lastName')
-          .sort({ createdAt: -1 })
-          .limit(5)
-      };
-    } else {
-      // Client dashboard
-      const userBookings = await Booking.find({ client: userId });
-      const completedBookings = await Booking.find({ client: userId, status: 'completed' });
-
-      dashboardData = {
-        overview: {
-          totalBookings: userBookings.length,
-          completedBookings: completedBookings.length,
-          completionRate: userBookings.length > 0 ? (completedBookings.length / userBookings.length) * 100 : 0
-        },
-        recentBookings: await Booking.find({ client: userId })
-          .populate('service', 'title category')
-          .populate('provider', 'firstName lastName')
-          .sort({ createdAt: -1 })
-          .limit(5)
-      };
-    }
-
-    res.status(200).json({
-      success: true,
-      data: dashboardData
-    });
-  } catch (error) {
-    console.error('Get dashboard data error:', error);
+    console.error('Get custom analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -347,9 +838,12 @@ const getDashboardData = async (req, res) => {
 };
 
 module.exports = {
-  trackEvent,
+  getAnalyticsOverview,
   getUserAnalytics,
-  getServiceAnalytics,
-  getPlatformAnalytics,
-  getDashboardData
+  getMarketplaceAnalytics,
+  getJobAnalytics,
+  getReferralAnalytics,
+  getAgencyAnalytics,
+  trackEvent,
+  getCustomAnalytics
 };

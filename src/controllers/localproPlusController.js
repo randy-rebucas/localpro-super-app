@@ -1,19 +1,16 @@
-const { SubscriptionPlan, UserSubscription, Payment, FeatureUsage } = require('../models/LocalProPlus');
+const LocalProPlus = require('../models/LocalProPlus');
 const User = require('../models/User');
 const PayPalService = require('../services/paypalService');
+const PayMayaService = require('../services/paymayaService');
+const EmailService = require('../services/emailService');
 
-// @desc    Get all subscription plans
+// @desc    Get all LocalPro Plus plans
 // @route   GET /api/localpro-plus/plans
 // @access  Public
-const getSubscriptionPlans = async (req, res) => {
+const getPlans = async (req, res) => {
   try {
-    const { type, tier } = req.query;
-
-    const filter = { isActive: true };
-    if (type) filter.type = type;
-    if (tier) filter.tier = tier;
-
-    const plans = await SubscriptionPlan.find(filter).sort({ pricing: 1 });
+    const plans = await LocalProPlus.find({ isActive: true })
+      .sort({ price: 1 });
 
     res.status(200).json({
       success: true,
@@ -21,7 +18,7 @@ const getSubscriptionPlans = async (req, res) => {
       data: plans
     });
   } catch (error) {
-    console.error('Get subscription plans error:', error);
+    console.error('Get plans error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -29,17 +26,17 @@ const getSubscriptionPlans = async (req, res) => {
   }
 };
 
-// @desc    Get single subscription plan
+// @desc    Get single LocalPro Plus plan
 // @route   GET /api/localpro-plus/plans/:id
 // @access  Public
-const getSubscriptionPlan = async (req, res) => {
+const getPlan = async (req, res) => {
   try {
-    const plan = await SubscriptionPlan.findById(req.params.id);
+    const plan = await LocalProPlus.findById(req.params.id);
 
     if (!plan) {
       return res.status(404).json({
         success: false,
-        message: 'Subscription plan not found'
+        message: 'Plan not found'
       });
     }
 
@@ -48,7 +45,7 @@ const getSubscriptionPlan = async (req, res) => {
       data: plan
     });
   } catch (error) {
-    console.error('Get subscription plan error:', error);
+    console.error('Get plan error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -56,155 +53,175 @@ const getSubscriptionPlan = async (req, res) => {
   }
 };
 
-// @desc    Subscribe to plan
+// @desc    Create LocalPro Plus plan
+// @route   POST /api/localpro-plus/plans
+// @access  Private (Admin only)
+const createPlan = async (req, res) => {
+  try {
+    const plan = await LocalProPlus.create(req.body);
+
+    res.status(201).json({
+      success: true,
+      message: 'Plan created successfully',
+      data: plan
+    });
+  } catch (error) {
+    console.error('Create plan error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Update LocalPro Plus plan
+// @route   PUT /api/localpro-plus/plans/:id
+// @access  Private (Admin only)
+const updatePlan = async (req, res) => {
+  try {
+    const plan = await LocalProPlus.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!plan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plan not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Plan updated successfully',
+      data: plan
+    });
+  } catch (error) {
+    console.error('Update plan error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Delete LocalPro Plus plan
+// @route   DELETE /api/localpro-plus/plans/:id
+// @access  Private (Admin only)
+const deletePlan = async (req, res) => {
+  try {
+    const plan = await LocalProPlus.findByIdAndDelete(req.params.id);
+
+    if (!plan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plan not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Plan deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete plan error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Subscribe to LocalPro Plus plan
 // @route   POST /api/localpro-plus/subscribe
 // @access  Private
 const subscribeToPlan = async (req, res) => {
   try {
-    const { planId, billingCycle, paymentMethod, paymentDetails } = req.body;
-    const userId = req.user.id;
+    const { planId, paymentMethod, paymentDetails } = req.body;
 
-    const plan = await SubscriptionPlan.findById(planId);
+    if (!planId || !paymentMethod) {
+      return res.status(400).json({
+        success: false,
+        message: 'Plan ID and payment method are required'
+      });
+    }
+
+    const plan = await LocalProPlus.findById(planId);
+
     if (!plan) {
       return res.status(404).json({
         success: false,
-        message: 'Subscription plan not found'
+        message: 'Plan not found'
+      });
+    }
+
+    if (!plan.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Plan is not available'
       });
     }
 
     // Check if user already has an active subscription
-    const existingSubscription = await UserSubscription.findOne({
-      user: userId,
-      status: { $in: ['active', 'pending'] }
-    });
-
-    if (existingSubscription) {
+    const user = await User.findById(req.user.id);
+    if (user.subscription && user.subscription.status === 'active') {
       return res.status(400).json({
         success: false,
-        message: 'User already has an active subscription'
+        message: 'You already have an active subscription'
       });
     }
 
-    // Calculate pricing based on billing cycle
-    const amount = billingCycle === 'yearly' ? plan.pricing.yearly : plan.pricing.monthly;
-    const startDate = new Date();
-    const endDate = new Date();
-    
-    if (billingCycle === 'yearly') {
-      endDate.setFullYear(endDate.getFullYear() + 1);
+    let paymentResult;
+
+    // Process payment based on method
+    if (paymentMethod === 'paypal') {
+      paymentResult = await PayPalService.createOrder({
+        amount: plan.price,
+        currency: 'USD',
+        description: `LocalPro Plus ${plan.name} subscription`
+      });
+    } else if (paymentMethod === 'paymaya') {
+      paymentResult = await PayMayaService.createPayment({
+        amount: plan.price,
+        currency: 'PHP',
+        description: `LocalPro Plus ${plan.name} subscription`
+      });
     } else {
-      endDate.setMonth(endDate.getMonth() + 1);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment method'
+      });
     }
 
-    const subscriptionData = {
-      user: userId,
+    if (!paymentResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Payment processing failed',
+        error: paymentResult.error
+      });
+    }
+
+    // Create subscription record
+    const subscription = {
       plan: planId,
       status: 'pending',
-      billing: {
-        cycle: billingCycle,
-        startDate,
-        endDate,
-        nextBillingDate: endDate,
-        amount,
-        currency: plan.pricing.currency
-      },
-      payment: {
-        method: paymentMethod,
-        details: paymentDetails,
-        autoRenew: true
-      }
+      paymentMethod,
+      paymentDetails: paymentResult.data,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + (plan.billingCycle * 24 * 60 * 60 * 1000)),
+      autoRenew: true
     };
 
-    const subscription = await UserSubscription.create(subscriptionData);
-
-    // Create payment record
-    const payment = await Payment.create({
-      user: userId,
-      subscription: subscription._id,
-      amount,
-      currency: plan.pricing.currency,
-      type: 'subscription',
-      status: 'pending',
-      paymentMethod,
-      description: `Subscription to ${plan.name} plan`
-    });
-
-    // Handle PayPal payment if selected
-    if (paymentMethod === 'paypal') {
-      try {
-        // Get user details for PayPal
-        const user = await User.findById(userId).select('firstName lastName email');
-        
-        // Create PayPal billing plan if it doesn't exist
-        const planData = {
-          name: `${plan.name} - ${billingCycle}`,
-          description: `LocalPro Plus ${plan.name} subscription (${billingCycle})`,
-          price: amount,
-          currency: plan.pricing.currency,
-          frequency: billingCycle === 'yearly' ? 'YEAR' : 'MONTH'
-        };
-
-        const billingPlanResult = await PayPalService.createBillingPlan(planData);
-        
-        if (!billingPlanResult.success) {
-          throw new Error('Failed to create PayPal billing plan');
-        }
-
-        // Create PayPal subscription
-        const subscriptionData = {
-          planId: billingPlanResult.data.id,
-          customId: subscription._id.toString(),
-          subscriber: {
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email
-          }
-        };
-
-        const paypalSubscriptionResult = await PayPalService.createSubscription(subscriptionData);
-        
-        if (!paypalSubscriptionResult.success) {
-          throw new Error('Failed to create PayPal subscription');
-        }
-
-        // Update payment with PayPal details
-        payment.paypalSubscriptionId = paypalSubscriptionResult.data.id;
-        await payment.save();
-
-        // Update subscription with PayPal details
-        subscription.payment.paypalSubscriptionId = paypalSubscriptionResult.data.id;
-        await subscription.save();
-
-        // Populate subscription details
-        await subscription.populate('plan', 'name type tier features');
-
-        res.status(201).json({
-          success: true,
-          message: 'PayPal subscription created successfully',
-          data: {
-            subscription,
-            payment,
-            paypalApprovalUrl: paypalSubscriptionResult.data.links.find(link => link.rel === 'approve')?.href
-          }
-        });
-        return;
-      } catch (paypalError) {
-        console.error('PayPal subscription error:', paypalError);
-        // Fall back to regular subscription creation
-        subscription.status = 'pending';
-        await subscription.save();
-      }
-    }
-
-    // Populate subscription details
-    await subscription.populate('plan', 'name type tier features');
+    user.subscription = subscription;
+    await user.save();
 
     res.status(201).json({
       success: true,
       message: 'Subscription created successfully',
       data: {
         subscription,
-        payment
+        paymentData: paymentResult.data
       }
     });
   } catch (error) {
@@ -216,30 +233,84 @@ const subscribeToPlan = async (req, res) => {
   }
 };
 
-// @desc    Get user subscription
-// @route   GET /api/localpro-plus/subscription
+// @desc    Confirm subscription payment
+// @route   POST /api/localpro-plus/confirm-payment
 // @access  Private
-const getUserSubscription = async (req, res) => {
+const confirmSubscriptionPayment = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const { paymentId, paymentMethod } = req.body;
 
-    const subscription = await UserSubscription.findOne({ user: userId })
-      .populate('plan', 'name type tier features limits')
-      .sort({ createdAt: -1 });
+    if (!paymentId || !paymentMethod) {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment ID and payment method are required'
+      });
+    }
 
-    if (!subscription) {
+    const user = await User.findById(req.user.id);
+
+    if (!user.subscription) {
       return res.status(404).json({
         success: false,
         message: 'No subscription found'
       });
     }
 
+    if (user.subscription.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Subscription is not pending'
+      });
+    }
+
+    let paymentResult;
+
+    // Confirm payment based on method
+    if (paymentMethod === 'paypal') {
+      paymentResult = await PayPalService.captureOrder(paymentId);
+    } else if (paymentMethod === 'paymaya') {
+      paymentResult = await PayMayaService.confirmPayment(paymentId);
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment method'
+      });
+    }
+
+    if (!paymentResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Payment confirmation failed',
+        error: paymentResult.error
+      });
+    }
+
+    // Update subscription status
+    user.subscription.status = 'active';
+    user.subscription.paymentConfirmed = true;
+    user.subscription.paymentConfirmedAt = new Date();
+    await user.save();
+
+    // Send confirmation email
+    await EmailService.sendEmail({
+      to: user.email,
+      subject: 'LocalPro Plus Subscription Confirmed',
+      template: 'subscription-confirmation',
+      data: {
+        userName: `${user.firstName} ${user.lastName}`,
+        planName: user.subscription.plan.name,
+        startDate: user.subscription.startDate,
+        endDate: user.subscription.endDate
+      }
+    });
+
     res.status(200).json({
       success: true,
-      data: subscription
+      message: 'Subscription payment confirmed successfully',
+      data: user.subscription
     });
   } catch (error) {
-    console.error('Get user subscription error:', error);
+    console.error('Confirm subscription payment error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -248,38 +319,51 @@ const getUserSubscription = async (req, res) => {
 };
 
 // @desc    Cancel subscription
-// @route   PUT /api/localpro-plus/subscription/cancel
+// @route   POST /api/localpro-plus/cancel
 // @access  Private
 const cancelSubscription = async (req, res) => {
   try {
     const { reason } = req.body;
-    const userId = req.user.id;
 
-    const subscription = await UserSubscription.findOne({
-      user: userId,
-      status: 'active'
-    });
+    const user = await User.findById(req.user.id);
 
-    if (!subscription) {
+    if (!user.subscription) {
       return res.status(404).json({
         success: false,
-        message: 'No active subscription found'
+        message: 'No subscription found'
       });
     }
 
-    subscription.status = 'cancelled';
-    subscription.cancellation = {
-      requestedAt: new Date(),
-      reason,
-      effectiveDate: subscription.billing.endDate
-    };
+    if (user.subscription.status !== 'active') {
+      return res.status(400).json({
+        success: false,
+        message: 'Subscription is not active'
+      });
+    }
 
-    await subscription.save();
+    // Update subscription status
+    user.subscription.status = 'cancelled';
+    user.subscription.cancelledAt = new Date();
+    user.subscription.cancellationReason = reason;
+    user.subscription.autoRenew = false;
+    await user.save();
+
+    // Send cancellation email
+    await EmailService.sendEmail({
+      to: user.email,
+      subject: 'LocalPro Plus Subscription Cancelled',
+      template: 'subscription-cancellation',
+      data: {
+        userName: `${user.firstName} ${user.lastName}`,
+        reason,
+        endDate: user.subscription.endDate
+      }
+    });
 
     res.status(200).json({
       success: true,
       message: 'Subscription cancelled successfully',
-      data: subscription
+      data: user.subscription
     });
   } catch (error) {
     console.error('Cancel subscription error:', error);
@@ -290,38 +374,27 @@ const cancelSubscription = async (req, res) => {
   }
 };
 
-// @desc    Get user payments
-// @route   GET /api/localpro-plus/payments
+// @desc    Get user's subscription
+// @route   GET /api/localpro-plus/my-subscription
 // @access  Private
-const getUserPayments = async (req, res) => {
+const getMySubscription = async (req, res) => {
   try {
-    const { status, type, page = 1, limit = 10 } = req.query;
-    const userId = req.user.id;
+    const user = await User.findById(req.user.id)
+      .populate('subscription.plan');
 
-    const filter = { user: userId };
-    if (status) filter.status = status;
-    if (type) filter.type = type;
-
-    const skip = (page - 1) * limit;
-
-    const payments = await Payment.find(filter)
-      .populate('subscription', 'plan')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit));
-
-    const total = await Payment.countDocuments(filter);
+    if (!user.subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'No subscription found'
+      });
+    }
 
     res.status(200).json({
       success: true,
-      count: payments.length,
-      total,
-      page: Number(page),
-      pages: Math.ceil(total / limit),
-      data: payments
+      data: user.subscription
     });
   } catch (error) {
-    console.error('Get user payments error:', error);
+    console.error('Get my subscription error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -329,54 +402,85 @@ const getUserPayments = async (req, res) => {
   }
 };
 
-// @desc    Record feature usage
-// @route   POST /api/localpro-plus/usage
+// @desc    Update subscription settings
+// @route   PUT /api/localpro-plus/subscription/settings
 // @access  Private
-const recordFeatureUsage = async (req, res) => {
+const updateSubscriptionSettings = async (req, res) => {
   try {
-    const { feature, action, details } = req.body;
-    const userId = req.user.id;
+    const { autoRenew, notificationSettings } = req.body;
 
-    const subscription = await UserSubscription.findOne({
-      user: userId,
-      status: 'active'
-    });
+    const user = await User.findById(req.user.id);
 
-    if (!subscription) {
-      return res.status(403).json({
+    if (!user.subscription) {
+      return res.status(404).json({
         success: false,
-        message: 'No active subscription found'
+        message: 'No subscription found'
       });
     }
 
-    const usageData = {
-      user: userId,
-      subscription: subscription._id,
-      feature,
-      action,
-      details
-    };
+    // Update settings
+    if (autoRenew !== undefined) user.subscription.autoRenew = autoRenew;
+    if (notificationSettings) user.subscription.notificationSettings = notificationSettings;
 
-    const usage = await FeatureUsage.create(usageData);
+    await user.save();
 
-    // Update subscription usage counters
-    if (feature === 'marketplace' && action === 'create_listing') {
-      subscription.usage.marketplaceListings += 1;
-    } else if (feature === 'ads' && action === 'create_campaign') {
-      subscription.usage.adCredits += 1;
-    } else if (feature === 'api' && action === 'call') {
-      subscription.usage.apiCalls += 1;
+    res.status(200).json({
+      success: true,
+      message: 'Subscription settings updated successfully',
+      data: user.subscription
+    });
+  } catch (error) {
+    console.error('Update subscription settings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get subscription usage
+// @route   GET /api/localpro-plus/usage
+// @access  Private
+const getSubscriptionUsage = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate('subscription.plan');
+
+    if (!user.subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'No subscription found'
+      });
     }
 
-    await subscription.save();
+    const plan = user.subscription.plan;
+    const usage = {
+      plan: {
+        name: plan.name,
+        features: plan.features
+      },
+      currentUsage: {
+        // This would be calculated based on actual usage
+        // For now, returning placeholder data
+        servicesPosted: 0,
+        jobsApplied: 0,
+        messagesSent: 0,
+        storageUsed: 0
+      },
+      limits: {
+        maxServices: plan.features.maxServices || 'unlimited',
+        maxJobApplications: plan.features.maxJobApplications || 'unlimited',
+        maxMessages: plan.features.maxMessages || 'unlimited',
+        maxStorage: plan.features.maxStorage || 'unlimited'
+      }
+    };
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: 'Feature usage recorded successfully',
       data: usage
     });
   } catch (error) {
-    console.error('Record feature usage error:', error);
+    console.error('Get subscription usage error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -384,132 +488,84 @@ const recordFeatureUsage = async (req, res) => {
   }
 };
 
-// @desc    Get feature usage analytics
-// @route   GET /api/localpro-plus/usage/analytics
+// @desc    Renew subscription
+// @route   POST /api/localpro-plus/renew
 // @access  Private
-const getUsageAnalytics = async (req, res) => {
+const renewSubscription = async (req, res) => {
   try {
-    const { period = '30d' } = req.query;
-    const userId = req.user.id;
+    const { paymentMethod, paymentDetails } = req.body;
 
-    const subscription = await UserSubscription.findOne({
-      user: userId,
-      status: 'active'
-    });
-
-    if (!subscription) {
-      return res.status(404).json({
+    if (!paymentMethod) {
+      return res.status(400).json({
         success: false,
-        message: 'No active subscription found'
+        message: 'Payment method is required'
       });
     }
 
-    // Calculate date range
-    const endDate = new Date();
-    const startDate = new Date();
-    const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
-    startDate.setDate(startDate.getDate() - days);
+    const user = await User.findById(req.user.id)
+      .populate('subscription.plan');
 
-    const usage = await FeatureUsage.find({
-      user: userId,
-      subscription: subscription._id,
-      timestamp: { $gte: startDate, $lte: endDate }
-    }).sort({ timestamp: -1 });
+    if (!user.subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'No subscription found'
+      });
+    }
 
-    const analytics = {
-      subscription: subscription,
-      period,
-      totalUsage: usage.length,
-      featureBreakdown: usage.reduce((acc, usage) => {
-        if (!acc[usage.feature]) {
-          acc[usage.feature] = 0;
-        }
-        acc[usage.feature] += 1;
-        return acc;
-      }, {}),
-      dailyUsage: usage.reduce((acc, usage) => {
-        const date = usage.timestamp.toISOString().split('T')[0];
-        if (!acc[date]) {
-          acc[date] = 0;
-        }
-        acc[date] += 1;
-        return acc;
-      }, {}),
-      recentUsage: usage.slice(0, 10)
-    };
+    if (user.subscription.status !== 'active') {
+      return res.status(400).json({
+        success: false,
+        message: 'Subscription is not active'
+      });
+    }
+
+    const plan = user.subscription.plan;
+
+    let paymentResult;
+
+    // Process payment based on method
+    if (paymentMethod === 'paypal') {
+      paymentResult = await PayPalService.createOrder({
+        amount: plan.price,
+        currency: 'USD',
+        description: `LocalPro Plus ${plan.name} subscription renewal`
+      });
+    } else if (paymentMethod === 'paymaya') {
+      paymentResult = await PayMayaService.createPayment({
+        amount: plan.price,
+        currency: 'PHP',
+        description: `LocalPro Plus ${plan.name} subscription renewal`
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment method'
+      });
+    }
+
+    if (!paymentResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Payment processing failed',
+        error: paymentResult.error
+      });
+    }
+
+    // Update subscription end date
+    user.subscription.endDate = new Date(user.subscription.endDate.getTime() + (plan.billingCycle * 24 * 60 * 60 * 1000));
+    user.subscription.lastRenewal = new Date();
+    await user.save();
 
     res.status(200).json({
       success: true,
-      data: analytics
-    });
-  } catch (error) {
-    console.error('Get usage analytics error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Handle PayPal subscription approval
-// @route   POST /api/localpro-plus/paypal/approve
-// @access  Private
-const approvePayPalSubscription = async (req, res) => {
-  try {
-    const { subscriptionId } = req.body;
-    const userId = req.user.id;
-
-    // Get subscription details from PayPal
-    const paypalSubscriptionResult = await PayPalService.getSubscription(subscriptionId);
-    
-    if (!paypalSubscriptionResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid PayPal subscription'
-      });
-    }
-
-    const paypalSubscription = paypalSubscriptionResult.data;
-    
-    // Find our subscription record
-    const subscription = await UserSubscription.findOne({
-      user: userId,
-      'payment.paypalSubscriptionId': subscriptionId
-    });
-
-    if (!subscription) {
-      return res.status(404).json({
-        success: false,
-        message: 'Subscription not found'
-      });
-    }
-
-    // Update subscription status based on PayPal status
-    if (paypalSubscription.status === 'ACTIVE') {
-      subscription.status = 'active';
-      subscription.billing.startDate = new Date();
-      
-      // Update payment status
-      const payment = await Payment.findOne({
-        subscription: subscription._id,
-        paypalSubscriptionId: subscriptionId
-      });
-      
-      if (payment) {
-        payment.status = 'completed';
-        await payment.save();
+      message: 'Subscription renewed successfully',
+      data: {
+        subscription: user.subscription,
+        paymentData: paymentResult.data
       }
-    }
-
-    await subscription.save();
-
-    res.status(200).json({
-      success: true,
-      message: 'PayPal subscription approved successfully',
-      data: subscription
     });
   } catch (error) {
-    console.error('Approve PayPal subscription error:', error);
+    console.error('Renew subscription error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -517,57 +573,89 @@ const approvePayPalSubscription = async (req, res) => {
   }
 };
 
-// @desc    Cancel PayPal subscription
-// @route   POST /api/localpro-plus/paypal/cancel
-// @access  Private
-const cancelPayPalSubscription = async (req, res) => {
+// @desc    Get subscription analytics
+// @route   GET /api/localpro-plus/analytics
+// @access  Private (Admin only)
+const getSubscriptionAnalytics = async (req, res) => {
   try {
-    const { subscriptionId, reason } = req.body;
-    const userId = req.user.id;
-
-    // Find our subscription record
-    const subscription = await UserSubscription.findOne({
-      user: userId,
-      'payment.paypalSubscriptionId': subscriptionId
+    // Get subscription statistics
+    const totalSubscriptions = await User.countDocuments({
+      'subscription.status': { $in: ['active', 'pending', 'cancelled'] }
     });
 
-    if (!subscription) {
-      return res.status(404).json({
-        success: false,
-        message: 'Subscription not found'
-      });
-    }
+    const activeSubscriptions = await User.countDocuments({
+      'subscription.status': 'active'
+    });
 
-    // Cancel subscription in PayPal
-    const cancelResult = await PayPalService.cancelSubscription(
-      subscriptionId, 
-      reason || 'User requested cancellation'
-    );
+    const cancelledSubscriptions = await User.countDocuments({
+      'subscription.status': 'cancelled'
+    });
 
-    if (!cancelResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: 'Failed to cancel PayPal subscription'
-      });
-    }
+    // Get subscription by plan
+    const subscriptionsByPlan = await User.aggregate([
+      {
+        $match: {
+          'subscription.status': { $in: ['active', 'pending', 'cancelled'] }
+        }
+      },
+      {
+        $group: {
+          _id: '$subscription.plan',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: 'localpropluses',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'plan'
+        }
+      },
+      {
+        $unwind: '$plan'
+      },
+      {
+        $project: {
+          planName: '$plan.name',
+          count: 1
+        }
+      }
+    ]);
 
-    // Update local subscription
-    subscription.status = 'cancelled';
-    subscription.cancellation = {
-      requestedAt: new Date(),
-      reason: reason || 'User requested cancellation',
-      effectiveDate: new Date()
-    };
-
-    await subscription.save();
+    // Get monthly subscription trends
+    const monthlyTrends = await User.aggregate([
+      {
+        $match: {
+          'subscription.createdAt': { $exists: true }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$subscription.createdAt' },
+            month: { $month: '$subscription.createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
 
     res.status(200).json({
       success: true,
-      message: 'PayPal subscription cancelled successfully',
-      data: subscription
+      data: {
+        totalSubscriptions,
+        activeSubscriptions,
+        cancelledSubscriptions,
+        subscriptionsByPlan,
+        monthlyTrends
+      }
     });
   } catch (error) {
-    console.error('Cancel PayPal subscription error:', error);
+    console.error('Get subscription analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -576,14 +664,17 @@ const cancelPayPalSubscription = async (req, res) => {
 };
 
 module.exports = {
-  getSubscriptionPlans,
-  getSubscriptionPlan,
+  getPlans,
+  getPlan,
+  createPlan,
+  updatePlan,
+  deletePlan,
   subscribeToPlan,
-  getUserSubscription,
+  confirmSubscriptionPayment,
   cancelSubscription,
-  getUserPayments,
-  recordFeatureUsage,
-  getUsageAnalytics,
-  approvePayPalSubscription,
-  cancelPayPalSubscription
+  getMySubscription,
+  updateSubscriptionSettings,
+  getSubscriptionUsage,
+  renewSubscription,
+  getSubscriptionAnalytics
 };

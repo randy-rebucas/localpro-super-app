@@ -1,35 +1,47 @@
 const mongoose = require('mongoose');
 
 const analyticsEventSchema = new mongoose.Schema({
-  user: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    required: true
   },
-  event: {
+  eventType: {
     type: String,
     required: true,
     enum: [
-      'page_view', 'service_search', 'service_view', 'booking_created', 'booking_cancelled',
-      'booking_completed', 'review_submitted', 'message_sent', 'verification_started',
-      'verification_completed', 'payment_made', 'profile_updated', 'service_created',
-      'login', 'logout', 'registration', 'search_filtered', 'location_searched'
+      'page_view', 'service_view', 'booking_created', 'booking_completed',
+      'job_view', 'job_application', 'course_enrollment', 'product_purchase',
+      'referral_click', 'referral_completed', 'subscription_upgrade',
+      'payment_completed', 'search_performed', 'filter_applied',
+      'user_registration', 'user_login', 'profile_update'
     ]
   },
-  category: String,
-  subcategory: String,
-  metadata: {
-    type: mongoose.Schema.Types.Mixed
+  eventData: {
+    // Flexible object to store event-specific data
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   },
-  sessionId: String,
-  ipAddress: String,
-  userAgent: String,
-  location: {
-    country: String,
-    region: String,
-    city: String,
-    coordinates: {
-      lat: Number,
-      lng: Number
+  metadata: {
+    userAgent: String,
+    ipAddress: String,
+    referrer: String,
+    sessionId: String,
+    deviceType: {
+      type: String,
+      enum: ['desktop', 'mobile', 'tablet'],
+      default: 'desktop'
+    },
+    browser: String,
+    os: String,
+    location: {
+      country: String,
+      region: String,
+      city: String,
+      coordinates: {
+        lat: Number,
+        lng: Number
+      }
     }
   },
   timestamp: {
@@ -40,169 +52,254 @@ const analyticsEventSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Indexes for better performance
+analyticsEventSchema.index({ userId: 1, eventType: 1 });
+analyticsEventSchema.index({ eventType: 1, timestamp: -1 });
+analyticsEventSchema.index({ timestamp: -1 });
+
+// User analytics summary schema
+const userAnalyticsSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true
+  },
+  profile: {
+    totalViews: {
+      type: Number,
+      default: 0
+    },
+    totalBookings: {
+      type: Number,
+      default: 0
+    },
+    totalJobsApplied: {
+      type: Number,
+      default: 0
+    },
+    totalCoursesEnrolled: {
+      type: Number,
+      default: 0
+    },
+    totalPurchases: {
+      type: Number,
+      default: 0
+    },
+    totalReferrals: {
+      type: Number,
+      default: 0
+    },
+    lastActiveAt: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  engagement: {
+    averageSessionDuration: {
+      type: Number,
+      default: 0
+    },
+    totalSessions: {
+      type: Number,
+      default: 0
+    },
+    bounceRate: {
+      type: Number,
+      default: 0
+    },
+    conversionRate: {
+      type: Number,
+      default: 0
+    }
+  },
+  revenue: {
+    totalEarned: {
+      type: Number,
+      default: 0
+    },
+    totalSpent: {
+      type: Number,
+      default: 0
+    },
+    averageOrderValue: {
+      type: Number,
+      default: 0
+    }
+  },
+  monthlyStats: [{
+    month: String,
+    year: Number,
+    views: Number,
+    bookings: Number,
+    revenue: Number,
+    sessions: Number
+  }],
+  lastUpdated: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  timestamps: true
+});
+
+// Service analytics schema
 const serviceAnalyticsSchema = new mongoose.Schema({
-  service: {
+  serviceId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Service',
-    required: true
+    required: true,
+    unique: true
   },
-  provider: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  period: {
-    type: String,
-    enum: ['daily', 'weekly', 'monthly', 'yearly'],
-    required: true
-  },
-  date: {
-    type: Date,
-    required: true
-  },
-  metrics: {
-    views: { type: Number, default: 0 },
-    searches: { type: Number, default: 0 },
-    bookings: { type: Number, default: 0 },
-    completed: { type: Number, default: 0 },
-    cancelled: { type: Number, default: 0 },
-    revenue: { type: Number, default: 0 },
-    averageRating: { type: Number, default: 0 },
-    responseTime: { type: Number, default: 0 }, // in minutes
-    conversionRate: { type: Number, default: 0 }, // bookings/views
-    completionRate: { type: Number, default: 0 } // completed/bookings
-  },
-  demographics: {
-    ageGroups: {
-      '18-24': { type: Number, default: 0 },
-      '25-34': { type: Number, default: 0 },
-      '35-44': { type: Number, default: 0 },
-      '45-54': { type: Number, default: 0 },
-      '55+': { type: Number, default: 0 }
+  views: {
+    total: {
+      type: Number,
+      default: 0
     },
-    gender: {
-      male: { type: Number, default: 0 },
-      female: { type: Number, default: 0 },
-      other: { type: Number, default: 0 }
+    unique: {
+      type: Number,
+      default: 0
     },
-    locations: [{
-      city: String,
-      count: { type: Number, default: 0 }
+    daily: [{
+      date: Date,
+      count: Number
     }]
-  }
-}, {
-  timestamps: true
-});
-
-const userAnalyticsSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
   },
-  period: {
-    type: String,
-    enum: ['daily', 'weekly', 'monthly', 'yearly'],
-    required: true
-  },
-  date: {
-    type: Date,
-    required: true
-  },
-  metrics: {
-    // For clients
-    bookingsCreated: { type: Number, default: 0 },
-    bookingsCompleted: { type: Number, default: 0 },
-    totalSpent: { type: Number, default: 0 },
-    averageBookingValue: { type: Number, default: 0 },
-    reviewsGiven: { type: Number, default: 0 },
-    
-    // For providers
-    servicesListed: { type: Number, default: 0 },
-    bookingsReceived: { type: Number, default: 0 },
-    bookingsCompleted: { type: Number, default: 0 },
-    totalEarned: { type: Number, default: 0 },
-    averageServiceValue: { type: Number, default: 0 },
-    reviewsReceived: { type: Number, default: 0 },
-    averageRating: { type: Number, default: 0 },
-    responseTime: { type: Number, default: 0 },
-    completionRate: { type: Number, default: 0 },
-    cancellationRate: { type: Number, default: 0 },
-    
-    // General
-    profileViews: { type: Number, default: 0 },
-    messagesSent: { type: Number, default: 0 },
-    messagesReceived: { type: Number, default: 0 },
-    loginCount: { type: Number, default: 0 },
-    sessionDuration: { type: Number, default: 0 } // in minutes
-  },
-  behavior: {
-    mostActiveHour: Number,
-    mostActiveDay: String,
-    preferredCategories: [String],
-    searchTerms: [String],
-    deviceTypes: {
-      mobile: { type: Number, default: 0 },
-      desktop: { type: Number, default: 0 },
-      tablet: { type: Number, default: 0 }
-    }
-  }
-}, {
-  timestamps: true
-});
-
-const platformAnalyticsSchema = new mongoose.Schema({
-  period: {
-    type: String,
-    enum: ['daily', 'weekly', 'monthly', 'yearly'],
-    required: true
-  },
-  date: {
-    type: Date,
-    required: true
-  },
-  metrics: {
-    totalUsers: { type: Number, default: 0 },
-    activeUsers: { type: Number, default: 0 },
-    newUsers: { type: Number, default: 0 },
-    totalServices: { type: Number, default: 0 },
-    totalBookings: { type: Number, default: 0 },
-    completedBookings: { type: Number, default: 0 },
-    totalRevenue: { type: Number, default: 0 },
-    averageBookingValue: { type: Number, default: 0 },
-    averageRating: { type: Number, default: 0 },
-    responseTime: { type: Number, default: 0 },
-    completionRate: { type: Number, default: 0 },
-    cancellationRate: { type: Number, default: 0 },
-    userRetention: { type: Number, default: 0 },
-    churnRate: { type: Number, default: 0 }
-  },
-  categories: [{
-    name: String,
-    services: { type: Number, default: 0 },
-    bookings: { type: Number, default: 0 },
-    revenue: { type: Number, default: 0 },
-    averageRating: { type: Number, default: 0 }
-  }],
-  locations: [{
-    city: String,
-    users: { type: Number, default: 0 },
-    services: { type: Number, default: 0 },
-    bookings: { type: Number, default: 0 },
-    revenue: { type: Number, default: 0 }
-  }],
-  demographics: {
-    ageGroups: {
-      '18-24': { type: Number, default: 0 },
-      '25-34': { type: Number, default: 0 },
-      '35-44': { type: Number, default: 0 },
-      '45-54': { type: Number, default: 0 },
-      '55+': { type: Number, default: 0 }
+  bookings: {
+    total: {
+      type: Number,
+      default: 0
     },
-    gender: {
-      male: { type: Number, default: 0 },
-      female: { type: Number, default: 0 },
-      other: { type: Number, default: 0 }
+    completed: {
+      type: Number,
+      default: 0
+    },
+    cancelled: {
+      type: Number,
+      default: 0
+    },
+    conversionRate: {
+      type: Number,
+      default: 0
+    }
+  },
+  revenue: {
+    total: {
+      type: Number,
+      default: 0
+    },
+    average: {
+      type: Number,
+      default: 0
+    },
+    monthly: [{
+      month: String,
+      year: Number,
+      amount: Number
+    }]
+  },
+  ratings: {
+    average: {
+      type: Number,
+      default: 0
+    },
+    count: {
+      type: Number,
+      default: 0
+    },
+    distribution: {
+      five: { type: Number, default: 0 },
+      four: { type: Number, default: 0 },
+      three: { type: Number, default: 0 },
+      two: { type: Number, default: 0 },
+      one: { type: Number, default: 0 }
+    }
+  },
+  lastUpdated: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  timestamps: true
+});
+
+// Platform analytics schema
+const platformAnalyticsSchema = new mongoose.Schema({
+  date: {
+    type: Date,
+    required: true,
+    unique: true
+  },
+  users: {
+    total: {
+      type: Number,
+      default: 0
+    },
+    new: {
+      type: Number,
+      default: 0
+    },
+    active: {
+      type: Number,
+      default: 0
+    }
+  },
+  services: {
+    total: {
+      type: Number,
+      default: 0
+    },
+    new: {
+      type: Number,
+      default: 0
+    },
+    active: {
+      type: Number,
+      default: 0
+    }
+  },
+  bookings: {
+    total: {
+      type: Number,
+      default: 0
+    },
+    completed: {
+      type: Number,
+      default: 0
+    },
+    revenue: {
+      type: Number,
+      default: 0
+    }
+  },
+  jobs: {
+    total: {
+      type: Number,
+      default: 0
+    },
+    applications: {
+      type: Number,
+      default: 0
+    }
+  },
+  courses: {
+    total: {
+      type: Number,
+      default: 0
+    },
+    enrollments: {
+      type: Number,
+      default: 0
+    }
+  },
+  referrals: {
+    total: {
+      type: Number,
+      default: 0
+    },
+    completed: {
+      type: Number,
+      default: 0
     }
   }
 }, {
@@ -210,24 +307,86 @@ const platformAnalyticsSchema = new mongoose.Schema({
 });
 
 // Indexes
-analyticsEventSchema.index({ user: 1, event: 1, timestamp: -1 });
-analyticsEventSchema.index({ event: 1, timestamp: -1 });
-analyticsEventSchema.index({ sessionId: 1 });
-analyticsEventSchema.index({ timestamp: -1 });
-
-serviceAnalyticsSchema.index({ service: 1, period: 1, date: 1 });
-serviceAnalyticsSchema.index({ provider: 1, period: 1, date: 1 });
-serviceAnalyticsSchema.index({ date: -1 });
-
-userAnalyticsSchema.index({ user: 1, period: 1, date: 1 });
-userAnalyticsSchema.index({ date: -1 });
-
-platformAnalyticsSchema.index({ period: 1, date: 1 });
+userAnalyticsSchema.index({ userId: 1 });
+serviceAnalyticsSchema.index({ serviceId: 1 });
 platformAnalyticsSchema.index({ date: -1 });
+
+// Static methods for analytics
+analyticsEventSchema.statics.getUserAnalytics = async function(userId, timeRange = 30) {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - timeRange);
+
+  const events = await this.find({
+    userId: userId,
+    timestamp: { $gte: startDate }
+  });
+
+  const analytics = {
+    totalEvents: events.length,
+    eventTypes: {},
+    dailyActivity: {},
+    topEvents: []
+  };
+
+  // Count events by type
+  events.forEach(event => {
+    analytics.eventTypes[event.eventType] = (analytics.eventTypes[event.eventType] || 0) + 1;
+  });
+
+  // Count daily activity
+  events.forEach(event => {
+    const date = event.timestamp.toISOString().split('T')[0];
+    analytics.dailyActivity[date] = (analytics.dailyActivity[date] || 0) + 1;
+  });
+
+  // Get top events
+  analytics.topEvents = Object.entries(analytics.eventTypes)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 5)
+    .map(([eventType, count]) => ({ eventType, count }));
+
+  return analytics;
+};
+
+analyticsEventSchema.statics.getPlatformAnalytics = async function(timeRange = 30) {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - timeRange);
+
+  const events = await this.find({
+    timestamp: { $gte: startDate }
+  });
+
+  const analytics = {
+    totalEvents: events.length,
+    uniqueUsers: new Set(events.map(e => e.userId.toString())).size,
+    eventTypes: {},
+    dailyActivity: {},
+    topEvents: []
+  };
+
+  // Count events by type
+  events.forEach(event => {
+    analytics.eventTypes[event.eventType] = (analytics.eventTypes[event.eventType] || 0) + 1;
+  });
+
+  // Count daily activity
+  events.forEach(event => {
+    const date = event.timestamp.toISOString().split('T')[0];
+    analytics.dailyActivity[date] = (analytics.dailyActivity[date] || 0) + 1;
+  });
+
+  // Get top events
+  analytics.topEvents = Object.entries(analytics.eventTypes)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 10)
+    .map(([eventType, count]) => ({ eventType, count }));
+
+  return analytics;
+};
 
 module.exports = {
   AnalyticsEvent: mongoose.model('AnalyticsEvent', analyticsEventSchema),
-  ServiceAnalytics: mongoose.model('ServiceAnalytics', serviceAnalyticsSchema),
   UserAnalytics: mongoose.model('UserAnalytics', userAnalyticsSchema),
+  ServiceAnalytics: mongoose.model('ServiceAnalytics', serviceAnalyticsSchema),
   PlatformAnalytics: mongoose.model('PlatformAnalytics', platformAnalyticsSchema)
 };

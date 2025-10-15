@@ -1,157 +1,68 @@
-const { Advertiser, AdCampaign, AdImpression } = require('../models/Ads');
+const Ads = require('../models/Ads');
+const User = require('../models/User');
+const CloudinaryService = require('../services/cloudinaryService');
+const EmailService = require('../services/emailService');
 
-// @desc    Register as advertiser
-// @route   POST /api/ads/advertisers/register
-// @access  Private
-const registerAdvertiser = async (req, res) => {
+// @desc    Get all ads
+// @route   GET /api/ads
+// @access  Public
+const getAds = async (req, res) => {
   try {
     const {
-      businessName,
-      businessType,
-      description,
-      contact,
-      documents
-    } = req.body;
+      search,
+      category,
+      location,
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
 
-    // Check if user is already an advertiser
-    const existingAdvertiser = await Advertiser.findOne({ user: req.user.id });
-    if (existingAdvertiser) {
-      return res.status(400).json({
-        success: false,
-        message: 'User is already registered as an advertiser'
-      });
+    // Build filter object
+    const filter = { isActive: true };
+
+    // Text search
+    if (search) {
+      filter.$or = [
+        { title: new RegExp(search, 'i') },
+        { description: new RegExp(search, 'i') }
+      ];
     }
 
-    const advertiserData = {
-      user: req.user.id,
-      businessName,
-      businessType,
-      description,
-      contact,
-      verification: {
-        documents: documents || []
-      }
-    };
-
-    const advertiser = await Advertiser.create(advertiserData);
-
-    res.status(201).json({
-      success: true,
-      message: 'Advertiser registration submitted successfully',
-      data: advertiser
-    });
-  } catch (error) {
-    console.error('Register advertiser error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Create ad campaign
-// @route   POST /api/ads/campaigns
-// @access  Private (Advertiser)
-const createCampaign = async (req, res) => {
-  try {
-    const advertiser = await Advertiser.findOne({ user: req.user.id });
-    if (!advertiser) {
-      return res.status(403).json({
-        success: false,
-        message: 'User is not registered as an advertiser'
-      });
+    // Category filter
+    if (category) {
+      filter.category = category;
     }
 
-    if (!advertiser.verification.isVerified) {
-      return res.status(403).json({
-        success: false,
-        message: 'Advertiser account is not verified'
-      });
+    // Location filter
+    if (location) {
+      filter['location.city'] = new RegExp(location, 'i');
     }
 
-    const campaignData = {
-      ...req.body,
-      advertiser: advertiser._id
-    };
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    const campaign = await AdCampaign.create(campaignData);
+    const skip = (page - 1) * limit;
 
-    res.status(201).json({
-      success: true,
-      message: 'Ad campaign created successfully',
-      data: campaign
-    });
-  } catch (error) {
-    console.error('Create campaign error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Get advertiser campaigns
-// @route   GET /api/ads/campaigns
-// @access  Private (Advertiser)
-const getCampaigns = async (req, res) => {
-  try {
-    const { status } = req.query;
-    const advertiser = await Advertiser.findOne({ user: req.user.id });
-
-    if (!advertiser) {
-      return res.status(403).json({
-        success: false,
-        message: 'User is not registered as an advertiser'
-      });
-    }
-
-    const filter = { advertiser: advertiser._id };
-    if (status) filter.status = status;
-
-    const campaigns = await AdCampaign.find(filter)
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      count: campaigns.length,
-      data: campaigns
-    });
-  } catch (error) {
-    console.error('Get campaigns error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Get active ads for display
-// @route   GET /api/ads/active
-// @access  Public
-const getActiveAds = async (req, res) => {
-  try {
-    const { category, limit = 5 } = req.query;
-
-    const filter = {
-      status: 'active',
-      'schedule.startDate': { $lte: new Date() },
-      'schedule.endDate': { $gte: new Date() }
-    };
-
-    if (category) filter.category = category;
-
-    const ads = await AdCampaign.find(filter)
-      .populate('advertiser', 'businessName businessType')
-      .sort({ 'performance.ctr': -1 })
+    const ads = await Ads.find(filter)
+      .populate('advertiser', 'firstName lastName profile.avatar')
+      .sort(sort)
+      .skip(skip)
       .limit(Number(limit));
+
+    const total = await Ads.countDocuments(filter);
 
     res.status(200).json({
       success: true,
       count: ads.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
       data: ads
     });
   } catch (error) {
-    console.error('Get active ads error:', error);
+    console.error('Get ads error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -159,57 +70,59 @@ const getActiveAds = async (req, res) => {
   }
 };
 
-// @desc    Record ad impression
-// @route   POST /api/ads/impression
+// @desc    Get single ad
+// @route   GET /api/ads/:id
 // @access  Public
-const recordImpression = async (req, res) => {
+const getAd = async (req, res) => {
   try {
-    const {
-      campaignId,
-      type = 'impression',
-      context,
-      device,
-      location
-    } = req.body;
+    const ad = await Ads.findById(req.params.id)
+      .populate('advertiser', 'firstName lastName profile.avatar profile.bio');
 
-    const impressionData = {
-      campaign: campaignId,
-      user: req.user?.id,
-      type,
-      context,
-      device,
-      location,
-      timestamp: new Date()
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ad not found'
+      });
+    }
+
+    // Increment view count
+    ad.views += 1;
+    await ad.save();
+
+    res.status(200).json({
+      success: true,
+      data: ad
+    });
+  } catch (error) {
+    console.error('Get ad error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Create new ad
+// @route   POST /api/ads
+// @access  Private
+const createAd = async (req, res) => {
+  try {
+    const adData = {
+      ...req.body,
+      advertiser: req.user.id
     };
 
-    const impression = await AdImpression.create(impressionData);
+    const ad = await Ads.create(adData);
 
-    // Update campaign performance
-    const campaign = await AdCampaign.findById(campaignId);
-    if (campaign) {
-      if (type === 'impression') {
-        campaign.performance.impressions += 1;
-      } else if (type === 'click') {
-        campaign.performance.clicks += 1;
-      } else if (type === 'conversion') {
-        campaign.performance.conversions += 1;
-      }
-
-      // Calculate CTR
-      if (campaign.performance.impressions > 0) {
-        campaign.performance.ctr = (campaign.performance.clicks / campaign.performance.impressions) * 100;
-      }
-
-      await campaign.save();
-    }
+    await ad.populate('advertiser', 'firstName lastName profile.avatar');
 
     res.status(201).json({
       success: true,
-      message: 'Impression recorded successfully',
-      data: impression
+      message: 'Ad created successfully',
+      data: ad
     });
   } catch (error) {
-    console.error('Record impression error:', error);
+    console.error('Create ad error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -217,53 +130,267 @@ const recordImpression = async (req, res) => {
   }
 };
 
-// @desc    Get campaign analytics
-// @route   GET /api/ads/campaigns/:id/analytics
-// @access  Private (Advertiser)
-const getCampaignAnalytics = async (req, res) => {
+// @desc    Update ad
+// @route   PUT /api/ads/:id
+// @access  Private
+const updateAd = async (req, res) => {
   try {
-    const campaignId = req.params.id;
-    const advertiser = await Advertiser.findOne({ user: req.user.id });
+    let ad = await Ads.findById(req.params.id);
 
-    if (!advertiser) {
-      return res.status(403).json({
-        success: false,
-        message: 'User is not registered as an advertiser'
-      });
-    }
-
-    const campaign = await AdCampaign.findOne({
-      _id: campaignId,
-      advertiser: advertiser._id
-    });
-
-    if (!campaign) {
+    if (!ad) {
       return res.status(404).json({
         success: false,
-        message: 'Campaign not found'
+        message: 'Ad not found'
       });
     }
 
-    // Get detailed analytics
-    const impressions = await AdImpression.find({ campaign: campaignId });
-    
+    // Check if user is the advertiser
+    if (ad.advertiser.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this ad'
+      });
+    }
+
+    ad = await Ads.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Ad updated successfully',
+      data: ad
+    });
+  } catch (error) {
+    console.error('Update ad error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Delete ad
+// @route   DELETE /api/ads/:id
+// @access  Private
+const deleteAd = async (req, res) => {
+  try {
+    const ad = await Ads.findById(req.params.id);
+
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ad not found'
+      });
+    }
+
+    // Check if user is the advertiser
+    if (ad.advertiser.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this ad'
+      });
+    }
+
+    // Soft delete
+    ad.isActive = false;
+    await ad.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Ad deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete ad error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Upload ad images
+// @route   POST /api/ads/:id/images
+// @access  Private
+const uploadAdImages = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded'
+      });
+    }
+
+    const ad = await Ads.findById(req.params.id);
+
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ad not found'
+      });
+    }
+
+    // Check if user is the advertiser
+    if (ad.advertiser.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to upload images for this ad'
+      });
+    }
+
+    const uploadPromises = req.files.map(file => 
+      CloudinaryService.uploadFile(file, 'localpro/ads')
+    );
+
+    const uploadResults = await Promise.all(uploadPromises);
+
+    const successfulUploads = uploadResults
+      .filter(result => result.success)
+      .map(result => ({
+        url: result.data.secure_url,
+        publicId: result.data.public_id
+      }));
+
+    if (successfulUploads.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload any images'
+      });
+    }
+
+    // Add new images to ad
+    ad.images = [...ad.images, ...successfulUploads];
+    await ad.save();
+
+    res.status(200).json({
+      success: true,
+      message: `${successfulUploads.length} image(s) uploaded successfully`,
+      data: successfulUploads
+    });
+  } catch (error) {
+    console.error('Upload ad images error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Delete ad image
+// @route   DELETE /api/ads/:id/images/:imageId
+// @access  Private
+const deleteAdImage = async (req, res) => {
+  try {
+    const { imageId } = req.params;
+
+    const ad = await Ads.findById(req.params.id);
+
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ad not found'
+      });
+    }
+
+    // Check if user is the advertiser
+    if (ad.advertiser.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete images for this ad'
+      });
+    }
+
+    const image = ad.images.id(imageId);
+
+    if (!image) {
+      return res.status(404).json({
+        success: false,
+        message: 'Image not found'
+      });
+    }
+
+    // Delete from Cloudinary
+    await CloudinaryService.deleteFile(image.publicId);
+
+    // Remove from ad
+    image.remove();
+    await ad.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Image deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete ad image error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get user's ads
+// @route   GET /api/ads/my-ads
+// @access  Private
+const getMyAds = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const ads = await Ads.find({ advertiser: req.user.id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Ads.countDocuments({ advertiser: req.user.id });
+
+    res.status(200).json({
+      success: true,
+      count: ads.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: ads
+    });
+  } catch (error) {
+    console.error('Get my ads error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get ad analytics
+// @route   GET /api/ads/:id/analytics
+// @access  Private
+const getAdAnalytics = async (req, res) => {
+  try {
+    const ad = await Ads.findById(req.params.id);
+
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ad not found'
+      });
+    }
+
+    // Check if user is the advertiser
+    if (ad.advertiser.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view analytics for this ad'
+      });
+    }
+
     const analytics = {
-      campaign: campaign,
-      impressions: impressions.length,
-      clicks: impressions.filter(i => i.type === 'click').length,
-      conversions: impressions.filter(i => i.type === 'conversion').length,
-      ctr: campaign.performance.ctr,
-      cpc: campaign.performance.cpc,
-      cpm: campaign.performance.cpm,
-      spend: campaign.performance.spend,
-      dailyStats: impressions.reduce((acc, impression) => {
-        const date = impression.timestamp.toISOString().split('T')[0];
-        if (!acc[date]) {
-          acc[date] = { impressions: 0, clicks: 0, conversions: 0 };
-        }
-        acc[date][impression.type + 's'] += 1;
-        return acc;
-      }, {})
+      views: ad.views,
+      clicks: ad.clicks,
+      impressions: ad.impressions,
+      ctr: ad.impressions > 0 ? (ad.clicks / ad.impressions) * 100 : 0,
+      createdAt: ad.createdAt,
+      updatedAt: ad.updatedAt
     };
 
     res.status(200).json({
@@ -271,7 +398,7 @@ const getCampaignAnalytics = async (req, res) => {
       data: analytics
     });
   } catch (error) {
-    console.error('Get campaign analytics error:', error);
+    console.error('Get ad analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -279,39 +406,227 @@ const getCampaignAnalytics = async (req, res) => {
   }
 };
 
-// @desc    Approve campaign (Admin)
-// @route   PUT /api/ads/campaigns/:id/approve
-// @access  Private (Admin)
-const approveCampaign = async (req, res) => {
+// @desc    Track ad click
+// @route   POST /api/ads/:id/click
+// @access  Public
+const trackAdClick = async (req, res) => {
   try {
-    const { approved, notes, rejectionReason } = req.body;
-    const campaignId = req.params.id;
+    const ad = await Ads.findById(req.params.id);
 
-    const campaign = await AdCampaign.findById(campaignId);
-    if (!campaign) {
+    if (!ad) {
       return res.status(404).json({
         success: false,
-        message: 'Campaign not found'
+        message: 'Ad not found'
       });
     }
 
-    campaign.status = approved ? 'approved' : 'rejected';
-    campaign.approval = {
-      reviewedBy: req.user.id,
-      reviewedAt: new Date(),
-      notes,
-      rejectionReason: approved ? undefined : rejectionReason
-    };
-
-    await campaign.save();
+    // Increment click count
+    ad.clicks += 1;
+    await ad.save();
 
     res.status(200).json({
       success: true,
-      message: `Campaign ${approved ? 'approved' : 'rejected'} successfully`,
-      data: campaign
+      message: 'Click tracked successfully'
     });
   } catch (error) {
-    console.error('Approve campaign error:', error);
+    console.error('Track ad click error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get ad categories
+// @route   GET /api/ads/categories
+// @access  Public
+const getAdCategories = async (req, res) => {
+  try {
+    const categories = await Ads.aggregate([
+      {
+        $match: { isActive: true }
+      },
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: categories
+    });
+  } catch (error) {
+    console.error('Get ad categories error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get featured ads
+// @route   GET /api/ads/featured
+// @access  Public
+const getFeaturedAds = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const ads = await Ads.find({
+      isActive: true,
+      isFeatured: true
+    })
+    .populate('advertiser', 'firstName lastName profile.avatar')
+    .sort({ createdAt: -1 })
+    .limit(Number(limit));
+
+    res.status(200).json({
+      success: true,
+      count: ads.length,
+      data: ads
+    });
+  } catch (error) {
+    console.error('Get featured ads error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Promote ad
+// @route   POST /api/ads/:id/promote
+// @access  Private
+const promoteAd = async (req, res) => {
+  try {
+    const { promotionType, duration, budget } = req.body;
+
+    if (!promotionType || !duration || !budget) {
+      return res.status(400).json({
+        success: false,
+        message: 'Promotion type, duration, and budget are required'
+      });
+    }
+
+    const ad = await Ads.findById(req.params.id);
+
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ad not found'
+      });
+    }
+
+    // Check if user is the advertiser
+    if (ad.advertiser.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to promote this ad'
+      });
+    }
+
+    // Update ad with promotion details
+    ad.promotion = {
+      type: promotionType,
+      duration,
+      budget,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + (duration * 24 * 60 * 60 * 1000)),
+      status: 'active'
+    };
+
+    ad.isFeatured = true;
+    await ad.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Ad promoted successfully',
+      data: ad.promotion
+    });
+  } catch (error) {
+    console.error('Promote ad error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get ad statistics
+// @route   GET /api/ads/statistics
+// @access  Private (Admin only)
+const getAdStatistics = async (req, res) => {
+  try {
+    // Get total ads
+    const totalAds = await Ads.countDocuments();
+
+    // Get ads by status
+    const adsByStatus = await Ads.aggregate([
+      {
+        $group: {
+          _id: '$isActive',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get ads by category
+    const adsByCategory = await Ads.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    // Get total views and clicks
+    const totalViews = await Ads.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalViews: { $sum: '$views' },
+          totalClicks: { $sum: '$clicks' }
+        }
+      }
+    ]);
+
+    // Get monthly trends
+    const monthlyTrends = await Ads.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalAds,
+        adsByStatus,
+        adsByCategory,
+        totalViews: totalViews[0] || { totalViews: 0, totalClicks: 0 },
+        monthlyTrends
+      }
+    });
+  } catch (error) {
+    console.error('Get ad statistics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -320,11 +635,18 @@ const approveCampaign = async (req, res) => {
 };
 
 module.exports = {
-  registerAdvertiser,
-  createCampaign,
-  getCampaigns,
-  getActiveAds,
-  recordImpression,
-  getCampaignAnalytics,
-  approveCampaign
+  getAds,
+  getAd,
+  createAd,
+  updateAd,
+  deleteAd,
+  uploadAdImages,
+  deleteAdImage,
+  getMyAds,
+  getAdAnalytics,
+  trackAdClick,
+  getAdCategories,
+  getFeaturedAds,
+  promoteAd,
+  getAdStatistics
 };

@@ -1,107 +1,107 @@
-const { Loan, SalaryAdvance, Transaction } = require('../models/Finance');
+const Finance = require('../models/Finance');
 const User = require('../models/User');
-const EmailService = require('../services/emailService');
+const Marketplace = require('../models/Marketplace');
+const Job = require('../models/Job');
+const Referral = require('../models/Referral');
+const Agency = require('../models/Agency');
 const PayPalService = require('../services/paypalService');
+const PayMayaService = require('../services/paymayaService');
+const EmailService = require('../services/emailService');
 
-// @desc    Apply for loan
-// @route   POST /api/finance/loans/apply
+// @desc    Get user's financial overview
+// @route   GET /api/finance/overview
 // @access  Private
-const applyForLoan = async (req, res) => {
+const getFinancialOverview = async (req, res) => {
   try {
-    const {
-      type,
-      amount,
-      purpose,
-      term,
-      documents
-    } = req.body;
-
-    const loanData = {
-      borrower: req.user.id,
-      type,
-      amount: { requested: amount },
-      purpose,
-      term,
-      application: {
-        documents: documents || []
-      }
-    };
-
-    const loan = await Loan.create(loanData);
-
-    res.status(201).json({
-      success: true,
-      message: 'Loan application submitted successfully',
-      data: loan
-    });
-  } catch (error) {
-    console.error('Apply for loan error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Get user loans
-// @route   GET /api/finance/loans
-// @access  Private
-const getUserLoans = async (req, res) => {
-  try {
-    const { status, type } = req.query;
     const userId = req.user.id;
 
-    const filter = { borrower: userId };
-    if (status) filter.status = status;
-    if (type) filter.type = type;
+    // Get user's financial data
+    const finance = await Finance.findOne({ user: userId });
 
-    const loans = await Loan.find(filter).sort({ createdAt: -1 });
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    // Get recent transactions
+    const recentTransactions = await Finance.findOne({ user: userId })
+      .select('transactions')
+      .sort({ 'transactions.timestamp': -1 })
+      .limit(10);
+
+    // Get monthly earnings
+    const currentMonth = new Date();
+    currentMonth.setDate(1);
+    currentMonth.setHours(0, 0, 0, 0);
+
+    const monthlyEarnings = await Marketplace.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: userId,
+          status: 'completed',
+          createdAt: { $gte: currentMonth }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: '$pricing.total' },
+          bookingCount: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get pending payments
+    const pendingPayments = await Marketplace.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: userId,
+          status: 'completed',
+          'payment.status': 'pending'
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalPending: { $sum: '$pricing.total' },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get referral earnings
+    const referralEarnings = await Referral.aggregate([
+      {
+        $match: {
+          referrer: userId,
+          status: 'completed'
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: '$rewardDistribution.referrerReward' },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
 
     res.status(200).json({
       success: true,
-      count: loans.length,
-      data: loans
-    });
-  } catch (error) {
-    console.error('Get user loans error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Apply for salary advance
-// @route   POST /api/finance/salary-advance/apply
-// @access  Private
-const applyForSalaryAdvance = async (req, res) => {
-  try {
-    const {
-      amount,
-      employerId,
-      salary,
-      nextPayDate
-    } = req.body;
-
-    const salaryAdvanceData = {
-      employee: req.user.id,
-      employer: employerId,
-      amount: { requested: amount },
-      salary: {
-        monthly: salary,
-        nextPayDate: new Date(nextPayDate)
+      data: {
+        wallet: finance.wallet,
+        monthlyEarnings: monthlyEarnings[0] || { totalEarnings: 0, bookingCount: 0 },
+        pendingPayments: pendingPayments[0] || { totalPending: 0, count: 0 },
+        referralEarnings: referralEarnings[0] || { totalEarnings: 0, count: 0 },
+        recentTransactions: recentTransactions?.transactions || []
       }
-    };
-
-    const salaryAdvance = await SalaryAdvance.create(salaryAdvanceData);
-
-    res.status(201).json({
-      success: true,
-      message: 'Salary advance application submitted successfully',
-      data: salaryAdvance
     });
   } catch (error) {
-    console.error('Apply for salary advance error:', error);
+    console.error('Get financial overview error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -109,55 +109,42 @@ const applyForSalaryAdvance = async (req, res) => {
   }
 };
 
-// @desc    Get user salary advances
-// @route   GET /api/finance/salary-advances
-// @access  Private
-const getUserSalaryAdvances = async (req, res) => {
-  try {
-    const { status } = req.query;
-    const userId = req.user.id;
-
-    const filter = { employee: userId };
-    if (status) filter.status = status;
-
-    const salaryAdvances = await SalaryAdvance.find(filter)
-      .populate('employer', 'firstName lastName businessName')
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      count: salaryAdvances.length,
-      data: salaryAdvances
-    });
-  } catch (error) {
-    console.error('Get user salary advances error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-// @desc    Get user transactions
+// @desc    Get user's transactions
 // @route   GET /api/finance/transactions
 // @access  Private
-const getUserTransactions = async (req, res) => {
+const getTransactions = async (req, res) => {
   try {
-    const { type, status, page = 1, limit = 10 } = req.query;
-    const userId = req.user.id;
+    const { page = 1, limit = 20, type, status } = req.query;
+    const skip = (page - 1) * limit;
 
-    const filter = { user: userId };
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    // Build filter
+    const filter = {};
     if (type) filter.type = type;
     if (status) filter.status = status;
 
-    const skip = (page - 1) * limit;
+    const transactions = finance.transactions
+      .filter(transaction => {
+        if (type && transaction.type !== type) return false;
+        if (status && transaction.status !== status) return false;
+        return true;
+      })
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(skip, skip + Number(limit));
 
-    const transactions = await Transaction.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit));
-
-    const total = await Transaction.countDocuments(filter);
+    const total = finance.transactions.filter(transaction => {
+      if (type && transaction.type !== type) return false;
+      if (status && transaction.status !== status) return false;
+      return true;
+    }).length;
 
     res.status(200).json({
       success: true,
@@ -168,7 +155,7 @@ const getUserTransactions = async (req, res) => {
       data: transactions
     });
   } catch (error) {
-    console.error('Get user transactions error:', error);
+    console.error('Get transactions error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -176,54 +163,110 @@ const getUserTransactions = async (req, res) => {
   }
 };
 
-// @desc    Approve loan (Admin)
-// @route   PUT /api/finance/loans/:id/approve
-// @access  Private (Admin)
-const approveLoan = async (req, res) => {
+// @desc    Get user's earnings
+// @route   GET /api/finance/earnings
+// @access  Private
+const getEarnings = async (req, res) => {
   try {
-    const { approvedAmount, conditions, notes } = req.body;
-    const loanId = req.params.id;
+    const { startDate, endDate, groupBy = 'month' } = req.query;
 
-    const loan = await Loan.findById(loanId);
-    if (!loan) {
-      return res.status(404).json({
-        success: false,
-        message: 'Loan not found'
-      });
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+      if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
     }
 
-    loan.status = 'approved';
-    loan.amount.approved = approvedAmount;
-    loan.approval = {
-      approvedBy: req.user.id,
-      approvedAt: new Date(),
-      conditions: conditions || [],
-      notes
-    };
-
-    await loan.save();
-
-    // Populate loan with borrower details for email
-    await loan.populate('borrower', 'firstName lastName email');
-
-    // Send loan approval email to borrower if email is available
-    if (loan.borrower.email) {
-      try {
-        await EmailService.sendLoanApproval(loan.borrower.email, loan);
-        console.log(`Loan approval email sent to: ${loan.borrower.email}`);
-      } catch (emailError) {
-        console.error('Failed to send loan approval email:', emailError);
-        // Don't fail the approval if email fails
+    // Get earnings from completed bookings
+    const earnings = await Marketplace.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: req.user.id,
+          status: 'completed',
+          ...dateFilter
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+            day: groupBy === 'day' ? { $dayOfMonth: '$createdAt' } : null
+          },
+          totalEarnings: { $sum: '$pricing.total' },
+          bookingCount: { $sum: 1 },
+          averageEarning: { $avg: '$pricing.total' }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 }
       }
-    }
+    ]);
+
+    // Get earnings by service category
+    const earningsByCategory = await Marketplace.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: req.user.id,
+          status: 'completed',
+          ...dateFilter
+        }
+      },
+      {
+        $lookup: {
+          from: 'marketplaces',
+          localField: 'service',
+          foreignField: '_id',
+          as: 'serviceData'
+        }
+      },
+      {
+        $unwind: '$serviceData'
+      },
+      {
+        $group: {
+          _id: '$serviceData.category',
+          totalEarnings: { $sum: '$pricing.total' },
+          bookingCount: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { totalEarnings: -1 }
+      }
+    ]);
+
+    // Get total earnings
+    const totalEarnings = await Marketplace.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: req.user.id,
+          status: 'completed',
+          ...dateFilter
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: '$pricing.total' },
+          totalBookings: { $sum: 1 }
+        }
+      }
+    ]);
 
     res.status(200).json({
       success: true,
-      message: 'Loan approved successfully',
-      data: loan
+      data: {
+        earnings,
+        earningsByCategory,
+        totalEarnings: totalEarnings[0] || { totalEarnings: 0, totalBookings: 0 }
+      }
     });
   } catch (error) {
-    console.error('Approve loan error:', error);
+    console.error('Get earnings error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -231,60 +274,134 @@ const approveLoan = async (req, res) => {
   }
 };
 
-// @desc    Disburse loan (Admin)
-// @route   PUT /api/finance/loans/:id/disburse
-// @access  Private (Admin)
-const disburseLoan = async (req, res) => {
+// @desc    Get user's expenses
+// @route   GET /api/finance/expenses
+// @access  Private
+const getExpenses = async (req, res) => {
   try {
-    const { disbursementMethod, accountDetails, transactionId } = req.body;
-    const loanId = req.params.id;
+    const { startDate, endDate, category } = req.query;
 
-    const loan = await Loan.findById(loanId);
-    if (!loan) {
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.timestamp = {};
+      if (startDate) dateFilter.timestamp.$gte = new Date(startDate);
+      if (endDate) dateFilter.timestamp.$lte = new Date(endDate);
+    }
+
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
       return res.status(404).json({
         success: false,
-        message: 'Loan not found'
+        message: 'Financial data not found'
       });
     }
 
-    if (loan.status !== 'approved') {
+    // Filter expenses
+    let expenses = finance.transactions.filter(transaction => 
+      transaction.type === 'expense' && transaction.amount < 0
+    );
+
+    if (startDate || endDate) {
+      expenses = expenses.filter(expense => {
+        const expenseDate = new Date(expense.timestamp);
+        if (startDate && expenseDate < new Date(startDate)) return false;
+        if (endDate && expenseDate > new Date(endDate)) return false;
+        return true;
+      });
+    }
+
+    if (category) {
+      expenses = expenses.filter(expense => expense.category === category);
+    }
+
+    // Group expenses by category
+    const expensesByCategory = expenses.reduce((acc, expense) => {
+      const category = expense.category || 'Other';
+      if (!acc[category]) {
+        acc[category] = { total: 0, count: 0 };
+      }
+      acc[category].total += Math.abs(expense.amount);
+      acc[category].count += 1;
+      return acc;
+    }, {});
+
+    // Get monthly expenses
+    const monthlyExpenses = expenses.reduce((acc, expense) => {
+      const date = new Date(expense.timestamp);
+      const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
+      if (!acc[monthKey]) {
+        acc[monthKey] = { total: 0, count: 0 };
+      }
+      acc[monthKey].total += Math.abs(expense.amount);
+      acc[monthKey].count += 1;
+      return acc;
+    }, {});
+
+    res.status(200).json({
+      success: true,
+      data: {
+        expenses,
+        expensesByCategory,
+        monthlyExpenses,
+        totalExpenses: expenses.reduce((sum, expense) => sum + Math.abs(expense.amount), 0)
+      }
+    });
+  } catch (error) {
+    console.error('Get expenses error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Add expense
+// @route   POST /api/finance/expenses
+// @access  Private
+const addExpense = async (req, res) => {
+  try {
+    const { amount, category, description, paymentMethod } = req.body;
+
+    if (!amount || !category || !description) {
       return res.status(400).json({
         success: false,
-        message: 'Loan must be approved before disbursement'
+        message: 'Amount, category, and description are required'
       });
     }
 
-    loan.status = 'disbursed';
-    loan.amount.disbursed = loan.amount.approved;
-    loan.disbursement = {
-      method: disbursementMethod,
-      accountDetails,
-      disbursedAt: new Date(),
-      transactionId
-    };
+    let finance = await Finance.findOne({ user: req.user.id });
 
-    // Create transaction record
-    await Transaction.create({
-      user: loan.borrower,
-      type: 'loan_disbursement',
-      amount: loan.amount.disbursed,
-      direction: 'inbound',
-      reference: `LOAN-${loanId}`,
+    if (!finance) {
+      finance = await Finance.create({ user: req.user.id });
+    }
+
+    const expense = {
+      type: 'expense',
+      amount: -Math.abs(amount), // Negative amount for expenses
+      category,
+      description,
+      paymentMethod: paymentMethod || 'wallet',
       status: 'completed',
-      paymentMethod: disbursementMethod,
-      transactionId,
-      metadata: { loanId }
-    });
+      timestamp: new Date()
+    };
 
-    await loan.save();
+    finance.transactions.push(expense);
 
-    res.status(200).json({
+    // Update wallet balance
+    finance.wallet.balance += expense.amount;
+    finance.wallet.lastUpdated = new Date();
+
+    await finance.save();
+
+    res.status(201).json({
       success: true,
-      message: 'Loan disbursed successfully',
-      data: loan
+      message: 'Expense added successfully',
+      data: expense
     });
   } catch (error) {
-    console.error('Disburse loan error:', error);
+    console.error('Add expense error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -292,82 +409,86 @@ const disburseLoan = async (req, res) => {
   }
 };
 
-// @desc    Make loan repayment with PayPal
-// @route   POST /api/finance/loans/:id/repay/paypal
+// @desc    Request withdrawal
+// @route   POST /api/finance/withdraw
 // @access  Private
-const repayLoanWithPayPal = async (req, res) => {
+const requestWithdrawal = async (req, res) => {
   try {
-    const { amount, paymentDetails } = req.body;
-    const loanId = req.params.id;
-    const userId = req.user.id;
+    const { amount, paymentMethod, accountDetails } = req.body;
 
-    const loan = await Loan.findById(loanId);
-    if (!loan) {
-      return res.status(404).json({
-        success: false,
-        message: 'Loan not found'
-      });
-    }
-
-    if (loan.borrower.toString() !== userId) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to make payments for this loan'
-      });
-    }
-
-    // Get user details for PayPal
-    const user = await User.findById(userId).select('firstName lastName email');
-    
-    // Create PayPal order for loan repayment
-    const orderData = {
-      amount: amount,
-      currency: loan.amount.currency,
-      description: `Loan repayment for loan #${loanId}`,
-      referenceId: `LOAN-REPAY-${loanId}`,
-      items: [{
-        name: 'Loan Repayment',
-        unit_amount: {
-          currency_code: loan.amount.currency,
-          value: amount.toFixed(2)
-        },
-        quantity: '1'
-      }]
-    };
-
-    const paypalOrderResult = await PayPalService.createOrder(orderData);
-    
-    if (!paypalOrderResult.success) {
+    if (!amount || !paymentMethod || !accountDetails) {
       return res.status(400).json({
         success: false,
-        message: 'Failed to create PayPal payment order'
+        message: 'Amount, payment method, and account details are required'
       });
     }
 
-    // Create transaction record
-    const transaction = await Transaction.create({
-      user: userId,
-      type: 'loan_repayment',
-      amount: amount,
-      currency: loan.amount.currency,
-      direction: 'outbound',
-      reference: `LOAN-REPAY-${loanId}`,
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    // Check if user has sufficient balance
+    if (finance.wallet.balance < amount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient balance'
+      });
+    }
+
+    // Check minimum withdrawal amount
+    const minWithdrawal = 100; // $100 minimum
+    if (amount < minWithdrawal) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum withdrawal amount is $${minWithdrawal}`
+      });
+    }
+
+    const withdrawal = {
+      type: 'withdrawal',
+      amount: -Math.abs(amount),
+      category: 'withdrawal',
+      description: `Withdrawal request via ${paymentMethod}`,
+      paymentMethod,
+      accountDetails,
       status: 'pending',
-      paymentMethod: 'paypal',
-      paypalOrderId: paypalOrderResult.data.id,
-      metadata: { loanId, paymentDetails }
+      timestamp: new Date()
+    };
+
+    finance.transactions.push(withdrawal);
+
+    // Hold the amount in pending balance
+    finance.wallet.balance -= amount;
+    finance.wallet.pendingBalance += amount;
+    finance.wallet.lastUpdated = new Date();
+
+    await finance.save();
+
+    // Send notification email to admin
+    await EmailService.sendEmail({
+      to: process.env.ADMIN_EMAIL,
+      subject: 'New Withdrawal Request',
+      template: 'withdrawal-request',
+      data: {
+        userName: `${req.user.firstName} ${req.user.lastName}`,
+        amount,
+        paymentMethod,
+        accountDetails
+      }
     });
 
     res.status(201).json({
       success: true,
-      message: 'PayPal payment order created for loan repayment',
-      data: {
-        transaction,
-        paypalApprovalUrl: paypalOrderResult.data.links.find(link => link.rel === 'approve')?.href
-      }
+      message: 'Withdrawal request submitted successfully',
+      data: withdrawal
     });
   } catch (error) {
-    console.error('Repay loan with PayPal error:', error);
+    console.error('Request withdrawal error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -375,70 +496,88 @@ const repayLoanWithPayPal = async (req, res) => {
   }
 };
 
-// @desc    Approve PayPal loan repayment
-// @route   POST /api/finance/loans/repay/paypal/approve
-// @access  Private
-const approvePayPalLoanRepayment = async (req, res) => {
+// @desc    Process withdrawal
+// @route   PUT /api/finance/withdrawals/:withdrawalId/process
+// @access  Private (Admin only)
+const processWithdrawal = async (req, res) => {
   try {
-    const { orderId } = req.body;
-    const userId = req.user.id;
+    const { withdrawalId } = req.params;
+    const { status, adminNotes } = req.body;
 
-    // Capture the PayPal order
-    const captureResult = await PayPalService.captureOrder(orderId);
-    
-    if (!captureResult.success) {
+    if (!status) {
       return res.status(400).json({
         success: false,
-        message: 'Failed to capture PayPal payment'
+        message: 'Status is required'
       });
     }
 
-    // Find the transaction
-    const transaction = await Transaction.findOne({
-      user: userId,
-      paypalOrderId: orderId,
-      type: 'loan_repayment'
+    // Find the user with this withdrawal
+    const finance = await Finance.findOne({
+      'transactions._id': withdrawalId,
+      'transactions.type': 'withdrawal'
     });
 
-    if (!transaction) {
+    if (!finance) {
       return res.status(404).json({
         success: false,
-        message: 'Transaction not found'
+        message: 'Withdrawal not found'
       });
     }
 
-    // Update transaction status
-    transaction.status = 'completed';
-    transaction.paypalTransactionId = captureResult.data.purchase_units[0].payments.captures[0].id;
-    await transaction.save();
+    const withdrawal = finance.transactions.id(withdrawalId);
 
-    // Update loan repayment schedule
-    const loanId = transaction.metadata.loanId;
-    const loan = await Loan.findById(loanId);
-    
-    if (loan) {
-      // Find the next pending payment
-      const nextPayment = loan.repayment.schedule.find(payment => payment.status === 'pending');
-      if (nextPayment) {
-        nextPayment.status = 'paid';
-        nextPayment.paidAt = new Date();
-        nextPayment.transactionId = transaction.paypalTransactionId;
-      }
-      
-      // Update total paid amount
-      loan.repayment.totalPaid += transaction.amount;
-      loan.repayment.remainingBalance = loan.amount.approved - loan.repayment.totalPaid;
-      
-      await loan.save();
+    if (!withdrawal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Withdrawal not found'
+      });
     }
+
+    if (withdrawal.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Withdrawal has already been processed'
+      });
+    }
+
+    withdrawal.status = status;
+    withdrawal.adminNotes = adminNotes;
+    withdrawal.processedAt = new Date();
+    withdrawal.processedBy = req.user.id;
+
+    if (status === 'approved') {
+      // Move from pending to completed
+      finance.wallet.pendingBalance -= Math.abs(withdrawal.amount);
+    } else if (status === 'rejected') {
+      // Return amount to available balance
+      finance.wallet.balance += Math.abs(withdrawal.amount);
+      finance.wallet.pendingBalance -= Math.abs(withdrawal.amount);
+    }
+
+    finance.wallet.lastUpdated = new Date();
+    await finance.save();
+
+    // Send notification email to user
+    const user = await User.findById(finance.user);
+    await EmailService.sendEmail({
+      to: user.email,
+      subject: 'Withdrawal Request Update',
+      template: 'withdrawal-status-update',
+      data: {
+        userName: `${user.firstName} ${user.lastName}`,
+        amount: Math.abs(withdrawal.amount),
+        status,
+        adminNotes
+      }
+    });
 
     res.status(200).json({
       success: true,
-      message: 'PayPal loan repayment approved successfully',
-      data: transaction
+      message: 'Withdrawal processed successfully',
+      data: withdrawal
     });
   } catch (error) {
-    console.error('Approve PayPal loan repayment error:', error);
+    console.error('Process withdrawal error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -446,82 +585,95 @@ const approvePayPalLoanRepayment = async (req, res) => {
   }
 };
 
-// @desc    Make salary advance repayment with PayPal
-// @route   POST /api/finance/salary-advances/:id/repay/paypal
+// @desc    Get tax documents
+// @route   GET /api/finance/tax-documents
 // @access  Private
-const repaySalaryAdvanceWithPayPal = async (req, res) => {
+const getTaxDocuments = async (req, res) => {
   try {
-    const { amount } = req.body;
-    const salaryAdvanceId = req.params.id;
-    const userId = req.user.id;
+    const { year } = req.query;
 
-    const salaryAdvance = await SalaryAdvance.findById(salaryAdvanceId);
-    if (!salaryAdvance) {
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
       return res.status(404).json({
         success: false,
-        message: 'Salary advance not found'
+        message: 'Financial data not found'
       });
     }
 
-    if (salaryAdvance.employee.toString() !== userId) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to make payments for this salary advance'
-      });
-    }
+    // Get earnings for the year
+    const yearFilter = year ? new Date(`${year}-01-01`) : new Date(new Date().getFullYear(), 0, 1);
+    const nextYear = new Date(yearFilter);
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
 
-    // Get user details for PayPal
-    const user = await User.findById(userId).select('firstName lastName email');
-    
-    // Create PayPal order for salary advance repayment
-    const orderData = {
-      amount: amount,
-      currency: salaryAdvance.amount.currency,
-      description: `Salary advance repayment #${salaryAdvanceId}`,
-      referenceId: `SALARY-REPAY-${salaryAdvanceId}`,
-      items: [{
-        name: 'Salary Advance Repayment',
-        unit_amount: {
-          currency_code: salaryAdvance.amount.currency,
-          value: amount.toFixed(2)
-        },
-        quantity: '1'
-      }]
+    const earnings = await Marketplace.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: req.user.id,
+          status: 'completed',
+          createdAt: { $gte: yearFilter, $lt: nextYear }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: '$pricing.total' },
+          totalBookings: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get expenses for the year
+    const expenses = finance.transactions.filter(transaction => {
+      const transactionDate = new Date(transaction.timestamp);
+      return transaction.type === 'expense' && 
+             transactionDate >= yearFilter && 
+             transactionDate < nextYear;
+    });
+
+    const totalExpenses = expenses.reduce((sum, expense) => sum + Math.abs(expense.amount), 0);
+
+    // Get referral earnings for the year
+    const referralEarnings = await Referral.aggregate([
+      {
+        $match: {
+          referrer: req.user.id,
+          status: 'completed',
+          createdAt: { $gte: yearFilter, $lt: nextYear }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: '$rewardDistribution.referrerReward' },
+          totalReferrals: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const taxDocument = {
+      year: year || new Date().getFullYear(),
+      totalEarnings: earnings[0]?.totalEarnings || 0,
+      totalBookings: earnings[0]?.totalBookings || 0,
+      totalExpenses,
+      totalReferralEarnings: referralEarnings[0]?.totalEarnings || 0,
+      totalReferrals: referralEarnings[0]?.totalReferrals || 0,
+      netIncome: (earnings[0]?.totalEarnings || 0) + (referralEarnings[0]?.totalEarnings || 0) - totalExpenses,
+      expenses: expenses.map(expense => ({
+        date: expense.timestamp,
+        category: expense.category,
+        description: expense.description,
+        amount: Math.abs(expense.amount)
+      }))
     };
 
-    const paypalOrderResult = await PayPalService.createOrder(orderData);
-    
-    if (!paypalOrderResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: 'Failed to create PayPal payment order'
-      });
-    }
-
-    // Create transaction record
-    const transaction = await Transaction.create({
-      user: userId,
-      type: 'salary_advance',
-      amount: amount,
-      currency: salaryAdvance.amount.currency,
-      direction: 'outbound',
-      reference: `SALARY-REPAY-${salaryAdvanceId}`,
-      status: 'pending',
-      paymentMethod: 'paypal',
-      paypalOrderId: paypalOrderResult.data.id,
-      metadata: { salaryAdvanceId }
-    });
-
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: 'PayPal payment order created for salary advance repayment',
-      data: {
-        transaction,
-        paypalApprovalUrl: paypalOrderResult.data.links.find(link => link.rel === 'approve')?.href
-      }
+      data: taxDocument
     });
   } catch (error) {
-    console.error('Repay salary advance with PayPal error:', error);
+    console.error('Get tax documents error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -529,60 +681,168 @@ const repaySalaryAdvanceWithPayPal = async (req, res) => {
   }
 };
 
-// @desc    Approve PayPal salary advance repayment
-// @route   POST /api/finance/salary-advances/repay/paypal/approve
+// @desc    Get financial reports
+// @route   GET /api/finance/reports
 // @access  Private
-const approvePayPalSalaryAdvanceRepayment = async (req, res) => {
+const getFinancialReports = async (req, res) => {
   try {
-    const { orderId } = req.body;
-    const userId = req.user.id;
+    const { startDate, endDate, reportType = 'summary' } = req.query;
 
-    // Capture the PayPal order
-    const captureResult = await PayPalService.captureOrder(orderId);
-    
-    if (!captureResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: 'Failed to capture PayPal payment'
-      });
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+      if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
     }
 
-    // Find the transaction
-    const transaction = await Transaction.findOne({
-      user: userId,
-      paypalOrderId: orderId,
-      type: 'salary_advance'
-    });
+    const finance = await Finance.findOne({ user: req.user.id });
 
-    if (!transaction) {
+    if (!finance) {
       return res.status(404).json({
         success: false,
-        message: 'Transaction not found'
+        message: 'Financial data not found'
       });
     }
 
-    // Update transaction status
-    transaction.status = 'completed';
-    transaction.paypalTransactionId = captureResult.data.purchase_units[0].payments.captures[0].id;
-    await transaction.save();
+    let report = {};
 
-    // Update salary advance status
-    const salaryAdvanceId = transaction.metadata.salaryAdvanceId;
-    const salaryAdvance = await SalaryAdvance.findById(salaryAdvanceId);
-    
-    if (salaryAdvance) {
-      salaryAdvance.status = 'repaid';
-      salaryAdvance.repayment.repaidAt = new Date();
-      await salaryAdvance.save();
+    switch (reportType) {
+      case 'summary':
+        // Get summary report
+        const summary = await Marketplace.aggregate([
+          {
+            $match: {
+              type: 'booking',
+              provider: req.user.id,
+              status: 'completed',
+              ...dateFilter
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              totalEarnings: { $sum: '$pricing.total' },
+              totalBookings: { $sum: 1 },
+              averageEarning: { $avg: '$pricing.total' }
+            }
+          }
+        ]);
+
+        const expenses = finance.transactions.filter(transaction => {
+          const transactionDate = new Date(transaction.timestamp);
+          if (startDate && transactionDate < new Date(startDate)) return false;
+          if (endDate && transactionDate > new Date(endDate)) return false;
+          return transaction.type === 'expense';
+        });
+
+        const totalExpenses = expenses.reduce((sum, expense) => sum + Math.abs(expense.amount), 0);
+
+        report = {
+          totalEarnings: summary[0]?.totalEarnings || 0,
+          totalBookings: summary[0]?.totalBookings || 0,
+          averageEarning: summary[0]?.averageEarning || 0,
+          totalExpenses,
+          netIncome: (summary[0]?.totalEarnings || 0) - totalExpenses,
+          expenseCount: expenses.length
+        };
+        break;
+
+      case 'detailed':
+        // Get detailed report
+        const detailedEarnings = await Marketplace.aggregate([
+          {
+            $match: {
+              type: 'booking',
+              provider: req.user.id,
+              status: 'completed',
+              ...dateFilter
+            }
+          },
+          {
+            $lookup: {
+              from: 'marketplaces',
+              localField: 'service',
+              foreignField: '_id',
+              as: 'serviceData'
+            }
+          },
+          {
+            $unwind: '$serviceData'
+          },
+          {
+            $project: {
+              date: '$createdAt',
+              serviceTitle: '$serviceData.title',
+              category: '$serviceData.category',
+              amount: '$pricing.total',
+              client: '$client'
+            }
+          },
+          {
+            $sort: { date: -1 }
+          }
+        ]);
+
+        report = {
+          earnings: detailedEarnings,
+          expenses: expenses.map(expense => ({
+            date: expense.timestamp,
+            category: expense.category,
+            description: expense.description,
+            amount: Math.abs(expense.amount)
+          }))
+        };
+        break;
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid report type'
+        });
     }
 
     res.status(200).json({
       success: true,
-      message: 'PayPal salary advance repayment approved successfully',
-      data: transaction
+      data: report
     });
   } catch (error) {
-    console.error('Approve PayPal salary advance repayment error:', error);
+    console.error('Get financial reports error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Update wallet settings
+// @route   PUT /api/finance/wallet/settings
+// @access  Private
+const updateWalletSettings = async (req, res) => {
+  try {
+    const { autoWithdraw, minBalance, notificationSettings } = req.body;
+
+    let finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      finance = await Finance.create({ user: req.user.id });
+    }
+
+    // Update wallet settings
+    if (autoWithdraw !== undefined) finance.wallet.autoWithdraw = autoWithdraw;
+    if (minBalance !== undefined) finance.wallet.minBalance = minBalance;
+    if (notificationSettings) finance.wallet.notificationSettings = notificationSettings;
+
+    finance.wallet.lastUpdated = new Date();
+    await finance.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Wallet settings updated successfully',
+      data: finance.wallet
+    });
+  } catch (error) {
+    console.error('Update wallet settings error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -591,15 +851,14 @@ const approvePayPalSalaryAdvanceRepayment = async (req, res) => {
 };
 
 module.exports = {
-  applyForLoan,
-  getUserLoans,
-  applyForSalaryAdvance,
-  getUserSalaryAdvances,
-  getUserTransactions,
-  approveLoan,
-  disburseLoan,
-  repayLoanWithPayPal,
-  approvePayPalLoanRepayment,
-  repaySalaryAdvanceWithPayPal,
-  approvePayPalSalaryAdvanceRepayment
+  getFinancialOverview,
+  getTransactions,
+  getEarnings,
+  getExpenses,
+  addExpense,
+  requestWithdrawal,
+  processWithdrawal,
+  getTaxDocuments,
+  getFinancialReports,
+  updateWalletSettings
 };

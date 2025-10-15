@@ -280,74 +280,172 @@ POST   /api/agencies/leave                 # Leave agency
 
 ### Supplies & Materials Endpoints
 ```
-GET  /api/supplies/products                # Get all products
-GET  /api/supplies/products/:id            # Get single product
-POST /api/supplies/products                # Create product (Supplier)
-GET  /api/supplies/subscription-kits       # Get subscription kits
-POST /api/supplies/orders                  # Create order
-GET  /api/supplies/orders                  # Get user orders
-POST /api/supplies/subscribe               # Subscribe to kit
+GET    /api/supplies                       # Get all supply items
+GET    /api/supplies/:id                   # Get single supply item
+POST   /api/supplies                       # Create supply item (Supplier)
+PUT    /api/supplies/:id                   # Update supply item (Supplier)
+DELETE /api/supplies/:id                   # Delete supply item (Supplier)
+POST   /api/supplies/:id/images            # Upload supply images
+DELETE /api/supplies/:id/images/:imageId   # Delete supply image
+POST   /api/supplies/:id/order             # Order supply item
+PUT    /api/supplies/:id/orders/:orderId/status # Update order status
+POST   /api/supplies/:id/reviews           # Add supply review
+GET    /api/supplies/my-supplies           # Get my supply items
+GET    /api/supplies/my-orders             # Get my supply orders
+GET    /api/supplies/nearby                # Get nearby supply items
+GET    /api/supplies/categories            # Get supply categories
+GET    /api/supplies/featured              # Get featured supply items
+GET    /api/supplies/statistics            # Get supply statistics (Admin)
 ```
 
 ### Academy Endpoints
 ```
-GET  /api/academy/courses                  # Get all courses
-GET  /api/academy/courses/:id              # Get single course
-POST /api/academy/courses                  # Create course (Instructor)
-POST /api/academy/enroll                   # Enroll in course
-GET  /api/academy/enrollments              # Get user enrollments
-GET  /api/academy/certifications           # Get certifications
+GET    /api/academy/courses                # Get all courses
+GET    /api/academy/courses/:id            # Get single course
+POST   /api/academy/courses                # Create course (Instructor)
+PUT    /api/academy/courses/:id            # Update course (Instructor)
+DELETE /api/academy/courses/:id            # Delete course (Instructor)
+POST   /api/academy/courses/:id/thumbnail  # Upload course thumbnail
+POST   /api/academy/courses/:id/videos     # Upload course video
+DELETE /api/academy/courses/:id/videos/:videoId # Delete course video
+POST   /api/academy/courses/:id/enroll     # Enroll in course
+PUT    /api/academy/courses/:id/progress   # Update course progress
+POST   /api/academy/courses/:id/reviews    # Add course review
+GET    /api/academy/my-courses             # Get my enrolled courses
+GET    /api/academy/my-created-courses     # Get my created courses
+GET    /api/academy/categories             # Get course categories
+GET    /api/academy/featured               # Get featured courses
+GET    /api/academy/statistics             # Get course statistics (Admin)
 ```
 
 ### Finance Endpoints
 ```
-POST /api/finance/loans/apply              # Apply for loan
-GET  /api/finance/loans                    # Get user loans
-POST /api/finance/salary-advance/apply     # Apply for salary advance
-GET  /api/finance/salary-advances          # Get user salary advances
-GET  /api/finance/transactions             # Get user transactions
+GET    /api/finance/overview               # Get financial overview
+GET    /api/finance/transactions           # Get user transactions
+GET    /api/finance/earnings               # Get user earnings
+GET    /api/finance/expenses               # Get user expenses
+POST   /api/finance/expenses               # Add expense
+POST   /api/finance/withdraw               # Request withdrawal
+PUT    /api/finance/withdrawals/:withdrawalId/process # Process withdrawal (Admin)
+GET    /api/finance/tax-documents          # Get tax documents
+GET    /api/finance/reports                # Get financial reports
+PUT    /api/finance/wallet/settings        # Update wallet settings
 ```
 
 ### Rentals Endpoints
 ```
-GET  /api/rentals/items                    # Get rental items
-GET  /api/rentals/items/:id                # Get single rental item
-POST /api/rentals/items                    # Create rental item
-POST /api/rentals/book                     # Create rental booking
-GET  /api/rentals                          # Get user rentals
-PUT  /api/rentals/:id/status               # Update rental status
+GET    /api/rentals                        # Get all rental items
+GET    /api/rentals/:id                    # Get single rental item
+POST   /api/rentals                        # Create rental item (Owner)
+PUT    /api/rentals/:id                    # Update rental item (Owner)
+DELETE /api/rentals/:id                    # Delete rental item (Owner)
+POST   /api/rentals/:id/images             # Upload rental images
+DELETE /api/rentals/:id/images/:imageId    # Delete rental image
+POST   /api/rentals/:id/book               # Book rental item
+PUT    /api/rentals/:id/bookings/:bookingId/status # Update booking status
+POST   /api/rentals/:id/reviews            # Add rental review
+GET    /api/rentals/my-rentals             # Get my rental items
+GET    /api/rentals/my-bookings            # Get my rental bookings
+GET    /api/rentals/nearby                 # Get nearby rental items
+GET    /api/rentals/categories             # Get rental categories
+GET    /api/rentals/featured               # Get featured rental items
+GET    /api/rentals/statistics             # Get rental statistics (Admin)
 ```
 
 ### Advertising Endpoints
 ```
-GET  /api/ads/active                       # Get active ads
-POST /api/ads/impression                   # Record ad impression
-POST /api/ads/advertisers/register         # Register as advertiser
-POST /api/ads/campaigns                    # Create ad campaign
-GET  /api/ads/campaigns                    # Get advertiser campaigns
-GET  /api/ads/campaigns/:id/analytics      # Get campaign analytics
+GET    /api/ads                            # Get all ads
+GET    /api/ads/:id                        # Get single ad
+POST   /api/ads                            # Create ad (Advertiser)
+PUT    /api/ads/:id                        # Update ad (Advertiser)
+DELETE /api/ads/:id                        # Delete ad (Advertiser)
+POST   /api/ads/:id/images                 # Upload ad images
+DELETE /api/ads/:id/images/:imageId        # Delete ad image
+GET    /api/ads/my-ads                     # Get my ads
+GET    /api/ads/:id/analytics              # Get ad analytics
+POST   /api/ads/:id/click                  # Track ad click
+GET    /api/ads/categories                 # Get ad categories
+GET    /api/ads/featured                   # Get featured ads
+POST   /api/ads/:id/promote                # Promote ad
+GET    /api/ads/statistics                 # Get ad statistics (Admin)
 ```
 
 ### FacilityCare Endpoints
 ```
-GET  /api/facility-care/services           # Get facility care services
-POST /api/facility-care/services           # Create service (Provider)
-POST /api/facility-care/contracts          # Create contract
-GET  /api/facility-care/contracts          # Get user contracts
-POST /api/facility-care/subscribe          # Create subscription
-GET  /api/facility-care/subscriptions      # Get user subscriptions
+GET    /api/facility-care                  # Get all facility care services
+GET    /api/facility-care/:id              # Get single facility care service
+POST   /api/facility-care                  # Create facility care service (Provider)
+PUT    /api/facility-care/:id              # Update facility care service (Provider)
+DELETE /api/facility-care/:id              # Delete facility care service (Provider)
+POST   /api/facility-care/:id/images       # Upload facility care images
+DELETE /api/facility-care/:id/images/:imageId # Delete facility care image
+POST   /api/facility-care/:id/book         # Book facility care service
+PUT    /api/facility-care/:id/bookings/:bookingId/status # Update booking status
+POST   /api/facility-care/:id/reviews      # Add facility care review
+GET    /api/facility-care/my-services      # Get my facility care services
+GET    /api/facility-care/my-bookings      # Get my facility care bookings
+GET    /api/facility-care/nearby           # Get nearby facility care services
 ```
 
 ### LocalPro Plus Endpoints
 ```
-GET  /api/localpro-plus/plans              # Get subscription plans
-POST /api/localpro-plus/subscribe          # Subscribe to plan
-GET  /api/localpro-plus/subscription       # Get user subscription
-PUT  /api/localpro-plus/subscription/cancel # Cancel subscription
-GET  /api/localpro-plus/payments           # Get user payments
-POST /api/localpro-plus/usage              # Record feature usage
-POST /api/localpro-plus/paypal/approve     # Approve PayPal subscription
-POST /api/localpro-plus/paypal/cancel      # Cancel PayPal subscription
+GET    /api/localpro-plus/plans            # Get subscription plans
+GET    /api/localpro-plus/plans/:id        # Get single plan
+POST   /api/localpro-plus/plans            # Create plan (Admin)
+PUT    /api/localpro-plus/plans/:id        # Update plan (Admin)
+DELETE /api/localpro-plus/plans/:id        # Delete plan (Admin)
+POST   /api/localpro-plus/subscribe        # Subscribe to plan
+POST   /api/localpro-plus/confirm-payment  # Confirm subscription payment
+POST   /api/localpro-plus/cancel           # Cancel subscription
+GET    /api/localpro-plus/my-subscription  # Get my subscription
+PUT    /api/localpro-plus/subscription/settings # Update subscription settings
+GET    /api/localpro-plus/usage            # Get subscription usage
+POST   /api/localpro-plus/renew            # Renew subscription
+GET    /api/localpro-plus/analytics        # Get subscription analytics (Admin)
+```
+
+### Trust & Verification Endpoints
+```
+GET    /api/trust-verification             # Get all verification requests (Admin)
+GET    /api/trust-verification/:id         # Get single verification request
+POST   /api/trust-verification             # Create verification request
+PUT    /api/trust-verification/:id         # Update verification request
+DELETE /api/trust-verification/:id         # Delete verification request
+PUT    /api/trust-verification/:id/review  # Review verification request (Admin)
+POST   /api/trust-verification/:id/documents # Upload verification documents
+DELETE /api/trust-verification/:id/documents/:documentId # Delete verification document
+GET    /api/trust-verification/my-requests # Get my verification requests
+GET    /api/trust-verification/statistics  # Get verification statistics (Admin)
+GET    /api/trust-verification/verified-users # Get verified users
+```
+
+### Communication Endpoints
+```
+GET    /api/communication/conversations    # Get user conversations
+GET    /api/communication/conversations/:id # Get single conversation
+POST   /api/communication/conversations    # Create conversation
+DELETE /api/communication/conversations/:id # Delete conversation
+POST   /api/communication/conversations/:id/messages # Send message
+PUT    /api/communication/conversations/:id/read # Mark messages as read
+PUT    /api/communication/conversations/:id/messages/:messageId # Update message
+DELETE /api/communication/conversations/:id/messages/:messageId # Delete message
+POST   /api/communication/email            # Send email notification
+POST   /api/communication/sms              # Send SMS notification
+GET    /api/communication/unread-count     # Get unread message count
+GET    /api/communication/search           # Search conversations
+GET    /api/communication/conversation-with/:userId # Get conversation with user
+```
+
+### Analytics Endpoints
+```
+GET    /api/analytics/overview             # Get analytics overview
+GET    /api/analytics/users                # Get user analytics
+GET    /api/analytics/marketplace          # Get marketplace analytics
+GET    /api/analytics/jobs                 # Get job analytics
+GET    /api/analytics/referrals            # Get referral analytics
+GET    /api/analytics/agencies             # Get agency analytics
+POST   /api/analytics/track                # Track analytics event
+GET    /api/analytics/custom               # Get custom analytics
 ```
 
 ### PayPal Payment Endpoints
@@ -390,25 +488,124 @@ POST /api/maps/analyze-coverage            # Analyze service coverage (Protected
 GET  /api/maps/test                        # Test API connection (Admin)
 ```
 
+## 📝 API Examples
+
+### Authentication Flow
+```bash
+# 1. Send verification code
+curl -X POST http://localhost:4000/api/auth/send-code \
+  -H "Content-Type: application/json" \
+  -d '{"phoneNumber": "+1234567890"}'
+
+# 2. Verify code and register/login
+curl -X POST http://localhost:4000/api/auth/verify-code \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phoneNumber": "+1234567890",
+    "code": "123456",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "provider"
+  }'
+
+# 3. Get user profile (requires token)
+curl -X GET http://localhost:4000/api/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Marketplace Service Creation
+```bash
+# Create a service (requires provider token)
+curl -X POST http://localhost:4000/api/marketplace/services \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "House Cleaning Service",
+    "description": "Professional house cleaning service",
+    "category": "cleaning",
+    "pricing": {
+      "basePrice": 50,
+      "hourlyRate": 25
+    },
+    "serviceArea": {
+      "city": "New York",
+      "state": "NY",
+      "radius": 10
+    }
+  }'
+```
+
+### Job Application
+```bash
+# Apply for a job
+curl -X POST http://localhost:4000/api/jobs/64a1b2c3d4e5f6789012345/apply \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "coverLetter": "I am interested in this position...",
+    "expectedSalary": 50000,
+    "availability": "immediate"
+  }'
+```
+
+### Referral System
+```bash
+# Get referral information
+curl -X GET http://localhost:4000/api/referrals/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Send referral invitation
+curl -X POST http://localhost:4000/api/referrals/invite \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "friend@example.com",
+    "message": "Join LocalPro and get rewards!"
+  }'
+```
+
+### PayPal Payment
+```bash
+# Create PayPal order for booking
+curl -X POST http://localhost:4000/api/marketplace/bookings/paypal/approve \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "orderId": "PAYPAL_ORDER_ID",
+    "bookingId": "64a1b2c3d4e5f6789012345"
+  }'
+```
+
+### Google Maps Integration
+```bash
+# Geocode an address
+curl -X POST http://localhost:4000/api/maps/geocode \
+  -H "Content-Type: application/json" \
+  -d '{"address": "123 Main St, New York, NY"}'
+
+# Find nearby services
+curl -X GET "http://localhost:4000/api/marketplace/services/nearby?lat=40.7128&lng=-74.0060&radius=5" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
 ## 🗄️ Database Models
 
 ### Core Models
-- **User**: User profiles with roles and preferences
-- **Service**: Marketplace services with pricing and availability
-- **Booking**: Service bookings with status tracking
+- **User**: User profiles with roles, preferences, and trust verification
+- **Marketplace**: Services and bookings with pricing and availability
 - **Job**: Job postings with applications and analytics
 - **Referral**: Referral tracking with rewards and analytics
 - **Agency**: Agency management with provider coordination
-- **Product**: Supplies and materials catalog
-- **Order**: Product orders and subscriptions
-- **Course**: Training courses and curriculum
-- **Enrollment**: Course enrollments and progress
-- **Loan**: Loan applications and management
-- **RentalItem**: Tools and vehicles for rent
-- **Rental**: Rental bookings and transactions
-- **AdCampaign**: Advertising campaigns
-- **Contract**: Facility care contracts
-- **Subscription**: LocalPro Plus subscriptions
+- **Supplies**: Supply items with inventory and orders
+- **Academy**: Training courses with enrollments and progress
+- **Finance**: Financial transactions, earnings, and expenses
+- **Rentals**: Rental items with bookings and reviews
+- **Ads**: Advertising campaigns with analytics
+- **FacilityCare**: Facility care services with bookings
+- **LocalProPlus**: Subscription plans and user subscriptions
+- **TrustVerification**: Trust and verification requests
+- **Communication**: Conversations and messages
+- **Analytics**: Analytics events and tracking data
 
 ## 🆕 New Features
 
