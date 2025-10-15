@@ -1,17 +1,16 @@
 const express = require('express');
 const { auth, authorize } = require('../middleware/auth');
 const {
-  applyForLoan,
-  getUserLoans,
-  applyForSalaryAdvance,
-  getUserSalaryAdvances,
-  getUserTransactions,
-  approveLoan,
-  disburseLoan,
-  repayLoanWithPayPal,
-  approvePayPalLoanRepayment,
-  repaySalaryAdvanceWithPayPal,
-  approvePayPalSalaryAdvanceRepayment
+  getFinancialOverview,
+  getTransactions,
+  getEarnings,
+  getExpenses,
+  addExpense,
+  requestWithdrawal,
+  processWithdrawal,
+  getTaxDocuments,
+  getFinancialReports,
+  updateWalletSettings
 } = require('../controllers/financeController');
 
 const router = express.Router();
@@ -19,25 +18,24 @@ const router = express.Router();
 // All routes require authentication
 router.use(auth);
 
-// Loan routes
-router.post('/loans/apply', applyForLoan);
-router.get('/loans', getUserLoans);
+// Financial overview and analytics
+router.get('/overview', getFinancialOverview);
+router.get('/transactions', getTransactions);
+router.get('/earnings', getEarnings);
+router.get('/expenses', getExpenses);
+router.get('/reports', getFinancialReports);
 
-// Salary advance routes
-router.post('/salary-advance/apply', applyForSalaryAdvance);
-router.get('/salary-advances', getUserSalaryAdvances);
+// Expense management
+router.post('/expenses', addExpense);
 
-// Transaction routes
-router.get('/transactions', getUserTransactions);
+// Withdrawal management
+router.post('/withdraw', requestWithdrawal);
+router.put('/withdrawals/:withdrawalId/process', authorize('admin'), processWithdrawal);
 
-// Admin routes
-router.put('/loans/:id/approve', authorize('admin'), approveLoan);
-router.put('/loans/:id/disburse', authorize('admin'), disburseLoan);
+// Tax documents
+router.get('/tax-documents', getTaxDocuments);
 
-// PayPal payment routes
-router.post('/loans/:id/repay/paypal', repayLoanWithPayPal);
-router.post('/loans/repay/paypal/approve', approvePayPalLoanRepayment);
-router.post('/salary-advances/:id/repay/paypal', repaySalaryAdvanceWithPayPal);
-router.post('/salary-advances/repay/paypal/approve', approvePayPalSalaryAdvanceRepayment);
+// Wallet settings
+router.put('/wallet/settings', updateWalletSettings);
 
 module.exports = router;

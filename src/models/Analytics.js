@@ -307,8 +307,8 @@ const platformAnalyticsSchema = new mongoose.Schema({
 });
 
 // Indexes
-userAnalyticsSchema.index({ userId: 1 });
-serviceAnalyticsSchema.index({ serviceId: 1 });
+// userId already has unique: true which creates an index
+// serviceId already has unique: true which creates an index
 platformAnalyticsSchema.index({ date: -1 });
 
 // Static methods for analytics

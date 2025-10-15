@@ -1,37 +1,37 @@
 const express = require('express');
-const router = express.Router();
 const { auth, authorize } = require('../middleware/auth');
 const {
-  trackEvent,
+  getAnalyticsOverview,
   getUserAnalytics,
-  getServiceAnalytics,
-  getPlatformAnalytics,
-  getDashboardData
+  getMarketplaceAnalytics,
+  getJobAnalytics,
+  getReferralAnalytics,
+  getAgencyAnalytics,
+  trackEvent,
+  getCustomAnalytics
 } = require('../controllers/analyticsController');
 
-// @route   POST /api/analytics/track
-// @desc    Track analytics event
-// @access  Private
-router.post('/track', auth, trackEvent);
+const router = express.Router();
 
-// @route   GET /api/analytics/user
-// @desc    Get user analytics
-// @access  Private
-router.get('/user', auth, getUserAnalytics);
+// All routes require authentication
+router.use(auth);
 
-// @route   GET /api/analytics/services/:serviceId
-// @desc    Get service analytics
-// @access  Private
-router.get('/services/:serviceId', auth, getServiceAnalytics);
+// Analytics overview
+router.get('/overview', getAnalyticsOverview);
 
-// @route   GET /api/analytics/platform
-// @desc    Get platform analytics (Admin only)
-// @access  Private (Admin)
-router.get('/platform', auth, authorize('admin'), getPlatformAnalytics);
+// User analytics
+router.get('/user', getUserAnalytics);
 
-// @route   GET /api/analytics/dashboard
-// @desc    Get analytics dashboard data
-// @access  Private
-router.get('/dashboard', auth, getDashboardData);
+// Module-specific analytics
+router.get('/marketplace', getMarketplaceAnalytics);
+router.get('/jobs', getJobAnalytics);
+router.get('/referrals', getReferralAnalytics);
+router.get('/agencies', getAgencyAnalytics);
+
+// Custom analytics (Admin only)
+router.get('/custom', authorize('admin'), getCustomAnalytics);
+
+// Event tracking
+router.post('/track', trackEvent);
 
 module.exports = router;

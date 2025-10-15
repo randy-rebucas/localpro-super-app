@@ -369,7 +369,7 @@ disputeSchema.index({ type: 1 });
 disputeSchema.index({ priority: 1 });
 disputeSchema.index({ createdAt: -1 });
 
-trustScoreSchema.index({ user: 1 });
+// user already has unique: true which creates an index
 trustScoreSchema.index({ overallScore: -1 });
 trustScoreSchema.index({ lastCalculated: -1 });
 

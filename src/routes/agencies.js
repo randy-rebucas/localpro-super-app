@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
-const auth = require('../middleware/auth');
-const upload = require('../config/cloudinary').upload;
+const { auth, authorize } = require('../middleware/auth');
+const { uploaders } = require('../config/cloudinary');
 
 const {
   createAgency,
@@ -10,7 +10,7 @@ const {
   getAgency,
   updateAgency,
   deleteAgency,
-  uploadLogo,
+  uploadAgencyLogo,
   addProvider,
   removeProvider,
   updateProviderStatus,
@@ -84,7 +84,7 @@ router.use(auth); // All routes below require authentication
 router.post('/', createAgencyValidation, createAgency); // Create agency
 router.put('/:id', updateAgencyValidation, updateAgency); // Update agency
 router.delete('/:id', deleteAgency); // Delete agency
-router.post('/:id/logo', upload.single('logo'), uploadLogo); // Upload logo
+router.post('/:id/logo', uploaders.userProfiles.single('logo'), uploadAgencyLogo); // Upload logo
 
 // Provider management routes
 router.post('/:id/providers', addProvider); // Add provider

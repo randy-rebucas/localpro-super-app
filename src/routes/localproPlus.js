@@ -1,41 +1,47 @@
 const express = require('express');
-const { auth } = require('../middleware/auth');
+const { auth, authorize } = require('../middleware/auth');
 const {
-  getSubscriptionPlans,
-  getSubscriptionPlan,
+  getPlans,
+  getPlan,
+  createPlan,
+  updatePlan,
+  deletePlan,
   subscribeToPlan,
-  getUserSubscription,
+  confirmSubscriptionPayment,
   cancelSubscription,
-  getUserPayments,
-  recordFeatureUsage,
-  getUsageAnalytics,
-  approvePayPalSubscription,
-  cancelPayPalSubscription
+  getMySubscription,
+  updateSubscriptionSettings,
+  getSubscriptionUsage,
+  renewSubscription,
+  getSubscriptionAnalytics
 } = require('../controllers/localproPlusController');
 
 const router = express.Router();
 
 // Public routes
-router.get('/plans', getSubscriptionPlans);
-router.get('/plans/:id', getSubscriptionPlan);
+router.get('/plans', getPlans);
+router.get('/plans/:id', getPlan);
 
 // Protected routes
 router.use(auth);
 
+// Plan management routes (Admin only)
+router.post('/plans', authorize('admin'), createPlan);
+router.put('/plans/:id', authorize('admin'), updatePlan);
+router.delete('/plans/:id', authorize('admin'), deletePlan);
+
 // Subscription routes
-router.post('/subscribe', subscribeToPlan);
-router.get('/subscription', getUserSubscription);
-router.put('/subscription/cancel', cancelSubscription);
+router.post('/subscribe/:planId', subscribeToPlan);
+router.post('/confirm-payment', confirmSubscriptionPayment);
+router.post('/cancel', cancelSubscription);
+router.post('/renew', renewSubscription);
 
-// Payment routes
-router.get('/payments', getUserPayments);
+// User subscription management
+router.get('/my-subscription', getMySubscription);
+router.put('/settings', updateSubscriptionSettings);
+router.get('/usage', getSubscriptionUsage);
 
-// Usage tracking routes
-router.post('/usage', recordFeatureUsage);
-router.get('/usage/analytics', getUsageAnalytics);
-
-// PayPal routes
-router.post('/paypal/approve', approvePayPalSubscription);
-router.post('/paypal/cancel', cancelPayPalSubscription);
+// Analytics routes (Admin only)
+router.get('/analytics', authorize('admin'), getSubscriptionAnalytics);
 
 module.exports = router;

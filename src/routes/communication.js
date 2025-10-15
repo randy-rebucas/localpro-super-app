@@ -1,49 +1,47 @@
 const express = require('express');
-const router = express.Router();
 const { auth } = require('../middleware/auth');
 const {
-  createOrGetConversation,
   getConversations,
+  getConversation,
+  createConversation,
   sendMessage,
-  getMessages,
-  getNotifications,
-  markNotificationAsRead,
-  markAllNotificationsAsRead
+  markAsRead,
+  deleteConversation,
+  sendEmailNotification,
+  sendSMSNotification,
+  getUnreadCount,
+  searchConversations,
+  getConversationWithUser,
+  updateMessage,
+  deleteMessage
 } = require('../controllers/communicationController');
 
-// @route   POST /api/communication/conversations
-// @desc    Create or get conversation
-// @access  Private
-router.post('/conversations', auth, createOrGetConversation);
+const router = express.Router();
 
-// @route   GET /api/communication/conversations
-// @desc    Get user conversations
-// @access  Private
-router.get('/conversations', auth, getConversations);
+// All routes require authentication
+router.use(auth);
 
-// @route   POST /api/communication/messages
-// @desc    Send message
-// @access  Private
-router.post('/messages', auth, sendMessage);
+// Conversation routes
+router.get('/conversations', getConversations);
+router.get('/conversations/:id', getConversation);
+router.post('/conversations', createConversation);
+router.delete('/conversations/:id', deleteConversation);
 
-// @route   GET /api/communication/conversations/:id/messages
-// @desc    Get conversation messages
-// @access  Private
-router.get('/conversations/:id/messages', auth, getMessages);
+// Message routes
+router.post('/conversations/:id/messages', sendMessage);
+router.put('/conversations/:id/messages/:messageId', updateMessage);
+router.delete('/conversations/:id/messages/:messageId', deleteMessage);
 
-// @route   GET /api/communication/notifications
-// @desc    Get user notifications
-// @access  Private
-router.get('/notifications', auth, getNotifications);
+// Read status routes
+router.put('/conversations/:id/read', markAsRead);
 
-// @route   PUT /api/communication/notifications/:id/read
-// @desc    Mark notification as read
-// @access  Private
-router.put('/notifications/:id/read', auth, markNotificationAsRead);
+// Notification routes
+router.post('/notifications/email', sendEmailNotification);
+router.post('/notifications/sms', sendSMSNotification);
 
-// @route   PUT /api/communication/notifications/read-all
-// @desc    Mark all notifications as read
-// @access  Private
-router.put('/notifications/read-all', auth, markAllNotificationsAsRead);
+// Utility routes
+router.get('/unread-count', getUnreadCount);
+router.get('/search', searchConversations);
+router.get('/conversation-with/:userId', getConversationWithUser);
 
 module.exports = router;

@@ -1,35 +1,49 @@
 const express = require('express');
 const { auth, authorize } = require('../middleware/auth');
 const {
-  getServices,
-  getService,
-  createService,
-  createContract,
-  getContracts,
-  createSubscription,
-  getSubscriptions,
-  updateSubscriptionStatus
+  getFacilityCareServices,
+  getFacilityCareService,
+  createFacilityCareService,
+  updateFacilityCareService,
+  deleteFacilityCareService,
+  uploadFacilityCareImages,
+  deleteFacilityCareImage,
+  bookFacilityCareService,
+  updateBookingStatus,
+  addFacilityCareReview,
+  getMyFacilityCareServices,
+  getMyFacilityCareBookings,
+  getNearbyFacilityCareServices
 } = require('../controllers/facilityCareController');
 
 const router = express.Router();
 
 // Public routes
-router.get('/services', getServices);
-router.get('/services/:id', getService);
+router.get('/', getFacilityCareServices);
+router.get('/nearby', getNearbyFacilityCareServices);
+router.get('/:id', getFacilityCareService);
 
 // Protected routes
 router.use(auth);
 
-// Service routes
-router.post('/services', authorize('provider', 'admin'), createService);
+// Service management routes
+router.post('/', authorize('provider', 'admin'), createFacilityCareService);
+router.put('/:id', authorize('provider', 'admin'), updateFacilityCareService);
+router.delete('/:id', authorize('provider', 'admin'), deleteFacilityCareService);
 
-// Contract routes
-router.post('/contracts', createContract);
-router.get('/contracts', getContracts);
+// Image management routes
+router.post('/:id/images', authorize('provider', 'admin'), uploadFacilityCareImages);
+router.delete('/:id/images/:imageId', authorize('provider', 'admin'), deleteFacilityCareImage);
 
-// Subscription routes
-router.post('/subscribe', createSubscription);
-router.get('/subscriptions', getSubscriptions);
-router.put('/subscriptions/:id/status', updateSubscriptionStatus);
+// Booking routes
+router.post('/:id/book', bookFacilityCareService);
+router.put('/:id/bookings/:bookingId/status', updateBookingStatus);
+
+// Review routes
+router.post('/:id/reviews', addFacilityCareReview);
+
+// User-specific routes
+router.get('/my-services', getMyFacilityCareServices);
+router.get('/my-bookings', getMyFacilityCareBookings);
 
 module.exports = router;

@@ -1,33 +1,53 @@
 const express = require('express');
 const { auth, authorize } = require('../middleware/auth');
 const {
-  registerAdvertiser,
-  createCampaign,
-  getCampaigns,
-  getActiveAds,
-  recordImpression,
-  getCampaignAnalytics,
-  approveCampaign
+  getAds,
+  getAd,
+  createAd,
+  updateAd,
+  deleteAd,
+  uploadAdImages,
+  deleteAdImage,
+  getMyAds,
+  getAdAnalytics,
+  trackAdClick,
+  getAdCategories,
+  getFeaturedAds,
+  promoteAd,
+  getAdStatistics
 } = require('../controllers/adsController');
 
 const router = express.Router();
 
 // Public routes
-router.get('/active', getActiveAds);
-router.post('/impression', recordImpression);
+router.get('/', getAds);
+router.get('/categories', getAdCategories);
+router.get('/featured', getFeaturedAds);
+router.get('/:id', getAd);
+router.post('/:id/click', trackAdClick);
 
 // Protected routes
 router.use(auth);
 
-// Advertiser routes
-router.post('/advertisers/register', registerAdvertiser);
+// Ad management routes
+router.post('/', authorize('advertiser', 'admin'), createAd);
+router.put('/:id', authorize('advertiser', 'admin'), updateAd);
+router.delete('/:id', authorize('advertiser', 'admin'), deleteAd);
 
-// Campaign routes
-router.post('/campaigns', createCampaign);
-router.get('/campaigns', getCampaigns);
-router.get('/campaigns/:id/analytics', getCampaignAnalytics);
+// Image management routes
+router.post('/:id/images', authorize('advertiser', 'admin'), uploadAdImages);
+router.delete('/:id/images/:imageId', authorize('advertiser', 'admin'), deleteAdImage);
 
-// Admin routes
-router.put('/campaigns/:id/approve', authorize('admin'), approveCampaign);
+// Ad promotion routes
+router.post('/:id/promote', authorize('advertiser', 'admin'), promoteAd);
+
+// Analytics routes
+router.get('/:id/analytics', getAdAnalytics);
+
+// User-specific routes
+router.get('/my-ads', getMyAds);
+
+// Statistics route (Admin only)
+router.get('/statistics', authorize('admin'), getAdStatistics);
 
 module.exports = router;

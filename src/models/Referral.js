@@ -192,7 +192,7 @@ const referralSchema = new mongoose.Schema({
 // Indexes for better performance
 referralSchema.index({ referrer: 1, status: 1 });
 referralSchema.index({ referee: 1, status: 1 });
-referralSchema.index({ referralCode: 1 });
+// referralCode already has unique: true which creates an index
 referralSchema.index({ referralType: 1, status: 1 });
 referralSchema.index({ 'timeline.referredAt': -1 });
 referralSchema.index({ 'timeline.expiresAt': 1 });

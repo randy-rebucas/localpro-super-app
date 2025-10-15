@@ -1,49 +1,43 @@
 const express = require('express');
-const router = express.Router();
 const { auth, authorize } = require('../middleware/auth');
 const {
-  submitVerificationRequest,
-  getVerificationRequests,
-  reviewVerificationRequest,
-  getTrustScore,
-  createDispute,
-  getDisputes,
-  resolveDispute
+  getTrustVerificationRequests,
+  getTrustVerificationRequest,
+  createTrustVerificationRequest,
+  updateTrustVerificationRequest,
+  reviewTrustVerificationRequest,
+  deleteTrustVerificationRequest,
+  uploadVerificationDocuments,
+  deleteVerificationDocument,
+  getMyTrustVerificationRequests,
+  getTrustVerificationStatistics,
+  getVerifiedUsers
 } = require('../controllers/trustVerificationController');
 
-// @route   POST /api/trust-verification/verify
-// @desc    Submit verification request
-// @access  Private
-router.post('/verify', auth, submitVerificationRequest);
+const router = express.Router();
 
-// @route   GET /api/trust-verification/requests
-// @desc    Get user verification requests
-// @access  Private
-router.get('/requests', auth, getVerificationRequests);
+// Public routes
+router.get('/verified-users', getVerifiedUsers);
 
-// @route   PUT /api/trust-verification/requests/:id/review
-// @desc    Review verification request (Admin only)
-// @access  Private (Admin)
-router.put('/requests/:id/review', auth, authorize('admin'), reviewVerificationRequest);
+// Protected routes
+router.use(auth);
 
-// @route   GET /api/trust-verification/trust-score
-// @desc    Get user trust score and events
-// @access  Private
-router.get('/trust-score', auth, getTrustScore);
+// Verification request routes
+router.get('/requests', getTrustVerificationRequests);
+router.get('/requests/:id', getTrustVerificationRequest);
+router.post('/requests', createTrustVerificationRequest);
+router.put('/requests/:id', updateTrustVerificationRequest);
+router.delete('/requests/:id', deleteTrustVerificationRequest);
 
-// @route   POST /api/trust-verification/disputes
-// @desc    Create dispute
-// @access  Private
-router.post('/disputes', auth, createDispute);
+// Document management routes
+router.post('/requests/:id/documents', uploadVerificationDocuments);
+router.delete('/requests/:id/documents/:documentId', deleteVerificationDocument);
 
-// @route   GET /api/trust-verification/disputes
-// @desc    Get user disputes
-// @access  Private
-router.get('/disputes', auth, getDisputes);
+// User-specific routes
+router.get('/my-requests', getMyTrustVerificationRequests);
 
-// @route   PUT /api/trust-verification/disputes/:id/resolve
-// @desc    Resolve dispute (Admin only)
-// @access  Private (Admin)
-router.put('/disputes/:id/resolve', auth, authorize('admin'), resolveDispute);
+// Admin routes
+router.put('/requests/:id/review', authorize('admin'), reviewTrustVerificationRequest);
+router.get('/statistics', authorize('admin'), getTrustVerificationStatistics);
 
 module.exports = router;
