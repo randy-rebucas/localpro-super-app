@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, and comprehensive settings management. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, and user/app settings management system.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, and logging & error monitoring. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation, error tracking with alerting, performance monitoring, and admin error management dashboard.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -98,6 +98,11 @@
     },
     {
       "key": "checkoutId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "errorId",
       "value": "",
       "type": "string"
     },
@@ -6477,6 +6482,99 @@
               "raw": "{{baseUrl}}/api/settings/app/health",
               "host": ["{{baseUrl}}"],
               "path": ["api", "settings", "app", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Monitoring",
+      "item": [
+        {
+          "name": "Get Error Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/error-monitoring/dashboard/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "error-monitoring", "dashboard", "summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Error Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/error-monitoring/stats?timeframe=24h",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "error-monitoring", "stats"],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "24h",
+                  "description": "Timeframe: 1h, 24h, 7d, 30d"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unresolved Errors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/error-monitoring/unresolved?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "error-monitoring", "unresolved"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Number of errors to return"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Error Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/error-monitoring/{{errorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "error-monitoring", "{{errorId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolve Error",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resolution\": \"Description of how the error was resolved\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/error-monitoring/{{errorId}}/resolve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "error-monitoring", "{{errorId}}", "resolve"]
             }
           },
           "response": []

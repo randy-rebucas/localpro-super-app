@@ -6,7 +6,9 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const connectDB = require('./config/database');
+const logger = require('./config/logger');
 const errorHandler = require('./middleware/errorHandler');
+const requestLogger = require('./middleware/requestLogger');
 const authRoutes = require('./routes/auth');
 const marketplaceRoutes = require('./routes/marketplace');
 const suppliesRoutes = require('./routes/supplies');
@@ -26,6 +28,7 @@ const jobsRoutes = require('./routes/jobs');
 const referralsRoutes = require('./routes/referrals');
 const agenciesRoutes = require('./routes/agencies');
 const settingsRoutes = require('./routes/settings');
+const errorMonitoringRoutes = require('./routes/errorMonitoring');
 
 const app = express();
 
@@ -52,7 +55,8 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Logging middleware
-app.use(morgan('combined'));
+app.use(morgan('combined', { stream: logger.stream }));
+app.use(requestLogger);
 
 // Index API info endpoint
 app.get('/', (req, res) => {
@@ -148,6 +152,7 @@ app.use('/api/jobs', jobsRoutes);
 app.use('/api/referrals', referralsRoutes);
 app.use('/api/agencies', agenciesRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/error-monitoring', errorMonitoringRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -163,6 +168,14 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
+  logger.info('LocalPro Super App API Started', {
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString()
+  });
+  
   console.log(`🚀 LocalPro Super App API running on port ${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📊 Logging enabled with Winston`);
+  console.log(`🔍 Error monitoring active`);
 });

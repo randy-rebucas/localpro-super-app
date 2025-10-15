@@ -22,6 +22,7 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **🗺️ Google Maps**: Location services and mapping integration
 - **📧 Email Service**: Multi-provider email notifications
 - **⚙️ Settings Management**: Comprehensive user and app settings system
+- **📊 Logging & Error Monitoring**: Comprehensive logging system with Winston and error tracking
 
 ### Key Features
 - RESTful API with comprehensive endpoints
@@ -56,7 +57,8 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **Authentication**: JWT + Twilio SMS
 - **Validation**: Joi
 - **Security**: Helmet, CORS, Rate Limiting
-- **Logging**: Morgan
+- **Logging**: Winston with daily rotation, Morgan for HTTP requests
+- **Error Monitoring**: Custom error tracking with alerting and resolution management
 - **Email Service**: Resend, SendGrid, SMTP (Nodemailer)
 - **Payment Processing**: PayPal Server SDK + REST API, PayMaya API
 - **Maps & Location**: Google Maps APIs
@@ -128,6 +130,20 @@ JWT_SECRET=your-super-secret-jwt-key-here
 
 # Email Settings
 EMAIL_SERVICE=resend
+
+# Logging Configuration
+LOG_LEVEL=info
+LOG_FILE_MAX_SIZE=20m
+LOG_FILE_MAX_FILES=14d
+LOG_HTTP_REQUESTS=true
+LOG_SLOW_REQUESTS_THRESHOLD=2000
+
+# Error Monitoring
+ERROR_MONITORING_ENABLED=true
+ERROR_ALERT_THRESHOLDS_CRITICAL=1
+ERROR_ALERT_THRESHOLDS_HIGH=5
+ERROR_ALERT_THRESHOLDS_MEDIUM=10
+ERROR_ALERT_THRESHOLDS_LOW=20
 
 # Google Maps Configuration (Optional)
 # GOOGLE_MAPS_API_KEY=your-google-maps-api-key
@@ -506,6 +522,15 @@ GET    /api/settings/app/public             # Get public app settings
 GET    /api/settings/app/health             # Get app health status
 ```
 
+### Error Monitoring Endpoints
+```
+GET    /api/error-monitoring/dashboard/summary # Get error monitoring dashboard (Admin)
+GET    /api/error-monitoring/stats           # Get error statistics (Admin)
+GET    /api/error-monitoring/unresolved      # Get unresolved errors (Admin)
+GET    /api/error-monitoring/:errorId        # Get error details (Admin)
+PATCH  /api/error-monitoring/:errorId/resolve # Resolve error (Admin)
+```
+
 ## 📝 API Examples
 
 ### Authentication Flow
@@ -654,6 +679,29 @@ curl -X POST http://localhost:4000/api/settings/app/features/toggle \
   }'
 ```
 
+### Error Monitoring
+```bash
+# Get error monitoring dashboard (admin only)
+curl -X GET http://localhost:4000/api/error-monitoring/dashboard/summary \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get error statistics for last 24 hours
+curl -X GET "http://localhost:4000/api/error-monitoring/stats?timeframe=24h" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get unresolved errors
+curl -X GET "http://localhost:4000/api/error-monitoring/unresolved?limit=50" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Resolve an error
+curl -X PATCH http://localhost:4000/api/error-monitoring/error123/resolve \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resolution": "Fixed database connection issue"
+  }'
+```
+
 ## 🗄️ Database Models
 
 ### Core Models
@@ -674,6 +722,7 @@ curl -X POST http://localhost:4000/api/settings/app/features/toggle \
 - **Analytics**: Analytics events and tracking data
 - **UserSettings**: User preferences and configuration
 - **AppSettings**: Global application configuration and feature flags
+- **ErrorTracking**: Error monitoring and tracking data
 
 ## 🆕 New Features
 
@@ -748,6 +797,18 @@ curl -X POST http://localhost:4000/api/settings/app/features/toggle \
 - **Validation**: Comprehensive input validation for all settings
 - **Default Settings**: Automatic generation of default settings for new users
 - **Settings Reset**: Reset user settings to defaults functionality
+
+### 📊 Logging & Error Monitoring System
+- **Winston Logging**: Multi-level logging with daily rotation and structured JSON format
+- **Error Tracking**: Automatic error capture with categorization and severity levels
+- **Performance Monitoring**: Request timing and slow request detection
+- **Business Event Logging**: Specialized logging for payments, bookings, and user actions
+- **Security Event Logging**: Authentication failures and security-related events
+- **Alert System**: Configurable thresholds for error notifications
+- **Error Resolution**: Mark errors as resolved with notes and tracking
+- **Dashboard API**: Admin endpoints for viewing error statistics and trends
+- **Log Rotation**: Automatic file rotation to prevent disk space issues
+- **Sensitive Data Protection**: Automatic redaction of passwords and tokens in logs
 
 ### 🔧 Enhanced Controllers
 - **Marketplace**: Location-based service search with distance calculations
@@ -834,6 +895,7 @@ For support, email support@localpro.com or join our Slack channel.
 - [x] Distance calculations
 - [x] Subscription management
 - [x] Settings management system
+- [x] Logging and error monitoring system
 - [ ] Mobile app integration
 - [ ] Real-time notifications
 - [ ] Advanced analytics dashboard

@@ -1,9 +1,25 @@
-const errorHandler = (err, req, res, next) => {
+const logger = require('../config/logger');
+const errorMonitoringService = require('../services/errorMonitoringService');
+
+const errorHandler = async (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
-  // Log error
-  console.error(err);
+  // Track error with monitoring service
+  try {
+    await errorMonitoringService.trackError(err, req, {
+      originalUrl: req.originalUrl,
+      method: req.method,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip || req.connection.remoteAddress
+    });
+  } catch (trackingError) {
+    // Fallback to basic logging if tracking fails
+    logger.error('Error tracking failed', {
+      originalError: err.message,
+      trackingError: trackingError.message
+    });
+  }
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
@@ -22,6 +38,29 @@ const errorHandler = (err, req, res, next) => {
     const message = Object.values(err.errors).map(val => val.message);
     error = { message, statusCode: 400 };
   }
+
+  // JWT errors
+  if (err.name === 'JsonWebTokenError') {
+    const message = 'Invalid token';
+    error = { message, statusCode: 401 };
+  }
+
+  if (err.name === 'TokenExpiredError') {
+    const message = 'Token expired';
+    error = { message, statusCode: 401 };
+  }
+
+  // Rate limiting errors
+  if (err.statusCode === 429) {
+    const message = 'Too many requests, please try again later';
+    error = { message, statusCode: 429 };
+  }
+
+  // Log the final error response
+  logger.logError(err, req, {
+    finalStatusCode: error.statusCode || 500,
+    finalMessage: error.message || 'Server Error'
+  });
 
   res.status(error.statusCode || 500).json({
     success: false,
