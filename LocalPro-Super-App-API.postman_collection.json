@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, and dual payment gateway integration.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, and comprehensive settings management. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, and user/app settings management system.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -6020,6 +6020,463 @@
               "raw": "{{baseUrl}}/api/analytics/statistics",
               "host": ["{{baseUrl}}"],
               "path": ["api", "analytics", "statistics"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Settings Management",
+      "item": [
+        {
+          "name": "Get User Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"privacy\": {\n    \"profileVisibility\": \"contacts_only\",\n    \"showPhoneNumber\": false,\n    \"showEmail\": true\n  },\n  \"notifications\": {\n    \"push\": {\n      \"enabled\": true,\n      \"newMessages\": true,\n      \"marketing\": false\n    },\n    \"email\": {\n      \"enabled\": true,\n      \"weeklyDigest\": true\n    }\n  },\n  \"communication\": {\n    \"preferredLanguage\": \"en\",\n    \"timezone\": \"Asia/Manila\",\n    \"currency\": \"PHP\"\n  },\n  \"app\": {\n    \"theme\": \"dark\",\n    \"fontSize\": \"large\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Privacy Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profileVisibility\": \"private\",\n  \"showPhoneNumber\": false,\n  \"showEmail\": false,\n  \"allowDirectMessages\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user/privacy",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user", "privacy"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Notification Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"push\": {\n    \"enabled\": true,\n    \"newMessages\": true,\n    \"jobMatches\": true,\n    \"bookingUpdates\": true,\n    \"paymentUpdates\": true,\n    \"referralUpdates\": true,\n    \"systemUpdates\": true,\n    \"marketing\": false\n  },\n  \"email\": {\n    \"enabled\": true,\n    \"newMessages\": true,\n    \"jobMatches\": true,\n    \"bookingUpdates\": true,\n    \"paymentUpdates\": true,\n    \"referralUpdates\": true,\n    \"systemUpdates\": true,\n    \"marketing\": false,\n    \"weeklyDigest\": true,\n    \"monthlyReport\": true\n  },\n  \"sms\": {\n    \"enabled\": true,\n    \"urgentMessages\": true,\n    \"bookingReminders\": true,\n    \"paymentAlerts\": true,\n    \"securityAlerts\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user", "notifications"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Communication Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferredLanguage\": \"en\",\n  \"timezone\": \"Asia/Manila\",\n  \"dateFormat\": \"MM/DD/YYYY\",\n  \"timeFormat\": \"12h\",\n  \"currency\": \"PHP\",\n  \"autoReply\": {\n    \"enabled\": false,\n    \"message\": \"Thank you for your message. I will get back to you soon.\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user/communication",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user", "communication"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Service Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"defaultServiceRadius\": 25,\n  \"autoAcceptJobs\": false,\n  \"minimumJobValue\": 0,\n  \"maximumJobValue\": 100000,\n  \"preferredJobTypes\": [\"cleaning\", \"maintenance\", \"repair\"],\n  \"workingHours\": {\n    \"start\": \"08:00\",\n    \"end\": \"17:00\",\n    \"days\": [\"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\"]\n  },\n  \"emergencyService\": {\n    \"enabled\": false,\n    \"surcharge\": 0\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user/service",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user", "service"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Payment Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferredPaymentMethod\": \"paypal\",\n  \"autoWithdraw\": {\n    \"enabled\": false,\n    \"threshold\": 1000,\n    \"frequency\": \"weekly\"\n  },\n  \"invoiceSettings\": {\n    \"includeTax\": true,\n    \"taxRate\": 12,\n    \"invoiceTemplate\": \"standard\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user", "payment"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Security Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"twoFactorAuth\": {\n    \"enabled\": false,\n    \"method\": \"sms\"\n  },\n  \"loginAlerts\": {\n    \"enabled\": true,\n    \"newDevice\": true,\n    \"suspiciousActivity\": true\n  },\n  \"sessionTimeout\": 24,\n  \"passwordChangeReminder\": {\n    \"enabled\": true,\n    \"frequency\": 90\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user/security",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user", "security"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update App Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"dark\",\n  \"fontSize\": \"large\",\n  \"soundEffects\": {\n    \"enabled\": true,\n    \"volume\": 50\n  },\n  \"hapticFeedback\": {\n    \"enabled\": true\n  },\n  \"autoSave\": {\n    \"enabled\": true,\n    \"interval\": 30\n  },\n  \"dataUsage\": {\n    \"imageQuality\": \"medium\",\n    \"videoQuality\": \"medium\",\n    \"autoDownload\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user/app",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user", "app"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Analytics Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shareUsageData\": true,\n  \"shareLocationData\": true,\n  \"sharePerformanceData\": true,\n  \"personalizedRecommendations\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user", "analytics"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset User Settings",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user/reset",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user", "reset"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User Settings",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "user"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get App Settings (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/app",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "app"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update App Settings (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"general\": {\n    \"maintenanceMode\": {\n      \"enabled\": false,\n      \"message\": \"System is running normally\"\n    }\n  },\n  \"features\": {\n    \"marketplace\": {\n      \"enabled\": true,\n      \"allowNewProviders\": true\n    },\n    \"referrals\": {\n      \"enabled\": true,\n      \"rewardAmount\": 150\n    }\n  },\n  \"security\": {\n    \"passwordPolicy\": {\n      \"minLength\": 8,\n      \"requireUppercase\": true\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/app",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "app"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update General Settings (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appName\": \"LocalPro Super App\",\n  \"appVersion\": \"1.0.0\",\n  \"environment\": \"production\",\n  \"maintenanceMode\": {\n    \"enabled\": false,\n    \"message\": \"The app is currently under maintenance. Please try again later.\"\n  },\n  \"forceUpdate\": {\n    \"enabled\": false,\n    \"minVersion\": \"1.0.0\",\n    \"message\": \"Please update to the latest version to continue using the app.\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/app/general",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "app", "general"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Business Settings (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"LocalPro Super App\",\n  \"companyEmail\": \"support@localpro.com\",\n  \"companyPhone\": \"+63-XXX-XXX-XXXX\",\n  \"companyAddress\": {\n    \"street\": \"123 Business Street\",\n    \"city\": \"Manila\",\n    \"state\": \"Metro Manila\",\n    \"zipCode\": \"1000\",\n    \"country\": \"Philippines\"\n  },\n  \"businessHours\": {\n    \"timezone\": \"Asia/Manila\",\n    \"schedule\": [\n      {\n        \"day\": \"monday\",\n        \"startTime\": \"09:00\",\n        \"endTime\": \"18:00\",\n        \"isOpen\": true\n      },\n      {\n        \"day\": \"tuesday\",\n        \"startTime\": \"09:00\",\n        \"endTime\": \"18:00\",\n        \"isOpen\": true\n      }\n    ]\n  },\n  \"supportChannels\": {\n    \"email\": {\n      \"enabled\": true,\n      \"address\": \"support@localpro.com\"\n    },\n    \"phone\": {\n      \"enabled\": true,\n      \"number\": \"+63-XXX-XXX-XXXX\"\n    },\n    \"chat\": {\n      \"enabled\": true,\n      \"hours\": {\n        \"start\": \"09:00\",\n        \"end\": \"18:00\"\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/app/business",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "app", "business"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Features Settings (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marketplace\": {\n    \"enabled\": true,\n    \"allowNewProviders\": true,\n    \"requireVerification\": true\n  },\n  \"academy\": {\n    \"enabled\": true,\n    \"allowNewCourses\": true,\n    \"requireInstructorVerification\": true\n  },\n  \"jobBoard\": {\n    \"enabled\": true,\n    \"allowNewJobs\": true,\n    \"requireCompanyVerification\": true\n  },\n  \"referrals\": {\n    \"enabled\": true,\n    \"rewardAmount\": 100,\n    \"maxReferralsPerUser\": 50\n  },\n  \"payments\": {\n    \"paypal\": {\n      \"enabled\": true\n    },\n    \"paymaya\": {\n      \"enabled\": true\n    },\n    \"gcash\": {\n      \"enabled\": true\n    },\n    \"bankTransfer\": {\n      \"enabled\": true\n    }\n  },\n  \"analytics\": {\n    \"enabled\": true,\n    \"trackUserBehavior\": true,\n    \"trackPerformance\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/app/features",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "app", "features"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Security Settings (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passwordPolicy\": {\n    \"minLength\": 8,\n    \"requireUppercase\": true,\n    \"requireLowercase\": true,\n    \"requireNumbers\": true,\n    \"requireSpecialChars\": true,\n    \"maxLoginAttempts\": 5,\n    \"lockoutDuration\": 15\n  },\n  \"sessionSettings\": {\n    \"maxSessionDuration\": 24,\n    \"allowMultipleSessions\": true,\n    \"maxConcurrentSessions\": 3\n  },\n  \"dataProtection\": {\n    \"encryptSensitiveData\": true,\n    \"dataRetentionPeriod\": 365,\n    \"allowDataExport\": true,\n    \"allowDataDeletion\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/app/security",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "app", "security"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Upload Settings (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maxFileSize\": 10485760,\n  \"allowedImageTypes\": [\"image/jpeg\", \"image/png\", \"image/gif\", \"image/webp\"],\n  \"allowedDocumentTypes\": [\"application/pdf\", \"application/msword\", \"application/vnd.openxmlformats-officedocument.wordprocessingml.document\"],\n  \"maxImagesPerUpload\": 10,\n  \"imageCompression\": {\n    \"enabled\": true,\n    \"quality\": 80\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/app/uploads",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "app", "uploads"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Payment Settings (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"defaultCurrency\": \"PHP\",\n  \"supportedCurrencies\": [\"PHP\", \"USD\", \"EUR\"],\n  \"transactionFees\": {\n    \"percentage\": 2.9,\n    \"fixed\": 0.30\n  },\n  \"minimumPayout\": 100,\n  \"payoutSchedule\": {\n    \"frequency\": \"weekly\",\n    \"dayOfWeek\": 1,\n    \"dayOfMonth\": 1\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/app/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "app", "payments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Feature Flag (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"feature\": \"marketplace\",\n  \"enabled\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/app/features/toggle",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "app", "features", "toggle"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Public App Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/app/public",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "app", "public"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get App Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings/app/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings", "app", "health"]
             }
           },
           "response": []

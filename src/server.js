@@ -25,6 +25,7 @@ const paymayaRoutes = require('./routes/paymaya');
 const jobsRoutes = require('./routes/jobs');
 const referralsRoutes = require('./routes/referrals');
 const agenciesRoutes = require('./routes/agencies');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
@@ -76,9 +77,10 @@ app.get('/', (req, res) => {
         'Real-time Communication',
         'Analytics & Insights',
         'Referral System & Rewards',
-        'Agency Management'
+        'Agency Management',
+        'User & App Settings'
       ],
-      totalEndpoints: 15,
+      totalEndpoints: 16,
       authentication: 'Bearer Token',
       rateLimit: '100 requests per 15 minutes'
     },
@@ -145,6 +147,7 @@ app.use('/api/paymaya', paymayaRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/referrals', referralsRoutes);
 app.use('/api/agencies', agenciesRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

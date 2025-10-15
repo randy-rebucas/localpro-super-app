@@ -276,6 +276,12 @@ const userSchema = new mongoose.Schema({
       emailNotifications: { type: Boolean, default: true },
       smsNotifications: { type: Boolean, default: false }
     }
+  },
+  
+  // Settings reference
+  settings: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserSettings'
   }
 }, {
   timestamps: true

@@ -21,6 +21,7 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **💳 PayMaya Integration**: Alternative payment processing for Philippines market
 - **🗺️ Google Maps**: Location services and mapping integration
 - **📧 Email Service**: Multi-provider email notifications
+- **⚙️ Settings Management**: Comprehensive user and app settings system
 
 ### Key Features
 - RESTful API with comprehensive endpoints
@@ -44,6 +45,8 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **Automated referral processing across all modules**
 - **Agency management with provider coordination**
 - **Multi-level admin permissions and role management**
+- **User settings and preferences management**
+- **App-wide configuration and feature flags**
 
 ## 🛠️ Tech Stack
 
@@ -488,6 +491,21 @@ POST /api/maps/analyze-coverage            # Analyze service coverage (Protected
 GET  /api/maps/test                        # Test API connection (Admin)
 ```
 
+### Settings Management Endpoints
+```
+GET    /api/settings/user                   # Get user settings
+PUT    /api/settings/user                   # Update user settings
+PUT    /api/settings/user/:category         # Update specific setting category
+POST   /api/settings/user/reset             # Reset user settings to defaults
+DELETE /api/settings/user                   # Delete user settings
+GET    /api/settings/app                    # Get app settings (Admin)
+PUT    /api/settings/app                    # Update app settings (Admin)
+PUT    /api/settings/app/:category          # Update specific app setting category (Admin)
+POST   /api/settings/app/features/toggle    # Toggle feature flag (Admin)
+GET    /api/settings/app/public             # Get public app settings
+GET    /api/settings/app/health             # Get app health status
+```
+
 ## 📝 API Examples
 
 ### Authentication Flow
@@ -588,6 +606,54 @@ curl -X GET "http://localhost:4000/api/marketplace/services/nearby?lat=40.7128&l
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
+### Settings Management
+```bash
+# Get user settings
+curl -X GET http://localhost:4000/api/settings/user \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Update user privacy settings
+curl -X PUT http://localhost:4000/api/settings/user/privacy \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "profileVisibility": "contacts_only",
+    "showPhoneNumber": false,
+    "allowDirectMessages": true
+  }'
+
+# Update notification preferences
+curl -X PUT http://localhost:4000/api/settings/user/notifications \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "push": {
+      "enabled": true,
+      "newMessages": true,
+      "marketing": false
+    },
+    "email": {
+      "enabled": true,
+      "weeklyDigest": true
+    }
+  }'
+
+# Get public app settings (no auth required)
+curl -X GET http://localhost:4000/api/settings/app/public
+
+# Get app health status
+curl -X GET http://localhost:4000/api/settings/app/health
+
+# Toggle feature flag (admin only)
+curl -X POST http://localhost:4000/api/settings/app/features/toggle \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "feature": "marketplace",
+    "enabled": false
+  }'
+```
+
 ## 🗄️ Database Models
 
 ### Core Models
@@ -606,6 +672,8 @@ curl -X GET "http://localhost:4000/api/marketplace/services/nearby?lat=40.7128&l
 - **TrustVerification**: Trust and verification requests
 - **Communication**: Conversations and messages
 - **Analytics**: Analytics events and tracking data
+- **UserSettings**: User preferences and configuration
+- **AppSettings**: Global application configuration and feature flags
 
 ## 🆕 New Features
 
@@ -670,6 +738,17 @@ curl -X GET "http://localhost:4000/api/marketplace/services/nearby?lat=40.7128&l
 - **Location-based Search**: Find services within specified radius
 - **Coverage Analysis**: Analyze service provider coverage areas
 
+### ⚙️ Settings Management System
+- **User Settings**: Comprehensive user preferences including privacy, notifications, communication, service, payment, security, app, and analytics settings
+- **App Settings**: Global application configuration including general, business, features, security, uploads, payments, analytics, and integrations
+- **Category-based Updates**: Update specific setting categories without affecting others
+- **Feature Flags**: Toggle application features on/off dynamically
+- **Admin Controls**: Administrative functions for managing global app settings
+- **Public Endpoints**: Access to public app information without authentication
+- **Validation**: Comprehensive input validation for all settings
+- **Default Settings**: Automatic generation of default settings for new users
+- **Settings Reset**: Reset user settings to defaults functionality
+
 ### 🔧 Enhanced Controllers
 - **Marketplace**: Location-based service search with distance calculations
 - **Job Board**: Complete job posting and application management system
@@ -679,6 +758,7 @@ curl -X GET "http://localhost:4000/api/marketplace/services/nearby?lat=40.7128&l
 - **Supplies**: Email notifications for orders and subscriptions
 - **Finance**: Email notifications for loan approvals
 - **Authentication**: Welcome emails for new users
+- **Settings Management**: User preferences and app configuration management
 
 ## 🔒 Security Features
 
@@ -753,6 +833,7 @@ For support, email support@localpro.com or join our Slack channel.
 - [x] Service area validation
 - [x] Distance calculations
 - [x] Subscription management
+- [x] Settings management system
 - [ ] Mobile app integration
 - [ ] Real-time notifications
 - [ ] Advanced analytics dashboard
