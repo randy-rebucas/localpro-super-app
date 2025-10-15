@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, and logging & error monitoring. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation, error tracking with alerting, performance monitoring, and admin error management dashboard.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, and audit logging. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, and regulatory compliance features.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -6575,6 +6575,158 @@
               "raw": "{{baseUrl}}/api/error-monitoring/{{errorId}}/resolve",
               "host": ["{{baseUrl}}"],
               "path": ["api", "error-monitoring", "{{errorId}}", "resolve"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Audit Logs",
+      "item": [
+        {
+          "name": "Get Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit-logs?category=financial&severity=high&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit-logs"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "financial",
+                  "description": "Filter by category"
+                },
+                {
+                  "key": "severity",
+                  "value": "high",
+                  "description": "Filter by severity"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Number of logs to return"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit-logs/stats?timeframe=30d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit-logs", "stats"],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "30d",
+                  "description": "Timeframe: 1d, 7d, 30d, 90d, 1y"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Activity Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit-logs/user/{{userId}}/activity?timeframe=7d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit-logs", "user", "{{userId}}", "activity"],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "7d",
+                  "description": "Timeframe: 1d, 7d, 30d, 90d"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Log Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit-logs/{{auditId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit-logs", "{{auditId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Export Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit-logs/export/data?format=csv&startDate=2024-01-01",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit-logs", "export", "data"],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "csv",
+                  "description": "Export format: json, csv"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01",
+                  "description": "Start date for export"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit-logs/dashboard/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit-logs", "dashboard", "summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cleanup Expired Audit Logs",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit-logs/cleanup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit-logs", "cleanup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Metadata",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit-logs/metadata/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit-logs", "metadata", "categories"]
             }
           },
           "response": []

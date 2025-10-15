@@ -9,6 +9,7 @@ const connectDB = require('./config/database');
 const logger = require('./config/logger');
 const errorHandler = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
+const { auditGeneralOperations } = require('./middleware/auditLogger');
 const authRoutes = require('./routes/auth');
 const marketplaceRoutes = require('./routes/marketplace');
 const suppliesRoutes = require('./routes/supplies');
@@ -29,6 +30,7 @@ const referralsRoutes = require('./routes/referrals');
 const agenciesRoutes = require('./routes/agencies');
 const settingsRoutes = require('./routes/settings');
 const errorMonitoringRoutes = require('./routes/errorMonitoring');
+const auditLogsRoutes = require('./routes/auditLogs');
 
 const app = express();
 
@@ -57,6 +59,9 @@ app.use(express.urlencoded({ extended: true }));
 // Logging middleware
 app.use(morgan('combined', { stream: logger.stream }));
 app.use(requestLogger);
+
+// Audit logging middleware
+app.use(auditGeneralOperations);
 
 // Index API info endpoint
 app.get('/', (req, res) => {
@@ -153,6 +158,7 @@ app.use('/api/referrals', referralsRoutes);
 app.use('/api/agencies', agenciesRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/error-monitoring', errorMonitoringRoutes);
+app.use('/api/audit-logs', auditLogsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

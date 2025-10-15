@@ -23,6 +23,7 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **📧 Email Service**: Multi-provider email notifications
 - **⚙️ Settings Management**: Comprehensive user and app settings system
 - **📊 Logging & Error Monitoring**: Comprehensive logging system with Winston and error tracking
+- **🔍 Audit Logging**: Complete audit trail for compliance and security monitoring
 
 ### Key Features
 - RESTful API with comprehensive endpoints
@@ -59,6 +60,7 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **Security**: Helmet, CORS, Rate Limiting
 - **Logging**: Winston with daily rotation, Morgan for HTTP requests
 - **Error Monitoring**: Custom error tracking with alerting and resolution management
+- **Audit Logging**: Comprehensive audit trail with compliance features and data protection
 - **Email Service**: Resend, SendGrid, SMTP (Nodemailer)
 - **Payment Processing**: PayPal Server SDK + REST API, PayMaya API
 - **Maps & Location**: Google Maps APIs
@@ -144,6 +146,15 @@ ERROR_ALERT_THRESHOLDS_CRITICAL=1
 ERROR_ALERT_THRESHOLDS_HIGH=5
 ERROR_ALERT_THRESHOLDS_MEDIUM=10
 ERROR_ALERT_THRESHOLDS_LOW=20
+
+# Audit Logging Configuration
+AUDIT_LOGGING_ENABLED=true
+AUDIT_RETENTION_DAYS=2555
+AUDIT_LOG_SENSITIVE_DATA=false
+AUDIT_LOG_REQUEST_BODY=false
+AUDIT_LOG_RESPONSE_BODY=false
+AUDIT_AUTO_CLEANUP=true
+AUDIT_CLEANUP_SCHEDULE=0 2 * * *
 
 # Google Maps Configuration (Optional)
 # GOOGLE_MAPS_API_KEY=your-google-maps-api-key
@@ -531,6 +542,18 @@ GET    /api/error-monitoring/:errorId        # Get error details (Admin)
 PATCH  /api/error-monitoring/:errorId/resolve # Resolve error (Admin)
 ```
 
+### Audit Logging Endpoints
+```
+GET    /api/audit-logs                       # Get audit logs with filtering (Admin)
+GET    /api/audit-logs/stats                 # Get audit statistics (Admin)
+GET    /api/audit-logs/user/:userId/activity # Get user activity summary
+GET    /api/audit-logs/:auditId              # Get audit log details (Admin)
+GET    /api/audit-logs/export/data           # Export audit logs (Admin)
+GET    /api/audit-logs/dashboard/summary     # Get audit dashboard (Admin)
+POST   /api/audit-logs/cleanup               # Clean up expired logs (Admin)
+GET    /api/audit-logs/metadata/categories   # Get audit metadata (Admin)
+```
+
 ## 📝 API Examples
 
 ### Authentication Flow
@@ -702,6 +725,33 @@ curl -X PATCH http://localhost:4000/api/error-monitoring/error123/resolve \
   }'
 ```
 
+### Audit Logging
+```bash
+# Get audit logs with filtering (admin only)
+curl -X GET "http://localhost:4000/api/audit-logs?category=financial&severity=high&limit=20" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get audit statistics for last 30 days
+curl -X GET "http://localhost:4000/api/audit-logs/stats?timeframe=30d" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get user activity summary
+curl -X GET "http://localhost:4000/api/audit-logs/user/123/activity?timeframe=7d" \
+  -H "Authorization: Bearer JWT_TOKEN"
+
+# Export audit logs as CSV
+curl -X GET "http://localhost:4000/api/audit-logs/export/data?format=csv&startDate=2024-01-01" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get audit dashboard summary
+curl -X GET "http://localhost:4000/api/audit-logs/dashboard/summary" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Clean up expired audit logs
+curl -X POST http://localhost:4000/api/audit-logs/cleanup \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+```
+
 ## 🗄️ Database Models
 
 ### Core Models
@@ -723,6 +773,7 @@ curl -X PATCH http://localhost:4000/api/error-monitoring/error123/resolve \
 - **UserSettings**: User preferences and configuration
 - **AppSettings**: Global application configuration and feature flags
 - **ErrorTracking**: Error monitoring and tracking data
+- **AuditLog**: Comprehensive audit trail for compliance and security
 
 ## 🆕 New Features
 
@@ -810,6 +861,18 @@ curl -X PATCH http://localhost:4000/api/error-monitoring/error123/resolve \
 - **Log Rotation**: Automatic file rotation to prevent disk space issues
 - **Sensitive Data Protection**: Automatic redaction of passwords and tokens in logs
 
+### 🔍 Audit Logging System
+- **Comprehensive Action Tracking**: Complete audit trail for all critical user actions and system changes
+- **Compliance Features**: GDPR, SOX, and HIPAA compliance with configurable retention policies
+- **Security Monitoring**: Track authentication, authorization, and security-related events
+- **Business Operations**: Audit marketplace, job board, financial, and agency operations
+- **Data Protection**: Automatic sanitization of sensitive information in audit logs
+- **Export Capabilities**: CSV and JSON export for compliance reporting and analysis
+- **Real-time Monitoring**: Live audit event tracking with dashboard views
+- **User Activity Summaries**: Individual user action tracking and behavior analysis
+- **Automatic Cleanup**: Configurable retention periods with automatic data deletion
+- **Admin Dashboard**: Comprehensive audit overview with statistics and trends
+
 ### 🔧 Enhanced Controllers
 - **Marketplace**: Location-based service search with distance calculations
 - **Job Board**: Complete job posting and application management system
@@ -896,6 +959,7 @@ For support, email support@localpro.com or join our Slack channel.
 - [x] Subscription management
 - [x] Settings management system
 - [x] Logging and error monitoring system
+- [x] Audit logging system for compliance and security
 - [ ] Mobile app integration
 - [ ] Real-time notifications
 - [ ] Advanced analytics dashboard
