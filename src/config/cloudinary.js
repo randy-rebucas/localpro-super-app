@@ -61,7 +61,10 @@ const storageConfigs = {
   analytics: createStorage('localpro/analytics', ['pdf', 'xlsx', 'csv']),
   
   // LocalPro Plus premium content
-  localproPlus: createStorage('localpro/plus', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'mp4', 'mp3'])
+  localproPlus: createStorage('localpro/plus', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'mp4', 'mp3']),
+  
+  // Job board files (logos, resumes)
+  jobs: createStorage('localpro/jobs', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'])
 };
 
 // Create multer uploaders for each storage type

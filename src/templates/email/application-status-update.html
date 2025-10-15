@@ -1,0 +1,47 @@
+<h2>Application Status Update</h2>
+
+<p>Hello {{applicantName}},</p>
+
+<p>We have an update regarding your job application for <strong>{{jobTitle}}</strong> at <strong>{{companyName}}</strong>.</p>
+
+<div class="content-box">
+    <h3>Application Status: {{status}}</h3>
+    
+    {{#if feedback}}
+    <h4>Feedback:</h4>
+    <div class="highlight">
+        {{feedback}}
+    </div>
+    {{/if}}
+</div>
+
+{{#if (eq status "shortlisted")}}
+<div class="success">
+    <p><strong>Congratulations!</strong> Your application has been shortlisted. We will be in touch soon with next steps.</p>
+</div>
+{{/if}}
+
+{{#if (eq status "interviewed")}}
+<div class="info">
+    <p><strong>Interview Complete:</strong> Thank you for taking the time to interview with us. We will review your interview and get back to you soon.</p>
+</div>
+{{/if}}
+
+{{#if (eq status "hired")}}
+<div class="success">
+    <p><strong>Congratulations!</strong> We are pleased to offer you the position. Please check your email for further details and next steps.</p>
+</div>
+{{/if}}
+
+{{#if (eq status "rejected")}}
+<div class="warning">
+    <p>Thank you for your interest in this position. While we have decided to move forward with other candidates, we encourage you to apply for other opportunities that match your skills and experience.</p>
+</div>
+{{/if}}
+
+<p>If you have any questions, please don't hesitate to contact us.</p>
+
+<a href="{{jobs_url}}" class="btn">Browse More Jobs</a>
+
+<p>Best regards,<br>
+The {{companyName}} Team</p>

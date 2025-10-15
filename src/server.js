@@ -22,6 +22,7 @@ const analyticsRoutes = require('./routes/analytics');
 const mapsRoutes = require('./routes/maps');
 const paypalRoutes = require('./routes/paypal');
 const paymayaRoutes = require('./routes/paymaya');
+const jobsRoutes = require('./routes/jobs');
 
 const app = express();
 
@@ -241,6 +242,25 @@ app.get('/', (req, res) => {
           { method: 'GET', path: '/webhook/events', description: 'Get webhook events', auth: true, roles: ['admin'] },
           { method: 'GET', path: '/config/validate', description: 'Validate PayMaya configuration', auth: true, roles: ['admin'] }
         ]
+      },
+      jobs: {
+        base: '/api/jobs',
+        description: 'Job board and employment opportunities',
+        routes: [
+          { method: 'GET', path: '/', description: 'Get all jobs', auth: false },
+          { method: 'GET', path: '/search', description: 'Search jobs with filters', auth: false },
+          { method: 'GET', path: '/:id', description: 'Get job by ID', auth: false },
+          { method: 'POST', path: '/', description: 'Create new job posting', auth: true, roles: ['provider', 'admin'] },
+          { method: 'PUT', path: '/:id', description: 'Update job posting', auth: true, roles: ['provider', 'admin'] },
+          { method: 'DELETE', path: '/:id', description: 'Delete job posting', auth: true, roles: ['provider', 'admin'] },
+          { method: 'POST', path: '/:id/apply', description: 'Apply for job', auth: true },
+          { method: 'GET', path: '/my-applications', description: 'Get user job applications', auth: true },
+          { method: 'GET', path: '/my-jobs', description: 'Get employer job postings', auth: true, roles: ['provider', 'admin'] },
+          { method: 'GET', path: '/:id/applications', description: 'Get job applications', auth: true, roles: ['provider', 'admin'] },
+          { method: 'PUT', path: '/:id/applications/:applicationId/status', description: 'Update application status', auth: true, roles: ['provider', 'admin'] },
+          { method: 'POST', path: '/:id/logo', description: 'Upload company logo', auth: true, roles: ['provider', 'admin'] },
+          { method: 'GET', path: '/:id/stats', description: 'Get job statistics', auth: true, roles: ['provider', 'admin'] }
+        ]
       }
     },
     authentication: {
@@ -286,6 +306,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/maps', mapsRoutes);
 app.use('/api/paypal', paypalRoutes);
 app.use('/api/paymaya', paymayaRoutes);
+app.use('/api/jobs', jobsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

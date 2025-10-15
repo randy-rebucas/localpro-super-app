@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, location-based services, multi-provider email support, and dual payment gateway integration.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, location-based services, multi-provider email support, and dual payment gateway integration.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -118,6 +118,16 @@
     },
     {
       "key": "paypalSubscriptionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "applicationId",
       "value": "",
       "type": "string"
     }
@@ -2727,6 +2737,308 @@
               "raw": "{{baseUrl}}/api/finance/loans/apply",
               "host": ["{{baseUrl}}"],
               "path": ["api", "finance", "loans", "apply"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Job Board",
+      "item": [
+        {
+          "name": "Get All Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs?page=1&limit=10&category=technology&location=New York",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "category",
+                  "value": "technology"
+                },
+                {
+                  "key": "location",
+                  "value": "New York"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/search?q=developer&jobType=full_time&experienceLevel=mid&minSalary=50000&maxSalary=100000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "developer"
+                },
+                {
+                  "key": "jobType",
+                  "value": "full_time"
+                },
+                {
+                  "key": "experienceLevel",
+                  "value": "mid"
+                },
+                {
+                  "key": "minSalary",
+                  "value": "50000"
+                },
+                {
+                  "key": "maxSalary",
+                  "value": "100000"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Job",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Job Posting (Employer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Software Developer\",\n  \"description\": \"We are looking for an experienced software developer to join our team...\",\n  \"company\": {\n    \"name\": \"Tech Solutions Inc\",\n    \"website\": \"https://techsolutions.com\",\n    \"size\": \"medium\",\n    \"industry\": \"Technology\",\n    \"location\": {\n      \"address\": \"123 Tech Street, San Francisco, CA\",\n      \"city\": \"San Francisco\",\n      \"state\": \"California\",\n      \"country\": \"United States\",\n      \"isRemote\": false,\n      \"remoteType\": \"on_site\"\n    }\n  },\n  \"category\": \"technology\",\n  \"subcategory\": \"software_development\",\n  \"jobType\": \"full_time\",\n  \"experienceLevel\": \"senior\",\n  \"salary\": {\n    \"min\": 80000,\n    \"max\": 120000,\n    \"currency\": \"USD\",\n    \"period\": \"yearly\",\n    \"isNegotiable\": true,\n    \"isConfidential\": false\n  },\n  \"benefits\": [\"health_insurance\", \"dental_insurance\", \"retirement_401k\", \"paid_time_off\"],\n  \"requirements\": {\n    \"skills\": [\"JavaScript\", \"React\", \"Node.js\", \"MongoDB\"],\n    \"education\": {\n      \"level\": \"bachelor\",\n      \"field\": \"Computer Science\",\n      \"isRequired\": true\n    },\n    \"experience\": {\n      \"years\": 5,\n      \"description\": \"5+ years of software development experience\"\n    },\n    \"certifications\": [\"AWS Certified Developer\"],\n    \"languages\": [\n      {\n        \"language\": \"English\",\n        \"proficiency\": \"native\"\n      }\n    ]\n  },\n  \"responsibilities\": [\n    \"Develop and maintain web applications\",\n    \"Collaborate with cross-functional teams\",\n    \"Write clean, maintainable code\",\n    \"Participate in code reviews\"\n  ],\n  \"qualifications\": [\n    \"Bachelor's degree in Computer Science\",\n    \"5+ years of software development experience\",\n    \"Strong knowledge of JavaScript and React\",\n    \"Experience with cloud platforms\"\n  ],\n  \"applicationProcess\": {\n    \"deadline\": \"2024-12-31T23:59:59.000Z\",\n    \"startDate\": \"2024-01-15T00:00:00.000Z\",\n    \"applicationMethod\": \"platform\",\n    \"contactEmail\": \"hr@techsolutions.com\",\n    \"instructions\": \"Please submit your resume and cover letter through our platform.\"\n  },\n  \"status\": \"active\",\n  \"visibility\": \"public\",\n  \"tags\": [\"javascript\", \"react\", \"nodejs\", \"fullstack\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Job Posting (Employer)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Full Stack Developer\",\n  \"description\": \"Updated job description...\",\n  \"salary\": {\n    \"min\": 85000,\n    \"max\": 125000,\n    \"currency\": \"USD\",\n    \"period\": \"yearly\",\n    \"isNegotiable\": true\n  },\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Job Posting (Employer)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply for Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coverLetter\": \"I am excited to apply for the Senior Software Developer position at Tech Solutions Inc. With over 5 years of experience in full-stack development, I believe I would be a great fit for your team...\",\n  \"expectedSalary\": 95000,\n  \"availability\": \"2024-01-15T00:00:00.000Z\",\n  \"portfolio\": \"https://myportfolio.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}", "apply"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/my-applications?status=pending&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "my-applications"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Jobs (Employer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/my-jobs?status=active&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "my-jobs"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Job Applications (Employer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}/applications?status=pending&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}", "applications"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Application Status (Employer)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shortlisted\",\n  \"feedback\": {\n    \"rating\": 4,\n    \"comments\": \"Strong technical background and relevant experience. Moving to interview stage.\",\n    \"strengths\": [\"Strong technical skills\", \"Good communication\"],\n    \"weaknesses\": [\"Limited experience with our specific tech stack\"],\n    \"recommendation\": \"hire\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}/applications/{{applicationId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}", "applications", "{{applicationId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Company Logo (Employer)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "logo",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}/logo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}", "logo"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Job Statistics (Employer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}", "stats"]
             }
           },
           "response": []
