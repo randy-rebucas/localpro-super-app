@@ -4255,6 +4255,1776 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Finance - Enhanced",
+      "item": [
+        {
+          "name": "Get Financial Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/overview?startDate=&endDate=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "overview"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/transactions?page=1&limit=20&type=&status=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "transactions"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "type", "value": ""},
+                {"key": "status", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Earnings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/earnings?startDate=&endDate=&groupBy=month",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "earnings"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "groupBy", "value": "month"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Expenses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/expenses?startDate=&endDate=&category=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "expenses"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "category", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Expense",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50.00,\n  \"category\": \"equipment\",\n  \"description\": \"New cleaning equipment\",\n  \"paymentMethod\": \"wallet\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/expenses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "expenses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Request Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 500.00,\n  \"paymentMethod\": \"bank_transfer\",\n  \"accountDetails\": {\n    \"bankName\": \"Chase Bank\",\n    \"accountNumber\": \"1234567890\",\n    \"routingNumber\": \"021000021\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/withdraw",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "withdraw"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Process Withdrawal (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"adminNotes\": \"Withdrawal approved and processed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/withdrawals/{{withdrawalId}}/process",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "withdrawals", "{{withdrawalId}}", "process"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tax Documents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/tax-documents?year=2024",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "tax-documents"],
+              "query": [
+                {"key": "year", "value": "2024"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Financial Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/reports?startDate=&endDate=&reportType=summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "reports"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "reportType", "value": "summary"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Wallet Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"autoWithdraw\": false,\n  \"minBalance\": 100,\n  \"notificationSettings\": {\n    \"lowBalance\": true,\n    \"withdrawal\": true,\n    \"deposit\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/wallet/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "wallet", "settings"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Rentals - Enhanced",
+      "item": [
+        {
+          "name": "Get All Rental Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals?page=1&limit=10&search=&category=&location=&minPrice=&maxPrice=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"},
+                {"key": "search", "value": ""},
+                {"key": "category", "value": ""},
+                {"key": "location", "value": ""},
+                {"key": "minPrice", "value": ""},
+                {"key": "maxPrice", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Rental Item",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Rental Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional Pressure Washer\",\n  \"description\": \"High-pressure cleaning equipment for professional use\",\n  \"category\": \"cleaning_equipment\",\n  \"pricing\": {\n    \"dailyRate\": 75.00,\n    \"weeklyRate\": 400.00,\n    \"monthlyRate\": 1200.00\n  },\n  \"location\": {\n    \"street\": \"789 Rental St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10003\"\n  },\n  \"availability\": {\n    \"isAvailable\": true,\n    \"availableFrom\": \"2024-01-01\",\n    \"availableTo\": \"2024-12-31\"\n  },\n  \"tags\": [\"pressure washer\", \"cleaning\", \"equipment\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Rental Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Professional Pressure Washer\",\n  \"description\": \"Updated description\",\n  \"pricing\": {\n    \"dailyRate\": 80.00\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Rental Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Rental Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalId}}/images",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalId}}", "images"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Rental Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalId}}/images/{{imageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalId}}", "images", "{{imageId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Book Rental Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2024-02-01\",\n  \"endDate\": \"2024-02-03\",\n  \"quantity\": 1,\n  \"specialRequests\": \"Please deliver to the front entrance\",\n  \"contactInfo\": {\n    \"phone\": \"+1234567890\",\n    \"email\": \"client@example.com\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalId}}/book",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalId}}", "book"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Booking Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalId}}/bookings/{{bookingId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalId}}", "bookings", "{{bookingId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Rental Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent equipment, great condition!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalId}}/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalId}}", "reviews"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Rental Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/my-rentals?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "my-rentals"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Rental Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/my-bookings?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "my-bookings"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Nearby Rental Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/nearby?lat=40.7128&lng=-74.0060&radius=10&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "nearby"],
+              "query": [
+                {"key": "lat", "value": "40.7128"},
+                {"key": "lng", "value": "-74.0060"},
+                {"key": "radius", "value": "10"},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rental Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Featured Rental Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/featured?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "featured"],
+              "query": [
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rental Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "statistics"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Advertising - Enhanced",
+      "item": [
+        {
+          "name": "Get All Advertisements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads?page=1&limit=10&search=&category=&status=&location=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"},
+                {"key": "search", "value": ""},
+                {"key": "category", "value": ""},
+                {"key": "status", "value": ""},
+                {"key": "location", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Advertisement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/{{adId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "{{adId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Advertisement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional Cleaning Services\",\n  \"description\": \"Top-rated cleaning services in your area\",\n  \"category\": \"cleaning\",\n  \"adType\": \"banner\",\n  \"budget\": 500.00,\n  \"duration\": 30,\n  \"targeting\": {\n    \"location\": {\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"radius\": 10\n    },\n    \"demographics\": {\n      \"ageRange\": [25, 65],\n      \"interests\": [\"home improvement\", \"cleaning\"]\n    }\n  },\n  \"creative\": {\n    \"headline\": \"Professional Cleaning Services\",\n    \"description\": \"Get your home spotless with our expert team\",\n    \"callToAction\": \"Book Now\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ads",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Advertisement",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Professional Cleaning Services\",\n  \"description\": \"Updated description\",\n  \"budget\": 600.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/{{adId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "{{adId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Advertisement",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/{{adId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "{{adId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Ad Creative",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "creative",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/{{adId}}/creative",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "{{adId}}", "creative"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pause Advertisement",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"paused\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/{{adId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "{{adId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Ad Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/{{adId}}/analytics?startDate=&endDate=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "{{adId}}", "analytics"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Advertisements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/my-ads?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "my-ads"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Ad Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Ad Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "statistics"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "FacilityCare - Enhanced",
+      "item": [
+        {
+          "name": "Get All Facility Care Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care?page=1&limit=10&search=&category=&location=&minPrice=&maxPrice=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"},
+                {"key": "search", "value": ""},
+                {"key": "category", "value": ""},
+                {"key": "location", "value": ""},
+                {"key": "minPrice", "value": ""},
+                {"key": "maxPrice", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Facility Care Service",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/{{facilityCareId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "{{facilityCareId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Facility Care Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Office Building Maintenance\",\n  \"description\": \"Comprehensive maintenance services for office buildings\",\n  \"category\": \"building_maintenance\",\n  \"pricing\": {\n    \"hourlyRate\": 45.00,\n    \"minimumHours\": 4\n  },\n  \"serviceArea\": {\n    \"type\": \"radius\",\n    \"radius\": 25,\n    \"center\": {\n      \"lat\": 40.7128,\n      \"lng\": -74.0060\n    }\n  },\n  \"services\": [\n    \"HVAC maintenance\",\n    \"Plumbing repairs\",\n    \"Electrical work\",\n    \"General maintenance\"\n  ],\n  \"tags\": [\"maintenance\", \"office\", \"building\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Facility Care Service",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Office Building Maintenance\",\n  \"description\": \"Updated description\",\n  \"pricing\": {\n    \"hourlyRate\": 50.00\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/{{facilityCareId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "{{facilityCareId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Facility Care Service",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/{{facilityCareId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "{{facilityCareId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Facility Care Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/{{facilityCareId}}/images",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "{{facilityCareId}}", "images"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Facility Care Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/{{facilityCareId}}/images/{{imageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "{{facilityCareId}}", "images", "{{imageId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Book Facility Care Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledDate\": \"2024-02-15\",\n  \"scheduledTime\": \"09:00\",\n  \"duration\": 8,\n  \"address\": {\n    \"street\": \"123 Business St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\"\n  },\n  \"specialInstructions\": \"Please use the service entrance\",\n  \"contactInfo\": {\n    \"phone\": \"+1234567890\",\n    \"email\": \"facility@example.com\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/{{facilityCareId}}/book",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "{{facilityCareId}}", "book"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Booking Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/{{facilityCareId}}/bookings/{{bookingId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "{{facilityCareId}}", "bookings", "{{bookingId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Facility Care Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent maintenance service, very professional!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/{{facilityCareId}}/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "{{facilityCareId}}", "reviews"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Facility Care Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/my-services?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "my-services"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Facility Care Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/my-bookings?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "my-bookings"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Nearby Facility Care Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/nearby?lat=40.7128&lng=-74.0060&radius=10&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "nearby"],
+              "query": [
+                {"key": "lat", "value": "40.7128"},
+                {"key": "lng", "value": "-74.0060"},
+                {"key": "radius", "value": "10"},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Facility Care Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Featured Facility Care Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/featured?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "featured"],
+              "query": [
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Facility Care Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/facility-care/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "facility-care", "statistics"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "LocalPro Plus - Enhanced",
+      "item": [
+        {
+          "name": "Get All Subscription Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/plans",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "plans"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Subscription Plan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/plans/{{planId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "plans", "{{planId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Subscription Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Professional Plan\",\n  \"description\": \"Advanced features for professional service providers\",\n  \"price\": 29.99,\n  \"billingCycle\": \"monthly\",\n  \"features\": [\n    \"Priority listing\",\n    \"Advanced analytics\",\n    \"Premium support\",\n    \"Custom branding\"\n  ],\n  \"limits\": {\n    \"services\": 50,\n    \"bookings\": 1000,\n    \"storage\": \"10GB\"\n  },\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/plans",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "plans"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Subscription Plan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Professional Plan\",\n  \"description\": \"Updated description\",\n  \"price\": 34.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/plans/{{planId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "plans", "{{planId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Subscription Plan",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/plans/{{planId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "plans", "{{planId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Subscribe to Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"paypal\",\n  \"billingAddress\": {\n    \"street\": \"123 User St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/subscribe/{{planId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "subscribe", "{{planId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"No longer needed\",\n  \"feedback\": \"Service was good but not needed anymore\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "cancel"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Subscription",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/my-subscription",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "my-subscription"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Subscription Usage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/usage",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "usage"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Subscription History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/history?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "history"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Subscription Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "localpro-plus", "statistics"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Trust & Verification - Enhanced",
+      "item": [
+        {
+          "name": "Get All Verification Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/requests?page=1&limit=10&status=&type=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "requests"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"},
+                {"key": "status", "value": ""},
+                {"key": "type", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Verification Request",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/requests/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "requests", "{{requestId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Verification Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"identity_verification\",\n  \"documents\": [\n    {\n      \"type\": \"drivers_license\",\n      \"url\": \"https://example.com/doc1.jpg\"\n    },\n    {\n      \"type\": \"utility_bill\",\n      \"url\": \"https://example.com/doc2.jpg\"\n    }\n  ],\n  \"additionalInfo\": \"Additional information for verification\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "requests"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Verification Request",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"adminNotes\": \"Documents verified successfully\",\n  \"verifiedBy\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/requests/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "requests", "{{requestId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Verification Request",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/requests/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "requests", "{{requestId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Verification Document",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "document",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "type",
+                  "value": "drivers_license",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/requests/{{requestId}}/documents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "requests", "{{requestId}}", "documents"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Verification Document",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/requests/{{requestId}}/documents/{{documentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "requests", "{{requestId}}", "documents", "{{documentId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Verification Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/my-requests?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "my-requests"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Verification Types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "types"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Verification Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trust-verification/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trust-verification", "statistics"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Communication - Enhanced",
+      "item": [
+        {
+          "name": "Get All Conversations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations?page=1&limit=10&search=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"},
+                {"key": "search", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Conversation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations", "{{conversationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participants\": [\"user1\", \"user2\"],\n  \"type\": \"direct\",\n  \"subject\": \"Service Inquiry\",\n  \"initialMessage\": \"Hello, I'm interested in your cleaning services.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Conversation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Updated Service Inquiry\",\n  \"isArchived\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations", "{{conversationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Conversation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations", "{{conversationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Thank you for your interest! I'd be happy to help with your cleaning needs.\",\n  \"type\": \"text\",\n  \"attachments\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations", "{{conversationId}}", "messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Message",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated message content\",\n  \"isEdited\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}/messages/{{messageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations", "{{conversationId}}", "messages", "{{messageId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Message",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}/messages/{{messageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations", "{{conversationId}}", "messages", "{{messageId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Messages as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageIds\": [\"message1\", \"message2\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "conversations", "{{conversationId}}", "read"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unread Messages Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/unread-count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "unread-count"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Communication Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "statistics"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics - Enhanced",
+      "item": [
+        {
+          "name": "Get User Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/user?startDate=&endDate=&metrics=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "user"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "metrics", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Service Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/services?startDate=&endDate=&serviceId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "services"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "serviceId", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Booking Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/bookings?startDate=&endDate=&status=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "bookings"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "status", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Revenue Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/revenue?startDate=&endDate=&groupBy=month",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "revenue"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "groupBy", "value": "month"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Performance Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/performance?startDate=&endDate=&metrics=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "performance"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "metrics", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/customers?startDate=&endDate=&segment=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "customers"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "segment", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Market Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/market?startDate=&endDate=&location=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "market"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "location", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trend Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/trends?startDate=&endDate=&trendType=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "trends"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "trendType", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comparative Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/compare?startDate=&endDate=&compareWith=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "compare"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "compareWith", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Analytics Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/dashboard?startDate=&endDate=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "dashboard"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Export Analytics Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/export?startDate=&endDate=&format=csv&type=user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "export"],
+              "query": [
+                {"key": "startDate", "value": ""},
+                {"key": "endDate", "value": ""},
+                {"key": "format", "value": "csv"},
+                {"key": "type", "value": "user"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Analytics Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "statistics"]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
