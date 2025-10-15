@@ -22,6 +22,9 @@ const analyticsRoutes = require('./routes/analytics');
 const mapsRoutes = require('./routes/maps');
 const paypalRoutes = require('./routes/paypal');
 const paymayaRoutes = require('./routes/paymaya');
+const jobsRoutes = require('./routes/jobs');
+const referralsRoutes = require('./routes/referrals');
+const agenciesRoutes = require('./routes/agencies');
 
 const app = express();
 
@@ -241,6 +244,63 @@ app.get('/', (req, res) => {
           { method: 'GET', path: '/webhook/events', description: 'Get webhook events', auth: true, roles: ['admin'] },
           { method: 'GET', path: '/config/validate', description: 'Validate PayMaya configuration', auth: true, roles: ['admin'] }
         ]
+      },
+      jobs: {
+        base: '/api/jobs',
+        description: 'Job board and employment opportunities',
+        routes: [
+          { method: 'GET', path: '/', description: 'Get all jobs', auth: false },
+          { method: 'GET', path: '/search', description: 'Search jobs with filters', auth: false },
+          { method: 'GET', path: '/:id', description: 'Get job by ID', auth: false },
+          { method: 'POST', path: '/', description: 'Create new job posting', auth: true, roles: ['provider', 'admin'] },
+          { method: 'PUT', path: '/:id', description: 'Update job posting', auth: true, roles: ['provider', 'admin'] },
+          { method: 'DELETE', path: '/:id', description: 'Delete job posting', auth: true, roles: ['provider', 'admin'] },
+          { method: 'POST', path: '/:id/apply', description: 'Apply for job', auth: true },
+          { method: 'GET', path: '/my-applications', description: 'Get user job applications', auth: true },
+          { method: 'GET', path: '/my-jobs', description: 'Get employer job postings', auth: true, roles: ['provider', 'admin'] },
+          { method: 'GET', path: '/:id/applications', description: 'Get job applications', auth: true, roles: ['provider', 'admin'] },
+          { method: 'PUT', path: '/:id/applications/:applicationId/status', description: 'Update application status', auth: true, roles: ['provider', 'admin'] },
+          { method: 'POST', path: '/:id/logo', description: 'Upload company logo', auth: true, roles: ['provider', 'admin'] },
+          { method: 'GET', path: '/:id/stats', description: 'Get job statistics', auth: true, roles: ['provider', 'admin'] }
+        ]
+      },
+      referrals: {
+        base: '/api/referrals',
+        description: 'Referral system and rewards management',
+        routes: [
+          { method: 'GET', path: '/me', description: 'Get user referral information', auth: true },
+          { method: 'GET', path: '/stats', description: 'Get referral statistics', auth: true },
+          { method: 'GET', path: '/links', description: 'Get referral links and sharing options', auth: true },
+          { method: 'GET', path: '/rewards', description: 'Get referral rewards history', auth: true },
+          { method: 'POST', path: '/invite', description: 'Send referral invitations', auth: true },
+          { method: 'PUT', path: '/preferences', description: 'Update referral preferences', auth: true },
+          { method: 'POST', path: '/validate', description: 'Validate referral code', auth: false },
+          { method: 'POST', path: '/track', description: 'Track referral click', auth: false },
+          { method: 'GET', path: '/leaderboard', description: 'Get referral leaderboard', auth: false },
+          { method: 'POST', path: '/process', description: 'Process referral completion', auth: true, roles: ['admin'] },
+          { method: 'GET', path: '/analytics', description: 'Get referral analytics', auth: true, roles: ['admin'] }
+        ]
+      },
+      agencies: {
+        base: '/api/agencies',
+        description: 'Agency management and provider coordination',
+        routes: [
+          { method: 'GET', path: '/', description: 'Get all agencies', auth: false },
+          { method: 'GET', path: '/:id', description: 'Get agency by ID', auth: false },
+          { method: 'POST', path: '/', description: 'Create new agency', auth: true },
+          { method: 'PUT', path: '/:id', description: 'Update agency', auth: true },
+          { method: 'DELETE', path: '/:id', description: 'Delete agency', auth: true },
+          { method: 'POST', path: '/:id/logo', description: 'Upload agency logo', auth: true },
+          { method: 'POST', path: '/:id/providers', description: 'Add provider to agency', auth: true },
+          { method: 'DELETE', path: '/:id/providers/:providerId', description: 'Remove provider from agency', auth: true },
+          { method: 'PUT', path: '/:id/providers/:providerId/status', description: 'Update provider status', auth: true },
+          { method: 'POST', path: '/:id/admins', description: 'Add admin to agency', auth: true },
+          { method: 'DELETE', path: '/:id/admins/:adminId', description: 'Remove admin from agency', auth: true },
+          { method: 'GET', path: '/:id/analytics', description: 'Get agency analytics', auth: true },
+          { method: 'GET', path: '/my/agencies', description: 'Get my agencies', auth: true },
+          { method: 'POST', path: '/join', description: 'Join agency', auth: true },
+          { method: 'POST', path: '/leave', description: 'Leave agency', auth: true }
+        ]
       }
     },
     authentication: {
@@ -286,6 +346,9 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/maps', mapsRoutes);
 app.use('/api/paypal', paypalRoutes);
 app.use('/api/paymaya', paymayaRoutes);
+app.use('/api/jobs', jobsRoutes);
+app.use('/api/referrals', referralsRoutes);
+app.use('/api/agencies', agenciesRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

@@ -1,0 +1,60 @@
+<h2>🎉 Referral Reward Earned!</h2>
+
+<p>Hello {{referrerName}},</p>
+
+<p>Great news! You've earned a reward for your successful referral!</p>
+
+<div class="success">
+    <h3>💰 Reward Details</h3>
+    <p><strong>Referral Type:</strong> {{referralType}}</p>
+    <p><strong>Reward Amount:</strong> ${{rewardAmount}}</p>
+    <p><strong>Reward Type:</strong> {{rewardType}}</p>
+    <p><strong>Status:</strong> Processed and added to your account</p>
+</div>
+
+<div class="content-box">
+    <h3>What's Next?</h3>
+    <ul>
+        {{#if (eq rewardType "credit")}}
+        <li>✅ Your reward has been added to your LocalPro wallet</li>
+        <li>💳 You can use these credits for any LocalPro services</li>
+        <li>📱 Check your wallet balance in the app or dashboard</li>
+        {{/if}}
+        
+        {{#if (eq rewardType "discount")}}
+        <li>✅ Your discount code has been generated</li>
+        <li>🛒 Use it on your next purchase</li>
+        <li>📧 Check your email for the discount code</li>
+        {{/if}}
+        
+        {{#if (eq rewardType "subscription_days")}}
+        <li>✅ Your subscription has been extended</li>
+        <li>⭐ Enjoy premium features for longer</li>
+        <li>📅 Check your subscription end date in your profile</li>
+        {{/if}}
+    </ul>
+</div>
+
+<div class="info">
+    <h3>Keep Referring, Keep Earning!</h3>
+    <p>Your referral program is working great! Continue sharing LocalPro with friends and family to earn more rewards.</p>
+    
+    <p><strong>Current Referral Stats:</strong></p>
+    <ul>
+        <li>📊 Total Referrals: Check your dashboard</li>
+        <li>🎯 Success Rate: Keep it up!</li>
+        <li>💎 Referral Tier: Earn higher rewards as you refer more people</li>
+    </ul>
+</div>
+
+<a href="{{dashboard_url}}" class="btn">View My Referrals</a>
+
+<div class="highlight">
+    <h4>💡 Pro Tip</h4>
+    <p>Share your referral link on social media or send personalized invitations to maximize your referral success!</p>
+</div>
+
+<p>Thank you for being a valued LocalPro member and helping us grow our community!</p>
+
+<p>Best regards,<br>
+The LocalPro Team</p>

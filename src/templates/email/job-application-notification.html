@@ -1,0 +1,31 @@
+<h2>New Job Application Received</h2>
+
+<p>Hello,</p>
+
+<p>You have received a new job application for the position of <strong>{{jobTitle}}</strong> at <strong>{{companyName}}</strong>.</p>
+
+<div class="content-box">
+    <h3>Applicant Details:</h3>
+    <p><strong>Name:</strong> {{applicantName}}</p>
+    <p><strong>Email:</strong> {{applicantEmail}}</p>
+    
+    {{#if coverLetter}}
+    <h4>Cover Letter:</h4>
+    <div class="highlight">
+        {{coverLetter}}
+    </div>
+    {{/if}}
+</div>
+
+<div class="info">
+    <p><strong>Next Steps:</strong></p>
+    <ul>
+        <li>Review the application in your LocalPro dashboard</li>
+        <li>Contact the applicant if you're interested</li>
+        <li>Update the application status as you progress through your hiring process</li>
+    </ul>
+</div>
+
+<a href="{{dashboard_url}}" class="btn">View Application</a>
+
+<p>Thank you for using LocalPro for your hiring needs!</p>

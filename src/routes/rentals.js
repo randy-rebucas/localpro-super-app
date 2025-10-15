@@ -1,5 +1,5 @@
 const express = require('express');
-const { auth } = require('../middleware/auth');
+const { auth, authorize } = require('../middleware/auth');
 const {
   getRentalItems,
   getRentalItem,
@@ -20,7 +20,7 @@ router.get('/items/:id', getRentalItem);
 router.use(auth);
 
 // Rental item routes
-router.post('/items', createRentalItem);
+router.post('/items', authorize('provider', 'admin'), createRentalItem);
 
 // Rental booking routes
 router.post('/book', createRental);

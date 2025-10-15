@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { auth } = require('../middleware/auth');
+const { auth, authorize } = require('../middleware/auth');
 const {
   trackEvent,
   getUserAnalytics,
@@ -27,17 +27,7 @@ router.get('/services/:serviceId', auth, getServiceAnalytics);
 // @route   GET /api/analytics/platform
 // @desc    Get platform analytics (Admin only)
 // @access  Private (Admin)
-const adminAuth = (req, res, next) => {
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({
-      success: false,
-      message: 'Access denied. Admin role required.'
-    });
-  }
-  next();
-};
-
-router.get('/platform', auth, adminAuth, getPlatformAnalytics);
+router.get('/platform', auth, authorize('admin'), getPlatformAnalytics);
 
 // @route   GET /api/analytics/dashboard
 // @desc    Get analytics dashboard data
