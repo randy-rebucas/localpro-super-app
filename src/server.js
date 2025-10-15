@@ -24,6 +24,7 @@ const paypalRoutes = require('./routes/paypal');
 const paymayaRoutes = require('./routes/paymaya');
 const jobsRoutes = require('./routes/jobs');
 const referralsRoutes = require('./routes/referrals');
+const agenciesRoutes = require('./routes/agencies');
 
 const app = express();
 
@@ -279,6 +280,27 @@ app.get('/', (req, res) => {
           { method: 'POST', path: '/process', description: 'Process referral completion', auth: true, roles: ['admin'] },
           { method: 'GET', path: '/analytics', description: 'Get referral analytics', auth: true, roles: ['admin'] }
         ]
+      },
+      agencies: {
+        base: '/api/agencies',
+        description: 'Agency management and provider coordination',
+        routes: [
+          { method: 'GET', path: '/', description: 'Get all agencies', auth: false },
+          { method: 'GET', path: '/:id', description: 'Get agency by ID', auth: false },
+          { method: 'POST', path: '/', description: 'Create new agency', auth: true },
+          { method: 'PUT', path: '/:id', description: 'Update agency', auth: true },
+          { method: 'DELETE', path: '/:id', description: 'Delete agency', auth: true },
+          { method: 'POST', path: '/:id/logo', description: 'Upload agency logo', auth: true },
+          { method: 'POST', path: '/:id/providers', description: 'Add provider to agency', auth: true },
+          { method: 'DELETE', path: '/:id/providers/:providerId', description: 'Remove provider from agency', auth: true },
+          { method: 'PUT', path: '/:id/providers/:providerId/status', description: 'Update provider status', auth: true },
+          { method: 'POST', path: '/:id/admins', description: 'Add admin to agency', auth: true },
+          { method: 'DELETE', path: '/:id/admins/:adminId', description: 'Remove admin from agency', auth: true },
+          { method: 'GET', path: '/:id/analytics', description: 'Get agency analytics', auth: true },
+          { method: 'GET', path: '/my/agencies', description: 'Get my agencies', auth: true },
+          { method: 'POST', path: '/join', description: 'Join agency', auth: true },
+          { method: 'POST', path: '/leave', description: 'Leave agency', auth: true }
+        ]
       }
     },
     authentication: {
@@ -326,6 +348,7 @@ app.use('/api/paypal', paypalRoutes);
 app.use('/api/paymaya', paymayaRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/referrals', referralsRoutes);
+app.use('/api/agencies', agenciesRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

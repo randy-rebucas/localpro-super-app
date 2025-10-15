@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, location-based services, multi-provider email support, and dual payment gateway integration.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, and dual payment gateway integration.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -133,6 +133,16 @@
     },
     {
       "key": "referralId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "agencyId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "providerId",
       "value": "",
       "type": "string"
     }
@@ -3291,6 +3301,302 @@
                   "value": "day"
                 }
               ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Agency Management",
+      "item": [
+        {
+          "name": "Get All Agencies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies?page=1&limit=10&industry=cleaning&status=active&search=cleaning&location=14.5995,120.9842",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "industry",
+                  "value": "cleaning"
+                },
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "search",
+                  "value": "cleaning"
+                },
+                {
+                  "key": "location",
+                  "value": "14.5995,120.9842"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Agency by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/{{agencyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "{{agencyId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Agency",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Elite Cleaning Services\",\n  \"description\": \"Professional cleaning services for residential and commercial properties\",\n  \"contactInfo\": {\n    \"email\": \"info@elitecleaning.com\",\n    \"phone\": \"+1234567890\",\n    \"website\": \"https://elitecleaning.com\",\n    \"address\": {\n      \"street\": \"123 Business St\",\n      \"city\": \"Manila\",\n      \"state\": \"Metro Manila\",\n      \"zipCode\": \"1000\",\n      \"country\": \"Philippines\",\n      \"coordinates\": {\n        \"lat\": 14.5995,\n        \"lng\": 120.9842\n      }\n    }\n  },\n  \"businessInfo\": {\n    \"registrationNumber\": \"REG123456789\",\n    \"taxId\": \"TAX987654321\",\n    \"businessType\": \"corporation\",\n    \"industry\": \"cleaning\",\n    \"establishedDate\": \"2020-01-15\",\n    \"employeeCount\": 25\n  },\n  \"serviceAreas\": [\n    {\n      \"name\": \"Metro Manila\",\n      \"coordinates\": [\n        { \"lat\": 14.5995, \"lng\": 120.9842 },\n        { \"lat\": 14.6042, \"lng\": 120.9822 }\n      ],\n      \"radius\": 15,\n      \"isActive\": true\n    }\n  ],\n  \"settings\": {\n    \"autoAcceptBookings\": false,\n    \"requireApproval\": true,\n    \"maxProviders\": 50,\n    \"workingHours\": {\n      \"monday\": { \"start\": \"08:00\", \"end\": \"18:00\", \"isActive\": true },\n      \"tuesday\": { \"start\": \"08:00\", \"end\": \"18:00\", \"isActive\": true },\n      \"wednesday\": { \"start\": \"08:00\", \"end\": \"18:00\", \"isActive\": true },\n      \"thursday\": { \"start\": \"08:00\", \"end\": \"18:00\", \"isActive\": true },\n      \"friday\": { \"start\": \"08:00\", \"end\": \"18:00\", \"isActive\": true },\n      \"saturday\": { \"start\": \"09:00\", \"end\": \"17:00\", \"isActive\": true },\n      \"sunday\": { \"start\": \"10:00\", \"end\": \"16:00\", \"isActive\": false }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Agency",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Elite Cleaning Services - Updated\",\n  \"description\": \"Professional cleaning services for residential and commercial properties with eco-friendly solutions\",\n  \"contactInfo\": {\n    \"email\": \"info@elitecleaning.com\",\n    \"phone\": \"+1234567890\",\n    \"website\": \"https://elitecleaning.com\"\n  },\n  \"settings\": {\n    \"autoAcceptBookings\": true,\n    \"requireApproval\": false,\n    \"maxProviders\": 75\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/{{agencyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "{{agencyId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Agency",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/{{agencyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "{{agencyId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Agency Logo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "logo",
+                  "type": "file",
+                  "src": "/path/to/logo.png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/{{agencyId}}/logo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "{{agencyId}}", "logo"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Provider to Agency",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{providerId}}\",\n  \"services\": [\"64a1b2c3d4e5f6789abcdef1\", \"64a1b2c3d4e5f6789abcdef2\"],\n  \"commissionRate\": 15\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/{{agencyId}}/providers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "{{agencyId}}", "providers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Provider from Agency",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/{{agencyId}}/providers/{{providerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "{{agencyId}}", "providers", "{{providerId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Provider Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/{{agencyId}}/providers/{{providerId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "{{agencyId}}", "providers", "{{providerId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Admin to Agency",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{providerId}}\",\n  \"role\": \"manager\",\n  \"permissions\": [\"manage_providers\", \"view_analytics\", \"manage_bookings\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/{{agencyId}}/admins",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "{{agencyId}}", "admins"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Admin from Agency",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/{{agencyId}}/admins/{{providerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "{{agencyId}}", "admins", "{{providerId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Agency Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/{{agencyId}}/analytics?timeRange=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "{{agencyId}}", "analytics"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Agencies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/my/agencies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "my", "agencies"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Join Agency",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agencyId\": \"{{agencyId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/join",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "join"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Leave Agency",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/leave",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "leave"]
             }
           },
           "response": []

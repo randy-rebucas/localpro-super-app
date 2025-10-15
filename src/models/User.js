@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['client', 'provider', 'admin', 'supplier', 'instructor'],
+    enum: ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'],
     default: 'client'
   },
   isVerified: {
@@ -170,6 +170,33 @@ const userSchema = new mongoose.Schema({
     currency: {
       type: String,
       default: 'USD'
+    }
+  },
+  // Agency relationship
+  agency: {
+    agencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Agency'
+    },
+    role: {
+      type: String,
+      enum: ['owner', 'admin', 'manager', 'supervisor', 'provider'],
+      default: 'provider'
+    },
+    joinedAt: {
+      type: Date,
+      default: Date.now
+    },
+    status: {
+      type: String,
+      enum: ['active', 'inactive', 'suspended', 'pending'],
+      default: 'pending'
+    },
+    commissionRate: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 10
     }
   },
   isActive: {
