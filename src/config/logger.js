@@ -1,6 +1,7 @@
 const winston = require('winston');
 const DailyRotateFile = require('winston-daily-rotate-file');
 const path = require('path');
+const DatabaseTransport = require('./databaseTransport');
 
 // Define log levels
 const levels = {
@@ -74,6 +75,13 @@ const transports = [
     ),
     maxSize: '20m',
     maxFiles: '7d',
+  }),
+
+  // Database transport for storing logs in MongoDB
+  new DatabaseTransport({
+    level: process.env.LOG_LEVEL || 'info',
+    batchSize: parseInt(process.env.LOG_BATCH_SIZE) || 100,
+    flushInterval: parseInt(process.env.LOG_FLUSH_INTERVAL) || 5000
   }),
 ];
 

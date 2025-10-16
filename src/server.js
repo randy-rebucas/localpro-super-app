@@ -32,6 +32,7 @@ const settingsRoutes = require('./routes/settings');
 const errorMonitoringRoutes = require('./routes/errorMonitoring');
 const auditLogsRoutes = require('./routes/auditLogs');
 const providersRoutes = require('./routes/providers');
+const logsRoutes = require('./routes/logs');
 
 const app = express();
 
@@ -122,13 +123,58 @@ app.get('/', (req, res) => {
   });
 });
 
+// Health check functions
+const checkDatabaseHealth = async () => {
+  try {
+    const mongoose = require('mongoose');
+    const state = mongoose.connection.readyState;
+    const states = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting'
+    };
+    
+    return {
+      status: state === 1 ? 'healthy' : 'unhealthy',
+      state: states[state] || 'unknown',
+      host: mongoose.connection.host,
+      port: mongoose.connection.port,
+      name: mongoose.connection.name
+    };
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      error: error.message
+    };
+  }
+};
+
+const checkExternalAPIs = async () => {
+  const apis = {
+    twilio: { status: 'unknown', response_time: null },
+    paypal: { status: 'unknown', response_time: null },
+    paymaya: { status: 'unknown', response_time: null },
+    cloudinary: { status: 'unknown', response_time: null }
+  };
+  
+  // For now, just return basic status
+  // In production, you might want to actually ping these services
+  return apis;
+};
+
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
+app.get('/health', async (req, res) => {
+  const health = {
     status: 'OK',
-    message: 'LocalPro Super App API is running',
-    timestamp: new Date().toISOString()
-  });
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: await checkDatabaseHealth(),
+    external_apis: await checkExternalAPIs(),
+    memory: process.memoryUsage(),
+    version: process.env.npm_package_version
+  };
+  res.status(200).json(health);
 });
 
 // Serve Postman collection
@@ -161,6 +207,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/error-monitoring', errorMonitoringRoutes);
 app.use('/api/audit-logs', auditLogsRoutes);
 app.use('/api/providers', providersRoutes);
+app.use('/api/logs', logsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -173,17 +220,22 @@ app.use('*', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+// Only start the server if this file is run directly (not imported for testing)
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  logger.info('LocalPro Super App API Started', {
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString()
+  app.listen(PORT, () => {
+    logger.info('LocalPro Super App API Started', {
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+      timestamp: new Date().toISOString()
+    });
+    
+    console.log(`🚀 LocalPro Super App API running on port ${PORT}`);
+    console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📊 Logging enabled with Winston`);
+    console.log(`🔍 Error monitoring active`);
   });
-  
-  console.log(`🚀 LocalPro Super App API running on port ${PORT}`);
-  console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📊 Logging enabled with Winston`);
-  console.log(`🔍 Error monitoring active`);
-});
+}
+
+module.exports = app;

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, audit logging, and provider system. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, regulatory compliance features, client-to-provider upgrade system, comprehensive onboarding, verification management, and provider analytics dashboard.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, audit logging, database logging, and provider system. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation and MongoDB storage, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, regulatory compliance features, database logging with advanced analytics, client-to-provider upgrade system, comprehensive onboarding, verification management, and provider analytics dashboard.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -153,6 +153,11 @@
     },
     {
       "key": "auditId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "logId",
       "value": "",
       "type": "string"
     },
@@ -6977,6 +6982,215 @@
               "raw": "{{baseUrl}}/api/providers/admin/{{providerId}}/status",
               "host": ["{{baseUrl}}"],
               "path": ["api", "providers", "admin", "{{providerId}}", "status"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Log Management",
+      "item": [
+        {
+          "name": "Get Log Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/stats?timeframe=24h",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "stats"],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "24h",
+                  "description": "Timeframe: 1h, 24h, 7d, 30d"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Logs with Filtering",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs?level=error&category=application&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs"],
+              "query": [
+                {
+                  "key": "level",
+                  "value": "error",
+                  "description": "Log level filter"
+                },
+                {
+                  "key": "category",
+                  "value": "application",
+                  "description": "Log category filter"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Number of logs to return"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Log Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/{{logId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "{{logId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Error Trends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/analytics/error-trends?timeframe=7d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "analytics", "error-trends"],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "7d",
+                  "description": "Timeframe: 1h, 24h, 7d, 30d"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Performance Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/analytics/performance?timeframe=24h",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "analytics", "performance"],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "24h",
+                  "description": "Timeframe: 1h, 24h, 7d, 30d"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Activity Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/user/{{userId}}/activity?timeframe=7d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "user", "{{userId}}", "activity"],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "7d",
+                  "description": "Timeframe: 1h, 24h, 7d, 30d"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Export Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/export/data?format=csv&level=error&startDate=2024-01-01",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "export", "data"],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "csv",
+                  "description": "Export format: json, csv"
+                },
+                {
+                  "key": "level",
+                  "value": "error",
+                  "description": "Log level filter"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01",
+                  "description": "Start date for export"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Log Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/dashboard/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "dashboard", "summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Logs Globally",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/search/global?q=payment&timeframe=7d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "search", "global"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "payment",
+                  "description": "Search query"
+                },
+                {
+                  "key": "timeframe",
+                  "value": "7d",
+                  "description": "Timeframe: 1h, 24h, 7d, 30d"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clean Up Expired Logs",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/cleanup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "cleanup"]
             }
           },
           "response": []

@@ -26,6 +26,15 @@ const sendVerificationCode = async (req, res) => {
       });
     }
 
+    // Validate phone number format (basic validation)
+    const phoneRegex = /^\+[1-9]\d{1,14}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid phone number format. Please use international format (e.g., +1234567890)'
+      });
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ phoneNumber });
     

@@ -17,9 +17,11 @@ if (accountSid && authToken) {
 class TwilioService {
   static async sendVerificationCode(phoneNumber) {
     try {
-      if (!client || !serviceSid) {
-        console.warn('Twilio not configured, using mock verification code');
-        // Generate a mock verification code for development
+      // Use mock in test environment or when Twilio is not properly configured
+      if (process.env.NODE_ENV === 'test' || !client || !serviceSid || 
+          accountSid === 'test_account_sid' || authToken === 'test_auth_token') {
+        console.warn('Twilio not configured or in test mode, using mock verification code');
+        // Generate a mock verification code for development/testing
         const mockCode = Math.floor(100000 + Math.random() * 900000).toString();
         console.log(`Mock verification code for ${phoneNumber}: ${mockCode}`);
         
@@ -55,9 +57,11 @@ class TwilioService {
 
   static async verifyCode(phoneNumber, code) {
     try {
-      if (!client || !serviceSid) {
-        console.warn('Twilio not configured, accepting any 6-digit code for development');
-        // For development, accept any 6-digit code
+      // Use mock in test environment or when Twilio is not properly configured
+      if (process.env.NODE_ENV === 'test' || !client || !serviceSid || 
+          accountSid === 'test_account_sid' || authToken === 'test_auth_token') {
+        console.warn('Twilio not configured or in test mode, accepting any 6-digit code for development/testing');
+        // For development/testing, accept any 6-digit code
         if (code && code.length === 6 && /^\d{6}$/.test(code)) {
           return {
             success: true,

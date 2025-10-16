@@ -24,6 +24,7 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **⚙️ Settings Management**: Comprehensive user and app settings system
 - **📊 Logging & Error Monitoring**: Comprehensive logging system with Winston and error tracking
 - **🔍 Audit Logging**: Complete audit trail for compliance and security monitoring
+- **💾 Database Logging**: All logs stored in MongoDB with advanced querying and analytics
 - **👨‍💼 Provider System**: Comprehensive provider upgrade system with verification and onboarding
 
 ### Key Features
@@ -59,9 +60,10 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **Authentication**: JWT + Twilio SMS
 - **Validation**: Joi
 - **Security**: Helmet, CORS, Rate Limiting
-- **Logging**: Winston with daily rotation, Morgan for HTTP requests
+- **Logging**: Winston with daily rotation, Morgan for HTTP requests, MongoDB storage
 - **Error Monitoring**: Custom error tracking with alerting and resolution management
 - **Audit Logging**: Comprehensive audit trail with compliance features and data protection
+- **Database Logging**: All application logs stored in MongoDB with advanced analytics
 - **Provider System**: Client-to-provider upgrade system with verification, onboarding, and analytics
 - **Email Service**: Resend, SendGrid, SMTP (Nodemailer)
 - **Payment Processing**: PayPal Server SDK + REST API, PayMaya API
@@ -571,6 +573,20 @@ GET    /api/providers/admin/all               # Get all providers (Admin)
 PUT    /api/providers/admin/:id/status        # Update provider status (Admin)
 ```
 
+### Log Management Endpoints
+```
+GET    /api/logs/stats                        # Get log statistics (Admin)
+GET    /api/logs                              # Get logs with filtering (Admin)
+GET    /api/logs/:logId                       # Get log details (Admin)
+GET    /api/logs/analytics/error-trends       # Get error trends (Admin)
+GET    /api/logs/analytics/performance        # Get performance metrics (Admin)
+GET    /api/logs/user/:userId/activity        # Get user activity logs
+GET    /api/logs/export/data                  # Export logs (Admin)
+GET    /api/logs/dashboard/summary            # Get log dashboard (Admin)
+GET    /api/logs/search/global                # Search logs globally (Admin)
+POST   /api/logs/cleanup                      # Clean up expired logs (Admin)
+```
+
 ## 📝 API Examples
 
 ### Authentication Flow
@@ -855,6 +871,49 @@ curl -X PUT http://localhost:4000/api/providers/admin/64a1b2c3d4e5f6789012345/st
   }'
 ```
 
+### Log Management
+```bash
+# Get log statistics
+curl -X GET "http://localhost:4000/api/logs/stats?timeframe=24h" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get logs with filtering
+curl -X GET "http://localhost:4000/api/logs?level=error&category=application&limit=20" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get log details
+curl -X GET http://localhost:4000/api/logs/64a1b2c3d4e5f6789012345 \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get error trends
+curl -X GET "http://localhost:4000/api/logs/analytics/error-trends?timeframe=7d" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get performance metrics
+curl -X GET "http://localhost:4000/api/logs/analytics/performance?timeframe=24h" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get user activity logs
+curl -X GET "http://localhost:4000/api/logs/user/64a1b2c3d4e5f6789012345/activity?timeframe=7d" \
+  -H "Authorization: Bearer JWT_TOKEN"
+
+# Export logs
+curl -X GET "http://localhost:4000/api/logs/export/data?format=csv&level=error&startDate=2024-01-01" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get log dashboard summary
+curl -X GET http://localhost:4000/api/logs/dashboard/summary \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Search logs globally
+curl -X GET "http://localhost:4000/api/logs/search/global?q=payment&timeframe=7d" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Clean up expired logs
+curl -X POST http://localhost:4000/api/logs/cleanup \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+```
+
 ## 🗄️ Database Models
 
 ### Core Models
@@ -877,6 +936,7 @@ curl -X PUT http://localhost:4000/api/providers/admin/64a1b2c3d4e5f6789012345/st
 - **AppSettings**: Global application configuration and feature flags
 - **ErrorTracking**: Error monitoring and tracking data
 - **AuditLog**: Comprehensive audit trail for compliance and security
+- **Log**: Application logs stored in database with advanced querying
 - **Provider**: Provider profiles with verification, onboarding, and performance tracking
 
 ## 🆕 New Features
@@ -977,6 +1037,18 @@ curl -X PUT http://localhost:4000/api/providers/admin/64a1b2c3d4e5f6789012345/st
 - **Automatic Cleanup**: Configurable retention periods with automatic data deletion
 - **Admin Dashboard**: Comprehensive audit overview with statistics and trends
 
+### 💾 Database Logging System
+- **MongoDB Storage**: All application logs stored in database for advanced querying and analysis
+- **Winston Integration**: Seamless integration with Winston logger using custom database transport
+- **Batch Processing**: Efficient batch insertion with configurable flush intervals
+- **Advanced Filtering**: Filter logs by level, category, source, user, URL, method, and more
+- **Performance Analytics**: Track response times, slow requests, and performance metrics
+- **Error Trend Analysis**: Identify error patterns and trends over time
+- **User Activity Tracking**: Monitor individual user activity and behavior patterns
+- **Global Search**: Search across all log types (application, audit, error) with full-text search
+- **Export Capabilities**: Export logs in JSON and CSV formats for analysis
+- **Automatic Cleanup**: TTL indexes and configurable retention policies for automatic cleanup
+
 ### 👨‍💼 Provider System
 - **Client-to-Provider Upgrade**: Seamless upgrade path from client to provider status
 - **Comprehensive Onboarding**: 8-step onboarding process with progress tracking
@@ -1076,6 +1148,7 @@ For support, email support@localpro.com or join our Slack channel.
 - [x] Settings management system
 - [x] Logging and error monitoring system
 - [x] Audit logging system for compliance and security
+- [x] Database logging system with MongoDB storage and analytics
 - [x] Provider system with client-to-provider upgrade functionality
 - [ ] Mobile app integration
 - [ ] Real-time notifications

@@ -4,3 +4,433 @@
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-15T23:26:38.735Z"}
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-15T23:49:52.044Z"}
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-15T23:50:14.546Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-15T23:55:16.232Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-15T23:57:02.926Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-15T23:57:19.990Z","url":"/health","userAgent":"curl/8.15.0","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":200,"timestamp":"2025-10-15T23:57:19.992Z","url":"/health","userAgent":"curl/8.15.0","userId":null}
+{"level":"http","message":"::1 - - [15/Oct/2025:23:57:19 +0000] \"GET /health HTTP/1.1\" 200 100 \"-\" \"curl/8.15.0\"","timestamp":"2025-10-15T23:57:19.996Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-15T23:57:25.223Z","url":"/","userAgent":"curl/8.15.0","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":200,"timestamp":"2025-10-15T23:57:25.225Z","url":"/","userAgent":"curl/8.15.0","userId":null}
+{"level":"http","message":"::1 - - [15/Oct/2025:23:57:25 +0000] \"GET / HTTP/1.1\" 200 1368 \"-\" \"curl/8.15.0\"","timestamp":"2025-10-15T23:57:25.226Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-15T23:57:25.288Z","url":"/","userAgent":"curl/8.15.0","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":200,"timestamp":"2025-10-15T23:57:25.290Z","url":"/","userAgent":"curl/8.15.0","userId":null}
+{"level":"http","message":"::1 - - [15/Oct/2025:23:57:25 +0000] \"GET / HTTP/1.1\" 200 1368 \"-\" \"curl/8.15.0\"","timestamp":"2025-10-15T23:57:25.291Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-15T23:58:13.859Z","url":"/api/auth/send-code","userAgent":"curl/8.15.0","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"899ms","statusCode":400,"timestamp":"2025-10-15T23:58:14.758Z","url":"/api/auth/send-code","userAgent":"curl/8.15.0","userId":null}
+{"level":"http","message":"::1 - - [15/Oct/2025:23:58:14 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 108 \"-\" \"curl/8.15.0\"","timestamp":"2025-10-15T23:58:14.759Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-15T23:58:41.350Z","url":"/api/auth/send-code","userAgent":"curl/8.15.0","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"792ms","statusCode":400,"timestamp":"2025-10-15T23:58:42.142Z","url":"/api/auth/send-code","userAgent":"curl/8.15.0","userId":null}
+{"level":"http","message":"::1 - - [15/Oct/2025:23:58:42 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 108 \"-\" \"curl/8.15.0\"","timestamp":"2025-10-15T23:58:42.143Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-15T23:58:42.200Z","url":"/api/auth/send-code","userAgent":"curl/8.15.0","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"798ms","statusCode":400,"timestamp":"2025-10-15T23:58:42.998Z","url":"/api/auth/send-code","userAgent":"curl/8.15.0","userId":null}
+{"level":"http","message":"::1 - - [15/Oct/2025:23:58:42 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 108 \"-\" \"curl/8.15.0\"","timestamp":"2025-10-15T23:58:43.000Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:24:18.061Z","url":"/health","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:18.109Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"3543ms","statusCode":400,"timestamp":"2025-10-16T00:24:21.652Z","url":"/api/auth/send-code","userId":null}
+{"level":"warn","message":"Slow Request Detected","method":"POST","responseTime":"3543ms","statusCode":400,"timestamp":"2025-10-16T00:24:21.660Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:21 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 108 \"-\" \"-\"","timestamp":"2025-10-16T00:24:21.661Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:25.118Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"932ms","statusCode":400,"timestamp":"2025-10-16T00:24:26.050Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:26 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 104 \"-\" \"-\"","timestamp":"2025-10-16T00:24:26.051Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:27.910Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"1ms","statusCode":400,"timestamp":"2025-10-16T00:24:27.911Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:27 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 54 \"-\" \"-\"","timestamp":"2025-10-16T00:24:27.916Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:24:29.978Z","url":"/","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"3ms","statusCode":200,"timestamp":"2025-10-16T00:24:29.981Z","url":"/","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:29 +0000] \"GET / HTTP/1.1\" 200 1363 \"-\" \"-\"","timestamp":"2025-10-16T00:24:29.984Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:30.036Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"950ms","statusCode":400,"timestamp":"2025-10-16T00:24:30.986Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:30 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 108 \"-\" \"-\"","timestamp":"2025-10-16T00:24:30.989Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:31.000Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"735ms","statusCode":400,"timestamp":"2025-10-16T00:24:31.735Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:31 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:24:31.738Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:35.227Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"1763ms","statusCode":400,"timestamp":"2025-10-16T00:24:36.990Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:36 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:24:36.991Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:41.226Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"757ms","statusCode":400,"timestamp":"2025-10-16T00:24:41.982Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:41 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 108 \"-\" \"-\"","timestamp":"2025-10-16T00:24:41.983Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:41.986Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"716ms","statusCode":400,"timestamp":"2025-10-16T00:24:42.702Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:42 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:24:42.704Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:24:42.708Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":401,"timestamp":"2025-10-16T00:24:42.709Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:42 +0000] \"GET /api/auth/me HTTP/1.1\" 401 48 \"-\" \"-\"","timestamp":"2025-10-16T00:24:42.712Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:44.520Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"2580ms","statusCode":400,"timestamp":"2025-10-16T00:24:47.100Z","url":"/api/auth/send-code","userId":null}
+{"level":"warn","message":"Slow Request Detected","method":"POST","responseTime":"2580ms","statusCode":400,"timestamp":"2025-10-16T00:24:47.105Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:47 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 108 \"-\" \"-\"","timestamp":"2025-10-16T00:24:47.105Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:47.110Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"728ms","statusCode":400,"timestamp":"2025-10-16T00:24:47.838Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:47 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:24:47.840Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:24:47.843Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"0ms","statusCode":401,"timestamp":"2025-10-16T00:24:47.843Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:47 +0000] \"GET /api/auth/me HTTP/1.1\" 401 60 \"-\" \"-\"","timestamp":"2025-10-16T00:24:47.847Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:49.671Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"516ms","statusCode":400,"timestamp":"2025-10-16T00:24:50.187Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:50 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 108 \"-\" \"-\"","timestamp":"2025-10-16T00:24:50.189Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:24:50.192Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"363ms","statusCode":400,"timestamp":"2025-10-16T00:24:50.555Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:50 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:24:50.556Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:24:50.560Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":401,"timestamp":"2025-10-16T00:24:50.561Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:24:50 +0000] \"GET /api/auth/me HTTP/1.1\" 401 48 \"-\" \"-\"","timestamp":"2025-10-16T00:24:50.562Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:26:00.916Z","url":"/health","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"5ms","statusCode":200,"timestamp":"2025-10-16T00:26:00.921Z","url":"/health","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:26:00 +0000] \"GET /health HTTP/1.1\" 200 487 \"-\" \"-\"","timestamp":"2025-10-16T00:26:00.923Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:26:06.164Z","url":"/","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":200,"timestamp":"2025-10-16T00:26:06.166Z","url":"/","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:26:06 +0000] \"GET / HTTP/1.1\" 200 1363 \"-\" \"-\"","timestamp":"2025-10-16T00:26:06.167Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:30.900Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"2983ms","statusCode":200,"timestamp":"2025-10-16T00:29:33.883Z","url":"/api/auth/send-code","userId":null}
+{"level":"warn","message":"Slow Request Detected","method":"POST","responseTime":"2983ms","statusCode":200,"timestamp":"2025-10-16T00:29:33.885Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:33 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:29:33.886Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:37.821Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"55ms","statusCode":200,"timestamp":"2025-10-16T00:29:37.876Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:37 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:29:37.877Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:39.960Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"1ms","statusCode":400,"timestamp":"2025-10-16T00:29:39.961Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:39 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 54 \"-\" \"-\"","timestamp":"2025-10-16T00:29:39.962Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:42.017Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"54ms","statusCode":200,"timestamp":"2025-10-16T00:29:42.071Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:42 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:29:42.072Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:42.076Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"130ms","statusCode":200,"timestamp":"2025-10-16T00:29:42.206Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:42 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:29:42.206Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:44.236Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"6ms","statusCode":400,"timestamp":"2025-10-16T00:29:44.242Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:44 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:29:44.244Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:46.292Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"50ms","statusCode":200,"timestamp":"2025-10-16T00:29:46.342Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:46 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:29:46.343Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:46.347Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"107ms","statusCode":200,"timestamp":"2025-10-16T00:29:46.454Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:46 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:29:46.455Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:29:46.458Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"100ms","statusCode":200,"timestamp":"2025-10-16T00:29:46.558Z","url":"/api/auth/me","userId":"68f03c7a02958ed5f40e953f"}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:46 +0000] \"GET /api/auth/me HTTP/1.1\" 200 1329 \"-\" \"-\"","timestamp":"2025-10-16T00:29:46.559Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:48.599Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"51ms","statusCode":200,"timestamp":"2025-10-16T00:29:48.650Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:48 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:29:48.651Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:48.654Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"107ms","statusCode":200,"timestamp":"2025-10-16T00:29:48.761Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:48 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:29:48.762Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:29:48.766Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"0ms","statusCode":401,"timestamp":"2025-10-16T00:29:48.766Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:48 +0000] \"GET /api/auth/me HTTP/1.1\" 401 60 \"-\" \"-\"","timestamp":"2025-10-16T00:29:48.767Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:50.820Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"49ms","statusCode":200,"timestamp":"2025-10-16T00:29:50.869Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:50 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:29:50.870Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:29:50.873Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"103ms","statusCode":200,"timestamp":"2025-10-16T00:29:50.976Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:50 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:29:50.977Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:29:50.979Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":401,"timestamp":"2025-10-16T00:29:50.980Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:29:50 +0000] \"GET /api/auth/me HTTP/1.1\" 401 48 \"-\" \"-\"","timestamp":"2025-10-16T00:29:50.981Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:17.845Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"2738ms","statusCode":200,"timestamp":"2025-10-16T00:32:20.583Z","url":"/api/auth/send-code","userId":null}
+{"level":"warn","message":"Slow Request Detected","method":"POST","responseTime":"2738ms","statusCode":200,"timestamp":"2025-10-16T00:32:20.589Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:20 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:32:20.592Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:24.207Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"62ms","statusCode":200,"timestamp":"2025-10-16T00:32:24.269Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:24 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:32:24.273Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:26.346Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"4ms","statusCode":400,"timestamp":"2025-10-16T00:32:26.350Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:26 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 54 \"-\" \"-\"","timestamp":"2025-10-16T00:32:26.363Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:28.409Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"58ms","statusCode":200,"timestamp":"2025-10-16T00:32:28.467Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:28 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:32:28.470Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:28.483Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"134ms","statusCode":200,"timestamp":"2025-10-16T00:32:28.617Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:28 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:32:28.621Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:30.689Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"9ms","statusCode":400,"timestamp":"2025-10-16T00:32:30.698Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:30 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:32:30.704Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:33.092Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"61ms","statusCode":200,"timestamp":"2025-10-16T00:32:33.153Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:33 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:32:33.155Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:33.166Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"118ms","statusCode":200,"timestamp":"2025-10-16T00:32:33.284Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:33 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:32:33.287Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:32:33.297Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"112ms","statusCode":200,"timestamp":"2025-10-16T00:32:33.409Z","url":"/api/auth/me","userId":"68f03d2115003e4e9e9557be"}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:33 +0000] \"GET /api/auth/me HTTP/1.1\" 200 1329 \"-\" \"-\"","timestamp":"2025-10-16T00:32:33.412Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:35.514Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"57ms","statusCode":200,"timestamp":"2025-10-16T00:32:35.570Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:35 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:32:35.572Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:35.580Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"120ms","statusCode":200,"timestamp":"2025-10-16T00:32:35.700Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:35 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:32:35.703Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:32:35.711Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":401,"timestamp":"2025-10-16T00:32:35.713Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:35 +0000] \"GET /api/auth/me HTTP/1.1\" 401 60 \"-\" \"-\"","timestamp":"2025-10-16T00:32:35.722Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:37.829Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"56ms","statusCode":200,"timestamp":"2025-10-16T00:32:37.885Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:37 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:32:37.887Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:32:37.898Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"114ms","statusCode":200,"timestamp":"2025-10-16T00:32:38.012Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:38 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:32:38.014Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:32:38.022Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"3ms","statusCode":401,"timestamp":"2025-10-16T00:32:38.025Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:32:38 +0000] \"GET /api/auth/me HTTP/1.1\" 401 48 \"-\" \"-\"","timestamp":"2025-10-16T00:32:38.031Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:42:43.250Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"2121ms","statusCode":200,"timestamp":"2025-10-16T00:42:45.371Z","url":"/api/auth/send-code","userId":null}
+{"level":"warn","message":"Slow Request Detected","method":"POST","responseTime":"2121ms","statusCode":200,"timestamp":"2025-10-16T00:42:45.384Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:42:45 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:42:45.391Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:42:49.364Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"59ms","statusCode":200,"timestamp":"2025-10-16T00:42:49.423Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:42:49 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:42:49.425Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:42:51.744Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"3ms","statusCode":400,"timestamp":"2025-10-16T00:42:51.747Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:42:51 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 54 \"-\" \"-\"","timestamp":"2025-10-16T00:42:51.755Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:42:53.812Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"55ms","statusCode":200,"timestamp":"2025-10-16T00:42:53.867Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:42:53 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:42:53.869Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:42:53.877Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"123ms","statusCode":200,"timestamp":"2025-10-16T00:42:54.000Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:42:54 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:42:54.002Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:42:56.091Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"8ms","statusCode":400,"timestamp":"2025-10-16T00:42:56.099Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:42:56 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:42:56.103Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:42:58.141Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"52ms","statusCode":200,"timestamp":"2025-10-16T00:42:58.193Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:42:58 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:42:58.195Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:42:58.204Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"113ms","statusCode":200,"timestamp":"2025-10-16T00:42:58.317Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:42:58 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:42:58.319Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:42:58.329Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"108ms","statusCode":200,"timestamp":"2025-10-16T00:42:58.437Z","url":"/api/auth/me","userId":"68f03f92965ffea1049a04dc"}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:42:58 +0000] \"GET /api/auth/me HTTP/1.1\" 200 1329 \"-\" \"-\"","timestamp":"2025-10-16T00:42:58.440Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:43:00.549Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"63ms","statusCode":200,"timestamp":"2025-10-16T00:43:00.612Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:43:00 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:43:00.616Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:43:00.630Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"118ms","statusCode":200,"timestamp":"2025-10-16T00:43:00.748Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:43:00 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:43:00.752Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:43:00.767Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"5ms","statusCode":401,"timestamp":"2025-10-16T00:43:00.772Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:43:00 +0000] \"GET /api/auth/me HTTP/1.1\" 401 60 \"-\" \"-\"","timestamp":"2025-10-16T00:43:00.780Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:43:03.695Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"61ms","statusCode":200,"timestamp":"2025-10-16T00:43:03.757Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:43:03 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:43:03.760Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:43:03.773Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"127ms","statusCode":200,"timestamp":"2025-10-16T00:43:03.900Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:43:03 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:43:03.903Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:43:03.916Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"5ms","statusCode":401,"timestamp":"2025-10-16T00:43:03.921Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:43:03 +0000] \"GET /api/auth/me HTTP/1.1\" 401 48 \"-\" \"-\"","timestamp":"2025-10-16T00:43:03.928Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:48:58.539Z","url":"/health","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"5ms","statusCode":200,"timestamp":"2025-10-16T00:48:58.544Z","url":"/health","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:48:58 +0000] \"GET /health HTTP/1.1\" 200 487 \"-\" \"-\"","timestamp":"2025-10-16T00:48:58.546Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:48:58.576Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"3407ms","statusCode":200,"timestamp":"2025-10-16T00:49:01.983Z","url":"/api/auth/send-code","userId":null}
+{"level":"warn","message":"Slow Request Detected","method":"POST","responseTime":"3407ms","statusCode":200,"timestamp":"2025-10-16T00:49:01.991Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:01 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:49:01.992Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:49:06.113Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"39ms","statusCode":200,"timestamp":"2025-10-16T00:49:06.152Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:06 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:49:06.152Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:49:07.840Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"1ms","statusCode":400,"timestamp":"2025-10-16T00:49:07.841Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:07 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 54 \"-\" \"-\"","timestamp":"2025-10-16T00:49:07.848Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:49:08.564Z","url":"/","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":200,"timestamp":"2025-10-16T00:49:08.565Z","url":"/","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:08 +0000] \"GET / HTTP/1.1\" 200 1363 \"-\" \"-\"","timestamp":"2025-10-16T00:49:08.566Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:49:09.536Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"41ms","statusCode":200,"timestamp":"2025-10-16T00:49:09.577Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:09 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:49:09.578Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:49:09.582Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"99ms","statusCode":200,"timestamp":"2025-10-16T00:49:09.681Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:09 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:49:09.682Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:49:11.393Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"1ms","statusCode":400,"timestamp":"2025-10-16T00:49:11.394Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:11 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:49:11.396Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:49:13.079Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"40ms","statusCode":200,"timestamp":"2025-10-16T00:49:13.119Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:13 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:49:13.119Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:49:13.122Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"103ms","statusCode":200,"timestamp":"2025-10-16T00:49:13.225Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:13 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:49:13.225Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:49:13.228Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"84ms","statusCode":200,"timestamp":"2025-10-16T00:49:13.312Z","url":"/api/auth/me","userId":"68f041092fc2e8c436899f03"}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:13 +0000] \"GET /api/auth/me HTTP/1.1\" 200 1329 \"-\" \"-\"","timestamp":"2025-10-16T00:49:13.312Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:49:14.971Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"40ms","statusCode":200,"timestamp":"2025-10-16T00:49:15.011Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:15 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:49:15.012Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:49:15.015Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"84ms","statusCode":200,"timestamp":"2025-10-16T00:49:15.099Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:15 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:49:15.099Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:49:15.103Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"0ms","statusCode":401,"timestamp":"2025-10-16T00:49:15.103Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:15 +0000] \"GET /api/auth/me HTTP/1.1\" 401 60 \"-\" \"-\"","timestamp":"2025-10-16T00:49:15.105Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:49:16.784Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"39ms","statusCode":200,"timestamp":"2025-10-16T00:49:16.823Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:16 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:49:16.824Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:49:16.827Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"88ms","statusCode":200,"timestamp":"2025-10-16T00:49:16.915Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:16 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:49:16.915Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:49:16.919Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":401,"timestamp":"2025-10-16T00:49:16.920Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:49:16 +0000] \"GET /api/auth/me HTTP/1.1\" 401 48 \"-\" \"-\"","timestamp":"2025-10-16T00:49:16.922Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:50:41.791Z","url":"/health","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:50:41.795Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"7ms","statusCode":200,"timestamp":"2025-10-16T00:50:41.798Z","url":"/health","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:50:41 +0000] \"GET /health HTTP/1.1\" 200 487 \"-\" \"-\"","timestamp":"2025-10-16T00:50:41.802Z"}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"2432ms","statusCode":200,"timestamp":"2025-10-16T00:50:44.227Z","url":"/api/auth/send-code","userId":null}
+{"level":"warn","message":"Slow Request Detected","method":"POST","responseTime":"2432ms","statusCode":200,"timestamp":"2025-10-16T00:50:44.232Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:50:44 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:50:44.234Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:50:51.361Z","url":"/","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":200,"timestamp":"2025-10-16T00:50:51.362Z","url":"/","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:50:51 +0000] \"GET / HTTP/1.1\" 200 1363 \"-\" \"-\"","timestamp":"2025-10-16T00:50:51.363Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:50:52.240Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"1ms","statusCode":400,"timestamp":"2025-10-16T00:50:52.241Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:50:52 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 110 \"-\" \"-\"","timestamp":"2025-10-16T00:50:52.250Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:50:57.558Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"1ms","statusCode":400,"timestamp":"2025-10-16T00:50:57.559Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:50:57 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 54 \"-\" \"-\"","timestamp":"2025-10-16T00:50:57.561Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:51:02.468Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"104ms","statusCode":200,"timestamp":"2025-10-16T00:51:02.572Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:02 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:51:02.572Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:51:02.577Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"226ms","statusCode":200,"timestamp":"2025-10-16T00:51:02.803Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:02 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:51:02.804Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:51:07.199Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"2ms","statusCode":400,"timestamp":"2025-10-16T00:51:07.201Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:07 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:51:07.202Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:51:12.159Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"101ms","statusCode":200,"timestamp":"2025-10-16T00:51:12.260Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:12 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:51:12.261Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:51:12.264Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"214ms","statusCode":200,"timestamp":"2025-10-16T00:51:12.477Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:12 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:51:12.478Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:51:12.486Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"215ms","statusCode":200,"timestamp":"2025-10-16T00:51:12.701Z","url":"/api/auth/me","userId":"68f04180b2e36c3f903a33de"}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:12 +0000] \"GET /api/auth/me HTTP/1.1\" 200 1329 \"-\" \"-\"","timestamp":"2025-10-16T00:51:12.702Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:51:17.663Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"108ms","statusCode":200,"timestamp":"2025-10-16T00:51:17.771Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:17 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:51:17.772Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:51:17.775Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"214ms","statusCode":200,"timestamp":"2025-10-16T00:51:17.989Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:17 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:51:17.990Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:51:17.993Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"0ms","statusCode":401,"timestamp":"2025-10-16T00:51:17.993Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:17 +0000] \"GET /api/auth/me HTTP/1.1\" 401 60 \"-\" \"-\"","timestamp":"2025-10-16T00:51:17.996Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:51:23.012Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"105ms","statusCode":200,"timestamp":"2025-10-16T00:51:23.117Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:23 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:51:23.118Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:51:23.121Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"213ms","statusCode":200,"timestamp":"2025-10-16T00:51:23.334Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:23 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:51:23.334Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:51:23.338Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":401,"timestamp":"2025-10-16T00:51:23.339Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:51:23 +0000] \"GET /api/auth/me HTTP/1.1\" 401 48 \"-\" \"-\"","timestamp":"2025-10-16T00:51:23.340Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:52:22.062Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:52:22.072Z","url":"/health","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"4ms","statusCode":200,"timestamp":"2025-10-16T00:52:22.076Z","url":"/health","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:22 +0000] \"GET /health HTTP/1.1\" 200 487 \"-\" \"-\"","timestamp":"2025-10-16T00:52:22.078Z"}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"3232ms","statusCode":200,"timestamp":"2025-10-16T00:52:25.294Z","url":"/api/auth/send-code","userId":null}
+{"level":"warn","message":"Slow Request Detected","method":"POST","responseTime":"3232ms","statusCode":200,"timestamp":"2025-10-16T00:52:25.300Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:25 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:52:25.302Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:52:28.772Z","url":"/","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":200,"timestamp":"2025-10-16T00:52:28.773Z","url":"/","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:28 +0000] \"GET / HTTP/1.1\" 200 1363 \"-\" \"-\"","timestamp":"2025-10-16T00:52:28.773Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:52:31.809Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"1ms","statusCode":400,"timestamp":"2025-10-16T00:52:31.810Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:31 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 110 \"-\" \"-\"","timestamp":"2025-10-16T00:52:31.817Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:52:36.149Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"2ms","statusCode":400,"timestamp":"2025-10-16T00:52:36.151Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:36 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 54 \"-\" \"-\"","timestamp":"2025-10-16T00:52:36.157Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:52:40.769Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"93ms","statusCode":200,"timestamp":"2025-10-16T00:52:40.862Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:40 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:52:40.862Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:52:40.866Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"196ms","statusCode":200,"timestamp":"2025-10-16T00:52:41.062Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:41 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:52:41.063Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:52:46.288Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"2ms","statusCode":400,"timestamp":"2025-10-16T00:52:46.290Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:46 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:52:46.291Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:52:50.025Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"87ms","statusCode":200,"timestamp":"2025-10-16T00:52:50.112Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:50 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:52:50.113Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:52:50.116Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"179ms","statusCode":200,"timestamp":"2025-10-16T00:52:50.295Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:50 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:52:50.296Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:52:50.301Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"182ms","statusCode":200,"timestamp":"2025-10-16T00:52:50.483Z","url":"/api/auth/me","userId":"68f041e2e9c727cf57b4ce7a"}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:50 +0000] \"GET /api/auth/me HTTP/1.1\" 200 1329 \"-\" \"-\"","timestamp":"2025-10-16T00:52:50.484Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:52:55.121Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"87ms","statusCode":200,"timestamp":"2025-10-16T00:52:55.208Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:55 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:52:55.208Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:52:55.211Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"186ms","statusCode":200,"timestamp":"2025-10-16T00:52:55.397Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:55 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:52:55.397Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:52:55.400Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":401,"timestamp":"2025-10-16T00:52:55.401Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:52:55 +0000] \"GET /api/auth/me HTTP/1.1\" 401 60 \"-\" \"-\"","timestamp":"2025-10-16T00:52:55.403Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:53:00.021Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"87ms","statusCode":200,"timestamp":"2025-10-16T00:53:00.108Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:53:00 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:53:00.108Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:53:00.112Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"489ms","statusCode":200,"timestamp":"2025-10-16T00:53:00.601Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:53:00 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:53:00.602Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:53:00.606Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"0ms","statusCode":401,"timestamp":"2025-10-16T00:53:00.606Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:53:00 +0000] \"GET /api/auth/me HTTP/1.1\" 401 48 \"-\" \"-\"","timestamp":"2025-10-16T00:53:00.608Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-16T00:56:02.545Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:56:04.507Z","url":"/health","userAgent":"curl/8.15.0","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"4ms","statusCode":200,"timestamp":"2025-10-16T00:56:04.511Z","url":"/health","userAgent":"curl/8.15.0","userId":null}
+{"level":"http","message":"::1 - - [16/Oct/2025:00:56:04 +0000] \"GET /health HTTP/1.1\" 200 558 \"-\" \"curl/8.15.0\"","timestamp":"2025-10-16T00:56:04.515Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:56:08.867Z","url":"/","userAgent":"curl/8.15.0","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":200,"timestamp":"2025-10-16T00:56:08.869Z","url":"/","userAgent":"curl/8.15.0","userId":null}
+{"level":"http","message":"::1 - - [16/Oct/2025:00:56:08 +0000] \"GET / HTTP/1.1\" 200 1368 \"-\" \"curl/8.15.0\"","timestamp":"2025-10-16T00:56:08.870Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:56:18.988Z","url":"/health","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"5ms","statusCode":200,"timestamp":"2025-10-16T00:56:18.993Z","url":"/health","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:18 +0000] \"GET /health HTTP/1.1\" 200 487 \"-\" \"-\"","timestamp":"2025-10-16T00:56:18.995Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:19.004Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"1777ms","statusCode":200,"timestamp":"2025-10-16T00:56:20.781Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:20 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:56:20.784Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:56:25.750Z","url":"/","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":200,"timestamp":"2025-10-16T00:56:25.751Z","url":"/","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:25 +0000] \"GET / HTTP/1.1\" 200 1363 \"-\" \"-\"","timestamp":"2025-10-16T00:56:25.752Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:26.149Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"0ms","statusCode":400,"timestamp":"2025-10-16T00:56:26.149Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:26 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 110 \"-\" \"-\"","timestamp":"2025-10-16T00:56:26.158Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:28.191Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"2ms","statusCode":400,"timestamp":"2025-10-16T00:56:28.192Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:28 +0000] \"POST /api/auth/send-code HTTP/1.1\" 400 54 \"-\" \"-\"","timestamp":"2025-10-16T00:56:28.197Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:30.229Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"67ms","statusCode":200,"timestamp":"2025-10-16T00:56:30.296Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:30 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:56:30.297Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:30.305Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"142ms","statusCode":200,"timestamp":"2025-10-16T00:56:30.447Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:30 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:56:30.448Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:32.410Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"2ms","statusCode":400,"timestamp":"2025-10-16T00:56:32.412Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:32 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 400 55 \"-\" \"-\"","timestamp":"2025-10-16T00:56:32.413Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:34.417Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"45ms","statusCode":200,"timestamp":"2025-10-16T00:56:34.462Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:34 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:56:34.463Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:34.466Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"101ms","statusCode":200,"timestamp":"2025-10-16T00:56:34.567Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:34 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:56:34.568Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:56:34.575Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"106ms","statusCode":200,"timestamp":"2025-10-16T00:56:34.681Z","url":"/api/auth/me","userId":"68f042c249986560bce1aba0"}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:34 +0000] \"GET /api/auth/me HTTP/1.1\" 200 1329 \"-\" \"-\"","timestamp":"2025-10-16T00:56:34.682Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:36.694Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"46ms","statusCode":200,"timestamp":"2025-10-16T00:56:36.740Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:36 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:56:36.741Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:36.745Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"112ms","statusCode":200,"timestamp":"2025-10-16T00:56:36.857Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:36 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:56:36.858Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:56:36.865Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":401,"timestamp":"2025-10-16T00:56:36.866Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:36 +0000] \"GET /api/auth/me HTTP/1.1\" 401 60 \"-\" \"-\"","timestamp":"2025-10-16T00:56:36.873Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:38.805Z","url":"/api/auth/send-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"45ms","statusCode":200,"timestamp":"2025-10-16T00:56:38.850Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:38 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"-\" \"-\"","timestamp":"2025-10-16T00:56:38.851Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-16T00:56:38.855Z","url":"/api/auth/verify-code","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"POST","responseTime":"116ms","statusCode":200,"timestamp":"2025-10-16T00:56:38.971Z","url":"/api/auth/verify-code","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:38 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 200 421 \"-\" \"-\"","timestamp":"2025-10-16T00:56:38.971Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-16T00:56:38.977Z","url":"/api/auth/me","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"0ms","statusCode":401,"timestamp":"2025-10-16T00:56:38.977Z","url":"/api/auth/me","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [16/Oct/2025:00:56:38 +0000] \"GET /api/auth/me HTTP/1.1\" 401 48 \"-\" \"-\"","timestamp":"2025-10-16T00:56:38.979Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-16T00:57:08.519Z"}
