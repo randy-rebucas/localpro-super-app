@@ -36,6 +36,9 @@ const logsRoutes = require('./routes/logs');
 
 const app = express();
 
+// Trust proxy - necessary when behind reverse proxy/load balancer (e.g., Render, nginx)
+app.set('trust proxy', 1);
+
 // Connect to MongoDB
 connectDB();
 
