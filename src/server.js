@@ -37,6 +37,9 @@ const userManagementRoutes = require('./routes/userManagement');
 
 const app = express();
 
+// Trust proxy - necessary when behind reverse proxy/load balancer (e.g., Render, nginx)
+app.set('trust proxy', 1);
+
 // Connect to MongoDB
 connectDB();
 
