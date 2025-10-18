@@ -33,6 +33,7 @@ const errorMonitoringRoutes = require('./routes/errorMonitoring');
 const auditLogsRoutes = require('./routes/auditLogs');
 const providersRoutes = require('./routes/providers');
 const logsRoutes = require('./routes/logs');
+const userManagementRoutes = require('./routes/userManagement');
 
 const app = express();
 
@@ -89,9 +90,10 @@ app.get('/', (req, res) => {
         'Analytics & Insights',
         'Referral System & Rewards',
         'Agency Management',
-        'User & App Settings'
+        'User & App Settings',
+        'User Management System'
       ],
-      totalEndpoints: 16,
+      totalEndpoints: 17,
       authentication: 'Bearer Token',
       rateLimit: '100 requests per 15 minutes'
     },
@@ -208,6 +210,7 @@ app.use('/api/error-monitoring', errorMonitoringRoutes);
 app.use('/api/audit-logs', auditLogsRoutes);
 app.use('/api/providers', providersRoutes);
 app.use('/api/logs', logsRoutes);
+app.use('/api/users', userManagementRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

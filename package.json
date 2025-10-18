@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "setup": "node setup-app.js",
+    "setup:paymaya": "node setup-paymaya-config.js",
+    "verify": "node verify-setup.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

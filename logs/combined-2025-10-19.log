@@ -1,0 +1,21 @@
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T19:50:10.307Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-18T19:50:23.241Z","url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"4ms","statusCode":200,"timestamp":"2025-10-18T19:50:23.246Z","url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [18/Oct/2025:19:50:23 +0000] \"GET / HTTP/1.1\" 200 1368 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"","timestamp":"2025-10-18T19:50:23.253Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-18T19:50:23.385Z","url":"/favicon.ico","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"3ms","statusCode":404,"timestamp":"2025-10-18T19:50:23.388Z","url":"/favicon.ico","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [18/Oct/2025:19:50:23 +0000] \"GET /favicon.ico HTTP/1.1\" 404 52 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"","timestamp":"2025-10-18T19:50:23.389Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:44:25.918Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:44:37.547Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:44:58.307Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:45:02.273Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:45:05.203Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:45:07.404Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:45:09.384Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:45:18.761Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:45:32.363Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:46:04.152Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:47:12.633Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:49:02.365Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:49:11.800Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-18T20:49:24.161Z"}

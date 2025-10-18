@@ -2,6 +2,38 @@
 
 A comprehensive Node.js backend API for the LocalPro Super App ecosystem, providing a centralized platform for local service providers, clients, and businesses.
 
+## ⚡ Quick Setup
+
+Get started with LocalPro Super App in minutes:
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Configure environment
+cp env.example .env
+# Edit .env with your settings
+
+# 3. Run comprehensive setup
+npm run setup
+
+# 4. Start the application
+npm run dev
+```
+
+The setup script will:
+- ✅ Connect to MongoDB
+- ✅ Create default app settings
+- ✅ Create admin users
+- ✅ Seed all modules with sample data
+- ✅ Validate the setup
+
+**Admin Credentials:**
+- Super Admin: `admin@localpro.com`
+- Agency Owner: `agency@localpro.com`
+
+For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
+
 ## 🚀 Features
 
 ### Core Modules
@@ -26,6 +58,7 @@ A comprehensive Node.js backend API for the LocalPro Super App ecosystem, provid
 - **🔍 Audit Logging**: Complete audit trail for compliance and security monitoring
 - **💾 Database Logging**: All logs stored in MongoDB with advanced querying and analytics
 - **👨‍💼 Provider System**: Comprehensive provider upgrade system with verification and onboarding
+- **👥 User Management System**: Complete user management with role-based access control, status management, and analytics
 
 ### Key Features
 - RESTful API with comprehensive endpoints
@@ -587,6 +620,20 @@ GET    /api/logs/search/global                # Search logs globally (Admin)
 POST   /api/logs/cleanup                      # Clean up expired logs (Admin)
 ```
 
+### User Management Endpoints
+```
+GET    /api/users                             # Get all users with filtering and pagination (Admin/Manager)
+GET    /api/users/stats                       # Get user statistics and analytics (Admin/Manager)
+GET    /api/users/:id                         # Get user by ID (Admin/Manager/Owner)
+POST   /api/users                             # Create new user (Admin)
+PUT    /api/users/:id                         # Update user information (Admin/Manager/Owner)
+PATCH  /api/users/:id/status                  # Update user status (Admin/Manager)
+PATCH  /api/users/:id/verification            # Update user verification status (Admin/Manager)
+POST   /api/users/:id/badges                  # Add badge to user (Admin/Manager)
+PATCH  /api/users/bulk                        # Bulk update users (Admin)
+DELETE /api/users/:id                         # Delete user (Admin)
+```
+
 ## 📝 API Examples
 
 ### Authentication Flow
@@ -914,6 +961,91 @@ curl -X POST http://localhost:4000/api/logs/cleanup \
   -H "Authorization: Bearer ADMIN_JWT_TOKEN"
 ```
 
+### User Management
+```bash
+# Get all users with filtering and pagination (admin only)
+curl -X GET "http://localhost:4000/api/users?page=1&limit=10&role=provider&isActive=true" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get user statistics (admin only)
+curl -X GET http://localhost:4000/api/users/stats \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Get user by ID
+curl -X GET http://localhost:4000/api/users/64a1b2c3d4e5f6789012345 \
+  -H "Authorization: Bearer JWT_TOKEN"
+
+# Create new user (admin only)
+curl -X POST http://localhost:4000/api/users \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phoneNumber": "+1234567890",
+    "email": "newuser@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "client"
+  }'
+
+# Update user information
+curl -X PUT http://localhost:4000/api/users/64a1b2c3d4e5f6789012345 \
+  -H "Authorization: Bearer JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Updated Name",
+    "lastName": "Updated Last",
+    "profile": {
+      "bio": "Updated bio"
+    }
+  }'
+
+# Update user status (admin only)
+curl -X PATCH http://localhost:4000/api/users/64a1b2c3d4e5f6789012345/status \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "isActive": false,
+    "reason": "Violation of terms of service"
+  }'
+
+# Update user verification status (admin only)
+curl -X PATCH http://localhost:4000/api/users/64a1b2c3d4e5f6789012345/verification \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "verification": {
+      "phoneVerified": true,
+      "emailVerified": true,
+      "identityVerified": true
+    }
+  }'
+
+# Add badge to user (admin only)
+curl -X POST http://localhost:4000/api/users/64a1b2c3d4e5f6789012345/badges \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "verified_provider",
+    "description": "Completed identity verification"
+  }'
+
+# Bulk update users (admin only)
+curl -X PATCH http://localhost:4000/api/users/bulk \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userIds": ["64a1b2c3d4e5f6789012345", "64a1b2c3d4e5f6789012346"],
+    "updateData": {
+      "tags": ["vip_customer"],
+      "status": "active"
+    }
+  }'
+
+# Delete user (admin only)
+curl -X DELETE http://localhost:4000/api/users/64a1b2c3d4e5f6789012345 \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+```
+
 ## 🗄️ Database Models
 
 ### Core Models
@@ -1061,6 +1193,22 @@ curl -X POST http://localhost:4000/api/logs/cleanup \
 - **Subscription Plans**: Basic, Professional, Premium, and Enterprise provider plans
 - **Admin Management**: Complete provider lifecycle management and status control
 
+### 👥 User Management System
+- **Complete User CRUD Operations**: Create, read, update, and delete users with comprehensive validation
+- **Role-based Access Control**: Granular permissions for Admin, Agency Owner, Agency Admin, Provider, Client, Supplier, and Instructor roles
+- **User Status Management**: Activate, deactivate, suspend, or ban users with reason tracking
+- **Verification System**: Manage phone, email, identity, business, address, and bank account verification
+- **Badge System**: Award achievement badges (verified_provider, top_rated, fast_response, reliable, expert, newcomer)
+- **Bulk Operations**: Update multiple users simultaneously for efficient management
+- **User Analytics**: Comprehensive statistics including user counts, role distribution, and activity metrics
+- **Activity Tracking**: Login tracking, device information, and user behavior monitoring
+- **Agency Support**: Agency-specific user management with proper isolation
+- **Audit Logging**: All user management operations are logged for compliance and security
+- **Advanced Filtering**: Search and filter users by role, status, verification, and custom criteria
+- **User Notes**: Add administrative notes to user profiles for internal tracking
+- **User Tags**: Categorize users with custom tags (vip, high_risk, new_user, etc.)
+- **Trust Score Management**: Automatic trust score calculation based on verification and activity
+
 ### 🔧 Enhanced Controllers
 - **Marketplace**: Location-based service search with distance calculations
 - **Job Board**: Complete job posting and application management system
@@ -1150,6 +1298,7 @@ For support, email support@localpro.com or join our Slack channel.
 - [x] Audit logging system for compliance and security
 - [x] Database logging system with MongoDB storage and analytics
 - [x] Provider system with client-to-provider upgrade functionality
+- [x] User management system with role-based access control and analytics
 - [ ] Mobile app integration
 - [ ] Real-time notifications
 - [ ] Advanced analytics dashboard

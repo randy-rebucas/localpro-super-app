@@ -282,6 +282,58 @@ const userSchema = new mongoose.Schema({
   settings: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'UserSettings'
+  },
+  
+  // User management fields
+  lastLoginAt: Date,
+  lastLoginIP: String,
+  loginCount: {
+    type: Number,
+    default: 0
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive', 'suspended', 'pending_verification', 'banned'],
+    default: 'pending_verification'
+  },
+  statusReason: String,
+  statusUpdatedAt: Date,
+  statusUpdatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  deletedAt: Date,
+  deletedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  notes: [{
+    note: String,
+    addedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    addedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  tags: [String], // For categorizing users (e.g., 'vip', 'high_risk', 'new_user')
+  
+  // Activity tracking
+  activity: {
+    lastActiveAt: Date,
+    totalSessions: {
+      type: Number,
+      default: 0
+    },
+    averageSessionDuration: Number, // in minutes
+    preferredLoginTime: String, // time of day
+    deviceInfo: [{
+      deviceType: String,
+      userAgent: String,
+      lastUsed: Date
+    }]
   }
 }, {
   timestamps: true
@@ -417,6 +469,131 @@ userSchema.methods.getReferralLink = function(baseUrl = process.env.FRONTEND_URL
 // Method to check if user was referred
 userSchema.methods.wasReferred = function() {
   return !!this.referral.referredBy;
+};
+
+// Method to update login information
+userSchema.methods.updateLoginInfo = function(ip, userAgent) {
+  this.lastLoginAt = new Date();
+  this.lastLoginIP = ip;
+  this.loginCount += 1;
+  this.activity.lastActiveAt = new Date();
+  this.activity.totalSessions += 1;
+  
+  // Update device info
+  const deviceType = this.getDeviceType(userAgent);
+  const existingDevice = this.activity.deviceInfo.find(device => 
+    device.deviceType === deviceType && device.userAgent === userAgent
+  );
+  
+  if (existingDevice) {
+    existingDevice.lastUsed = new Date();
+  } else {
+    this.activity.deviceInfo.push({
+      deviceType,
+      userAgent,
+      lastUsed: new Date()
+    });
+  }
+  
+  return this.save();
+};
+
+// Method to get device type from user agent
+userSchema.methods.getDeviceType = function(userAgent) {
+  if (!userAgent) return 'unknown';
+  
+  if (/mobile|android|iphone|ipad/i.test(userAgent)) {
+    return 'mobile';
+  } else if (/tablet|ipad/i.test(userAgent)) {
+    return 'tablet';
+  } else {
+    return 'desktop';
+  }
+};
+
+// Method to add note to user
+userSchema.methods.addNote = function(note, addedBy) {
+  this.notes.push({
+    note,
+    addedBy,
+    addedAt: new Date()
+  });
+  return this.save();
+};
+
+// Method to update user status
+userSchema.methods.updateStatus = function(status, reason, updatedBy) {
+  this.status = status;
+  this.statusReason = reason;
+  this.statusUpdatedAt = new Date();
+  this.statusUpdatedBy = updatedBy;
+  
+  // Update isActive based on status
+  this.isActive = ['active', 'pending_verification'].includes(status);
+  
+  return this.save();
+};
+
+// Method to add tag to user
+userSchema.methods.addTag = function(tag) {
+  if (!this.tags.includes(tag)) {
+    this.tags.push(tag);
+  }
+  return this.save();
+};
+
+// Method to remove tag from user
+userSchema.methods.removeTag = function(tag) {
+  this.tags = this.tags.filter(t => t !== tag);
+  return this.save();
+};
+
+// Method to check if user has tag
+userSchema.methods.hasTag = function(tag) {
+  return this.tags.includes(tag);
+};
+
+// Method to get user activity summary
+userSchema.methods.getActivitySummary = function() {
+  return {
+    lastLoginAt: this.lastLoginAt,
+    loginCount: this.loginCount,
+    lastActiveAt: this.activity.lastActiveAt,
+    totalSessions: this.activity.totalSessions,
+    averageSessionDuration: this.activity.averageSessionDuration,
+    deviceCount: this.activity.deviceInfo.length,
+    status: this.status,
+    isActive: this.isActive,
+    trustScore: this.trustScore,
+    verification: this.verification
+  };
+};
+
+// Static method to get users by status
+userSchema.statics.getUsersByStatus = function(status) {
+  return this.find({ status });
+};
+
+// Static method to get users by role
+userSchema.statics.getUsersByRole = function(role) {
+  return this.find({ role });
+};
+
+// Static method to get active users
+userSchema.statics.getActiveUsers = function() {
+  return this.find({ isActive: true, status: 'active' });
+};
+
+// Static method to get users with low trust score
+userSchema.statics.getLowTrustUsers = function(threshold = 30) {
+  return this.find({ trustScore: { $lt: threshold } });
+};
+
+// Static method to get recently registered users
+userSchema.statics.getRecentUsers = function(days = 7) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return this.find({ createdAt: { $gte: date } });
 };
 
 module.exports = mongoose.model('User', userSchema);

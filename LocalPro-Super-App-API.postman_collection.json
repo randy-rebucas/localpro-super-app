@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, audit logging, database logging, and provider system. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation and MongoDB storage, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, regulatory compliance features, database logging with advanced analytics, client-to-provider upgrade system, comprehensive onboarding, verification management, and provider analytics dashboard.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, audit logging, database logging, provider system, and user management system. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation and MongoDB storage, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, regulatory compliance features, database logging with advanced analytics, client-to-provider upgrade system, comprehensive onboarding, verification management, provider analytics dashboard, complete user management with role-based access control, user status management, verification system, badge system, bulk operations, user analytics, activity tracking, and comprehensive user lifecycle management.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -7191,6 +7191,213 @@
               "raw": "{{baseUrl}}/api/logs/cleanup",
               "host": ["{{baseUrl}}"],
               "path": ["api", "logs", "cleanup"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?page=1&limit=10&role=provider&isActive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "role",
+                  "value": "provider"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "stats"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"email\": \"newuser@example.com\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"role\": \"client\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated Name\",\n  \"lastName\": \"Updated Last\",\n  \"profile\": {\n    \"bio\": \"Updated bio\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false,\n  \"reason\": \"Violation of terms of service\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Verification",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verification\": {\n    \"phoneVerified\": true,\n    \"emailVerified\": true,\n    \"identityVerified\": true,\n    \"businessVerified\": false,\n    \"addressVerified\": true,\n    \"bankAccountVerified\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}/verification",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}", "verification"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add User Badge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"verified_provider\",\n  \"description\": \"Completed identity verification\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}/badges",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}", "badges"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Update Users",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"{{userId}}\", \"64a1b2c3d4e5f6789012346\"],\n  \"updateData\": {\n    \"tags\": [\"vip_customer\"],\n    \"status\": \"active\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/bulk",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "bulk"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
             }
           },
           "response": []
