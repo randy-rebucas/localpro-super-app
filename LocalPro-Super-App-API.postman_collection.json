@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, audit logging, database logging, provider system, and user management system. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation and MongoDB storage, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, regulatory compliance features, database logging with advanced analytics, client-to-provider upgrade system, comprehensive onboarding, verification management, provider analytics dashboard, complete user management with role-based access control, user status management, verification system, badge system, bulk operations, user analytics, activity tracking, and comprehensive user lifecycle management.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with enhanced mobile authentication, trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, audit logging, database logging, provider system, and user management system. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation and MongoDB storage, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, regulatory compliance features, database logging with advanced analytics, client-to-provider upgrade system, comprehensive onboarding, verification management, provider analytics dashboard, complete user management with role-based access control, user status management, verification system, badge system, bulk operations, user analytics, activity tracking, comprehensive user lifecycle management, enhanced mobile authentication with SMS verification, rate limiting, device tracking, smart redirection, progressive onboarding, enhanced JWT tokens, comprehensive logging, security features, and profile completeness tracking with categorized progress monitoring, smart recommendations, dashboard access control, and guided onboarding flow.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -276,12 +276,21 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
                   "    const response = pm.response.json();",
                   "    if (response.token) {",
                   "        pm.collectionVariables.set('authToken', response.token);",
                   "        pm.collectionVariables.set('userId', response.user.id);",
                   "        console.log('Authentication successful, token saved');",
+                  "        console.log('Redirect destination:', response.redirect.destination);",
+                  "        console.log('Redirect reason:', response.redirect.reason);",
+                  "        ",
+                  "        // Check if user needs to complete onboarding",
+                  "        if (response.redirect.destination === 'onboarding') {",
+                  "            console.log('User needs to complete onboarding');",
+                  "        } else {",
+                  "            console.log('User can proceed to dashboard');",
+                  "        }",
                   "    }",
                   "}"
                 ]
@@ -298,12 +307,99 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"code\": \"123456\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\"\n}"
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"code\": \"123456\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/verify-code",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "verify-code"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete Onboarding",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.token) {",
+                  "        pm.collectionVariables.set('authToken', response.token);",
+                  "        console.log('Onboarding completed successfully');",
+                  "        console.log('Updated token saved');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/complete-onboarding",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "complete-onboarding"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check Profile Completeness",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success) {",
+                  "        const data = response.data;",
+                  "        console.log('Profile completeness checked successfully');",
+                  "        console.log('Overall completion:', data.completeness.overall.percentage + '%');",
+                  "        console.log('Can access dashboard:', data.canAccessDashboard);",
+                  "        console.log('Needs onboarding:', data.needsOnboarding);",
+                  "        ",
+                  "        // Log completion breakdown",
+                  "        console.log('Basic info completion:', data.completeness.basic.percentage + '%');",
+                  "        console.log('Profile completion:', data.completeness.profile.percentage + '%');",
+                  "        console.log('Verification completion:', data.completeness.verification.percentage + '%');",
+                  "        ",
+                  "        // Log next steps if any",
+                  "        if (data.completeness.overall.nextSteps.length > 0) {",
+                  "            console.log('Next steps to complete profile:');",
+                  "            data.completeness.overall.nextSteps.forEach((step, index) => {",
+                  "                console.log((index + 1) + '. ' + step.title + ' (' + step.priority + ' priority)');",
+                  "                console.log('   ' + step.description);",
+                  "            });",
+                  "        } else {",
+                  "            console.log('Profile is 100% complete!');",
+                  "        }",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/profile-completeness",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "profile-completeness"]
             }
           },
           "response": []
@@ -339,6 +435,67 @@
               "raw": "{{baseUrl}}/api/auth/profile",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/upload-avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "upload-avatar"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Portfolio Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "title",
+                  "value": "Sample Portfolio Item",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Description of the portfolio item",
+                  "type": "text"
+                },
+                {
+                  "key": "category",
+                  "value": "cleaning",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/upload-portfolio",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "upload-portfolio"]
             }
           },
           "response": []

@@ -37,7 +37,7 @@ For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
 ## 🚀 Features
 
 ### Core Modules
-- **🔐 Authentication**: SMS-based authentication with Twilio integration
+- **🔐 Mobile Authentication**: Enhanced SMS-based authentication with Twilio integration, rate limiting, device tracking, and smart redirection
 - **🏪 Marketplace**: Service marketplace (cleaning, plumbing, electrical, moving)
 - **💼 Job Board**: Employment platform for job postings and applications
 - **🤝 Referral System**: Comprehensive referral and rewards platform
@@ -62,9 +62,11 @@ For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
 
 ### Key Features
 - RESTful API with comprehensive endpoints
-- JWT-based authentication
+- Enhanced JWT-based mobile authentication with rich payload
 - Role-based access control
-- Real-time SMS verification
+- Real-time SMS verification with rate limiting
+- Smart redirection based on user onboarding status
+- Device tracking and session management
 - Advanced search and filtering
 - Complete PayPal payment processing (one-time & recurring)
 - Full subscription management with automatic billing
@@ -273,11 +275,15 @@ curl -X POST http://localhost:4000/api/maps/geocode \
 
 ### Authentication Endpoints
 ```
-POST /api/auth/send-code          # Send verification code
-POST /api/auth/verify-code        # Verify code and login/register
-GET  /api/auth/me                 # Get current user
-PUT  /api/auth/profile            # Update user profile
-POST /api/auth/logout             # Logout user
+POST /api/auth/send-code              # Send verification code
+POST /api/auth/verify-code            # Verify code and login/register
+POST /api/auth/complete-onboarding    # Complete user onboarding
+GET  /api/auth/profile-completeness   # Check profile completeness status
+GET  /api/auth/me                     # Get current user
+PUT  /api/auth/profile                # Update user profile
+POST /api/auth/upload-avatar          # Upload profile avatar
+POST /api/auth/upload-portfolio       # Upload portfolio images
+POST /api/auth/logout                 # Logout user
 ```
 
 ### Marketplace Endpoints
@@ -636,27 +642,160 @@ DELETE /api/users/:id                         # Delete user (Admin)
 
 ## 📝 API Examples
 
-### Authentication Flow
+### Mobile Authentication Flow
 ```bash
 # 1. Send verification code
 curl -X POST http://localhost:4000/api/auth/send-code \
   -H "Content-Type: application/json" \
   -d '{"phoneNumber": "+1234567890"}'
 
-# 2. Verify code and register/login
+# Response:
+# {
+#   "success": true,
+#   "message": "Verification code sent successfully",
+#   "isNewUser": false,
+#   "expiresIn": 300
+# }
+
+# 2. Verify code and login/register
 curl -X POST http://localhost:4000/api/auth/verify-code \
   -H "Content-Type: application/json" \
   -d '{
     "phoneNumber": "+1234567890",
-    "code": "123456",
-    "firstName": "John",
-    "lastName": "Doe",
-    "role": "provider"
+    "code": "123456"
   }'
 
-# 3. Get user profile (requires token)
+# Response for existing user with complete profile:
+# {
+#   "success": true,
+#   "message": "Login successful",
+#   "token": "jwt_token_here",
+#   "user": { /* user object */ },
+#   "redirect": {
+#     "destination": "dashboard",
+#     "reason": "User has complete profile information"
+#   }
+# }
+
+# Response for new user or incomplete profile:
+# {
+#   "success": true,
+#   "message": "Registration successful. Please complete your profile.",
+#   "token": "jwt_token_here",
+#   "user": { /* user object */ },
+#   "redirect": {
+#     "destination": "onboarding",
+#     "reason": "New user needs to provide personal information"
+#   }
+# }
+
+# 3. Complete onboarding (if redirected to onboarding)
+curl -X POST http://localhost:4000/api/auth/complete-onboarding \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john@example.com"
+  }'
+
+# Response:
+# {
+#   "success": true,
+#   "message": "Onboarding completed successfully",
+#   "token": "updated_jwt_token",
+#   "user": { /* updated user object */ },
+#   "redirect": {
+#     "destination": "dashboard",
+#     "reason": "User onboarding completed successfully"
+#   }
+# }
+
+# 4. Check profile completeness status (requires token)
+curl -X GET http://localhost:4000/api/auth/profile-completeness \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Response:
+# {
+#   "success": true,
+#   "data": {
+#     "completeness": {
+#       "basic": {
+#         "completed": true,
+#         "missing": [],
+#         "percentage": 100
+#       },
+#       "profile": {
+#         "completed": false,
+#         "missing": ["profile.bio", "profile.address.city"],
+#         "percentage": 33
+#       },
+#       "verification": {
+#         "completed": false,
+#         "missing": ["verification.emailVerified"],
+#         "percentage": 50
+#       },
+#       "overall": {
+#         "completed": false,
+#         "percentage": 67,
+#         "missingFields": ["profile.bio", "profile.address.city", "verification.emailVerified"],
+#         "nextSteps": [
+#           {
+#             "priority": "medium",
+#             "action": "complete_profile",
+#             "title": "Complete Your Profile",
+#             "description": "Add bio and location information",
+#             "fields": ["profile.bio", "profile.address.city"]
+#           }
+#         ]
+#       }
+#     },
+#     "canAccessDashboard": true,
+#     "needsOnboarding": false,
+#     "user": { /* user object */ }
+#   }
+# }
+
+# 5. Get user profile (requires token)
 curl -X GET http://localhost:4000/api/auth/me \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Profile Completeness Management
+```bash
+# Check profile completeness with detailed breakdown
+curl -X GET http://localhost:4000/api/auth/profile-completeness \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Update profile to improve completeness
+curl -X PUT http://localhost:4000/api/auth/profile \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "profile": {
+      "bio": "Professional service provider with 5+ years experience",
+      "address": {
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10001",
+        "country": "USA"
+      }
+    }
+  }'
+
+# Upload profile avatar
+curl -X POST http://localhost:4000/api/auth/upload-avatar \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -F "avatar=@profile-picture.jpg"
+
+# Upload portfolio images
+curl -X POST http://localhost:4000/api/auth/upload-portfolio \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -F "images=@work-sample-1.jpg" \
+  -F "images=@work-sample-2.jpg" \
+  -F "title=Recent Cleaning Projects" \
+  -F "description=High-quality residential cleaning services" \
+  -F "category=cleaning"
 ```
 
 ### Marketplace Service Creation
@@ -1070,6 +1209,41 @@ curl -X DELETE http://localhost:4000/api/users/64a1b2c3d4e5f6789012345 \
 - **AuditLog**: Comprehensive audit trail for compliance and security
 - **Log**: Application logs stored in database with advanced querying
 - **Provider**: Provider profiles with verification, onboarding, and performance tracking
+
+## 📱 Enhanced Mobile Authentication
+
+### 🔐 Smart Authentication Flow
+- **Progressive Onboarding**: Automatic redirection to dashboard or onboarding based on profile completion
+- **Rate Limiting**: Prevents SMS spam with 1-minute cooldown between verification requests
+- **Device Tracking**: Monitors and manages multiple devices per user with activity patterns
+- **Enhanced JWT Tokens**: Rich payload including user status, role, and onboarding completion
+- **Profile Completeness Tracking**: Comprehensive profile completion status with categorized progress
+- **Smart Next Steps**: AI-driven recommendations for profile completion
+- **Comprehensive Logging**: Detailed security and performance logging with client tracking
+
+### 🛡️ Security Features
+- **Input Validation**: Comprehensive validation for phone numbers, codes, and user data
+- **Error Handling**: Secure error responses with specific error codes for better client handling
+- **Session Management**: Enhanced login tracking with IP address and user agent monitoring
+- **Trust Score Integration**: Automatic trust score calculation based on verification status
+
+### 📊 User Experience
+- **Smart Redirection**: Automatic detection of user status and appropriate redirection
+- **Welcome Emails**: Automatic welcome emails for new users upon onboarding completion
+- **Referral Integration**: Automatic referral code generation for new users
+- **Profile Management**: Seamless profile completion with validation and error handling
+- **Progress Tracking**: Real-time profile completion progress with visual indicators
+- **Guided Onboarding**: Step-by-step guidance for profile completion
+- **Dashboard Access Control**: Smart access control based on profile completeness
+
+### 📈 Profile Completeness System
+- **Categorized Progress Tracking**: Basic info, profile details, and verification status
+- **Percentage Completion**: Real-time completion percentages for each category
+- **Missing Fields Identification**: Detailed list of incomplete fields
+- **Smart Recommendations**: Priority-based next steps for profile completion
+- **Dashboard Access Control**: Automatic access control based on completion status
+- **Progressive Enhancement**: Gradual profile building with guided steps
+- **Visual Progress Indicators**: Clear progress visualization for users
 
 ## 🆕 New Features
 
