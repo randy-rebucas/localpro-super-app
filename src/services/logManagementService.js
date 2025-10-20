@@ -534,6 +534,136 @@ class LogManagementService {
       throw error;
     }
   }
+
+  // Flush all logs (delete all log entries)
+  async flushAllLogs() {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      
+      // Delete all logs from database
+      const dbResult = await Log.deleteMany({});
+      
+      // Delete all log files from both logs directories
+      const logsDir = path.join(process.cwd(), 'logs');
+      const routesLogsDir = path.join(process.cwd(), 'src', 'routes', 'logs');
+      let totalFileCount = 0;
+      let logsDirCount = 0;
+      let routesLogsDirCount = 0;
+      
+      // Flush main logs directory
+      if (fs.existsSync(logsDir)) {
+        const files = fs.readdirSync(logsDir);
+        for (const file of files) {
+          if (file.endsWith('.log')) {
+            const filePath = path.join(logsDir, file);
+            fs.unlinkSync(filePath);
+            logsDirCount++;
+          }
+        }
+      }
+
+      // Flush src/routes/logs directory
+      if (fs.existsSync(routesLogsDir)) {
+        const files = fs.readdirSync(routesLogsDir);
+        for (const file of files) {
+          if (file.endsWith('.log')) {
+            const filePath = path.join(routesLogsDir, file);
+            fs.unlinkSync(filePath);
+            routesLogsDirCount++;
+          }
+        }
+      }
+
+      totalFileCount = logsDirCount + routesLogsDirCount;
+
+      // Log the flush operation (this will create a new log entry)
+      logger.info('Log flush completed', {
+        deletedFromDB: dbResult.deletedCount,
+        deletedFiles: totalFileCount,
+        logsDirFiles: logsDirCount,
+        routesLogsDirFiles: routesLogsDirCount,
+        timestamp: new Date().toISOString()
+      });
+
+      return {
+        deletedFromDB: dbResult.deletedCount,
+        deletedFiles: totalFileCount,
+        logsDirFiles: logsDirCount,
+        routesLogsDirFiles: routesLogsDirCount,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      logger.error('Failed to flush logs', error);
+      throw error;
+    }
+  }
+
+  // Flush logs by type (database only, file only, or both)
+  async flushLogsByType(type = 'all') {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      let result = {
+        deletedFromDB: 0,
+        deletedFiles: 0,
+        logsDirFiles: 0,
+        routesLogsDirFiles: 0,
+        timestamp: new Date().toISOString()
+      };
+
+      if (type === 'all' || type === 'database') {
+        const dbResult = await Log.deleteMany({});
+        result.deletedFromDB = dbResult.deletedCount;
+      }
+
+      if (type === 'all' || type === 'files') {
+        const logsDir = path.join(process.cwd(), 'logs');
+        const routesLogsDir = path.join(process.cwd(), 'src', 'routes', 'logs');
+        let logsDirCount = 0;
+        let routesLogsDirCount = 0;
+        
+        // Flush main logs directory
+        if (fs.existsSync(logsDir)) {
+          const files = fs.readdirSync(logsDir);
+          for (const file of files) {
+            if (file.endsWith('.log')) {
+              const filePath = path.join(logsDir, file);
+              fs.unlinkSync(filePath);
+              logsDirCount++;
+            }
+          }
+        }
+
+        // Flush src/routes/logs directory
+        if (fs.existsSync(routesLogsDir)) {
+          const files = fs.readdirSync(routesLogsDir);
+          for (const file of files) {
+            if (file.endsWith('.log')) {
+              const filePath = path.join(routesLogsDir, file);
+              fs.unlinkSync(filePath);
+              routesLogsDirCount++;
+            }
+          }
+        }
+
+        result.logsDirFiles = logsDirCount;
+        result.routesLogsDirFiles = routesLogsDirCount;
+        result.deletedFiles = logsDirCount + routesLogsDirCount;
+      }
+
+      // Log the flush operation
+      logger.info('Log flush by type completed', {
+        type,
+        ...result
+      });
+
+      return result;
+    } catch (error) {
+      logger.error('Failed to flush logs by type', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new LogManagementService();

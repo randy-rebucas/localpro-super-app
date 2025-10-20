@@ -59,6 +59,8 @@ For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
 - **💾 Database Logging**: All logs stored in MongoDB with advanced querying and analytics
 - **👨‍💼 Provider System**: Comprehensive provider upgrade system with verification and onboarding
 - **👥 User Management System**: Complete user management with role-based access control, status management, and analytics
+- **🔍 Global Search System**: Comprehensive search functionality across all entities with advanced filtering, sorting, and pagination
+- **🔔 Notification System**: Complete user notification management with real-time updates, filtering, and multi-channel delivery
 
 ### Key Features
 - RESTful API with comprehensive endpoints
@@ -86,6 +88,8 @@ For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
 - **Multi-level admin permissions and role management**
 - **User settings and preferences management**
 - **App-wide configuration and feature flags**
+- **Global search across all entities with smart filtering**
+- **Comprehensive notification system with multi-channel delivery**
 
 ## 🛠️ Tech Stack
 
@@ -502,11 +506,20 @@ POST   /api/communication/conversations/:id/messages # Send message
 PUT    /api/communication/conversations/:id/read # Mark messages as read
 PUT    /api/communication/conversations/:id/messages/:messageId # Update message
 DELETE /api/communication/conversations/:id/messages/:messageId # Delete message
-POST   /api/communication/email            # Send email notification
-POST   /api/communication/sms              # Send SMS notification
 GET    /api/communication/unread-count     # Get unread message count
 GET    /api/communication/search           # Search conversations
 GET    /api/communication/conversation-with/:userId # Get conversation with user
+```
+
+### Notification Endpoints
+```
+GET    /api/communication/notifications    # Get user notifications with filtering
+GET    /api/communication/notifications/count # Get notification count
+PUT    /api/communication/notifications/:notificationId/read # Mark notification as read
+PUT    /api/communication/notifications/read-all # Mark all notifications as read
+DELETE /api/communication/notifications/:notificationId # Delete notification
+POST   /api/communication/notifications/email # Send email notification
+POST   /api/communication/notifications/sms # Send SMS notification
 ```
 
 ### Analytics Endpoints
@@ -638,6 +651,19 @@ PATCH  /api/users/:id/verification            # Update user verification status 
 POST   /api/users/:id/badges                  # Add badge to user (Admin/Manager)
 PATCH  /api/users/bulk                        # Bulk update users (Admin)
 DELETE /api/users/:id                         # Delete user (Admin)
+```
+
+### Global Search Endpoints
+```
+GET    /api/search                            # Global search across all entities
+GET    /api/search/suggestions                # Get search suggestions/autocomplete
+GET    /api/search/popular                    # Get popular search terms
+GET    /api/search/categories                 # Get all available search categories
+GET    /api/search/locations                  # Get popular search locations
+GET    /api/search/trending                   # Get trending search terms
+GET    /api/search/advanced                   # Advanced search with more filters
+GET    /api/search/entities/:type             # Search within specific entity type
+POST   /api/search/analytics                  # Track search analytics (Admin)
 ```
 
 ## 📝 API Examples
@@ -1185,6 +1211,113 @@ curl -X DELETE http://localhost:4000/api/users/64a1b2c3d4e5f6789012345 \
   -H "Authorization: Bearer ADMIN_JWT_TOKEN"
 ```
 
+### Global Search
+```bash
+# Basic global search
+curl -X GET "http://localhost:4000/api/search?q=cleaning&limit=10"
+
+# Filtered search with category and location
+curl -X GET "http://localhost:4000/api/search?q=plumbing&category=plumbing&location=Manila&rating=4"
+
+# Type-specific search (services only)
+curl -X GET "http://localhost:4000/api/search?q=cleaning&type=services&limit=5"
+
+# Advanced search with multiple filters
+curl -X GET "http://localhost:4000/api/search/advanced?q=cleaning&minPrice=50&maxPrice=500&rating=4&verified=true"
+
+# Entity-specific search (jobs only)
+curl -X GET "http://localhost:4000/api/search/entities/jobs?q=developer&location=Manila&limit=5"
+
+# Get search suggestions
+curl -X GET "http://localhost:4000/api/search/suggestions?q=clean&limit=5"
+
+# Get popular searches
+curl -X GET "http://localhost:4000/api/search/popular?limit=10"
+
+# Get available categories
+curl -X GET "http://localhost:4000/api/search/categories"
+
+# Get popular locations
+curl -X GET "http://localhost:4000/api/search/locations?q=Manila&limit=5"
+
+# Get trending searches
+curl -X GET "http://localhost:4000/api/search/trending?period=week&limit=10"
+
+# Track search analytics (admin only)
+curl -X POST http://localhost:4000/api/search/analytics \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "cleaning services",
+    "results": 25,
+    "filters": {
+      "category": "cleaning",
+      "location": "Manila"
+    },
+    "userId": "64a1b2c3d4e5f6789012345"
+  }'
+```
+
+### Notifications
+```bash
+# Get user notifications
+curl -X GET "http://localhost:4000/api/communication/notifications?page=1&limit=20" \
+  -H "Authorization: Bearer JWT_TOKEN"
+
+# Get unread notifications only
+curl -X GET "http://localhost:4000/api/communication/notifications?isRead=false" \
+  -H "Authorization: Bearer JWT_TOKEN"
+
+# Get notifications by type
+curl -X GET "http://localhost:4000/api/communication/notifications?type=booking_created" \
+  -H "Authorization: Bearer JWT_TOKEN"
+
+# Get notification count
+curl -X GET "http://localhost:4000/api/communication/notifications/count" \
+  -H "Authorization: Bearer JWT_TOKEN"
+
+# Get unread notification count
+curl -X GET "http://localhost:4000/api/communication/notifications/count?isRead=false" \
+  -H "Authorization: Bearer JWT_TOKEN"
+
+# Mark notification as read
+curl -X PUT http://localhost:4000/api/communication/notifications/64a1b2c3d4e5f6789012345/read \
+  -H "Authorization: Bearer JWT_TOKEN"
+
+# Mark all notifications as read
+curl -X PUT http://localhost:4000/api/communication/notifications/read-all \
+  -H "Authorization: Bearer JWT_TOKEN"
+
+# Delete notification
+curl -X DELETE http://localhost:4000/api/communication/notifications/64a1b2c3d4e5f6789012345 \
+  -H "Authorization: Bearer JWT_TOKEN"
+
+# Send email notification
+curl -X POST http://localhost:4000/api/communication/notifications/email \
+  -H "Authorization: Bearer JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "user@example.com",
+    "subject": "Booking Confirmation",
+    "template": "booking-confirmation",
+    "data": {
+      "bookingId": "64a1b2c3d4e5f6789012345",
+      "serviceName": "House Cleaning",
+      "date": "2024-01-15",
+      "time": "10:00 AM"
+    }
+  }'
+
+# Send SMS notification
+curl -X POST http://localhost:4000/api/communication/notifications/sms \
+  -H "Authorization: Bearer JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+1234567890",
+    "message": "Your booking has been confirmed for tomorrow at 10:00 AM."
+  }'
+```
+
 ## 🗄️ Database Models
 
 ### Core Models
@@ -1383,6 +1516,33 @@ curl -X DELETE http://localhost:4000/api/users/64a1b2c3d4e5f6789012345 \
 - **User Tags**: Categorize users with custom tags (vip, high_risk, new_user, etc.)
 - **Trust Score Management**: Automatic trust score calculation based on verification and activity
 
+### 🔍 Global Search System
+- **Comprehensive Entity Search**: Search across all platform entities (Users, Jobs, Services, Supplies, Courses, Rentals, Agencies)
+- **Advanced Filtering**: Filter by category, location, price range, rating, verification status, and more
+- **Smart Sorting**: Sort by relevance, rating, price, date, and custom criteria
+- **Search Suggestions**: Real-time autocomplete suggestions for better user experience
+- **Popular & Trending Searches**: Track and display popular and trending search terms
+- **Entity-Specific Search**: Search within specific entity types with targeted filters
+- **Location-Based Search**: Find services and providers within specific geographic areas
+- **Relevance Scoring**: Intelligent relevance scoring based on multiple factors
+- **Pagination Support**: Efficient pagination with configurable page sizes
+- **Search Analytics**: Track search patterns and user behavior for insights
+- **Category Management**: Comprehensive category system for all searchable entities
+- **Performance Optimized**: Fast search with database indexing and query optimization
+
+### 🔔 Notification System
+- **Multi-Channel Delivery**: In-app, email, SMS, and push notifications
+- **Comprehensive Notification Types**: Booking updates, job applications, payment notifications, referral rewards, system announcements
+- **Smart Filtering**: Filter notifications by type, read status, priority, and date range
+- **Bulk Operations**: Mark all notifications as read, delete multiple notifications
+- **Priority Management**: Low, medium, high, and urgent priority levels
+- **Expiration Handling**: Automatic cleanup of expired notifications
+- **User Preferences**: Granular notification preferences for each channel and type
+- **Real-time Updates**: Instant notification delivery with read status tracking
+- **Analytics Integration**: Track notification engagement and user behavior
+- **Performance Optimized**: Efficient database queries with proper indexing
+- **Security**: User-scoped notifications with proper access control
+
 ### 🔧 Enhanced Controllers
 - **Marketplace**: Location-based service search with distance calculations
 - **Job Board**: Complete job posting and application management system
@@ -1393,6 +1553,7 @@ curl -X DELETE http://localhost:4000/api/users/64a1b2c3d4e5f6789012345 \
 - **Finance**: Email notifications for loan approvals
 - **Authentication**: Welcome emails for new users
 - **Settings Management**: User preferences and app configuration management
+- **Global Search**: Comprehensive search functionality across all platform entities
 
 ## 🔒 Security Features
 
@@ -1473,6 +1634,7 @@ For support, email support@localpro.com or join our Slack channel.
 - [x] Database logging system with MongoDB storage and analytics
 - [x] Provider system with client-to-provider upgrade functionality
 - [x] User management system with role-based access control and analytics
+- [x] Global search system with comprehensive entity search and filtering
 - [ ] Mobile app integration
 - [ ] Real-time notifications
 - [ ] Advanced analytics dashboard

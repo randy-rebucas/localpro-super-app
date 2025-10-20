@@ -34,6 +34,7 @@ const auditLogsRoutes = require('./routes/auditLogs');
 const providersRoutes = require('./routes/providers');
 const logsRoutes = require('./routes/logs');
 const userManagementRoutes = require('./routes/userManagement');
+const searchRoutes = require('./routes/search');
 
 const app = express();
 
@@ -94,9 +95,10 @@ app.get('/', (req, res) => {
         'Referral System & Rewards',
         'Agency Management',
         'User & App Settings',
-        'User Management System'
+        'User Management System',
+        'Global Search System'
       ],
-      totalEndpoints: 17,
+      totalEndpoints: 18,
       authentication: 'Bearer Token',
       rateLimit: '100 requests per 15 minutes'
     },
@@ -214,6 +216,7 @@ app.use('/api/audit-logs', auditLogsRoutes);
 app.use('/api/providers', providersRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/users', userManagementRoutes);
+app.use('/api/search', searchRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

@@ -610,6 +610,191 @@ const deleteMessage = async (req, res) => {
   }
 };
 
+// @desc    Get user notifications
+// @route   GET /api/communication/notifications
+// @access  Private
+const getUserNotifications = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, isRead, type } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Build query
+    const query = {
+      user: req.user.id,
+      $or: [
+        { expiresAt: { $exists: false } },
+        { expiresAt: { $gt: new Date() } }
+      ]
+    };
+
+    // Add filters
+    if (isRead !== undefined) {
+      query.isRead = isRead === 'true';
+    }
+
+    if (type) {
+      query.type = type;
+    }
+
+    const notifications = await Communication.Notification.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Communication.Notification.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      count: notifications.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: notifications
+    });
+  } catch (error) {
+    console.error('Get user notifications error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Mark notification as read
+// @route   PUT /api/communication/notifications/:notificationId/read
+// @access  Private
+const markNotificationAsRead = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+
+    const notification = await Communication.Notification.findOne({
+      _id: notificationId,
+      user: req.user.id
+    });
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: 'Notification not found'
+      });
+    }
+
+    notification.isRead = true;
+    notification.readAt = new Date();
+    await notification.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Notification marked as read',
+      data: notification
+    });
+  } catch (error) {
+    console.error('Mark notification as read error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Mark all notifications as read
+// @route   PUT /api/communication/notifications/read-all
+// @access  Private
+const markAllNotificationsAsRead = async (req, res) => {
+  try {
+    const result = await Communication.Notification.updateMany(
+      {
+        user: req.user.id,
+        isRead: false
+      },
+      {
+        isRead: true,
+        readAt: new Date()
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `${result.modifiedCount} notifications marked as read`,
+      data: {
+        modifiedCount: result.modifiedCount
+      }
+    });
+  } catch (error) {
+    console.error('Mark all notifications as read error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Delete notification
+// @route   DELETE /api/communication/notifications/:notificationId
+// @access  Private
+const deleteNotification = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+
+    const notification = await Communication.Notification.findOneAndDelete({
+      _id: notificationId,
+      user: req.user.id
+    });
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: 'Notification not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Notification deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete notification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get notification count
+// @route   GET /api/communication/notifications/count
+// @access  Private
+const getNotificationCount = async (req, res) => {
+  try {
+    const { isRead } = req.query;
+
+    const query = {
+      user: req.user.id,
+      $or: [
+        { expiresAt: { $exists: false } },
+        { expiresAt: { $gt: new Date() } }
+      ]
+    };
+
+    if (isRead !== undefined) {
+      query.isRead = isRead === 'true';
+    }
+
+    const count = await Communication.Notification.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      data: { count }
+    });
+  } catch (error) {
+    console.error('Get notification count error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getConversations,
   getConversation,
@@ -623,5 +808,10 @@ module.exports = {
   searchConversations,
   getConversationWithUser,
   updateMessage,
-  deleteMessage
+  deleteMessage,
+  getUserNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+  getNotificationCount
 };

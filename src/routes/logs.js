@@ -461,4 +461,110 @@ router.post('/cleanup', auth, async (req, res) => {
   }
 });
 
+// Flush all logs (admin only)
+router.post('/flush', auth, async (req, res) => {
+  try {
+    // Only allow admin users to flush logs
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    const { type = 'all' } = req.body; // 'all', 'database', or 'files'
+
+    // Validate type parameter
+    if (!['all', 'database', 'files'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid type. Must be "all", "database", or "files".'
+      });
+    }
+
+    let flushResult;
+    if (type === 'all') {
+      flushResult = await logManagementService.flushAllLogs();
+    } else {
+      flushResult = await logManagementService.flushLogsByType(type);
+    }
+
+    logger.info('Log flush performed', {
+      userId: req.user.id,
+      type,
+      deletedFromDB: flushResult.deletedFromDB,
+      deletedFiles: flushResult.deletedFiles,
+      logsDirFiles: flushResult.logsDirFiles || 0,
+      routesLogsDirFiles: flushResult.routesLogsDirFiles || 0
+    });
+
+    res.json({
+      success: true,
+      message: `Log flush completed successfully`,
+      data: {
+        type,
+        deletedFromDB: flushResult.deletedFromDB,
+        deletedFiles: flushResult.deletedFiles,
+        logsDirFiles: flushResult.logsDirFiles || 0,
+        routesLogsDirFiles: flushResult.routesLogsDirFiles || 0,
+        timestamp: flushResult.timestamp
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to flush logs', error, {
+      userId: req.user.id,
+      type: req.body.type
+    });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to flush logs'
+    });
+  }
+});
+
+// Flush all logs (alternative endpoint for convenience)
+router.delete('/flush', auth, async (req, res) => {
+  try {
+    // Only allow admin users to flush logs
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    const flushResult = await logManagementService.flushAllLogs();
+
+    logger.info('Log flush performed via DELETE', {
+      userId: req.user.id,
+      deletedFromDB: flushResult.deletedFromDB,
+      deletedFiles: flushResult.deletedFiles,
+      logsDirFiles: flushResult.logsDirFiles || 0,
+      routesLogsDirFiles: flushResult.routesLogsDirFiles || 0
+    });
+
+    res.json({
+      success: true,
+      message: 'All logs flushed successfully',
+      data: {
+        deletedFromDB: flushResult.deletedFromDB,
+        deletedFiles: flushResult.deletedFiles,
+        logsDirFiles: flushResult.logsDirFiles || 0,
+        routesLogsDirFiles: flushResult.routesLogsDirFiles || 0,
+        timestamp: flushResult.timestamp
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to flush logs via DELETE', error, {
+      userId: req.user.id
+    });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to flush logs'
+    });
+  }
+});
+
 module.exports = router;

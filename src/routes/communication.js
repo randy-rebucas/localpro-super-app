@@ -13,7 +13,12 @@ const {
   searchConversations,
   getConversationWithUser,
   updateMessage,
-  deleteMessage
+  deleteMessage,
+  getUserNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+  getNotificationCount
 } = require('../controllers/communicationController');
 
 const router = express.Router();
@@ -36,6 +41,11 @@ router.delete('/conversations/:id/messages/:messageId', deleteMessage);
 router.put('/conversations/:id/read', markAsRead);
 
 // Notification routes
+router.get('/notifications', getUserNotifications);
+router.get('/notifications/count', getNotificationCount);
+router.put('/notifications/:notificationId/read', markNotificationAsRead);
+router.put('/notifications/read-all', markAllNotificationsAsRead);
+router.delete('/notifications/:notificationId', deleteNotification);
 router.post('/notifications/email', sendEmailNotification);
 router.post('/notifications/sms', sendSMSNotification);
 

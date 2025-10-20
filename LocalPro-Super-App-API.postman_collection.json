@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with enhanced mobile authentication, trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, audit logging, database logging, provider system, and user management system. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation and MongoDB storage, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, regulatory compliance features, database logging with advanced analytics, client-to-provider upgrade system, comprehensive onboarding, verification management, provider analytics dashboard, complete user management with role-based access control, user status management, verification system, badge system, bulk operations, user analytics, activity tracking, comprehensive user lifecycle management, enhanced mobile authentication with SMS verification, rate limiting, device tracking, smart redirection, progressive onboarding, enhanced JWT tokens, comprehensive logging, security features, and profile completeness tracking with categorized progress monitoring, smart recommendations, dashboard access control, and guided onboarding flow.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with enhanced mobile authentication, trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, audit logging, database logging, provider system, user management system, global search system, and comprehensive notification system. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation and MongoDB storage, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, regulatory compliance features, database logging with advanced analytics, client-to-provider upgrade system, comprehensive onboarding, verification management, provider analytics dashboard, complete user management with role-based access control, user status management, verification system, badge system, bulk operations, user analytics, activity tracking, comprehensive user lifecycle management, enhanced mobile authentication with SMS verification, rate limiting, device tracking, smart redirection, progressive onboarding, enhanced JWT tokens, comprehensive logging, security features, profile completeness tracking with categorized progress monitoring, smart recommendations, dashboard access control, guided onboarding flow, comprehensive global search functionality across all entities with advanced filtering, sorting, pagination, search suggestions, popular searches, trending searches, entity-specific search, location-based search, relevance scoring, search analytics, and comprehensive notification management with multi-channel delivery, smart filtering, bulk operations, priority management, expiration handling, user preferences, real-time updates, analytics integration, and performance optimization.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -143,6 +143,11 @@
     },
     {
       "key": "agencyId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notificationId",
       "value": "",
       "type": "string"
     },
@@ -1839,6 +1844,137 @@
               "raw": "{{baseUrl}}/api/communication/notifications/read-all",
               "host": ["{{baseUrl}}"],
               "path": ["api", "communication", "notifications", "read-all"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/notifications?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "notifications"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notifications by Type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/notifications?type=booking_created",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "notifications"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "booking_created"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notification Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/notifications/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "notifications", "count"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unread Notification Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/notifications/count?isRead=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "notifications", "count"],
+              "query": [
+                {
+                  "key": "isRead",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/notifications/{{notificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "notifications", "{{notificationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Email Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"user@example.com\",\n  \"subject\": \"Booking Confirmation\",\n  \"template\": \"booking-confirmation\",\n  \"data\": {\n    \"bookingId\": \"64a1b2c3d4e5f6789012345\",\n    \"serviceName\": \"House Cleaning\",\n    \"date\": \"2024-01-15\",\n    \"time\": \"10:00 AM\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/notifications/email",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "notifications", "email"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send SMS Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"+1234567890\",\n  \"message\": \"Your booking has been confirmed for tomorrow at 10:00 AM.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/notifications/sms",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "communication", "notifications", "sms"]
             }
           },
           "response": []
@@ -7555,6 +7691,481 @@
               "raw": "{{baseUrl}}/api/users/{{userId}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "{{userId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Global Search",
+      "item": [
+        {
+          "name": "Global Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search?q=cleaning&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cleaning",
+                  "description": "Search query (required, min 2 characters)"
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by entity type (users, jobs, services, supplies, courses, rentals, agencies)"
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "Filter by category"
+                },
+                {
+                  "key": "location",
+                  "value": "",
+                  "description": "Filter by location/city"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "",
+                  "description": "Minimum price filter"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "",
+                  "description": "Maximum price filter"
+                },
+                {
+                  "key": "rating",
+                  "value": "",
+                  "description": "Minimum rating filter"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Results per page (default: 20, max: 100)"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "relevance",
+                  "description": "Sort field (relevance, rating, price_low, price_high, newest)"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order (asc, desc, default: desc)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Suggestions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/suggestions?q=clean&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "suggestions"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "clean",
+                  "description": "Search query (required, min 2 characters)"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Maximum suggestions (default: 10, max: 20)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Popular Searches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/popular?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "popular"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of terms (default: 12, max: 50)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Locations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/locations?q=Manila&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "locations"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Manila",
+                  "description": "Filter locations by query"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Number of locations (default: 20)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Trending Searches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/trending?period=week&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "trending"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "week",
+                  "description": "Time period (today, week, month, default: week)"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of terms (default: 10)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Advanced Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/advanced?q=cleaning&minPrice=50&maxPrice=500&rating=4&verified=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "advanced"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cleaning",
+                  "description": "Search query (required)"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "50",
+                  "description": "Minimum price filter"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "500",
+                  "description": "Maximum price filter"
+                },
+                {
+                  "key": "rating",
+                  "value": "4",
+                  "description": "Minimum rating filter"
+                },
+                {
+                  "key": "verified",
+                  "value": "true",
+                  "description": "Filter for verified providers only"
+                },
+                {
+                  "key": "dateFrom",
+                  "value": "",
+                  "description": "Filter results from this date"
+                },
+                {
+                  "key": "dateTo",
+                  "value": "",
+                  "description": "Filter results to this date"
+                },
+                {
+                  "key": "availability",
+                  "value": "",
+                  "description": "Filter by availability (available, unavailable)"
+                },
+                {
+                  "key": "serviceType",
+                  "value": "",
+                  "description": "Filter by service type"
+                },
+                {
+                  "key": "experienceLevel",
+                  "value": "",
+                  "description": "Filter by experience level"
+                },
+                {
+                  "key": "jobType",
+                  "value": "",
+                  "description": "Filter by job type"
+                },
+                {
+                  "key": "isRemote",
+                  "value": "",
+                  "description": "Filter for remote work"
+                },
+                {
+                  "key": "certification",
+                  "value": "",
+                  "description": "Filter by certification requirements"
+                },
+                {
+                  "key": "language",
+                  "value": "",
+                  "description": "Filter by language requirements"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Entity-Specific Search - Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/entities/users?q=cleaning&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "entities", "users"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cleaning",
+                  "description": "Search query (required)"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Results per page"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Entity-Specific Search - Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/entities/jobs?q=developer&location=Manila&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "entities", "jobs"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "developer",
+                  "description": "Search query (required)"
+                },
+                {
+                  "key": "location",
+                  "value": "Manila",
+                  "description": "Filter by location"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Results per page"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Entity-Specific Search - Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/entities/services?q=cleaning&category=cleaning&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "entities", "services"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cleaning",
+                  "description": "Search query (required)"
+                },
+                {
+                  "key": "category",
+                  "value": "cleaning",
+                  "description": "Filter by category"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Results per page"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Entity-Specific Search - Supplies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/entities/supplies?q=tools&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "entities", "supplies"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "tools",
+                  "description": "Search query (required)"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Results per page"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Entity-Specific Search - Courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/entities/courses?q=certification&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "entities", "courses"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "certification",
+                  "description": "Search query (required)"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Results per page"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Entity-Specific Search - Rentals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/entities/rentals?q=power tools&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "entities", "rentals"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "power tools",
+                  "description": "Search query (required)"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Results per page"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Entity-Specific Search - Agencies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/entities/agencies?q=cleaning&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "entities", "agencies"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cleaning",
+                  "description": "Search query (required)"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Results per page"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Track Search Analytics",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"cleaning services\",\n  \"results\": 25,\n  \"filters\": {\n    \"category\": \"cleaning\",\n    \"location\": \"Manila\"\n  },\n  \"userId\": \"{{userId}}\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/search/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "analytics"]
             }
           },
           "response": []

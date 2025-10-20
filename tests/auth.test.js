@@ -1,14 +1,33 @@
 const request = require('supertest');
+const mongoose = require('mongoose');
 const app = require('../src/server');
+const User = require('../src/models/User');
 
 // Set up test environment
-beforeAll(() => {
+beforeAll(async () => {
   // Set test environment variables
   process.env.NODE_ENV = 'test';
   process.env.TWILIO_ACCOUNT_SID = 'test_account_sid';
   process.env.TWILIO_AUTH_TOKEN = 'test_auth_token';
   process.env.TWILIO_VERIFY_SERVICE_SID = 'test_service_sid';
   process.env.JWT_SECRET = 'test_jwt_secret';
+  
+  // Connect to test database
+  const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/localpro-test';
+  if (mongoose.connection.readyState === 0) {
+    await mongoose.connect(mongoUri);
+  }
+});
+
+// Clean up after all tests
+afterAll(async () => {
+  await mongoose.connection.dropDatabase();
+  await mongoose.connection.close();
+});
+
+// Clear database between tests
+afterEach(async () => {
+  await User.deleteMany({});
 });
 
 describe('Authentication Endpoints', () => {
