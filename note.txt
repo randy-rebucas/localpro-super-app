@@ -1,0 +1,7 @@
+admin: admin@localpro.com (+639179157515) - Super Admin
+client: client@localpro.com (+639171234569) - John Client
+provider: provider@localpro.com (+639171234570) - Maria Provider
+supplier: supplier@localpro.com (+639171234571) - Carlos Supplier
+instructor: instructor@localpro.com (+639171234572) - Dr. Sarah Instructor
+agency_owner: agency@localpro.com (+639171234568) - Roberto AgencyOwner
+agency_admin: agencyadmin@localpro.com (+639171234573) - Lisa AgencyAdmin
