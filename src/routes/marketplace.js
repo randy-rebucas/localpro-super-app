@@ -14,7 +14,9 @@ const {
   uploadBookingPhotos,
   addReview,
   approvePayPalBooking,
-  getPayPalOrderDetails
+  getPayPalOrderDetails,
+  getMyServices,
+  getMyBookings
 } = require('../controllers/marketplaceController');
 const { uploaders } = require('../config/cloudinary');
 
@@ -27,6 +29,12 @@ router.get('/services/:id', getService);
 
 // Protected routes
 router.use(auth);
+
+// My services route
+router.get('/my-services', getMyServices);
+
+// My bookings route
+router.get('/my-bookings', getMyBookings);
 
 // Service routes
 router.post('/services', authorize('provider', 'admin'), createService);

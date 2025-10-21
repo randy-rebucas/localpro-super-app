@@ -903,6 +903,243 @@ const getPayPalOrderDetails = async (req, res) => {
   }
 };
 
+// @desc    Get user's services (my-services)
+// @route   GET /api/marketplace/my-services
+// @access  Private
+const getMyServices = async (req, res) => {
+  try {
+    const {
+      category,
+      status = 'all', // all, active, inactive
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    const userId = req.user.id;
+
+    // Build filter object
+    const filter = { provider: userId };
+
+    if (category) filter.category = category;
+    
+    if (status === 'active') {
+      filter.isActive = true;
+    } else if (status === 'inactive') {
+      filter.isActive = false;
+    }
+    // If status is 'all', don't add isActive filter
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const services = await Service.find(filter)
+      .populate('provider', 'firstName lastName profile.avatar profile.rating')
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Service.countDocuments(filter);
+
+    // Get additional statistics for the user
+    const stats = await Service.aggregate([
+      { $match: { provider: userId } },
+      {
+        $group: {
+          _id: null,
+          totalServices: { $sum: 1 },
+          activeServices: {
+            $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
+          },
+          inactiveServices: {
+            $sum: { $cond: [{ $eq: ['$isActive', false] }, 1, 0] }
+          },
+          averageRating: { $avg: '$rating.average' },
+          totalBookings: { $sum: '$rating.count' }
+        }
+      }
+    ]);
+
+    const userStats = stats.length > 0 ? stats[0] : {
+      totalServices: 0,
+      activeServices: 0,
+      inactiveServices: 0,
+      averageRating: 0,
+      totalBookings: 0
+    };
+
+    res.status(200).json({
+      success: true,
+      data: {
+        services,
+        pagination: {
+          current: parseInt(page),
+          pages: Math.ceil(total / parseInt(limit)),
+          total,
+          limit: parseInt(limit)
+        },
+        stats: userStats
+      }
+    });
+  } catch (error) {
+    console.error('Get my services error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get user's bookings (my-bookings)
+// @route   GET /api/marketplace/my-bookings
+// @access  Private
+const getMyBookings = async (req, res) => {
+  try {
+    const {
+      status,
+      type = 'all', // all, client, provider
+      paymentStatus,
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      dateFrom,
+      dateTo
+    } = req.query;
+
+    const userId = req.user.id;
+
+    // Build filter object
+    const filter = {};
+
+    if (type === 'client') {
+      filter.client = userId;
+    } else if (type === 'provider') {
+      filter.provider = userId;
+    } else {
+      // Get bookings where user is either client or provider
+      filter.$or = [{ client: userId }, { provider: userId }];
+    }
+
+    if (status) filter.status = status;
+    if (paymentStatus) filter['payment.status'] = paymentStatus;
+    
+    if (dateFrom || dateTo) {
+      filter.bookingDate = {};
+      if (dateFrom) filter.bookingDate.$gte = new Date(dateFrom);
+      if (dateTo) filter.bookingDate.$lte = new Date(dateTo);
+    }
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const bookings = await Booking.find(filter)
+      .populate('service', 'title category subcategory pricing images')
+      .populate('client', 'firstName lastName phoneNumber email profile.avatar')
+      .populate('provider', 'firstName lastName phoneNumber email profile.avatar')
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Booking.countDocuments(filter);
+
+    // Get additional statistics for the user
+    const stats = await Booking.aggregate([
+      { $match: { $or: [{ client: userId }, { provider: userId }] } },
+      {
+        $group: {
+          _id: null,
+          totalBookings: { $sum: 1 },
+          clientBookings: {
+            $sum: { $cond: [{ $eq: ['$client', userId] }, 1, 0] }
+          },
+          providerBookings: {
+            $sum: { $cond: [{ $eq: ['$provider', userId] }, 1, 0] }
+          },
+          pendingBookings: {
+            $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] }
+          },
+          confirmedBookings: {
+            $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, 1, 0] }
+          },
+          completedBookings: {
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+          },
+          cancelledBookings: {
+            $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] }
+          },
+          totalEarnings: {
+            $sum: {
+              $cond: [
+                { $eq: ['$provider', userId] },
+                '$pricing.totalAmount',
+                0
+              ]
+            }
+          },
+          totalSpent: {
+            $sum: {
+              $cond: [
+                { $eq: ['$client', userId] },
+                '$pricing.totalAmount',
+                0
+              ]
+            }
+          },
+          averageRating: { $avg: '$review.rating' }
+        }
+      }
+    ]);
+
+    const userStats = stats.length > 0 ? stats[0] : {
+      totalBookings: 0,
+      clientBookings: 0,
+      providerBookings: 0,
+      pendingBookings: 0,
+      confirmedBookings: 0,
+      completedBookings: 0,
+      cancelledBookings: 0,
+      totalEarnings: 0,
+      totalSpent: 0,
+      averageRating: 0
+    };
+
+    // Add user role information to each booking
+    const bookingsWithRole = bookings.map(booking => {
+      const bookingObj = booking.toObject();
+      bookingObj.userRole = booking.client.toString() === userId ? 'client' : 'provider';
+      return bookingObj;
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        bookings: bookingsWithRole,
+        pagination: {
+          current: parseInt(page),
+          pages: Math.ceil(total / parseInt(limit)),
+          total,
+          limit: parseInt(limit)
+        },
+        stats: userStats
+      }
+    });
+  } catch (error) {
+    console.error('Get my bookings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getServices,
   getService,
@@ -917,5 +1154,7 @@ module.exports = {
   uploadBookingPhotos,
   addReview,
   approvePayPalBooking,
-  getPayPalOrderDetails
+  getPayPalOrderDetails,
+  getMyServices,
+  getMyBookings
 };
