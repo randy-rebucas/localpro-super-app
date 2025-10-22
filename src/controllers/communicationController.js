@@ -1,4 +1,4 @@
-const Communication = require('../models/Communication');
+const { Conversation, Message, Notification } = require('../models/Communication');
 const User = require('../models/User');
 const EmailService = require('../services/emailService');
 const TwilioService = require('../services/twilioService');
@@ -11,17 +11,19 @@ const getConversations = async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
     const skip = (page - 1) * limit;
 
-    const conversations = await Communication.find({
-      participants: req.user.id
+    const conversations = await Conversation.find({
+      'participants.user': req.user.id
     })
-    .populate('participants', 'firstName lastName profile.avatar')
+    .populate('participants.user', 'firstName lastName profile.avatar profile.isOnline')
     .populate('lastMessage.sender', 'firstName lastName profile.avatar')
+    .select('-messages') // Exclude full messages for list view
     .sort({ updatedAt: -1 })
     .skip(skip)
-    .limit(Number(limit));
+    .limit(Number(limit))
+    .lean(); // Use lean() for better performance
 
-    const total = await Communication.countDocuments({
-      participants: req.user.id
+    const total = await Conversation.countDocuments({
+      'participants.user': req.user.id
     });
 
     res.status(200).json({
@@ -46,9 +48,15 @@ const getConversations = async (req, res) => {
 // @access  Private
 const getConversation = async (req, res) => {
   try {
-    const conversation = await Communication.findById(req.params.id)
-      .populate('participants', 'firstName lastName profile.avatar')
-      .populate('messages.sender', 'firstName lastName profile.avatar');
+    const conversation = await Conversation.findById(req.params.id)
+      .populate('participants.user', 'firstName lastName profile.avatar')
+      .populate('lastMessage.sender', 'firstName lastName profile.avatar');
+
+    // Get messages separately
+    const messages = await Message.find({ conversation: req.params.id })
+      .populate('sender', 'firstName lastName profile.avatar')
+      .sort({ createdAt: -1 })
+      .limit(50);
 
     if (!conversation) {
       return res.status(404).json({
@@ -58,7 +66,7 @@ const getConversation = async (req, res) => {
     }
 
     // Check if user is a participant
-    if (!conversation.participants.some(p => p._id.toString() === req.user.id)) {
+    if (!conversation.participants.some(p => p.user._id.toString() === req.user.id)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to view this conversation'
@@ -66,13 +74,23 @@ const getConversation = async (req, res) => {
     }
 
     // Mark messages as read for this user
-    conversation.messages.forEach(message => {
-      if (!message.readBy.includes(req.user.id)) {
-        message.readBy.push(req.user.id);
+    await Message.updateMany(
+      { 
+        conversation: req.params.id,
+        'readBy.user': { $ne: req.user.id }
+      },
+      {
+        $push: {
+          readBy: {
+            user: req.user.id,
+            readAt: new Date()
+          }
+        }
       }
-    });
+    );
 
-    await conversation.save();
+    // Add messages to conversation object
+    conversation.messages = messages;
 
     res.status(200).json({
       success: true,
@@ -105,8 +123,8 @@ const createConversation = async (req, res) => {
     const allParticipants = [...new Set([req.user.id, ...participants])];
 
     // Check if conversation already exists
-    const existingConversation = await Communication.findOne({
-      participants: { $all: allParticipants },
+    const existingConversation = await Conversation.findOne({
+      'participants.user': { $all: allParticipants },
       type
     });
 
@@ -118,14 +136,20 @@ const createConversation = async (req, res) => {
       });
     }
 
-    const conversation = await Communication.create({
-      participants: allParticipants,
+    // Create participants array with user and role
+    const participantsArray = allParticipants.map(userId => ({
+      user: userId,
+      role: userId === req.user.id ? 'client' : 'client' // Default role, can be customized
+    }));
+
+    const conversation = await Conversation.create({
+      participants: participantsArray,
       type,
-      metadata,
-      messages: []
+      subject: req.body.subject || 'New Conversation',
+      context: req.body.context || {}
     });
 
-    await conversation.populate('participants', 'firstName lastName profile.avatar');
+    await conversation.populate('participants.user', 'firstName lastName profile.avatar');
 
     res.status(201).json({
       success: true,
@@ -155,7 +179,7 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    const conversation = await Communication.findById(req.params.id);
+    const conversation = await Conversation.findById(req.params.id);
 
     if (!conversation) {
       return res.status(404).json({
@@ -165,33 +189,41 @@ const sendMessage = async (req, res) => {
     }
 
     // Check if user is a participant
-    if (!conversation.participants.includes(req.user.id)) {
+    if (!conversation.participants.some(p => p.user.toString() === req.user.id)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to send messages in this conversation'
       });
     }
 
-    const message = {
+    // Create message in separate Message model
+    const message = await Message.create({
+      conversation: req.params.id,
       sender: req.user.id,
       content,
       type,
       metadata,
-      timestamp: new Date(),
-      readBy: [req.user.id]
-    };
+      readBy: [{
+        user: req.user.id,
+        readAt: new Date()
+      }]
+    });
 
-    conversation.messages.push(message);
-    conversation.lastMessage = message;
+    // Update conversation's last message
+    conversation.lastMessage = {
+      content: message.content,
+      sender: message.sender,
+      timestamp: message.createdAt
+    };
     conversation.updatedAt = new Date();
 
     await conversation.save();
 
     // Populate sender info
-    await conversation.populate('lastMessage.sender', 'firstName lastName profile.avatar');
+    await message.populate('sender', 'firstName lastName profile.avatar');
 
     // Send push notification to other participants
-    const otherParticipants = conversation.participants.filter(p => p.toString() !== req.user.id);
+    const otherParticipants = conversation.participants.filter(p => p.user.toString() !== req.user.id);
     
     // TODO: Implement push notification service
     // await PushNotificationService.sendNotification({
@@ -220,7 +252,7 @@ const sendMessage = async (req, res) => {
 // @access  Private
 const markAsRead = async (req, res) => {
   try {
-    const conversation = await Communication.findById(req.params.id);
+    const conversation = await Conversation.findById(req.params.id);
 
     if (!conversation) {
       return res.status(404).json({
@@ -230,7 +262,7 @@ const markAsRead = async (req, res) => {
     }
 
     // Check if user is a participant
-    if (!conversation.participants.includes(req.user.id)) {
+    if (!conversation.participants.some(p => p.user.toString() === req.user.id)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to mark messages as read in this conversation'
@@ -238,13 +270,20 @@ const markAsRead = async (req, res) => {
     }
 
     // Mark all messages as read for this user
-    conversation.messages.forEach(message => {
-      if (!message.readBy.includes(req.user.id)) {
-        message.readBy.push(req.user.id);
+    await Message.updateMany(
+      { 
+        conversation: req.params.id,
+        'readBy.user': { $ne: req.user.id }
+      },
+      {
+        $push: {
+          readBy: {
+            user: req.user.id,
+            readAt: new Date()
+          }
+        }
       }
-    });
-
-    await conversation.save();
+    );
 
     res.status(200).json({
       success: true,
@@ -264,7 +303,7 @@ const markAsRead = async (req, res) => {
 // @access  Private
 const deleteConversation = async (req, res) => {
   try {
-    const conversation = await Communication.findById(req.params.id);
+    const conversation = await Conversation.findById(req.params.id);
 
     if (!conversation) {
       return res.status(404).json({
@@ -274,14 +313,18 @@ const deleteConversation = async (req, res) => {
     }
 
     // Check if user is a participant
-    if (!conversation.participants.includes(req.user.id)) {
+    if (!conversation.participants.some(p => p.user.toString() === req.user.id)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this conversation'
       });
     }
 
-    await Communication.findByIdAndDelete(req.params.id);
+    // Delete all messages in this conversation
+    await Message.deleteMany({ conversation: req.params.id });
+    
+    // Delete the conversation
+    await Conversation.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
@@ -380,18 +423,17 @@ const sendSMSNotification = async (req, res) => {
 // @access  Private
 const getUnreadCount = async (req, res) => {
   try {
-    const conversations = await Communication.find({
-      participants: req.user.id
+    // Get all conversations for the user
+    const conversations = await Conversation.find({
+      'participants.user': req.user.id
     });
 
-    let unreadCount = 0;
+    const conversationIds = conversations.map(conv => conv._id);
 
-    conversations.forEach(conversation => {
-      conversation.messages.forEach(message => {
-        if (!message.readBy.includes(req.user.id)) {
-          unreadCount++;
-        }
-      });
+    // Count unread messages
+    const unreadCount = await Message.countDocuments({
+      conversation: { $in: conversationIds },
+      'readBy.user': { $ne: req.user.id }
     });
 
     res.status(200).json({
@@ -422,19 +464,26 @@ const searchConversations = async (req, res) => {
       });
     }
 
-    const conversations = await Communication.find({
-      participants: req.user.id,
-      'messages.content': new RegExp(query, 'i')
+    // First find conversations with messages matching the query
+    const matchingMessages = await Message.find({
+      content: new RegExp(query, 'i')
+    }).select('conversation');
+
+    const conversationIds = [...new Set(matchingMessages.map(msg => msg.conversation))];
+
+    const conversations = await Conversation.find({
+      'participants.user': req.user.id,
+      _id: { $in: conversationIds }
     })
-    .populate('participants', 'firstName lastName profile.avatar')
+    .populate('participants.user', 'firstName lastName profile.avatar')
     .populate('lastMessage.sender', 'firstName lastName profile.avatar')
     .sort({ updatedAt: -1 })
     .skip(skip)
     .limit(Number(limit));
 
-    const total = await Communication.countDocuments({
-      participants: req.user.id,
-      'messages.content': new RegExp(query, 'i')
+    const total = await Conversation.countDocuments({
+      'participants.user': req.user.id,
+      _id: { $in: conversationIds }
     });
 
     res.status(200).json({
@@ -461,12 +510,21 @@ const getConversationWithUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const conversation = await Communication.findOne({
-      participants: { $all: [req.user.id, userId] },
-      type: 'direct'
+    const conversation = await Conversation.findOne({
+      'participants.user': { $all: [req.user.id, userId] },
+      type: 'general' // Changed from 'direct' to match schema
     })
-    .populate('participants', 'firstName lastName profile.avatar')
-    .populate('messages.sender', 'firstName lastName profile.avatar');
+    .populate('participants.user', 'firstName lastName profile.avatar')
+    .populate('lastMessage.sender', 'firstName lastName profile.avatar');
+
+    // Get messages separately if conversation exists
+    let messages = [];
+    if (conversation) {
+      messages = await Message.find({ conversation: conversation._id })
+        .populate('sender', 'firstName lastName profile.avatar')
+        .sort({ createdAt: -1 })
+        .limit(50);
+    }
 
     if (!conversation) {
       return res.status(404).json({
@@ -474,6 +532,9 @@ const getConversationWithUser = async (req, res) => {
         message: 'Conversation not found'
       });
     }
+
+    // Add messages to conversation object
+    conversation.messages = messages;
 
     res.status(200).json({
       success: true,
@@ -502,7 +563,7 @@ const updateMessage = async (req, res) => {
       });
     }
 
-    const conversation = await Communication.findById(req.params.id);
+    const conversation = await Conversation.findById(req.params.id);
 
     if (!conversation) {
       return res.status(404).json({
@@ -512,14 +573,14 @@ const updateMessage = async (req, res) => {
     }
 
     // Check if user is a participant
-    if (!conversation.participants.includes(req.user.id)) {
+    if (!conversation.participants.some(p => p.user.toString() === req.user.id)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update messages in this conversation'
       });
     }
 
-    const message = conversation.messages.id(req.params.messageId);
+    const message = await Message.findById(req.params.messageId);
 
     if (!message) {
       return res.status(404).json({
@@ -537,9 +598,10 @@ const updateMessage = async (req, res) => {
     }
 
     message.content = content;
-    message.updatedAt = new Date();
+    message.metadata.isEdited = true;
+    message.metadata.editedAt = new Date();
 
-    await conversation.save();
+    await message.save();
 
     res.status(200).json({
       success: true,
@@ -560,7 +622,7 @@ const updateMessage = async (req, res) => {
 // @access  Private
 const deleteMessage = async (req, res) => {
   try {
-    const conversation = await Communication.findById(req.params.id);
+    const conversation = await Conversation.findById(req.params.id);
 
     if (!conversation) {
       return res.status(404).json({
@@ -570,14 +632,14 @@ const deleteMessage = async (req, res) => {
     }
 
     // Check if user is a participant
-    if (!conversation.participants.includes(req.user.id)) {
+    if (!conversation.participants.some(p => p.user.toString() === req.user.id)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete messages in this conversation'
       });
     }
 
-    const message = conversation.messages.id(req.params.messageId);
+    const message = await Message.findById(req.params.messageId);
 
     if (!message) {
       return res.status(404).json({
@@ -594,8 +656,10 @@ const deleteMessage = async (req, res) => {
       });
     }
 
-    message.remove();
-    await conversation.save();
+    // Soft delete the message
+    message.metadata.isDeleted = true;
+    message.metadata.deletedAt = new Date();
+    await message.save();
 
     res.status(200).json({
       success: true,
@@ -636,12 +700,12 @@ const getUserNotifications = async (req, res) => {
       query.type = type;
     }
 
-    const notifications = await Communication.Notification.find(query)
+    const notifications = await Notification.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await Communication.Notification.countDocuments(query);
+    const total = await Notification.countDocuments(query);
 
     res.status(200).json({
       success: true,
@@ -667,7 +731,7 @@ const markNotificationAsRead = async (req, res) => {
   try {
     const { notificationId } = req.params;
 
-    const notification = await Communication.Notification.findOne({
+    const notification = await Notification.findOne({
       _id: notificationId,
       user: req.user.id
     });
@@ -702,7 +766,7 @@ const markNotificationAsRead = async (req, res) => {
 // @access  Private
 const markAllNotificationsAsRead = async (req, res) => {
   try {
-    const result = await Communication.Notification.updateMany(
+    const result = await Notification.updateMany(
       {
         user: req.user.id,
         isRead: false
@@ -736,7 +800,7 @@ const deleteNotification = async (req, res) => {
   try {
     const { notificationId } = req.params;
 
-    const notification = await Communication.Notification.findOneAndDelete({
+    const notification = await Notification.findOneAndDelete({
       _id: notificationId,
       user: req.user.id
     });
@@ -780,7 +844,7 @@ const getNotificationCount = async (req, res) => {
       query.isRead = isRead === 'true';
     }
 
-    const count = await Communication.Notification.countDocuments(query);
+    const count = await Notification.countDocuments(query);
 
     res.status(200).json({
       success: true,

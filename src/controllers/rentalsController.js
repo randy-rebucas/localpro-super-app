@@ -1,4 +1,4 @@
-const Rentals = require('../models/Rentals');
+const { RentalItem, Rental } = require('../models/Rentals');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
@@ -56,13 +56,13 @@ const getRentals = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    const rentals = await Rentals.find(filter)
+    const rentals = await RentalItem.find(filter)
       .populate('owner', 'firstName lastName profile.avatar profile.rating')
       .sort(sort)
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await Rentals.countDocuments(filter);
+    const total = await RentalItem.countDocuments(filter);
 
     res.status(200).json({
       success: true,
@@ -86,7 +86,15 @@ const getRentals = async (req, res) => {
 // @access  Public
 const getRental = async (req, res) => {
   try {
-    const rental = await Rentals.findById(req.params.id)
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid rental ID format'
+      });
+    }
+
+    const rental = await RentalItem.findById(req.params.id)
       .populate('owner', 'firstName lastName profile.avatar profile.bio profile.rating')
       .populate('bookings.user', 'firstName lastName profile.avatar')
       .populate('reviews.user', 'firstName lastName profile.avatar');
@@ -228,7 +236,7 @@ const updateRental = async (req, res) => {
 // @access  Private
 const deleteRental = async (req, res) => {
   try {
-    const rental = await Rentals.findById(req.params.id);
+    const rental = await RentalItem.findById(req.params.id);
 
     if (!rental) {
       return res.status(404).json({
@@ -274,7 +282,7 @@ const uploadRentalImages = async (req, res) => {
       });
     }
 
-    const rental = await Rentals.findById(req.params.id);
+    const rental = await RentalItem.findById(req.params.id);
 
     if (!rental) {
       return res.status(404).json({
@@ -336,7 +344,7 @@ const deleteRentalImage = async (req, res) => {
   try {
     const { imageId } = req.params;
 
-    const rental = await Rentals.findById(req.params.id);
+    const rental = await RentalItem.findById(req.params.id);
 
     if (!rental) {
       return res.status(404).json({
@@ -402,7 +410,7 @@ const bookRental = async (req, res) => {
       });
     }
 
-    const rental = await Rentals.findById(req.params.id);
+    const rental = await RentalItem.findById(req.params.id);
 
     if (!rental) {
       return res.status(404).json({
@@ -511,7 +519,7 @@ const updateBookingStatus = async (req, res) => {
       });
     }
 
-    const rental = await Rentals.findById(req.params.id);
+    const rental = await RentalItem.findById(req.params.id);
 
     if (!rental) {
       return res.status(404).json({
@@ -584,7 +592,7 @@ const addRentalReview = async (req, res) => {
       });
     }
 
-    const rental = await Rentals.findById(req.params.id);
+    const rental = await RentalItem.findById(req.params.id);
 
     if (!rental) {
       return res.status(404).json({

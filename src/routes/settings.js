@@ -205,6 +205,7 @@ router.post('/app/features/toggle', auth, [
 ], toggleFeatureFlag);
 
 // Public App Settings Routes (No auth required)
+router.get('/', getPublicAppSettings); // Basic settings info
 router.get('/app/public', getPublicAppSettings);
 router.get('/app/health', getAppHealth);
 

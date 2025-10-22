@@ -1,4 +1,4 @@
-const Supplies = require('../models/Supplies');
+const { Product: Supplies } = require('../models/Supplies');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
@@ -86,6 +86,14 @@ const getSupplies = async (req, res) => {
 // @access  Public
 const getSupply = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid supply ID format'
+      });
+    }
+
     const supply = await Supplies.findById(req.params.id)
       .populate('supplier', 'firstName lastName profile.avatar profile.bio profile.rating')
       .populate('orders.user', 'firstName lastName profile.avatar')

@@ -3,6 +3,20 @@ const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
+const { 
+  validatePagination, 
+  validateObjectId, 
+  validateNumericRange
+} = require('../utils/controllerValidation');
+const { 
+  sendPaginated, 
+  sendSuccess, 
+  sendValidationError, 
+  sendNotFoundError, 
+  sendServerError,
+  createPagination 
+} = require('../utils/responseHelper');
+const { searchLimiter, generalLimiter } = require('../middleware/rateLimiter');
 
 // @desc    Get all jobs
 // @route   GET /api/jobs
@@ -26,6 +40,37 @@ const getJobs = async (req, res) => {
       sortOrder = 'desc',
       featured
     } = req.query;
+
+    // Input validation
+    const paginationValidation = validatePagination(req.query);
+    if (!paginationValidation.isValid) {
+      return sendValidationError(res, paginationValidation.errors);
+    }
+    
+    const { page: pageNum, limit: limitNum } = paginationValidation.data;
+    
+    // Validate salary range
+    if (minSalary) {
+      const minSalaryValidation = validateNumericRange(minSalary, 0, 1000000, 'minSalary');
+      if (!minSalaryValidation.isValid) {
+        return sendValidationError(res, [minSalaryValidation.error]);
+      }
+    }
+    
+    if (maxSalary) {
+      const maxSalaryValidation = validateNumericRange(maxSalary, 0, 1000000, 'maxSalary');
+      if (!maxSalaryValidation.isValid) {
+        return sendValidationError(res, [maxSalaryValidation.error]);
+      }
+    }
+    
+    if (minSalary && maxSalary && parseFloat(minSalary) > parseFloat(maxSalary)) {
+      return sendValidationError(res, [{
+        field: 'salaryRange',
+        message: 'Minimum salary cannot be greater than maximum salary',
+        code: 'INVALID_SALARY_RANGE'
+      }]);
+    }
 
     // Build filter object
     const filter = { isActive: true, status: { $in: ['active', 'featured'] } };
@@ -79,30 +124,22 @@ const getJobs = async (req, res) => {
       sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
     }
 
-    const skip = (page - 1) * limit;
+    const skip = (pageNum - 1) * limitNum;
 
     const jobs = await Job.find(filter)
-      .populate('employer', 'firstName lastName profile.avatar profile.businessName')
+      .populate('employer', 'firstName lastName profile.avatar profile.businessName profile.rating')
+      .select('-applications -views -featured -promoted -metadata')
       .sort(sort)
       .skip(skip)
-      .limit(Number(limit));
+      .limit(limitNum)
+      .lean(); // Use lean() for better performance on read-only operations
 
     const total = await Job.countDocuments(filter);
+    const pagination = createPagination(pageNum, limitNum, total);
 
-    res.status(200).json({
-      success: true,
-      count: jobs.length,
-      total,
-      page: Number(page),
-      pages: Math.ceil(total / limit),
-      data: jobs
-    });
+    return sendPaginated(res, jobs, pagination, 'Jobs retrieved successfully');
   } catch (error) {
-    console.error('Get jobs error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    return sendServerError(res, error, 'Failed to retrieve jobs', 'JOBS_RETRIEVAL_ERROR');
   }
 };
 
@@ -111,31 +148,31 @@ const getJobs = async (req, res) => {
 // @access  Public
 const getJob = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{
+        field: 'id',
+        message: 'Invalid job ID format',
+        code: 'INVALID_JOB_ID'
+      }]);
+    }
+
     const job = await Job.findById(req.params.id)
-      .populate('employer', 'firstName lastName profile.avatar profile.businessName profile.bio')
-      .populate('applications.applicant', 'firstName lastName profile.avatar');
+      .populate('employer', 'firstName lastName profile.avatar profile.businessName profile.bio profile.rating profile.experience')
+      .populate('applications.applicant', 'firstName lastName profile.avatar profile.rating')
+      .select('+views +featured +promoted'); // Include fields needed for this specific view
 
     if (!job) {
-      return res.status(404).json({
-        success: false,
-        message: 'Job not found'
-      });
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
     }
 
     // Increment view count (track unique views if user is authenticated)
     const isUnique = req.user ? true : false;
     await job.incrementViews(isUnique);
 
-    res.status(200).json({
-      success: true,
-      data: job
-    });
+    return sendSuccess(res, job, 'Job retrieved successfully');
   } catch (error) {
-    console.error('Get job error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    return sendServerError(res, error, 'Failed to retrieve job', 'JOB_RETRIEVAL_ERROR');
   }
 };
 

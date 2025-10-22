@@ -135,15 +135,15 @@ const disputeSchema = new mongoose.Schema({
   context: {
     bookingId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Booking'
+      ref: 'Booking' // References Booking from Marketplace.js
     },
     jobId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Job'
+      ref: 'Job' // References Job from Job.js
     },
     orderId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Order'
+      ref: 'Order' // References Order from Supplies.js
     },
     verificationId: {
       type: mongoose.Schema.Types.ObjectId,

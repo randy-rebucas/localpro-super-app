@@ -76,6 +76,14 @@ const getAgencies = async (req, res) => {
 // @access  Public
 const getAgency = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid agency ID format'
+      });
+    }
+
     const agency = await Agency.findById(req.params.id)
       .populate('owner', 'firstName lastName profile.avatar profile.bio')
       .populate('admins.user', 'firstName lastName profile.avatar')

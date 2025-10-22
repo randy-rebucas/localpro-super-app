@@ -114,6 +114,25 @@ const loanApplicationSchema = Joi.object({
   })).optional()
 });
 
+// Validate MongoDB ObjectId format
+const validateObjectId = (id) => {
+  return id && id.match(/^[0-9a-fA-F]{24}$/);
+};
+
+// Middleware to validate ObjectId in params
+const validateObjectIdParam = (paramName = 'id') => {
+  return (req, res, next) => {
+    const id = req.params[paramName];
+    if (!validateObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid ${paramName} format`
+      });
+    }
+    next();
+  };
+};
+
 // Validation middleware
 const validate = (schema, property = 'body') => {
   return (req, res, next) => {
@@ -144,5 +163,7 @@ module.exports = {
   bookingSchema,
   productSchema,
   loanApplicationSchema,
+  validateObjectId,
+  validateObjectIdParam,
   validate
 };

@@ -5,6 +5,7 @@ const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const { uploaders } = require('../config/cloudinary');
 const logger = require('../config/logger');
+const { authLimiter, verificationLimiter } = require('../middleware/rateLimiter');
 
 // Generate JWT Token with enhanced payload for mobile
 const generateToken = (user) => {

@@ -1,5 +1,35 @@
 const GoogleMapsService = require('../services/googleMapsService');
 
+// @desc    Get maps service information
+// @route   GET /api/maps
+// @access  Public
+const getMapsInfo = async (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      message: 'Google Maps service is available',
+      data: {
+        service: 'Google Maps API',
+        features: [
+          'Geocoding',
+          'Reverse Geocoding',
+          'Places Search',
+          'Distance Calculation',
+          'Nearby Places',
+          'Service Area Validation'
+        ],
+        status: 'active'
+      }
+    });
+  } catch (error) {
+    console.error('Get maps info error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 // @desc    Geocode an address to get coordinates
 // @route   POST /api/maps/geocode
 // @access  Public
@@ -341,6 +371,7 @@ const testConnection = async (req, res) => {
 };
 
 module.exports = {
+  getMapsInfo,
   geocodeAddress,
   reverseGeocode,
   searchPlaces,

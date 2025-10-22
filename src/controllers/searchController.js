@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const Job = require('../models/Job');
-const Marketplace = require('../models/Marketplace');
-const Supplies = require('../models/Supplies');
+const { Service: Marketplace } = require('../models/Marketplace');
+const { Product: Supplies } = require('../models/Supplies');
 const { Course } = require('../models/Academy');
 const { RentalItem } = require('../models/Rentals');
 const Agency = require('../models/Agency');

@@ -1,4 +1,4 @@
-const Ads = require('../models/Ads');
+const { AdCampaign: Ads } = require('../models/Ads');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
@@ -75,6 +75,14 @@ const getAds = async (req, res) => {
 // @access  Public
 const getAd = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid ad ID format'
+      });
+    }
+
     const ad = await Ads.findById(req.params.id)
       .populate('advertiser', 'firstName lastName profile.avatar profile.bio');
 

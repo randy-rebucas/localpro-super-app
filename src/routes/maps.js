@@ -10,11 +10,13 @@ const {
   findNearbyPlaces,
   validateServiceArea,
   analyzeServiceCoverage,
-  testConnection
+  testConnection,
+  getMapsInfo
 } = require('../controllers/mapsController');
 const { auth, authorize } = require('../middleware/auth');
 
 // Public routes
+router.get('/', getMapsInfo);
 router.post('/geocode', geocodeAddress);
 router.post('/reverse-geocode', reverseGeocode);
 router.post('/places/search', searchPlaces);

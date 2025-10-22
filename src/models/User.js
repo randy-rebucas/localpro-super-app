@@ -341,6 +341,10 @@ const userSchema = new mongoose.Schema({
 
 // Index for better performance (phoneNumber and email already have unique indexes)
 userSchema.index({ role: 1 });
+userSchema.index({ 'agency.agencyId': 1, 'agency.status': 1 });
+userSchema.index({ status: 1, isActive: 1 });
+userSchema.index({ 'referral.referredBy': 1, 'referral.referralStats.referralTier': 1 });
+userSchema.index({ trustScore: -1, 'profile.rating': -1 });
 
 // Virtual for full name
 userSchema.virtual('fullName').get(function() {

@@ -216,15 +216,20 @@ conversationSchema.index({ type: 1, status: 1 });
 conversationSchema.index({ 'context.bookingId': 1 });
 conversationSchema.index({ 'context.jobId': 1 });
 conversationSchema.index({ updatedAt: -1 });
+conversationSchema.index({ 'participants.user': 1, status: 1 });
+conversationSchema.index({ 'participants.user': 1, type: 1 });
 
 messageSchema.index({ conversation: 1, createdAt: -1 });
 messageSchema.index({ sender: 1 });
 messageSchema.index({ 'readBy.user': 1 });
+messageSchema.index({ conversation: 1, 'metadata.isDeleted': 1 });
 
 notificationSchema.index({ user: 1, isRead: 1 });
 notificationSchema.index({ type: 1 });
 notificationSchema.index({ createdAt: -1 });
 notificationSchema.index({ scheduledFor: 1 });
+notificationSchema.index({ user: 1, type: 1, isRead: 1 });
+notificationSchema.index({ user: 1, priority: 1 });
 
 // Virtual for unread message count
 conversationSchema.virtual('unreadCount').get(function() {

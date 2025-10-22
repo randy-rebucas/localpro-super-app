@@ -1,4 +1,4 @@
-const FacilityCare = require('../models/FacilityCare');
+const { FacilityCareService: FacilityCare } = require('../models/FacilityCare');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
@@ -84,6 +84,14 @@ const getFacilityCareServices = async (req, res) => {
 // @access  Public
 const getFacilityCareService = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid facility care service ID format'
+      });
+    }
+
     const service = await FacilityCare.findById(req.params.id)
       .populate('provider', 'firstName lastName profile.avatar profile.bio profile.rating profile.experience')
       .populate('facility.owner', 'firstName lastName profile.avatar profile.bio')

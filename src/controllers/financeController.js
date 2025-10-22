@@ -1,6 +1,6 @@
-const Finance = require('../models/Finance');
+const { Loan, SalaryAdvance, Transaction } = require('../models/Finance');
 const User = require('../models/User');
-const Marketplace = require('../models/Marketplace');
+const { Service, Booking } = require('../models/Marketplace');
 const Job = require('../models/Job');
 const Referral = require('../models/Referral');
 const Agency = require('../models/Agency');
@@ -16,7 +16,7 @@ const getFinancialOverview = async (req, res) => {
     const userId = req.user.id;
 
     // Get user's financial data
-    const finance = await Finance.findOne({ user: userId });
+    const finance = await Transaction.findOne({ user: userId });
 
     if (!finance) {
       return res.status(404).json({
@@ -26,7 +26,7 @@ const getFinancialOverview = async (req, res) => {
     }
 
     // Get recent transactions
-    const recentTransactions = await Finance.findOne({ user: userId })
+    const recentTransactions = await Transaction.findOne({ user: userId })
       .select('transactions')
       .sort({ 'transactions.timestamp': -1 })
       .limit(10);
@@ -36,7 +36,7 @@ const getFinancialOverview = async (req, res) => {
     currentMonth.setDate(1);
     currentMonth.setHours(0, 0, 0, 0);
 
-    const monthlyEarnings = await Marketplace.aggregate([
+    const monthlyEarnings = await Booking.aggregate([
       {
         $match: {
           type: 'booking',
@@ -55,7 +55,7 @@ const getFinancialOverview = async (req, res) => {
     ]);
 
     // Get pending payments
-    const pendingPayments = await Marketplace.aggregate([
+    const pendingPayments = await Booking.aggregate([
       {
         $match: {
           type: 'booking',

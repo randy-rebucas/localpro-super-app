@@ -277,6 +277,8 @@ jobSchema.index({ 'salary.min': 1, 'salary.max': 1 });
 jobSchema.index({ createdAt: -1 });
 jobSchema.index({ 'featured.isFeatured': 1, 'featured.featuredUntil': 1 });
 jobSchema.index({ 'promoted.isPromoted': 1, 'promoted.promotedUntil': 1 });
+jobSchema.index({ employer: 1, status: 1 });
+jobSchema.index({ 'applications.applicant': 1, 'applications.status': 1 });
 
 // Text search index
 jobSchema.index({

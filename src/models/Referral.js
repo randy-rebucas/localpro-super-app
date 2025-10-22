@@ -201,6 +201,9 @@ referralSchema.index({ 'triggerAction.referenceId': 1, 'triggerAction.referenceT
 // Compound indexes
 referralSchema.index({ referrer: 1, referralType: 1, status: 1 });
 referralSchema.index({ referee: 1, referralType: 1, status: 1 });
+referralSchema.index({ referrer: 1, 'timeline.referredAt': -1 });
+referralSchema.index({ status: 1, 'timeline.expiresAt': 1 });
+referralSchema.index({ 'rewardDistribution.referrerReward.status': 1, 'rewardDistribution.refereeReward.status': 1 });
 
 // Virtual for referral age in days
 referralSchema.virtual('ageInDays').get(function() {

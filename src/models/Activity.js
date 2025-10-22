@@ -246,6 +246,9 @@ activitySchema.index({ isDeleted: 1, createdAt: -1 });
 activitySchema.index({ user: 1, type: 1, createdAt: -1 });
 activitySchema.index({ user: 1, category: 1, createdAt: -1 });
 activitySchema.index({ user: 1, visibility: 1, isVisible: 1, createdAt: -1 });
+activitySchema.index({ user: 1, isDeleted: 1, createdAt: -1 });
+activitySchema.index({ type: 1, category: 1, createdAt: -1 });
+activitySchema.index({ 'targetEntity.type': 1, 'targetEntity.id': 1, createdAt: -1 });
 
 // Virtual for activity age
 activitySchema.virtual('age').get(function() {

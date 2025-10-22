@@ -5,6 +5,16 @@ const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
 const PayPalService = require('../services/paypalService');
 const { uploaders } = require('../config/cloudinary');
+const { 
+  sendPaginated, 
+  sendSuccess, 
+  sendCreated, 
+  sendUpdated, 
+  sendDeleted,
+  sendNotFoundError,
+  sendServerError,
+  createPagination 
+} = require('../utils/responseHelper');
 
 // @desc    Get all services
 // @route   GET /api/marketplace/services
@@ -56,27 +66,19 @@ const getServices = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const services = await Service.find(filter)
-      .populate('provider', 'firstName lastName profile.avatar profile.rating')
+      .populate('provider', 'firstName lastName profile.avatar profile.rating profile.experience')
+      .select('-reviews -bookings -metadata -featured -promoted')
       .sort(sort)
       .skip(skip)
-      .limit(Number(limit));
+      .limit(Number(limit))
+      .lean(); // Use lean() for better performance on read-only operations
 
     const total = await Service.countDocuments(filter);
+    const pagination = createPagination(page, limit, total);
 
-    res.status(200).json({
-      success: true,
-      count: services.length,
-      total,
-      page: Number(page),
-      pages: Math.ceil(total / limit),
-      data: services
-    });
+    return sendPaginated(res, services, pagination, 'Services retrieved successfully');
   } catch (error) {
-    console.error('Get services error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    return sendServerError(res, error, 'Failed to retrieve services', 'SERVICES_RETRIEVAL_ERROR');
   }
 };
 
@@ -85,6 +87,14 @@ const getServices = async (req, res) => {
 // @access  Public
 const getService = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid service ID format'
+      });
+    }
+
     const service = await Service.findById(req.params.id)
       .populate('provider', 'firstName lastName profile.avatar profile.rating profile.experience profile.skills');
 

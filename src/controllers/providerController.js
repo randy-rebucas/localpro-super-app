@@ -100,6 +100,14 @@ const getProvider = async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Validate ObjectId format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid provider ID format'
+      });
+    }
+    
     const provider = await Provider.findById(id)
       .populate('userId', 'firstName lastName email phone profileImage')
       .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents');

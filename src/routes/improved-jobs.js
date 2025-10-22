@@ -26,18 +26,20 @@ const { uploaders } = require('../config/cloudinary');
 
 const router = express.Router();
 
-// Public routes with rate limiting and validation
+// Public routes with rate limiting
 router.get('/', 
-  generalLimiter,
+  generalLimiter, // 100 requests per 15 minutes
   validatePaginationParams,
   validateSearchParams,
   getJobs
 );
+
 router.get('/search', 
-  searchLimiter,
+  searchLimiter, // 30 searches per minute
   validateSearchParams,
   searchJobs
 );
+
 router.get('/:id', 
   generalLimiter,
   validateObjectIdParam('id'),
@@ -45,29 +47,36 @@ router.get('/:id',
 );
 
 // Protected routes
-router.use(auth);
+router.use(auth); // Apply authentication to all routes below
 
 // Job management routes (Employer/Admin only)
-router.post('/', authorize('provider', 'admin'), createJob);
+router.post('/', 
+  authorize('provider', 'admin'),
+  createJob
+);
+
 router.put('/:id', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   updateJob
 );
+
 router.delete('/:id', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   deleteJob
 );
+
 router.post('/:id/logo', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   uploaders.jobs.single('logo'),
   validateFileUpload({ maxSize: 2 * 1024 * 1024, allowedTypes: ['image/jpeg', 'image/png'] }),
   uploadCompanyLogo
 );
+
 router.get('/:id/stats', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   getJobStats
 );
@@ -79,25 +88,28 @@ router.post('/:id/apply',
   validateFileUpload({ maxSize: 10 * 1024 * 1024, allowedTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'] }),
   applyForJob
 );
+
 router.get('/my-applications', 
   validatePaginationParams,
   getMyApplications
 );
+
 router.get('/my-jobs', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin'),
   validatePaginationParams,
   getMyJobs
 );
 
 // Application management routes (Employer/Admin only)
 router.get('/:id/applications', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   validatePaginationParams,
   getJobApplications
 );
+
 router.put('/:id/applications/:applicationId/status', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   validateObjectIdParam('applicationId'),
   updateApplicationStatus

@@ -147,7 +147,7 @@ const userAnalyticsSchema = new mongoose.Schema({
 const serviceAnalyticsSchema = new mongoose.Schema({
   serviceId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Service',
+    ref: 'Service', // References Service from Marketplace.js
     required: true,
     unique: true
   },

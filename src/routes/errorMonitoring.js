@@ -4,6 +4,23 @@ const { auth } = require('../middleware/auth');
 const errorMonitoringService = require('../services/errorMonitoringService');
 const { logger } = require('../utils/logger');
 
+// Public endpoint for basic error monitoring info
+router.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Error monitoring service is available',
+    data: {
+      service: 'Error Monitoring',
+      status: 'active',
+      features: [
+        'Error Tracking',
+        'Performance Monitoring',
+        'Alert Management'
+      ]
+    }
+  });
+});
+
 // Get error statistics
 router.get('/stats', auth, async (req, res) => {
   try {

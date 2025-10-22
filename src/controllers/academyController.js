@@ -1,4 +1,4 @@
-const Academy = require('../models/Academy');
+const { Course, Enrollment, Certification } = require('../models/Academy');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
@@ -52,13 +52,13 @@ const getCourses = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    const courses = await Academy.find(filter)
+    const courses = await Course.find(filter)
       .populate('instructor', 'firstName lastName profile.avatar profile.bio')
       .sort(sort)
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await Academy.countDocuments(filter);
+    const total = await Course.countDocuments(filter);
 
     res.status(200).json({
       success: true,
@@ -82,7 +82,15 @@ const getCourses = async (req, res) => {
 // @access  Public
 const getCourse = async (req, res) => {
   try {
-    const course = await Academy.findById(req.params.id)
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid course ID format'
+      });
+    }
+
+    const course = await Course.findById(req.params.id)
       .populate('instructor', 'firstName lastName profile.avatar profile.bio profile.rating')
       .populate('enrollments.user', 'firstName lastName profile.avatar')
       .populate('reviews.user', 'firstName lastName profile.avatar');
@@ -121,7 +129,7 @@ const createCourse = async (req, res) => {
       instructor: req.user.id
     };
 
-    const course = await Academy.create(courseData);
+    const course = await Course.create(courseData);
 
     await course.populate('instructor', 'firstName lastName profile.avatar');
 
@@ -185,7 +193,7 @@ const updateCourse = async (req, res) => {
 // @access  Private
 const deleteCourse = async (req, res) => {
   try {
-    const course = await Academy.findById(req.params.id);
+    const course = await Course.findById(req.params.id);
 
     if (!course) {
       return res.status(404).json({
@@ -231,7 +239,7 @@ const uploadCourseThumbnail = async (req, res) => {
       });
     }
 
-    const course = await Academy.findById(req.params.id);
+    const course = await Course.findById(req.params.id);
 
     if (!course) {
       return res.status(404).json({
@@ -301,7 +309,7 @@ const uploadCourseVideo = async (req, res) => {
       });
     }
 
-    const course = await Academy.findById(req.params.id);
+    const course = await Course.findById(req.params.id);
 
     if (!course) {
       return res.status(404).json({
@@ -365,7 +373,7 @@ const deleteCourseVideo = async (req, res) => {
   try {
     const { videoId } = req.params;
 
-    const course = await Academy.findById(req.params.id);
+    const course = await Course.findById(req.params.id);
 
     if (!course) {
       return res.status(404).json({
@@ -416,7 +424,7 @@ const deleteCourseVideo = async (req, res) => {
 // @access  Private
 const enrollInCourse = async (req, res) => {
   try {
-    const course = await Academy.findById(req.params.id);
+    const course = await Course.findById(req.params.id);
 
     if (!course) {
       return res.status(404).json({
@@ -496,7 +504,7 @@ const updateCourseProgress = async (req, res) => {
       });
     }
 
-    const course = await Academy.findById(req.params.id);
+    const course = await Course.findById(req.params.id);
 
     if (!course) {
       return res.status(404).json({
@@ -558,7 +566,7 @@ const addCourseReview = async (req, res) => {
       });
     }
 
-    const course = await Academy.findById(req.params.id);
+    const course = await Course.findById(req.params.id);
 
     if (!course) {
       return res.status(404).json({
@@ -639,7 +647,7 @@ const getMyCourses = async (req, res) => {
     const filter = { 'enrollments.user': req.user.id };
     if (status) filter['enrollments.status'] = status;
 
-    const courses = await Academy.find(filter)
+    const courses = await Course.find(filter)
       .populate('instructor', 'firstName lastName profile.avatar')
       .sort({ 'enrollments.enrolledAt': -1 })
       .skip(skip)
@@ -656,7 +664,7 @@ const getMyCourses = async (req, res) => {
       };
     });
 
-    const total = await Academy.countDocuments(filter);
+    const total = await Course.countDocuments(filter);
 
     res.status(200).json({
       success: true,

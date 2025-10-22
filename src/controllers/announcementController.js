@@ -231,6 +231,14 @@ const getAnnouncement = async (req, res) => {
     const { id } = req.params;
     const user = req.user;
 
+    // Validate ObjectId format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid announcement ID format'
+      });
+    }
+
     const announcement = await Announcement.findOne({
       _id: id,
       isDeleted: false

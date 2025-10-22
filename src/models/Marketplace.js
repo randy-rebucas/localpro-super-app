@@ -300,11 +300,16 @@ serviceSchema.index({ category: 1, subcategory: 1 });
 serviceSchema.index({ provider: 1 });
 serviceSchema.index({ serviceArea: 1 });
 serviceSchema.index({ isActive: 1 });
+serviceSchema.index({ provider: 1, isActive: 1 });
+serviceSchema.index({ 'rating.average': -1, 'rating.count': -1 });
 
 bookingSchema.index({ client: 1 });
 bookingSchema.index({ provider: 1 });
 bookingSchema.index({ status: 1 });
 bookingSchema.index({ bookingDate: 1 });
+bookingSchema.index({ client: 1, status: 1 });
+bookingSchema.index({ provider: 1, status: 1 });
+bookingSchema.index({ service: 1, status: 1 });
 
 module.exports = {
   Service: mongoose.model('Service', serviceSchema),
