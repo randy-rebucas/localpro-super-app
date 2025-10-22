@@ -76,3 +76,71 @@
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:03:20.846Z"}
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:03:31.650Z"}
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:03:43.206Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:10:15.488Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:11:42.550Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"4ms","statusCode":401,"timestamp":"2025-10-22T03:11:42.554Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:11:42 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:11:42.559Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:11:43.757Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":401,"timestamp":"2025-10-22T03:11:43.759Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:11:43 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:11:43.761Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:13:40.421Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":401,"timestamp":"2025-10-22T03:13:40.423Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:13:40 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:13:40.428Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:17:36.040Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"12ms","statusCode":401,"timestamp":"2025-10-22T03:17:36.051Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:17:36 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:17:36.103Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:17:38.398Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"8ms","statusCode":401,"timestamp":"2025-10-22T03:17:38.406Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:17:38 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:17:38.414Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:17:45.386Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"18ms","statusCode":401,"timestamp":"2025-10-22T03:17:45.404Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:17:45 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:17:45.452Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:17:48.387Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":401,"timestamp":"2025-10-22T03:17:48.388Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:17:48 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:17:48.403Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:21:32.922Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"3ms","statusCode":401,"timestamp":"2025-10-22T03:21:32.926Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:21:32 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:21:32.937Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:21:38.500Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"3ms","statusCode":401,"timestamp":"2025-10-22T03:21:38.503Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:21:38 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:21:38.508Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:21:39.754Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":401,"timestamp":"2025-10-22T03:21:39.755Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:21:39 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:21:39.758Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:33:51.709Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"17ms","statusCode":401,"timestamp":"2025-10-22T03:33:51.726Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:33:51 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:33:51.729Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:33:52.600Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":401,"timestamp":"2025-10-22T03:33:52.602Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:33:52 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:33:52.603Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:39:11.832Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"4ms","statusCode":401,"timestamp":"2025-10-22T03:39:11.837Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:39:11 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:39:11.839Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:39:12.814Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"3ms","statusCode":401,"timestamp":"2025-10-22T03:39:12.817Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:39:12 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:39:12.818Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:40:29.607Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"3ms","statusCode":401,"timestamp":"2025-10-22T03:40:29.609Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:40:29 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:40:29.613Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:41:32.398Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":401,"timestamp":"2025-10-22T03:41:32.400Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:41:32 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:41:32.401Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:41:33.864Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":401,"timestamp":"2025-10-22T03:41:33.866Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:41:33 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:41:33.867Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:41:38.502Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":401,"timestamp":"2025-10-22T03:41:38.504Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:41:38 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:41:38.506Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T03:41:38.994Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":401,"timestamp":"2025-10-22T03:41:38.995Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:03:41:38 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T03:41:38.995Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:44:25.736Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:46:23.757Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:47:45.652Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:47:51.083Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:47:54.972Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:47:59.437Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:48:03.288Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:48:43.283Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:48:58.203Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T03:49:56.770Z"}
