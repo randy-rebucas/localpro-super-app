@@ -10,13 +10,8 @@
     "setup:install": "node setup-install.js",
     "setup:auto": "node setup-auto.js",
     "setup:paymaya": "node setup-paymaya-config.js",
-    "setup:test": "node test-setup.js",
     "setup:reset": "node reset-database.js",
     "verify": "node verify-setup.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:integration": "jest --config jest.integration.config.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "security:audit": "npm audit --audit-level=high",
@@ -55,10 +50,7 @@
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.8",
     "eslint": "^8.55.0",
-    "jest": "^29.7.0",
-    "nodemon": "^3.0.2",
-    "supertest": "^6.3.3"
+    "nodemon": "^3.0.2"
   }
 }

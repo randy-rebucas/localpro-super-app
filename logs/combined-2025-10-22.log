@@ -2048,3 +2048,28 @@
 {"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T13:39:00.303Z","url":"/health","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.6899","userId":null}
 {"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":200,"timestamp":"2025-10-22T13:39:00.305Z","url":"/health","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.6899","userId":null}
 {"level":"http","message":"::1 - - [22/Oct/2025:13:39:00 +0000] \"GET /health HTTP/1.1\" 200 560 \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.6899\"","timestamp":"2025-10-22T13:39:00.306Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T13:53:46.698Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T13:53:59.132Z","url":"/api/health","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.6899","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"3ms","statusCode":404,"timestamp":"2025-10-22T13:53:59.135Z","url":"/api/health","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.6899","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:13:53:59 +0000] \"GET /api/health HTTP/1.1\" 404 52 \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.6899\"","timestamp":"2025-10-22T13:53:59.137Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T13:55:24.342Z","url":"/","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.6899","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":200,"timestamp":"2025-10-22T13:55:24.344Z","url":"/","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.6899","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:13:55:24 +0000] \"GET / HTTP/1.1\" 200 1473 \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.6899\"","timestamp":"2025-10-22T13:55:24.344Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-22T14:07:30.447Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T14:08:20.083Z","url":"/api/communication/notifications/count","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"3ms","statusCode":401,"timestamp":"2025-10-22T14:08:20.086Z","url":"/api/communication/notifications/count","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:14:08:20 +0000] \"GET /api/communication/notifications/count HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T14:08:20.091Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T14:08:20.738Z","url":"/api/announcements","userAgent":"node","userId":null}
+{"context":"App","level":"info","message":"Announcements retrieved","query":{},"resultCount":0,"timestamp":"2025-10-22T14:08:21.393Z","totalCount":0}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"657ms","statusCode":200,"timestamp":"2025-10-22T14:08:21.396Z","url":"/api/announcements","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:14:08:21 +0000] \"GET /api/announcements HTTP/1.1\" 200 155 \"-\" \"node\"","timestamp":"2025-10-22T14:08:21.398Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T14:08:21.799Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"4ms","statusCode":401,"timestamp":"2025-10-22T14:08:21.802Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:14:08:21 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T14:08:21.803Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T14:08:21.873Z","url":"/api/announcements","userAgent":"node","userId":null}
+{"context":"App","level":"info","message":"Announcements retrieved","query":{},"resultCount":0,"timestamp":"2025-10-22T14:08:22.093Z","totalCount":0}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"221ms","statusCode":200,"timestamp":"2025-10-22T14:08:22.094Z","url":"/api/announcements","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:14:08:22 +0000] \"GET /api/announcements HTTP/1.1\" 200 155 \"-\" \"node\"","timestamp":"2025-10-22T14:08:22.095Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-22T14:08:22.873Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":401,"timestamp":"2025-10-22T14:08:22.874Z","url":"/api/logs/user/68f7265e60f48a4fd66ef03d/activity","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [22/Oct/2025:14:08:22 +0000] \"GET /api/logs/user/68f7265e60f48a4fd66ef03d/activity HTTP/1.1\" 401 48 \"-\" \"node\"","timestamp":"2025-10-22T14:08:22.877Z"}
