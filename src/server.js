@@ -35,6 +35,7 @@ const providersRoutes = require('./routes/providers');
 const logsRoutes = require('./routes/logs');
 const userManagementRoutes = require('./routes/userManagement');
 const searchRoutes = require('./routes/search');
+const announcementsRoutes = require('./routes/announcements');
 
 const app = express();
 
@@ -96,9 +97,10 @@ app.get('/', (req, res) => {
         'Agency Management',
         'User & App Settings',
         'User Management System',
-        'Global Search System'
+        'Global Search System',
+        'Announcements & Notifications'
       ],
-      totalEndpoints: 18,
+      totalEndpoints: 19,
       authentication: 'Bearer Token',
       rateLimit: '100 requests per 15 minutes'
     },
@@ -217,6 +219,7 @@ app.use('/api/providers', providersRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/users', userManagementRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/announcements', announcementsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
