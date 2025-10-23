@@ -3,7 +3,7 @@ const router = express.Router();
 const { auth } = require('../middleware/auth');
 const { body, param, query } = require('express-validator');
 const logManagementService = require('../services/logManagementService');
-const { logger } = require('../config/logger');
+const logger = require('../config/logger');
 
 // Get log statistics
 router.get('/stats', auth, async (req, res) => {
