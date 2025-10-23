@@ -57,13 +57,7 @@ const getAllUsers = async (req, res) => {
     const total = await User.countDocuments(filter);
 
     // Audit log
-    await auditLogger.log({
-      action: 'GET_ALL_USERS',
-      performedBy: req.user.id,
-      details: { filter, pagination: { page, limit } },
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    await auditLogger.logUser('GET_ALL_USERS', req, { type: 'user', id: 'multiple', name: 'Users' }, {}, { filter, pagination: { page, limit } });
 
     res.status(200).json({
       success: true,
@@ -120,13 +114,7 @@ const getUserById = async (req, res) => {
     }
 
     // Audit log
-    await auditLogger.log({
-      action: 'GET_USER_BY_ID',
-      performedBy: req.user.id,
-      targetUserId: id,
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    await auditLogger.logUser('GET_USER_BY_ID', req, { type: 'user', id: id, name: 'User' });
 
     res.status(200).json({
       success: true,
@@ -229,14 +217,7 @@ const createUser = async (req, res) => {
     }
 
     // Audit log
-    await auditLogger.log({
-      action: 'CREATE_USER',
-      performedBy: req.user.id,
-      targetUserId: user._id,
-      details: { userData },
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    await auditLogger.logUser('CREATE_USER', req, { type: 'user', id: user._id, name: user.email }, {}, { userData });
 
     res.status(201).json({
       success: true,
@@ -309,14 +290,7 @@ const updateUser = async (req, res) => {
     ).select('-verificationCode');
 
     // Audit log
-    await auditLogger.log({
-      action: 'UPDATE_USER',
-      performedBy: req.user.id,
-      targetUserId: id,
-      details: { updateData },
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    await auditLogger.logUser('UPDATE_USER', req, { type: 'user', id: id, name: 'User' }, updateData);
 
     res.status(200).json({
       success: true,
@@ -376,14 +350,7 @@ const updateUserStatus = async (req, res) => {
     }
 
     // Audit log
-    await auditLogger.log({
-      action: isActive ? 'ACTIVATE_USER' : 'DEACTIVATE_USER',
-      performedBy: req.user.id,
-      targetUserId: id,
-      details: { isActive, reason },
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    await auditLogger.logUser(isActive ? 'ACTIVATE_USER' : 'DEACTIVATE_USER', req, { type: 'user', id: id, name: 'User' }, {}, { isActive, reason });
 
     res.status(200).json({
       success: true,
@@ -438,14 +405,7 @@ const updateUserVerification = async (req, res) => {
     await user.save();
 
     // Audit log
-    await auditLogger.log({
-      action: 'UPDATE_USER_VERIFICATION',
-      performedBy: req.user.id,
-      targetUserId: id,
-      details: { verification },
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    await auditLogger.logUser('UPDATE_USER_VERIFICATION', req, { type: 'user', id: id, name: 'User' }, {}, { verification });
 
     res.status(200).json({
       success: true,
@@ -501,14 +461,7 @@ const addUserBadge = async (req, res) => {
     await user.save();
 
     // Audit log
-    await auditLogger.log({
-      action: 'ADD_USER_BADGE',
-      performedBy: req.user.id,
-      targetUserId: id,
-      details: { type, description },
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    await auditLogger.logUser('ADD_USER_BADGE', req, { type: 'user', id: id, name: 'User' }, {}, { type, description });
 
     res.status(200).json({
       success: true,
@@ -566,13 +519,7 @@ const getUserStats = async (req, res) => {
     ]);
 
     // Audit log
-    await auditLogger.log({
-      action: 'GET_USER_STATS',
-      performedBy: req.user.id,
-      details: { filter },
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    await auditLogger.logUser('GET_USER_STATS', req, { type: 'user', id: 'stats', name: 'User Statistics' }, {}, { filter });
 
     res.status(200).json({
       success: true,
@@ -627,13 +574,7 @@ const bulkUpdateUsers = async (req, res) => {
     );
 
     // Audit log
-    await auditLogger.log({
-      action: 'BULK_UPDATE_USERS',
-      performedBy: req.user.id,
-      details: { userIds, updateData, modifiedCount: result.modifiedCount },
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    await auditLogger.logUser('BULK_UPDATE_USERS', req, { type: 'user', id: 'multiple', name: 'Users' }, {}, { userIds, updateData, modifiedCount: result.modifiedCount });
 
     res.status(200).json({
       success: true,
@@ -674,13 +615,7 @@ const deleteUser = async (req, res) => {
     await user.save();
 
     // Audit log
-    await auditLogger.log({
-      action: 'DELETE_USER',
-      performedBy: req.user.id,
-      targetUserId: id,
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    await auditLogger.logUser('DELETE_USER', req, { type: 'user', id: id, name: 'User' });
 
     res.status(200).json({
       success: true,
