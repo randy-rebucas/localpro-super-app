@@ -2,6 +2,11 @@
 
 ## **Complete API Endpoint Reference by Journey**
 
+> **📅 Last Updated:** October 24, 2025  
+> **🔄 Version:** 2.0  
+> **📊 Total Endpoints:** 200+  
+> **🆕 Recent Updates:** Added Settings Management, Activities & Social, Error Monitoring, Reminder Memory System, Audit Logging, and enhanced Security & Middleware features
+
 ### **1. 🔐 Authentication & Onboarding**
 
 | Endpoint | Method | Description | Journey Step |
@@ -253,7 +258,7 @@
 | `/api/communication/messages/:id` | PUT | Update message | Message Management |
 | `/api/communication/messages/:id` | DELETE | Delete message | Message Management |
 
-### **16. 📊 Analytics**
+### **16. 📊 Analytics & Usage Tracking**
 
 | Endpoint | Method | Description | Journey Step |
 |----------|--------|-------------|--------------|
@@ -264,8 +269,58 @@
 | `/api/analytics/users` | GET | Get user analytics | User Analytics |
 | `/api/analytics/revenue` | GET | Get revenue analytics | Revenue Tracking |
 | `/api/analytics/engagement` | GET | Get engagement metrics | Engagement Tracking |
+| `/api/analytics/usage/track` | POST | Track feature usage | Usage Tracking |
+| `/api/analytics/usage/stats` | GET | Get usage statistics | Usage Analytics |
+| `/api/analytics/usage/limits` | GET | Get usage limits | Subscription Management |
+| `/api/analytics/usage/reset` | POST | Reset usage counters (Admin) | Usage Management |
+| `/api/analytics/usage/export` | POST | Export usage data (Admin) | Data Export |
+| `/api/analytics/usage/alerts` | GET | Get usage alerts | Alert Management |
+| `/api/analytics/usage/trends` | GET | Get usage trends | Trend Analysis |
 
-### **17. 💳 Payment Processing**
+### **17. ⚙️ Settings Management**
+
+| Endpoint | Method | Description | Journey Step |
+|----------|--------|-------------|--------------|
+| `/api/settings/user` | GET | Get user settings | Settings Management |
+| `/api/settings/user` | PUT | Update user settings | Settings Management |
+| `/api/settings/user/:category` | PUT | Update specific setting category | Category Management |
+| `/api/settings/user/reset` | POST | Reset user settings to defaults | Settings Reset |
+| `/api/settings/user` | DELETE | Delete user settings | Settings Deletion |
+| `/api/settings/app` | GET | Get app settings (Admin) | Admin Settings |
+| `/api/settings/app` | PUT | Update app settings (Admin) | Admin Settings |
+| `/api/settings/app/:category` | PUT | Update specific app setting category (Admin) | Category Management |
+| `/api/settings/app/features/toggle` | POST | Toggle feature flag (Admin) | Feature Management |
+| `/api/settings/app/public` | GET | Get public app settings | Public Settings |
+| `/api/settings/app/health` | GET | Get app health status | Health Monitoring |
+
+### **18. 📊 Activities & Social**
+
+| Endpoint | Method | Description | Journey Step |
+|----------|--------|-------------|--------------|
+| `/api/activities/feed` | GET | Get activity feed | Social Feed |
+| `/api/activities/my` | GET | Get my activities | Personal Activities |
+| `/api/activities/user/:userId` | GET | Get user activities | User Profile |
+| `/api/activities/:id` | GET | Get activity details | Activity Details |
+| `/api/activities` | POST | Create activity | Activity Creation |
+| `/api/activities/:id` | PUT | Update activity | Activity Management |
+| `/api/activities/:id` | DELETE | Delete activity | Activity Management |
+| `/api/activities/:id/interactions` | POST | Add interaction | Social Interaction |
+| `/api/activities/:id/interactions` | DELETE | Remove interaction | Social Interaction |
+| `/api/activities/stats/my` | GET | Get my activity statistics | Personal Analytics |
+| `/api/activities/stats/global` | GET | Get global activity statistics (Admin) | Global Analytics |
+| `/api/activities/metadata` | GET | Get activity metadata | System Information |
+
+### **19. 🔍 Error Monitoring**
+
+| Endpoint | Method | Description | Journey Step |
+|----------|--------|-------------|--------------|
+| `/api/error-monitoring` | GET | Get error monitoring info | Service Status |
+| `/api/error-monitoring/stats` | GET | Get error statistics (Admin) | Error Analytics |
+| `/api/error-monitoring/unresolved` | GET | Get unresolved errors (Admin) | Error Management |
+| `/api/error-monitoring/:errorId` | GET | Get error details (Admin) | Error Investigation |
+| `/api/error-monitoring/dashboard/summary` | GET | Get dashboard summary (Admin) | Admin Dashboard |
+
+### **20. 💳 Payment Processing**
 
 #### **PayPal Integration**
 | Endpoint | Method | Description | Journey Step |
@@ -295,6 +350,32 @@
 | `/api/paymaya/config/validate` | GET | Validate configuration | Configuration Validation |
 | `/api/paymaya/webhook/events` | GET | Get webhook events | Event Tracking |
 
+### **21. 🧠 Reminder Memory System**
+
+| Endpoint | Method | Description | Journey Step |
+|----------|--------|-------------|--------------|
+| `/api/reminder-memory/status` | GET | Get system status | System Monitoring |
+| `/api/reminder-memory/protected-files` | GET | List protected files | File Management |
+| `/api/reminder-memory/check-modifications` | POST | Check file modifications | Security Check |
+| `/api/reminder-memory/backup` | POST | Create backup reminder | Backup Management |
+| `/api/reminder-memory/stats` | GET | Get system statistics | Analytics |
+| `/api/reminder-memory/cli/init` | POST | Initialize system | System Setup |
+| `/api/reminder-memory/cli/status` | GET | Get CLI status | CLI Management |
+| `/api/reminder-memory/cli/list` | GET | List CLI commands | CLI Help |
+
+### **22. 📋 Audit Logging System**
+
+| Endpoint | Method | Description | Journey Step |
+|----------|--------|-------------|--------------|
+| `/api/audit-logs` | GET | Get audit logs (Admin) | Audit Management |
+| `/api/audit-logs/:id` | GET | Get audit log details (Admin) | Audit Investigation |
+| `/api/audit-logs/export` | POST | Export audit logs (Admin) | Data Export |
+| `/api/audit-logs/stats` | GET | Get audit statistics (Admin) | Audit Analytics |
+| `/api/audit-logs/categories` | GET | Get audit categories | System Information |
+| `/api/audit-logs/actions` | GET | Get audit actions | System Information |
+| `/api/audit-logs/search` | POST | Search audit logs (Admin) | Advanced Search |
+| `/api/audit-logs/cleanup` | POST | Cleanup old logs (Admin) | Maintenance |
+
 ---
 
 ## **API Endpoint Categories by User Role**
@@ -310,6 +391,9 @@
 - Ad viewing and clicking
 - Location services
 - Referral code validation
+- Public app settings
+- Error monitoring service status
+- Health check endpoints
 
 ### **Client Endpoints (Client Role)**
 - Service booking
@@ -322,6 +406,9 @@
 - Referral system usage
 - Communication
 - Review and rating
+- User settings management
+- Activity feed and interactions
+- Personal analytics and statistics
 
 ### **Provider Endpoints (Provider Role)**
 - Service creation and management
@@ -342,6 +429,74 @@
 - Verification processing
 - Payment processing
 - Platform management
+- App settings management
+- Error monitoring and resolution
+- Audit log management
+- Global activity statistics
+- System health monitoring
+- Feature flag management
+- Security and compliance oversight
+
+---
+
+## **🔒 Security & Middleware Features**
+
+### **Authentication & Authorization**
+- JWT-based authentication with refresh tokens
+- Role-based access control (RBAC)
+- Multi-factor authentication support
+- Session management and timeout
+- Password policy enforcement
+- Account lockout protection
+
+### **Rate Limiting & Protection**
+- Request rate limiting by endpoint type
+- IP-based rate limiting
+- User-based rate limiting
+- Search operation rate limiting
+- API key rate limiting
+- DDoS protection
+
+### **Security Headers & CORS**
+- X-Content-Type-Options: nosniff
+- X-Frame-Options: DENY
+- X-XSS-Protection: 1; mode=block
+- Referrer-Policy: strict-origin-when-cross-origin
+- Permissions-Policy: geolocation=(), microphone=(), camera=()
+- CORS configuration for cross-origin requests
+
+### **Input Validation & Sanitization**
+- Request body validation using Joi schemas
+- Parameter validation for all endpoints
+- File upload validation and type checking
+- SQL injection prevention
+- XSS protection
+- Input sanitization
+
+### **Audit Logging & Monitoring**
+- Comprehensive audit trail for all operations
+- Security event logging
+- Performance monitoring
+- Error tracking and alerting
+- User activity tracking
+- Financial transaction logging
+- System operation logging
+
+### **File Protection & Security**
+- Protected file access control
+- File modification monitoring
+- Backup and recovery systems
+- Secure file upload handling
+- File type validation
+- Size limit enforcement
+
+### **Error Handling & Logging**
+- Centralized error handling
+- Structured logging with Winston
+- Error categorization and severity levels
+- Performance metrics collection
+- Database operation logging
+- API call monitoring
 
 ---
 
@@ -387,6 +542,45 @@
   }
 }
 ```
+
+---
+
+## **🛠️ Services & Utilities**
+
+### **Core Services**
+- **TwilioService**: SMS verification and communication
+- **GoogleMapsService**: Geocoding, reverse geocoding, and location services
+- **EmailService**: Email notifications and templates
+- **CloudinaryService**: Image and file upload management
+- **ReminderMemoryService**: File protection and memory management
+- **AuditService**: Comprehensive audit logging
+- **ReferralService**: Referral system management
+- **ProviderVerificationService**: Provider onboarding and verification
+- **UsageTrackingService**: Feature usage tracking and analytics
+- **ErrorMonitoringService**: Error tracking and alerting
+
+### **Utility Functions**
+- **Validation Utilities**: Joi schema validation for all endpoints
+- **Logger Utilities**: Structured logging with Winston
+- **Audit Logger**: Comprehensive audit trail management
+- **File Protection**: Secure file access and monitoring
+- **Rate Limiting**: Request throttling and protection
+- **Error Handling**: Centralized error management
+- **Security Headers**: Security middleware implementation
+- **Performance Monitoring**: Request timing and metrics
+
+### **CLI Tools**
+- **ReminderMemoryCLI**: Command-line interface for memory management
+- **Setup Scripts**: Automated system configuration
+- **Database Utilities**: Data management and migration tools
+- **Health Check Tools**: System monitoring and diagnostics
+
+### **Integration Services**
+- **PayPal Integration**: Payment processing and webhooks
+- **PayMaya Integration**: Local payment processing
+- **Google Maps Integration**: Location and mapping services
+- **Twilio Integration**: SMS and communication services
+- **Cloudinary Integration**: Media management and optimization
 
 ---
 
