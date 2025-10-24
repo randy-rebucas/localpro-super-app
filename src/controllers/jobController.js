@@ -16,7 +16,7 @@ const {
   sendServerError,
   createPagination 
 } = require('../utils/responseHelper');
-const { searchLimiter, generalLimiter } = require('../middleware/rateLimiter');
+// const { searchLimiter, generalLimiter } = require('../middleware/rateLimiter'); // Rate limiting disabled
 
 // @desc    Get all jobs
 // @route   GET /api/jobs

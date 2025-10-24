@@ -123,17 +123,18 @@ const errorHandler = (error, req, res, next) => {
     });
   }
 
-  if (error.name === 'RateLimitError') {
-    statusCode = 429;
-    message = 'Too many requests';
-    code = 'RATE_LIMIT_EXCEEDED';
-    
-    return res.status(statusCode).json({
-      success: false,
-      message,
-      code
-    });
-  }
+  // Rate limit error handling disabled
+  // if (error.name === 'RateLimitError') {
+  //   statusCode = 429;
+  //   message = 'Too many requests';
+  //   code = 'RATE_LIMIT_EXCEEDED';
+  //   
+  //   return res.status(statusCode).json({
+  //     success: false,
+  //     message,
+  //     code
+  //   });
+  // }
 
   // Handle custom application errors
   if (error.statusCode) {

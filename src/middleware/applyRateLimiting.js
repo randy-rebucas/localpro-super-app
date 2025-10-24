@@ -1,15 +1,17 @@
 /**
- * Apply Rate Limiting Middleware
- * Centralized rate limiting configuration for different route types
+ * RATE LIMITING DISABLED
+ * This file contains rate limiting middleware that has been disabled.
+ * To re-enable rate limiting, uncomment the imports and rate limiter configurations below.
  */
 
-const { 
-  generalLimiter, 
-  authLimiter, 
-  verificationLimiter, 
-  uploadLimiter, 
-  searchLimiter 
-} = require('./rateLimiter');
+// Rate limiting disabled - uncomment to re-enable
+// const { 
+//   generalLimiter, 
+//   authLimiter, 
+//   verificationLimiter, 
+//   uploadLimiter, 
+//   searchLimiter 
+// } = require('./rateLimiter');
 
 /**
  * Apply rate limiting based on route type

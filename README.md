@@ -37,7 +37,7 @@ For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
 ## 🚀 Features
 
 ### Core Modules
-- **🔐 Mobile Authentication**: Enhanced SMS-based authentication with Twilio integration, rate limiting, device tracking, and smart redirection
+- **🔐 Mobile Authentication**: Enhanced SMS-based authentication with Twilio integration, device tracking, and smart redirection
 - **🏪 Marketplace**: Service marketplace (cleaning, plumbing, electrical, moving)
 - **💼 Job Board**: Employment platform for job postings and applications
 - **🤝 Referral System**: Comprehensive referral and rewards platform
@@ -66,7 +66,7 @@ For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
 - RESTful API with comprehensive endpoints
 - Enhanced JWT-based mobile authentication with rich payload
 - Role-based access control
-- Real-time SMS verification with rate limiting
+- Real-time SMS verification
 - Smart redirection based on user onboarding status
 - Device tracking and session management
 - Advanced search and filtering
@@ -74,7 +74,7 @@ For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
 - Full subscription management with automatic billing
 - Analytics and reporting
 - File upload support
-- Rate limiting and security
+- Security middleware
 - **Location-based services with Google Maps**
 - **Email notifications (Resend, SendGrid, SMTP)**
 - **Service area validation**
@@ -98,7 +98,7 @@ For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
 - **Database**: MongoDB with Mongoose
 - **Authentication**: JWT + Twilio SMS
 - **Validation**: Joi
-- **Security**: Helmet, CORS, Rate Limiting
+- **Security**: Helmet, CORS
 - **Logging**: Winston with daily rotation, Morgan for HTTP requests, MongoDB storage
 - **Error Monitoring**: Custom error tracking with alerting and resolution management
 - **Audit Logging**: Comprehensive audit trail with compliance features and data protection
@@ -1347,7 +1347,7 @@ curl -X POST http://localhost:4000/api/communication/notifications/sms \
 
 ### 🔐 Smart Authentication Flow
 - **Progressive Onboarding**: Automatic redirection to dashboard or onboarding based on profile completion
-- **Rate Limiting**: Prevents SMS spam with 1-minute cooldown between verification requests
+- **SMS Verification**: Real-time SMS verification with Twilio integration
 - **Device Tracking**: Monitors and manages multiple devices per user with activity patterns
 - **Enhanced JWT Tokens**: Rich payload including user status, role, and onboarding completion
 - **Profile Completeness Tracking**: Comprehensive profile completion status with categorized progress
@@ -1385,7 +1385,7 @@ curl -X POST http://localhost:4000/api/communication/notifications/sms \
 - **500 Errors Eliminated**: 11 out of 15 errors fixed (73% reduction)
 - **ObjectId Validation**: All controllers now properly validate MongoDB ObjectIds
 - **Model Import Fixes**: Resolved all model import issues across controllers
-- **Route Optimization**: Enhanced route middleware with rate limiting and validation
+- **Route Optimization**: Enhanced route middleware with validation
 - **Error Handling**: Centralized error handling with consistent response formats
 - **Security Headers**: Added comprehensive security headers for all endpoints
 
@@ -1565,7 +1565,7 @@ curl -X POST http://localhost:4000/api/communication/notifications/sms \
 - **Global Search**: Comprehensive search functionality across all platform entities
 
 ### 🛡️ Security & Performance Enhancements
-- **Rate Limiting**: Comprehensive rate limiting across all endpoints
+- **Security**: Comprehensive security middleware across all endpoints
 - **Input Validation**: Enhanced validation for all route parameters
 - **File Upload Security**: Secure file upload with size and type validation
 - **Security Headers**: XSS, CSRF, and other security protections
@@ -1577,7 +1577,7 @@ curl -X POST http://localhost:4000/api/communication/notifications/sms \
 
 - JWT-based authentication
 - Role-based access control (client, provider, admin, supplier, instructor, agency_owner, agency_admin)
-- Rate limiting (100 requests per 15 minutes)
+- Security middleware and validation
 - Input validation with Joi
 - CORS protection
 - Helmet security headers

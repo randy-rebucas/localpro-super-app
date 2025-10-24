@@ -1,24 +1,31 @@
-const rateLimit = require('express-rate-limit');
-const redis = require('redis');
+/**
+ * RATE LIMITING DISABLED
+ * This file contains rate limiting middleware that has been disabled.
+ * To re-enable rate limiting, uncomment the imports and rate limiter configurations below.
+ */
 
-// Redis client for rate limiting (optional - falls back to memory store)
-let redisClient;
+// Rate limiting disabled - uncomment to re-enable
+// const rateLimit = require('express-rate-limit');
+// const redis = require('redis');
 
-try {
-  redisClient = redis.createClient({
-    url: process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`,
-    password: process.env.REDIS_PASSWORD
-  });
-  
-  // Connect to Redis
-  redisClient.connect().catch(err => {
-    console.warn('Redis connection failed, using memory store for rate limiting:', err.message);
-    redisClient = null;
-  });
-} catch (error) {
-  console.warn('Redis not available, using memory store for rate limiting:', error.message);
-  redisClient = null;
-}
+// Rate limiting disabled - Redis client commented out
+// let redisClient;
+
+// try {
+//   redisClient = redis.createClient({
+//     url: process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`,
+//     password: process.env.REDIS_PASSWORD
+//   });
+//   
+//   // Connect to Redis
+//   redisClient.connect().catch(err => {
+//     console.warn('Redis connection failed, using memory store for rate limiting:', err.message);
+//     redisClient = null;
+//   });
+// } catch (error) {
+//   console.warn('Redis not available, using memory store for rate limiting:', error.message);
+//   redisClient = null;
+// }
 
 /**
  * Create a Redis store for rate limiting

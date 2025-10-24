@@ -208,3 +208,10 @@
 {"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"76ms","statusCode":200,"timestamp":"2025-10-24T07:24:53.506Z","url":"/api/rentals","userAgent":"node","userId":null}
 {"level":"http","message":"::1 - - [24/Oct/2025:07:24:53 +0000] \"GET /api/rentals HTTP/1.1\" 200 65 \"-\" \"node\"","timestamp":"2025-10-24T07:24:53.510Z"}
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-24T07:25:17.578Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-24T10:59:26.821Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-24T11:02:30.165Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-24T11:18:27.282Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-24T14:41:58.072Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-24T14:43:04.388Z","url":"/api/users/68f7265e60f48a4fd66ef03d","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"4ms","statusCode":401,"timestamp":"2025-10-24T14:43:04.392Z","url":"/api/users/68f7265e60f48a4fd66ef03d","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [24/Oct/2025:14:43:04 +0000] \"GET /api/users/68f7265e60f48a4fd66ef03d HTTP/1.1\" 401 60 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"","timestamp":"2025-10-24T14:43:04.400Z"}
