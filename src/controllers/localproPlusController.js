@@ -1,4 +1,4 @@
-const LocalProPlus = require('../models/LocalProPlus');
+const { SubscriptionPlan, UserSubscription, Payment } = require('../models/LocalProPlus');
 const User = require('../models/User');
 const PayPalService = require('../services/paypalService');
 const PayMayaService = require('../services/paymayaService');
@@ -9,7 +9,7 @@ const EmailService = require('../services/emailService');
 // @access  Public
 const getPlans = async (req, res) => {
   try {
-    const plans = await LocalProPlus.find({ isActive: true })
+    const plans = await SubscriptionPlan.find({ isActive: true })
       .sort({ price: 1 });
 
     res.status(200).json({
@@ -31,7 +31,7 @@ const getPlans = async (req, res) => {
 // @access  Public
 const getPlan = async (req, res) => {
   try {
-    const plan = await LocalProPlus.findById(req.params.id);
+    const plan = await SubscriptionPlan.findById(req.params.id);
 
     if (!plan) {
       return res.status(404).json({
@@ -58,7 +58,7 @@ const getPlan = async (req, res) => {
 // @access  Private (Admin only)
 const createPlan = async (req, res) => {
   try {
-    const plan = await LocalProPlus.create(req.body);
+    const plan = await SubscriptionPlan.create(req.body);
 
     res.status(201).json({
       success: true,
@@ -79,7 +79,7 @@ const createPlan = async (req, res) => {
 // @access  Private (Admin only)
 const updatePlan = async (req, res) => {
   try {
-    const plan = await LocalProPlus.findByIdAndUpdate(
+    const plan = await SubscriptionPlan.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
@@ -111,7 +111,7 @@ const updatePlan = async (req, res) => {
 // @access  Private (Admin only)
 const deletePlan = async (req, res) => {
   try {
-    const plan = await LocalProPlus.findByIdAndDelete(req.params.id);
+    const plan = await SubscriptionPlan.findByIdAndDelete(req.params.id);
 
     if (!plan) {
       return res.status(404).json({
@@ -138,7 +138,7 @@ const deletePlan = async (req, res) => {
 // @access  Private
 const subscribeToPlan = async (req, res) => {
   try {
-    const { planId, paymentMethod, paymentDetails } = req.body;
+    const { planId, paymentMethod, billingCycle = 'monthly' } = req.body;
 
     if (!planId || !paymentMethod) {
       return res.status(400).json({
@@ -147,7 +147,7 @@ const subscribeToPlan = async (req, res) => {
       });
     }
 
-    const plan = await LocalProPlus.findById(planId);
+    const plan = await SubscriptionPlan.findById(planId);
 
     if (!plan) {
       return res.status(404).json({
@@ -164,28 +164,33 @@ const subscribeToPlan = async (req, res) => {
     }
 
     // Check if user already has an active subscription
-    const user = await User.findById(req.user.id);
-    if (user.subscription && user.subscription.status === 'active') {
+    const user = await User.findById(req.user.id).populate('localProPlusSubscription');
+    if (user.localProPlusSubscription && user.localProPlusSubscription.status === 'active') {
       return res.status(400).json({
         success: false,
         message: 'You already have an active subscription'
       });
     }
 
+    // Calculate price based on billing cycle
+    const price = billingCycle === 'yearly' ? plan.price.yearly : plan.price.monthly;
+    const currency = plan.price.currency || 'USD';
+
     let paymentResult;
 
     // Process payment based on method
     if (paymentMethod === 'paypal') {
       paymentResult = await PayPalService.createOrder({
-        amount: plan.price,
-        currency: 'USD',
-        description: `LocalPro Plus ${plan.name} subscription`
+        amount: price,
+        currency: currency,
+        description: `LocalPro Plus ${plan.name} subscription (${billingCycle})`,
+        referenceId: `sub_${req.user.id}_${Date.now()}`
       });
     } else if (paymentMethod === 'paymaya') {
       paymentResult = await PayMayaService.createPayment({
-        amount: plan.price,
-        currency: 'PHP',
-        description: `LocalPro Plus ${plan.name} subscription`
+        amount: price,
+        currency: currency === 'USD' ? 'PHP' : currency,
+        description: `LocalPro Plus ${plan.name} subscription (${billingCycle})`
       });
     } else {
       return res.status(400).json({
@@ -202,25 +207,48 @@ const subscribeToPlan = async (req, res) => {
       });
     }
 
-    // Create subscription record
-    const subscription = {
+    // Create UserSubscription record
+    const subscription = new UserSubscription({
+      user: req.user.id,
       plan: planId,
       status: 'pending',
+      billingCycle,
       paymentMethod,
-      paymentDetails: paymentResult.data,
+      paymentDetails: {
+        paypalOrderId: paymentResult.data?.id,
+        paymayaCheckoutId: paymentResult.data?.checkoutId,
+        lastPaymentId: paymentResult.data?.id,
+        nextPaymentAmount: price
+      },
       startDate: new Date(),
-      endDate: new Date(Date.now() + (plan.billingCycle * 24 * 60 * 60 * 1000)),
-      autoRenew: true
-    };
+      endDate: new Date(Date.now() + (billingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000),
+      nextBillingDate: new Date(Date.now() + (billingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000),
+      usage: {
+        services: { current: 0, limit: plan.limits.maxServices },
+        bookings: { current: 0, limit: plan.limits.maxBookings },
+        storage: { current: 0, limit: plan.limits.maxStorage },
+        apiCalls: { current: 0, limit: plan.limits.maxApiCalls }
+      },
+      features: {
+        prioritySupport: plan.features.some(f => f.name === 'priority_support'),
+        advancedAnalytics: plan.features.some(f => f.name === 'advanced_analytics'),
+        customBranding: plan.features.some(f => f.name === 'custom_branding'),
+        apiAccess: plan.features.some(f => f.name === 'api_access'),
+        whiteLabel: plan.features.some(f => f.name === 'white_label')
+      }
+    });
 
-    user.subscription = subscription;
+    await subscription.save();
+
+    // Update user's subscription reference
+    user.localProPlusSubscription = subscription._id;
     await user.save();
 
     res.status(201).json({
       success: true,
       message: 'Subscription created successfully',
       data: {
-        subscription,
+        subscription: await subscription.populate('plan'),
         paymentData: paymentResult.data
       }
     });
@@ -247,16 +275,17 @@ const confirmSubscriptionPayment = async (req, res) => {
       });
     }
 
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).populate('localProPlusSubscription');
+    const subscription = user.localProPlusSubscription;
 
-    if (!user.subscription) {
+    if (!subscription) {
       return res.status(404).json({
         success: false,
         message: 'No subscription found'
       });
     }
 
-    if (user.subscription.status !== 'pending') {
+    if (subscription.status !== 'pending') {
       return res.status(400).json({
         success: false,
         message: 'Subscription is not pending'
@@ -286,28 +315,50 @@ const confirmSubscriptionPayment = async (req, res) => {
     }
 
     // Update subscription status
-    user.subscription.status = 'active';
-    user.subscription.paymentConfirmed = true;
-    user.subscription.paymentConfirmedAt = new Date();
-    await user.save();
+    subscription.status = 'active';
+    subscription.paymentDetails.lastPaymentId = paymentId;
+    subscription.paymentDetails.lastPaymentDate = new Date();
+    await subscription.save();
+
+    // Create payment record
+    const payment = new Payment({
+      user: req.user.id,
+      subscription: subscription._id,
+      amount: subscription.paymentDetails.nextPaymentAmount,
+      currency: subscription.plan.price?.currency || 'USD',
+      status: 'completed',
+      paymentMethod,
+      paymentDetails: {
+        paypalOrderId: paymentId,
+        paymayaPaymentId: paymentId,
+        transactionId: paymentResult.data?.id
+      },
+      description: `LocalPro Plus subscription payment`,
+      processedAt: new Date()
+    });
+
+    await payment.save();
 
     // Send confirmation email
-    await EmailService.sendEmail({
-      to: user.email,
-      subject: 'LocalPro Plus Subscription Confirmed',
-      template: 'subscription-confirmation',
-      data: {
-        userName: `${user.firstName} ${user.lastName}`,
-        planName: user.subscription.plan.name,
-        startDate: user.subscription.startDate,
-        endDate: user.subscription.endDate
-      }
-    });
+    const populatedSubscription = await subscription.populate('plan');
+    if (populatedSubscription.plan) {
+      await EmailService.sendEmail({
+        to: user.email,
+        subject: 'LocalPro Plus Subscription Confirmed',
+        template: 'subscription-confirmation',
+        data: {
+          userName: `${user.firstName} ${user.lastName}`,
+          planName: populatedSubscription.plan.name,
+          startDate: subscription.startDate,
+          endDate: subscription.endDate
+        }
+      });
+    }
 
     res.status(200).json({
       success: true,
       message: 'Subscription payment confirmed successfully',
-      data: user.subscription
+      data: populatedSubscription
     });
   } catch (error) {
     console.error('Confirm subscription payment error:', error);
@@ -325,28 +376,25 @@ const cancelSubscription = async (req, res) => {
   try {
     const { reason } = req.body;
 
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).populate('localProPlusSubscription');
+    const subscription = user.localProPlusSubscription;
 
-    if (!user.subscription) {
+    if (!subscription) {
       return res.status(404).json({
         success: false,
         message: 'No subscription found'
       });
     }
 
-    if (user.subscription.status !== 'active') {
+    if (subscription.status !== 'active') {
       return res.status(400).json({
         success: false,
         message: 'Subscription is not active'
       });
     }
 
-    // Update subscription status
-    user.subscription.status = 'cancelled';
-    user.subscription.cancelledAt = new Date();
-    user.subscription.cancellationReason = reason;
-    user.subscription.autoRenew = false;
-    await user.save();
+    // Cancel subscription using model method
+    await subscription.cancel(reason);
 
     // Send cancellation email
     await EmailService.sendEmail({
@@ -356,14 +404,14 @@ const cancelSubscription = async (req, res) => {
       data: {
         userName: `${user.firstName} ${user.lastName}`,
         reason,
-        endDate: user.subscription.endDate
+        endDate: subscription.endDate
       }
     });
 
     res.status(200).json({
       success: true,
       message: 'Subscription cancelled successfully',
-      data: user.subscription
+      data: subscription
     });
   } catch (error) {
     console.error('Cancel subscription error:', error);
@@ -379,19 +427,21 @@ const cancelSubscription = async (req, res) => {
 // @access  Private
 const getMySubscription = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
-      .populate('subscription.plan');
+    const user = await User.findById(req.user.id).populate('localProPlusSubscription');
+    const subscription = user.localProPlusSubscription;
 
-    if (!user.subscription) {
+    if (!subscription) {
       return res.status(404).json({
         success: false,
         message: 'No subscription found'
       });
     }
 
+    const populatedSubscription = await subscription.populate('plan');
+
     res.status(200).json({
       success: true,
-      data: user.subscription
+      data: populatedSubscription
     });
   } catch (error) {
     console.error('Get my subscription error:', error);
@@ -409,9 +459,10 @@ const updateSubscriptionSettings = async (req, res) => {
   try {
     const { autoRenew, notificationSettings } = req.body;
 
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).populate('localProPlusSubscription');
+    const subscription = user.localProPlusSubscription;
 
-    if (!user.subscription) {
+    if (!subscription) {
       return res.status(404).json({
         success: false,
         message: 'No subscription found'
@@ -419,15 +470,19 @@ const updateSubscriptionSettings = async (req, res) => {
     }
 
     // Update settings
-    if (autoRenew !== undefined) user.subscription.autoRenew = autoRenew;
-    if (notificationSettings) user.subscription.notificationSettings = notificationSettings;
+    if (autoRenew !== undefined) {
+      subscription.autoRenew = autoRenew;
+    }
+    if (notificationSettings) {
+      subscription.notificationSettings = notificationSettings;
+    }
 
-    await user.save();
+    await subscription.save();
 
     res.status(200).json({
       success: true,
       message: 'Subscription settings updated successfully',
-      data: user.subscription
+      data: subscription
     });
   } catch (error) {
     console.error('Update subscription settings error:', error);
@@ -443,36 +498,48 @@ const updateSubscriptionSettings = async (req, res) => {
 // @access  Private
 const getSubscriptionUsage = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
-      .populate('subscription.plan');
+    const user = await User.findById(req.user.id).populate('localProPlusSubscription');
+    const subscription = user.localProPlusSubscription;
 
-    if (!user.subscription) {
+    if (!subscription) {
       return res.status(404).json({
         success: false,
         message: 'No subscription found'
       });
     }
 
-    const plan = user.subscription.plan;
+    const populatedSubscription = await subscription.populate('plan');
+    const plan = populatedSubscription.plan;
+    
+    if (!plan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plan not found or subscription is invalid'
+      });
+    }
+
     const usage = {
       plan: {
         name: plan.name,
         features: plan.features
       },
       currentUsage: {
-        // This would be calculated based on actual usage
-        // For now, returning placeholder data
-        servicesPosted: 0,
-        jobsApplied: 0,
-        messagesSent: 0,
-        storageUsed: 0
+        services: subscription.usage.services.current,
+        bookings: subscription.usage.bookings.current,
+        storage: subscription.usage.storage.current,
+        apiCalls: subscription.usage.apiCalls.current
       },
       limits: {
-        maxServices: plan.features.maxServices || 'unlimited',
-        maxJobApplications: plan.features.maxJobApplications || 'unlimited',
-        maxMessages: plan.features.maxMessages || 'unlimited',
-        maxStorage: plan.features.maxStorage || 'unlimited'
-      }
+        maxServices: subscription.usage.services.limit || 'unlimited',
+        maxBookings: subscription.usage.bookings.limit || 'unlimited',
+        maxStorage: subscription.usage.storage.limit || 'unlimited',
+        maxApiCalls: subscription.usage.apiCalls.limit || 'unlimited'
+      },
+      features: subscription.features,
+      status: subscription.status,
+      billingCycle: subscription.billingCycle,
+      nextBillingDate: subscription.nextBillingDate,
+      daysUntilRenewal: subscription.daysUntilRenewal
     };
 
     res.status(200).json({
@@ -502,39 +569,51 @@ const renewSubscription = async (req, res) => {
       });
     }
 
-    const user = await User.findById(req.user.id)
-      .populate('subscription.plan');
+    const user = await User.findById(req.user.id).populate('localProPlusSubscription');
+    const subscription = user.localProPlusSubscription;
 
-    if (!user.subscription) {
+    if (!subscription) {
       return res.status(404).json({
         success: false,
         message: 'No subscription found'
       });
     }
 
-    if (user.subscription.status !== 'active') {
+    if (subscription.status !== 'active') {
       return res.status(400).json({
         success: false,
         message: 'Subscription is not active'
       });
     }
 
-    const plan = user.subscription.plan;
+    const populatedSubscription = await subscription.populate('plan');
+    const plan = populatedSubscription.plan;
+
+    if (!plan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plan not found or subscription is invalid'
+      });
+    }
+
+    // Calculate renewal price
+    const price = subscription.billingCycle === 'yearly' ? plan.price.yearly : plan.price.monthly;
+    const currency = plan.price.currency || 'USD';
 
     let paymentResult;
 
     // Process payment based on method
     if (paymentMethod === 'paypal') {
       paymentResult = await PayPalService.createOrder({
-        amount: plan.price,
-        currency: 'USD',
-        description: `LocalPro Plus ${plan.name} subscription renewal`
+        amount: price,
+        currency: currency,
+        description: `LocalPro Plus ${plan.name} subscription renewal (${subscription.billingCycle})`
       });
     } else if (paymentMethod === 'paymaya') {
       paymentResult = await PayMayaService.createPayment({
-        amount: plan.price,
-        currency: 'PHP',
-        description: `LocalPro Plus ${plan.name} subscription renewal`
+        amount: price,
+        currency: currency === 'USD' ? 'PHP' : currency,
+        description: `LocalPro Plus ${plan.name} subscription renewal (${subscription.billingCycle})`
       });
     } else {
       return res.status(400).json({
@@ -551,16 +630,33 @@ const renewSubscription = async (req, res) => {
       });
     }
 
-    // Update subscription end date
-    user.subscription.endDate = new Date(user.subscription.endDate.getTime() + (plan.billingCycle * 24 * 60 * 60 * 1000));
-    user.subscription.lastRenewal = new Date();
-    await user.save();
+    // Renew subscription using model method
+    await subscription.renew();
+
+    // Create payment record
+    const payment = new Payment({
+      user: req.user.id,
+      subscription: subscription._id,
+      amount: price,
+      currency,
+      status: 'completed',
+      paymentMethod,
+      paymentDetails: {
+        paypalOrderId: paymentResult.data?.id,
+        paymayaCheckoutId: paymentResult.data?.checkoutId,
+        transactionId: paymentResult.data?.id
+      },
+      description: `LocalPro Plus subscription renewal`,
+      processedAt: new Date()
+    });
+
+    await payment.save();
 
     res.status(200).json({
       success: true,
       message: 'Subscription renewed successfully',
       data: {
-        subscription: user.subscription,
+        subscription: populatedSubscription,
         paymentData: paymentResult.data
       }
     });
@@ -579,34 +675,38 @@ const renewSubscription = async (req, res) => {
 const getSubscriptionAnalytics = async (req, res) => {
   try {
     // Get subscription statistics
-    const totalSubscriptions = await User.countDocuments({
-      'subscription.status': { $in: ['active', 'pending', 'cancelled'] }
+    const totalSubscriptions = await UserSubscription.countDocuments({
+      status: { $in: ['active', 'pending', 'cancelled', 'expired'] }
     });
 
-    const activeSubscriptions = await User.countDocuments({
-      'subscription.status': 'active'
+    const activeSubscriptions = await UserSubscription.countDocuments({
+      status: 'active'
     });
 
-    const cancelledSubscriptions = await User.countDocuments({
-      'subscription.status': 'cancelled'
+    const cancelledSubscriptions = await UserSubscription.countDocuments({
+      status: 'cancelled'
+    });
+
+    const pendingSubscriptions = await UserSubscription.countDocuments({
+      status: 'pending'
     });
 
     // Get subscription by plan
-    const subscriptionsByPlan = await User.aggregate([
+    const subscriptionsByPlan = await UserSubscription.aggregate([
       {
         $match: {
-          'subscription.status': { $in: ['active', 'pending', 'cancelled'] }
+          status: { $in: ['active', 'pending', 'cancelled', 'expired'] }
         }
       },
       {
         $group: {
-          _id: '$subscription.plan',
+          _id: '$plan',
           count: { $sum: 1 }
         }
       },
       {
         $lookup: {
-          from: 'localpropluses',
+          from: 'subscriptionplans',
           localField: '_id',
           foreignField: '_id',
           as: 'plan'
@@ -624,17 +724,17 @@ const getSubscriptionAnalytics = async (req, res) => {
     ]);
 
     // Get monthly subscription trends
-    const monthlyTrends = await User.aggregate([
+    const monthlyTrends = await UserSubscription.aggregate([
       {
         $match: {
-          'subscription.createdAt': { $exists: true }
+          createdAt: { $exists: true }
         }
       },
       {
         $group: {
           _id: {
-            year: { $year: '$subscription.createdAt' },
-            month: { $month: '$subscription.createdAt' }
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
           },
           count: { $sum: 1 }
         }
@@ -644,14 +744,50 @@ const getSubscriptionAnalytics = async (req, res) => {
       }
     ]);
 
+    // Get revenue analytics
+    const revenueAnalytics = await Payment.aggregate([
+      {
+        $match: {
+          status: 'completed',
+          subscription: { $exists: true }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          totalRevenue: { $sum: '$amount' },
+          paymentCount: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    // Get subscription status distribution
+    const statusDistribution = await UserSubscription.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
     res.status(200).json({
       success: true,
       data: {
         totalSubscriptions,
         activeSubscriptions,
         cancelledSubscriptions,
+        pendingSubscriptions,
         subscriptionsByPlan,
-        monthlyTrends
+        monthlyTrends,
+        revenueAnalytics,
+        statusDistribution
       }
     });
   } catch (error) {

@@ -144,18 +144,27 @@ const handleSubscriptionActivated = async (resource) => {
     const subscription = await UserSubscription.findById(customId);
     if (subscription) {
       subscription.status = 'active';
-      subscription.billing.startDate = new Date();
+      subscription.startDate = new Date();
+      subscription.nextBillingDate = new Date(Date.now() + (subscription.billingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000);
       await subscription.save();
 
       // Update payment status
       const payment = await Payment.findOne({
         subscription: subscription._id,
-        paypalSubscriptionId: subscriptionId
+        paypalOrderId: subscription.paymentDetails.paypalOrderId
       });
       
       if (payment) {
         payment.status = 'completed';
+        payment.processedAt = new Date();
         await payment.save();
+      }
+
+      // Update user's subscription reference
+      const user = await User.findById(subscription.user);
+      if (user) {
+        user.localProPlusSubscription = subscription._id;
+        await user.save();
       }
     }
     
@@ -213,22 +222,28 @@ const handleSubscriptionPaymentCompleted = async (resource) => {
         subscription: subscription._id,
         amount: parseFloat(resource.amount.total),
         currency: resource.amount.currency,
-        type: 'renewal',
         status: 'completed',
         paymentMethod: 'paypal',
-        paypalSubscriptionId: subscriptionId,
-        paypalOrderId: resource.id,
-        description: `Subscription renewal for ${subscription.plan.name}`
+        paymentDetails: {
+          paypalSubscriptionId: subscriptionId,
+          paypalOrderId: resource.id,
+          transactionId: resource.id
+        },
+        description: `Subscription renewal payment`,
+        processedAt: new Date()
       });
 
       // Update subscription billing date
       const nextBillingDate = new Date();
-      if (subscription.billing.cycle === 'yearly') {
+      if (subscription.billingCycle === 'yearly') {
         nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
       } else {
         nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
       }
-      subscription.billing.nextBillingDate = nextBillingDate;
+      subscription.nextBillingDate = nextBillingDate;
+      subscription.endDate = nextBillingDate;
+      subscription.paymentDetails.lastPaymentId = resource.id;
+      subscription.paymentDetails.lastPaymentDate = new Date();
       await subscription.save();
     }
     

@@ -149,18 +149,10 @@ const userSchema = new mongoose.Schema({
       default: 'en'
     }
   },
-  subscription: {
-    type: {
-      type: String,
-      enum: ['free', 'basic', 'premium', 'enterprise'],
-      default: 'free'
-    },
-    startDate: Date,
-    endDate: Date,
-    isActive: {
-      type: Boolean,
-      default: false
-    }
+  // LocalPro Plus subscription reference
+  localProPlusSubscription: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserSubscription'
   },
   wallet: {
     balance: {
