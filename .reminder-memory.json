@@ -1,0 +1,186 @@
+{
+  "protectedFiles": {
+    "src/middleware/auth.js": {
+      "path": "src/middleware/auth.js",
+      "category": "authentication",
+      "importance": "critical",
+      "description": "Core authentication middleware with JWT verification",
+      "lastModified": "2025-10-16T02:41:59.016Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/middleware/auditLogger.js": {
+      "path": "src/middleware/auditLogger.js",
+      "category": "security",
+      "importance": "critical",
+      "description": "Audit logging system for compliance and security",
+      "lastModified": "2025-10-16T02:41:59.016Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/middleware/authorize.js": {
+      "path": "src/middleware/authorize.js",
+      "category": "security",
+      "importance": "critical",
+      "description": "Role-based authorization middleware",
+      "lastModified": "2025-10-21T23:15:30.003Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/models/User.js": {
+      "path": "src/models/User.js",
+      "category": "database",
+      "importance": "critical",
+      "description": "User model with authentication, roles, and trust system",
+      "lastModified": "2025-10-24T05:12:15.188Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/models/AppSettings.js": {
+      "path": "src/models/AppSettings.js",
+      "category": "database",
+      "importance": "critical",
+      "description": "Global application settings and configuration",
+      "lastModified": "2025-10-16T02:41:59.020Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/models/UserSettings.js": {
+      "path": "src/models/UserSettings.js",
+      "category": "database",
+      "importance": "high",
+      "description": "User preferences and settings",
+      "lastModified": "2025-10-16T02:41:59.026Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/controllers/paypalController.js": {
+      "path": "src/controllers/paypalController.js",
+      "category": "payment",
+      "importance": "critical",
+      "description": "PayPal payment processing controller",
+      "lastModified": "2025-10-24T05:12:15.188Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/controllers/paymayaController.js": {
+      "path": "src/controllers/paymayaController.js",
+      "category": "payment",
+      "importance": "critical",
+      "description": "PayMaya payment processing controller",
+      "lastModified": "2025-10-16T02:41:59.013Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/services/paypalService.js": {
+      "path": "src/services/paypalService.js",
+      "category": "payment",
+      "importance": "critical",
+      "description": "PayPal service integration",
+      "lastModified": "2025-10-16T02:41:59.037Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/config/database.js": {
+      "path": "src/config/database.js",
+      "category": "database",
+      "importance": "critical",
+      "description": "Database connection configuration",
+      "lastModified": "2025-10-16T02:41:59.004Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/controllers/authController.js": {
+      "path": "src/controllers/authController.js",
+      "category": "authentication",
+      "importance": "critical",
+      "description": "Authentication controller with phone verification",
+      "lastModified": "2025-10-23T00:00:49.055Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/controllers/userManagementController.js": {
+      "path": "src/controllers/userManagementController.js",
+      "category": "user_management",
+      "importance": "critical",
+      "description": "User management and profile operations",
+      "lastModified": "2025-10-24T00:49:59.903Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/models/Finance.js": {
+      "path": "src/models/Finance.js",
+      "category": "financial",
+      "importance": "critical",
+      "description": "Financial transactions and loan management",
+      "lastModified": "2025-10-16T02:41:59.021Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/models/LocalProPlus.js": {
+      "path": "src/models/LocalProPlus.js",
+      "category": "subscription",
+      "importance": "critical",
+      "description": "LocalPro Plus subscription system",
+      "lastModified": "2025-10-16T02:41:59.022Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/models/TrustVerification.js": {
+      "path": "src/models/TrustVerification.js",
+      "category": "security",
+      "importance": "high",
+      "description": "Trust verification and user credibility system",
+      "lastModified": "2025-10-23T00:00:49.075Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    ".env": {
+      "path": ".env",
+      "category": "configuration",
+      "importance": "critical",
+      "description": "Environment variables and secrets",
+      "lastModified": "2025-10-24T05:59:59.949Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "env.example": {
+      "path": "env.example",
+      "category": "configuration",
+      "importance": "high",
+      "description": "Environment variables template",
+      "lastModified": "2025-10-23T00:06:00.307Z",
+      "addedToMemory": "2025-10-24T07:43:12.210Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    },
+    "src/controllers/trustVerificationController.js": {
+      "path": "src/controllers/trustVerificationController.js",
+      "category": "security",
+      "importance": "high",
+      "description": "security related file",
+      "lastModified": "2025-10-16T02:41:59.015Z",
+      "addedToMemory": "2025-10-24T07:33:11.962Z",
+      "modificationCount": 0,
+      "lastWarning": null
+    }
+  },
+  "lastUpdated": "2025-10-24T07:43:12.210Z",
+  "version": "1.0.0"
+}

@@ -1,0 +1,115 @@
+{
+  "version": "1.0.0",
+  "description": "Reminder Memory System Configuration for LocalPro Super App",
+  "settings": {
+    "checkInterval": 30000,
+    "enableFileMonitoring": true,
+    "enableNotifications": true,
+    "backupReminderInterval": 86400000
+  },
+  "protectedFiles": {
+    "authentication": {
+      "description": "Authentication and security related files",
+      "files": [
+        "src/middleware/auth.js",
+        "src/middleware/auditLogger.js",
+        "src/middleware/authorize.js",
+        "src/controllers/authController.js"
+      ]
+    },
+    "payment": {
+      "description": "Payment processing and financial files",
+      "files": [
+        "src/controllers/paypalController.js",
+        "src/controllers/paymayaController.js",
+        "src/services/paypalService.js",
+        "src/services/paymayaService.js",
+        "src/models/Finance.js",
+        "src/models/LocalProPlus.js"
+      ]
+    },
+    "database": {
+      "description": "Database models and configuration",
+      "files": [
+        "src/models/User.js",
+        "src/models/AppSettings.js",
+        "src/models/UserSettings.js",
+        "src/config/database.js"
+      ]
+    },
+    "security": {
+      "description": "Security and trust verification files",
+      "files": [
+        "src/models/TrustVerification.js",
+        "src/controllers/trustVerificationController.js",
+        "src/middleware/rateLimiter.js"
+      ]
+    },
+    "configuration": {
+      "description": "Environment and configuration files",
+      "files": [
+        ".env",
+        "env.example",
+        "package.json",
+        "package-lock.json"
+      ]
+    }
+  },
+  "importanceLevels": {
+    "critical": {
+      "description": "Files that are absolutely critical to system operation",
+      "notificationLevel": "error",
+      "backupRequired": true,
+      "files": [
+        "src/middleware/auth.js",
+        "src/models/User.js",
+        "src/controllers/paypalController.js",
+        "src/controllers/paymayaController.js",
+        "src/config/database.js",
+        ".env"
+      ]
+    },
+    "high": {
+      "description": "Files that are important for system functionality",
+      "notificationLevel": "warn",
+      "backupRequired": true,
+      "files": [
+        "src/middleware/auditLogger.js",
+        "src/models/AppSettings.js",
+        "src/models/Finance.js",
+        "src/models/LocalProPlus.js"
+      ]
+    },
+    "medium": {
+      "description": "Files that are useful to monitor",
+      "notificationLevel": "info",
+      "backupRequired": false,
+      "files": [
+        "src/models/UserSettings.js",
+        "src/models/TrustVerification.js"
+      ]
+    }
+  },
+  "notifications": {
+    "enabled": true,
+    "channels": {
+      "console": true,
+      "file": true,
+      "email": false,
+      "slack": false
+    },
+    "templates": {
+      "critical": "🚨 CRITICAL FILE MODIFIED: {file} - {description}",
+      "high": "⚠️ HIGH IMPORTANCE FILE MODIFIED: {file} - {description}",
+      "medium": "ℹ️ Protected file modified: {file} - {description}",
+      "low": "📝 File modified: {file} - {description}"
+    }
+  },
+  "backup": {
+    "enabled": true,
+    "interval": "daily",
+    "includeCriticalFiles": true,
+    "backupLocation": "./backups/reminder-memory/",
+    "retentionDays": 30
+  }
+}

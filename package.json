@@ -11,6 +11,8 @@
     "setup:auto": "node setup-auto.js",
     "setup:paymaya": "node setup-paymaya-config.js",
     "setup:reset": "node reset-database.js",
+    "setup:reminder-memory": "node setup-reminder-memory.js",
+    "reminder-memory": "node src/utils/reminderMemoryCLI.js",
     "verify": "node verify-setup.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",

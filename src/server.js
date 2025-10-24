@@ -10,6 +10,7 @@ const logger = require('./config/logger');
 const { errorHandler } = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
 const { auditGeneralOperations } = require('./middleware/auditLogger');
+const fileProtectionMiddleware = require('./middleware/fileProtection');
 const authRoutes = require('./routes/auth');
 const marketplaceRoutes = require('./routes/marketplace');
 const suppliesRoutes = require('./routes/supplies');
@@ -45,6 +46,13 @@ app.set('trust proxy', 1);
 
 // Connect to MongoDB
 connectDB();
+
+// Initialize Reminder Memory System (in development mode)
+if (process.env.NODE_ENV === 'development') {
+  fileProtectionMiddleware.initialize().catch(error => {
+    logger.error('Failed to initialize file protection middleware:', error);
+  });
+}
 
 // Security middleware
 app.use(helmet());
