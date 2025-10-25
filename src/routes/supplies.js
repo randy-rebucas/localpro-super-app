@@ -23,6 +23,8 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getSupplies);
+router.get('/products', getSupplies); // Alias for /api/supplies/products
+router.get('/products/:id', getSupply); // Alias for /api/supplies/products/:id
 router.get('/categories', getSupplyCategories);
 router.get('/featured', getFeaturedSupplies);
 router.get('/nearby', getNearbySupplies);
@@ -33,6 +35,7 @@ router.use(auth);
 
 // Supply management routes
 router.post('/', authorize('supplier', 'admin'), createSupply);
+router.post('/products', authorize('supplier', 'admin'), createSupply); // Alias for /api/supplies/products
 router.put('/:id', authorize('supplier', 'admin'), updateSupply);
 router.delete('/:id', authorize('supplier', 'admin'), deleteSupply);
 

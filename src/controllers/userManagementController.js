@@ -57,7 +57,7 @@ const getAllUsers = async (req, res) => {
     const total = await User.countDocuments(filter);
 
     // Audit log
-    await auditLogger.logUser('GET_ALL_USERS', req, { type: 'user', id: 'multiple', name: 'Users' }, {}, { filter, pagination: { page, limit } });
+    await auditLogger.logUser('user_list', req, { type: 'user', id: null, name: 'Users' }, {}, { filter, pagination: { page, limit } });
 
     res.status(200).json({
       success: true,
@@ -114,7 +114,7 @@ const getUserById = async (req, res) => {
     }
 
     // Audit log
-    await auditLogger.logUser('GET_USER_BY_ID', req, { type: 'user', id: id, name: 'User' });
+    await auditLogger.logUser('user_view', req, { type: 'user', id: id, name: 'User' });
 
     res.status(200).json({
       success: true,
@@ -217,7 +217,7 @@ const createUser = async (req, res) => {
     }
 
     // Audit log
-    await auditLogger.logUser('CREATE_USER', req, { type: 'user', id: user._id, name: user.email }, {}, { userData });
+    await auditLogger.logUser('user_create', req, { type: 'user', id: user._id, name: user.email }, {}, { userData });
 
     res.status(201).json({
       success: true,
@@ -290,7 +290,7 @@ const updateUser = async (req, res) => {
     ).select('-verificationCode');
 
     // Audit log
-    await auditLogger.logUser('UPDATE_USER', req, { type: 'user', id: id, name: 'User' }, updateData);
+    await auditLogger.logUser('user_update', req, { type: 'user', id: id, name: 'User' }, updateData);
 
     res.status(200).json({
       success: true,
@@ -350,7 +350,7 @@ const updateUserStatus = async (req, res) => {
     }
 
     // Audit log
-    await auditLogger.logUser(isActive ? 'ACTIVATE_USER' : 'DEACTIVATE_USER', req, { type: 'user', id: id, name: 'User' }, {}, { isActive, reason });
+    await auditLogger.logUser(isActive ? 'user_activate' : 'user_deactivate', req, { type: 'user', id: id, name: 'User' }, {}, { isActive, reason });
 
     res.status(200).json({
       success: true,
@@ -405,7 +405,7 @@ const updateUserVerification = async (req, res) => {
     await user.save();
 
     // Audit log
-    await auditLogger.logUser('UPDATE_USER_VERIFICATION', req, { type: 'user', id: id, name: 'User' }, {}, { verification });
+    await auditLogger.logUser('user_verify', req, { type: 'user', id: id, name: 'User' }, {}, { verification });
 
     res.status(200).json({
       success: true,
@@ -461,7 +461,7 @@ const addUserBadge = async (req, res) => {
     await user.save();
 
     // Audit log
-    await auditLogger.logUser('ADD_USER_BADGE', req, { type: 'user', id: id, name: 'User' }, {}, { type, description });
+    await auditLogger.logUser('user_update', req, { type: 'user', id: id, name: 'User' }, {}, { type, description });
 
     res.status(200).json({
       success: true,
@@ -519,7 +519,7 @@ const getUserStats = async (req, res) => {
     ]);
 
     // Audit log
-    await auditLogger.logUser('GET_USER_STATS', req, { type: 'user', id: 'stats', name: 'User Statistics' }, {}, { filter });
+    await auditLogger.logUser('user_view', req, { type: 'user', id: null, name: 'User Statistics' }, {}, { filter });
 
     res.status(200).json({
       success: true,
@@ -574,7 +574,7 @@ const bulkUpdateUsers = async (req, res) => {
     );
 
     // Audit log
-    await auditLogger.logUser('BULK_UPDATE_USERS', req, { type: 'user', id: 'multiple', name: 'Users' }, {}, { userIds, updateData, modifiedCount: result.modifiedCount });
+    await auditLogger.logUser('user_update', req, { type: 'user', id: null, name: 'Users' }, {}, { userIds, updateData, modifiedCount: result.modifiedCount });
 
     res.status(200).json({
       success: true,
@@ -615,7 +615,7 @@ const deleteUser = async (req, res) => {
     await user.save();
 
     // Audit log
-    await auditLogger.logUser('DELETE_USER', req, { type: 'user', id: id, name: 'User' });
+    await auditLogger.logUser('user_delete', req, { type: 'user', id: id, name: 'User' });
 
     res.status(200).json({
       success: true,

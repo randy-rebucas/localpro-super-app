@@ -23,6 +23,8 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getRentals);
+router.get('/items', getRentals); // Alias for /api/rentals/items
+router.get('/items/:id', getRental); // Alias for /api/rentals/items/:id
 router.get('/categories', getRentalCategories);
 router.get('/featured', getFeaturedRentals);
 router.get('/nearby', getNearbyRentals);
@@ -33,6 +35,7 @@ router.use(auth);
 
 // Rental management routes
 router.post('/', authorize('provider', 'admin'), createRental);
+router.post('/items', authorize('provider', 'admin'), createRental); // Alias for /api/rentals/items
 router.put('/:id', authorize('provider', 'admin'), updateRental);
 router.delete('/:id', authorize('provider', 'admin'), deleteRental);
 
