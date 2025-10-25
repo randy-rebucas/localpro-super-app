@@ -115,8 +115,94 @@ const getAd = async (req, res) => {
 // @access  Private
 const createAd = async (req, res) => {
   try {
+    const {
+      title,
+      description,
+      type,
+      category,
+      budget,
+      schedule,
+      targetAudience,
+      content
+    } = req.body;
+
+    // Validate required fields
+    if (!title || !description || !type || !category) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title, description, type, and category are required'
+      });
+    }
+
+    // Validate budget
+    if (!budget || !budget.total) {
+      return res.status(400).json({
+        success: false,
+        message: 'Budget total is required'
+      });
+    }
+
+    // Validate schedule
+    if (!schedule || !schedule.startDate || !schedule.endDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Schedule start date and end date are required'
+      });
+    }
+
+    // Validate enum values
+    const validTypes = ['banner', 'sponsored_listing', 'video', 'text', 'interactive'];
+    const validCategories = ['hardware_stores', 'suppliers', 'training_schools', 'services', 'products'];
+
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid type. Must be one of: ${validTypes.join(', ')}`
+      });
+    }
+
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid category. Must be one of: ${validCategories.join(', ')}`
+      });
+    }
+
+    // Validate dates
+    const startDate = new Date(schedule.startDate);
+    const endDate = new Date(schedule.endDate);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid date format for schedule dates'
+      });
+    }
+
+    if (startDate >= endDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Start date must be before end date'
+      });
+    }
+
     const adData = {
-      ...req.body,
+      title,
+      description,
+      type,
+      category,
+      budget: {
+        total: budget.total,
+        daily: budget.daily || null,
+        currency: budget.currency || 'USD'
+      },
+      schedule: {
+        startDate: startDate,
+        endDate: endDate,
+        timeSlots: schedule.timeSlots || []
+      },
+      targetAudience: targetAudience || {},
+      content: content || {},
       advertiser: req.user.id
     };
 
@@ -131,6 +217,17 @@ const createAd = async (req, res) => {
     });
   } catch (error) {
     console.error('Create ad error:', error);
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors: errors
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -450,6 +547,9 @@ const trackAdClick = async (req, res) => {
 // @access  Public
 const getAdCategories = async (req, res) => {
   try {
+    // Return valid categories with their usage count
+    const validCategories = ['hardware_stores', 'suppliers', 'training_schools', 'services', 'products'];
+    
     const categories = await Ads.aggregate([
       {
         $match: { isActive: true }
@@ -465,9 +565,20 @@ const getAdCategories = async (req, res) => {
       }
     ]);
 
+    // Ensure all valid categories are included with count 0 if not used
+    const categoryMap = {};
+    categories.forEach(cat => {
+      categoryMap[cat._id] = cat.count;
+    });
+
+    const allCategories = validCategories.map(category => ({
+      _id: category,
+      count: categoryMap[category] || 0
+    }));
+
     res.status(200).json({
       success: true,
-      data: categories
+      data: allCategories
     });
   } catch (error) {
     console.error('Get ad categories error:', error);
@@ -558,6 +669,31 @@ const promoteAd = async (req, res) => {
     });
   } catch (error) {
     console.error('Promote ad error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get valid enum values for ad creation
+// @route   GET /api/ads/enum-values
+// @access  Public
+const getAdEnumValues = async (req, res) => {
+  try {
+    const enumValues = {
+      types: ['banner', 'sponsored_listing', 'video', 'text', 'interactive'],
+      categories: ['hardware_stores', 'suppliers', 'training_schools', 'services', 'products'],
+      biddingStrategies: ['cpc', 'cpm', 'cpa', 'fixed'],
+      statuses: ['draft', 'pending', 'approved', 'active', 'paused', 'completed', 'rejected']
+    };
+
+    res.status(200).json({
+      success: true,
+      data: enumValues
+    });
+  } catch (error) {
+    console.error('Get ad enum values error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -656,5 +792,6 @@ module.exports = {
   getAdCategories,
   getFeaturedAds,
   promoteAd,
-  getAdStatistics
+  getAdStatistics,
+  getAdEnumValues
 };

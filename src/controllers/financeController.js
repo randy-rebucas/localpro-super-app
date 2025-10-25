@@ -1,4 +1,4 @@
-const { Loan, SalaryAdvance, Transaction } = require('../models/Finance');
+const { Loan, SalaryAdvance, Transaction, Finance } = require('../models/Finance');
 const User = require('../models/User');
 const { Service, Booking } = require('../models/Marketplace');
 const Job = require('../models/Job');
@@ -179,7 +179,7 @@ const getEarnings = async (req, res) => {
     }
 
     // Get earnings from completed bookings
-    const earnings = await Marketplace.aggregate([
+    const earnings = await Booking.aggregate([
       {
         $match: {
           type: 'booking',
@@ -206,7 +206,7 @@ const getEarnings = async (req, res) => {
     ]);
 
     // Get earnings by service category
-    const earningsByCategory = await Marketplace.aggregate([
+    const earningsByCategory = await Booking.aggregate([
       {
         $match: {
           type: 'booking',
@@ -239,7 +239,7 @@ const getEarnings = async (req, res) => {
     ]);
 
     // Get total earnings
-    const totalEarnings = await Marketplace.aggregate([
+    const totalEarnings = await Booking.aggregate([
       {
         $match: {
           type: 'booking',
@@ -606,7 +606,7 @@ const getTaxDocuments = async (req, res) => {
     const nextYear = new Date(yearFilter);
     nextYear.setFullYear(nextYear.getFullYear() + 1);
 
-    const earnings = await Marketplace.aggregate([
+    const earnings = await Booking.aggregate([
       {
         $match: {
           type: 'booking',
@@ -710,7 +710,7 @@ const getFinancialReports = async (req, res) => {
     switch (reportType) {
       case 'summary':
         // Get summary report
-        const summary = await Marketplace.aggregate([
+        const summary = await Booking.aggregate([
           {
             $match: {
               type: 'booking',
@@ -750,7 +750,7 @@ const getFinancialReports = async (req, res) => {
 
       case 'detailed':
         // Get detailed report
-        const detailedEarnings = await Marketplace.aggregate([
+        const detailedEarnings = await Booking.aggregate([
           {
             $match: {
               type: 'booking',

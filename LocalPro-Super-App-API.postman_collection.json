@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "LocalPro Super App API",
-    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with enhanced mobile authentication, trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, audit logging, database logging, provider system, user management system, global search system, and comprehensive notification system. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation and MongoDB storage, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, regulatory compliance features, database logging with advanced analytics, client-to-provider upgrade system, comprehensive onboarding, verification management, provider analytics dashboard, complete user management with role-based access control, user status management, verification system, badge system, bulk operations, user analytics, activity tracking, comprehensive user lifecycle management, enhanced mobile authentication with SMS verification, rate limiting, device tracking, smart redirection, progressive onboarding, enhanced JWT tokens, comprehensive logging, security features, profile completeness tracking with categorized progress monitoring, smart recommendations, dashboard access control, guided onboarding flow, comprehensive global search functionality across all entities with advanced filtering, sorting, pagination, search suggestions, popular searches, trending searches, entity-specific search, location-based search, relevance scoring, search analytics, and comprehensive notification management with multi-channel delivery, smart filtering, bulk operations, priority management, expiration handling, user preferences, real-time updates, analytics integration, and performance optimization. **LATEST UPDATES**: API performance improved from 18.87% to 33.96% success rate, 73% reduction in 500 errors, enhanced ObjectId validation, improved error handling, comprehensive rate limiting, security headers, and production-ready optimizations.",
+    "description": "Complete API collection for LocalPro Super App - A comprehensive platform for local services with enhanced mobile authentication, trust & verification, real-time communication, advanced analytics, job board, referral system, agency management, supplies, academy, finance, rentals, advertising, facility care, premium subscriptions, Google Maps integration, email notifications, PayPal and PayMaya payment processing, comprehensive settings management, logging & error monitoring, audit logging, database logging, provider system, user management system, global search system, and comprehensive notification system. Enhanced with LocalPro-inspired features including professional verification, dispute resolution, business insights, employment platform, referral rewards, multi-provider agency coordination, location-based services, multi-provider email support, dual payment gateway integration, user/app settings management system, Winston logging with daily rotation and MongoDB storage, error tracking with alerting, performance monitoring, admin error management dashboard, comprehensive audit trail for compliance, security monitoring, regulatory compliance features, database logging with advanced analytics, client-to-provider upgrade system, comprehensive onboarding, verification management, provider analytics dashboard, complete user management with role-based access control, user status management, verification system, badge system, bulk operations, user analytics, activity tracking, comprehensive user lifecycle management, enhanced mobile authentication with SMS verification, rate limiting, device tracking, smart redirection, progressive onboarding, enhanced JWT tokens, comprehensive logging, security features, profile completeness tracking with categorized progress monitoring, smart recommendations, dashboard access control, guided onboarding flow, comprehensive global search functionality across all entities with advanced filtering, sorting, pagination, search suggestions, popular searches, trending searches, entity-specific search, location-based search, relevance scoring, search analytics, and comprehensive notification management with multi-channel delivery, smart filtering, bulk operations, priority management, expiration handling, user preferences, real-time updates, analytics integration, and performance optimization. **LATEST UPDATES**: Enhanced advertising system with comprehensive ad management, image uploads, promotion features, click tracking, analytics, and featured ads. Enhanced finance system with comprehensive financial overview, earnings tracking, expense management, withdrawal processing, tax documents, financial reports, and wallet settings. API performance improved from 18.87% to 33.96% success rate, 73% reduction in 500 errors, enhanced ObjectId validation, improved error handling, comprehensive rate limiting, security headers, and production-ready optimizations.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.1.0"
   },
@@ -98,6 +98,21 @@
     },
     {
       "key": "checkoutId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "imageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "withdrawalId",
       "value": "",
       "type": "string"
     },
@@ -5582,6 +5597,106 @@
               "raw": "{{baseUrl}}/api/ads/statistics",
               "host": ["{{baseUrl}}"],
               "path": ["api", "ads", "statistics"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Ad Enum Values",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/enum-values",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "enum-values"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Featured Ads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/featured?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "featured"],
+              "query": [
+                {"key": "limit", "value": "10", "description": "Number of featured ads to return"}
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Promote Advertisement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"promotionType\": \"featured\",\n  \"duration\": 30,\n  \"budget\": 100.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/{{adId}}/promote",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "{{adId}}", "promote"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Ad Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/{{adId}}/images",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "{{adId}}", "images"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Ad Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/{{adId}}/images/{{imageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "{{adId}}", "images", "{{imageId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Track Ad Click",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ads/{{adId}}/click",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ads", "{{adId}}", "click"]
             }
           },
           "response": []

@@ -240,8 +240,97 @@ transactionSchema.index({ type: 1 });
 transactionSchema.index({ createdAt: -1 });
 transactionSchema.index({ reference: 1 });
 
+// Finance model for user financial data
+const financeSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true
+  },
+  wallet: {
+    balance: {
+      type: Number,
+      default: 0
+    },
+    pendingBalance: {
+      type: Number,
+      default: 0
+    },
+    lastUpdated: {
+      type: Date,
+      default: Date.now
+    },
+    autoWithdraw: {
+      type: Boolean,
+      default: false
+    },
+    minBalance: {
+      type: Number,
+      default: 0
+    },
+    notificationSettings: {
+      lowBalance: {
+        type: Boolean,
+        default: true
+      },
+      withdrawal: {
+        type: Boolean,
+        default: true
+      },
+      payment: {
+        type: Boolean,
+        default: true
+      }
+    }
+  },
+  transactions: [{
+    type: {
+      type: String,
+      enum: ['income', 'expense', 'withdrawal', 'refund', 'bonus', 'referral'],
+      required: true
+    },
+    amount: {
+      type: Number,
+      required: true
+    },
+    category: String,
+    description: String,
+    paymentMethod: {
+      type: String,
+      enum: ['wallet', 'bank_transfer', 'mobile_money', 'card', 'cash', 'paypal', 'paymaya'],
+      default: 'wallet'
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'completed', 'failed', 'cancelled'],
+      default: 'completed'
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now
+    },
+    reference: String,
+    accountDetails: mongoose.Schema.Types.Mixed,
+    adminNotes: String,
+    processedAt: Date,
+    processedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  }]
+}, {
+  timestamps: true
+});
+
+// Indexes
+financeSchema.index({ user: 1 });
+financeSchema.index({ 'transactions.timestamp': -1 });
+financeSchema.index({ 'transactions.type': 1 });
+
 module.exports = {
   Loan: mongoose.model('Loan', loanSchema),
   SalaryAdvance: mongoose.model('SalaryAdvance', salaryAdvanceSchema),
-  Transaction: mongoose.model('Transaction', transactionSchema)
+  Transaction: mongoose.model('Transaction', transactionSchema),
+  Finance: mongoose.model('Finance', financeSchema)
 };

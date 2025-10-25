@@ -14,7 +14,8 @@ const {
   getAdCategories,
   getFeaturedAds,
   promoteAd,
-  getAdStatistics
+  getAdStatistics,
+  getAdEnumValues
 } = require('../controllers/adsController');
 
 const router = express.Router();
@@ -22,6 +23,7 @@ const router = express.Router();
 // Public routes
 router.get('/', getAds);
 router.get('/categories', getAdCategories);
+router.get('/enum-values', getAdEnumValues);
 router.get('/featured', getFeaturedAds);
 router.get('/:id', getAd);
 router.post('/:id/click', trackAdClick);
