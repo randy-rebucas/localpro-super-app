@@ -7,7 +7,7 @@ const EmailService = require('../services/emailService');
 // @desc    Get all rental items
 // @route   GET /api/rentals
 // @access  Public
-const getRentals = async (req, res) => {
+const getRentalItem = async (req, res) => {
   try {
     const {
       search,
@@ -152,7 +152,7 @@ const createRental = async (req, res) => {
       }
     }
 
-    const rental = await Rentals.create(rentalData);
+    const rental = await RentalItem.create(rentalData);
 
     await rental.populate('owner', 'firstName lastName profile.avatar');
 
@@ -175,7 +175,7 @@ const createRental = async (req, res) => {
 // @access  Private
 const updateRental = async (req, res) => {
   try {
-    let rental = await Rentals.findById(req.params.id);
+    let rental = await RentalItem.findById(req.params.id);
 
     if (!rental) {
       return res.status(404).json({
@@ -212,7 +212,7 @@ const updateRental = async (req, res) => {
       }
     }
 
-    rental = await Rentals.findByIdAndUpdate(req.params.id, req.body, {
+    rental = await RentalItem.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true
     });
@@ -658,17 +658,17 @@ const addRentalReview = async (req, res) => {
 // @desc    Get user's rental items
 // @route   GET /api/rentals/my-rentals
 // @access  Private
-const getMyRentals = async (req, res) => {
+const getMyRentalItem = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
 
-    const rentals = await Rentals.find({ owner: req.user.id })
+    const rentals = await RentalItem.find({ owner: req.user.id })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await Rentals.countDocuments({ owner: req.user.id });
+    const total = await RentalItem.countDocuments({ owner: req.user.id });
 
     res.status(200).json({
       success: true,
@@ -695,7 +695,7 @@ const getMyRentalBookings = async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
 
-    const rentals = await Rentals.find({
+    const rentals = await RentalItem.find({
       'bookings.user': req.user.id
     })
     .populate('owner', 'firstName lastName profile.avatar')
@@ -737,7 +737,7 @@ const getMyRentalBookings = async (req, res) => {
 // @desc    Get nearby rental items
 // @route   GET /api/rentals/nearby
 // @access  Public
-const getNearbyRentals = async (req, res) => {
+const getNearbyRentalItem = async (req, res) => {
   try {
     const { lat, lng, radius = 10, page = 1, limit = 10 } = req.query;
 
@@ -750,7 +750,7 @@ const getNearbyRentals = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    const rentals = await Rentals.find({
+    const rentals = await RentalItem.find({
       isActive: true,
       'location.coordinates': {
         $near: {
@@ -767,7 +767,7 @@ const getNearbyRentals = async (req, res) => {
     .skip(skip)
     .limit(Number(limit));
 
-    const total = await Rentals.countDocuments({
+    const total = await RentalItem.countDocuments({
       isActive: true,
       'location.coordinates': {
         $near: {
@@ -802,7 +802,7 @@ const getNearbyRentals = async (req, res) => {
 // @access  Public
 const getRentalCategories = async (req, res) => {
   try {
-    const categories = await Rentals.aggregate([
+    const categories = await RentalItem.aggregate([
       {
         $match: { isActive: true }
       },
@@ -833,11 +833,11 @@ const getRentalCategories = async (req, res) => {
 // @desc    Get featured rental items
 // @route   GET /api/rentals/featured
 // @access  Public
-const getFeaturedRentals = async (req, res) => {
+const getFeaturedRentalItem = async (req, res) => {
   try {
     const { limit = 10 } = req.query;
 
-    const rentals = await Rentals.find({
+    const rentals = await RentalItem.find({
       isActive: true,
       isFeatured: true
     })
@@ -865,10 +865,10 @@ const getFeaturedRentals = async (req, res) => {
 const getRentalStatistics = async (req, res) => {
   try {
     // Get total rentals
-    const totalRentals = await Rentals.countDocuments();
+    const totalRentalItem = await RentalItem.countDocuments();
 
     // Get rentals by category
-    const rentalsByCategory = await Rentals.aggregate([
+    const rentalsByCategory = await RentalItem.aggregate([
       {
         $group: {
           _id: '$category',
@@ -881,7 +881,7 @@ const getRentalStatistics = async (req, res) => {
     ]);
 
     // Get total bookings
-    const totalBookings = await Rentals.aggregate([
+    const totalBookings = await RentalItem.aggregate([
       {
         $group: {
           _id: null,
@@ -891,7 +891,7 @@ const getRentalStatistics = async (req, res) => {
     ]);
 
     // Get monthly trends
-    const monthlyTrends = await Rentals.aggregate([
+    const monthlyTrends = await RentalItem.aggregate([
       {
         $group: {
           _id: {
@@ -909,7 +909,7 @@ const getRentalStatistics = async (req, res) => {
     res.status(200).json({
       success: true,
       data: {
-        totalRentals,
+        totalRentalItem,
         rentalsByCategory,
         totalBookings: totalBookings[0]?.totalBookings || 0,
         monthlyTrends
@@ -925,7 +925,7 @@ const getRentalStatistics = async (req, res) => {
 };
 
 module.exports = {
-  getRentals,
+  getRentalItem,
   getRental,
   createRental,
   updateRental,
@@ -935,10 +935,10 @@ module.exports = {
   bookRental,
   updateBookingStatus,
   addRentalReview,
-  getMyRentals,
+  getMyRentalItem,
   getMyRentalBookings,
-  getNearbyRentals,
+  getNearbyRentalItem,
   getRentalCategories,
-  getFeaturedRentals,
+  getFeaturedRentalItem,
   getRentalStatistics
 };

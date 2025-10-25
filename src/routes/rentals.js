@@ -1,7 +1,7 @@
 const express = require('express');
 const { auth, authorize } = require('../middleware/auth');
 const {
-  getRentals,
+  getRentalItem,
   getRental,
   createRental,
   updateRental,
@@ -11,23 +11,23 @@ const {
   bookRental,
   updateBookingStatus,
   addRentalReview,
-  getMyRentals,
+  getMyRentalItem,
   getMyRentalBookings,
-  getNearbyRentals,
+  getNearbyRentalItem,
   getRentalCategories,
-  getFeaturedRentals,
+  getFeaturedRentalItem,
   getRentalStatistics
 } = require('../controllers/rentalsController');
 
 const router = express.Router();
 
 // Public routes
-router.get('/', getRentals);
-router.get('/items', getRentals); // Alias for /api/rentals/items
+router.get('/', getRentalItem);
+router.get('/items', getRentalItem); // Alias for /api/rentals/items
 router.get('/items/:id', getRental); // Alias for /api/rentals/items/:id
 router.get('/categories', getRentalCategories);
-router.get('/featured', getFeaturedRentals);
-router.get('/nearby', getNearbyRentals);
+router.get('/featured', getFeaturedRentalItem);
+router.get('/nearby', getNearbyRentalItem);
 router.get('/:id', getRental);
 
 // Protected routes
@@ -51,7 +51,7 @@ router.put('/:id/bookings/:bookingId/status', updateBookingStatus);
 router.post('/:id/reviews', addRentalReview);
 
 // User-specific routes
-router.get('/my-rentals', getMyRentals);
+router.get('/my-rentals', getMyRentalItem);
 router.get('/my-bookings', getMyRentalBookings);
 
 // Statistics route (Admin only)

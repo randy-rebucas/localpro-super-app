@@ -2008,3 +2008,40 @@
 {"action":"admin_action","actor":"68f7265e60f48a4fd66ef03d","auditId":"d738529248dbed3b86ed32fb63f896b2","category":"system","level":"info","message":"Audit Event Logged","severity":"low","target":"system","timestamp":"2025-10-25T06:10:09.763Z"}
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T06:12:11.816Z"}
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T06:12:37.047Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T06:13:20.674Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-25T06:13:30.352Z","url":"/api/rentals/items","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"48ms","statusCode":500,"timestamp":"2025-10-25T06:13:30.400Z","url":"/api/rentals/items","userAgent":"PostmanRuntime/7.49.0","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:06:13:30 +0000] \"POST /api/rentals/items HTTP/1.1\" 500 42 \"-\" \"PostmanRuntime/7.49.0\"","timestamp":"2025-10-25T06:13:30.403Z"}
+{"action":"admin_action","actor":"68f7265e60f48a4fd66ef03d","auditId":"e357415fd81bfb02081e17d03afe8c1f","category":"system","level":"info","message":"Audit Event Logged","severity":"low","target":"system","timestamp":"2025-10-25T06:13:30.457Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T06:13:53.831Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T06:16:12.504Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T06:16:46.043Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T06:21:49.763Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T06:21:54.437Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T06:22:05.443Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T06:22:13.069Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-25T06:22:17.382Z","url":"/api/rentals/items","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"POST","responseTime":"132ms","statusCode":201,"timestamp":"2025-10-25T06:22:17.514Z","url":"/api/rentals/items","userAgent":"PostmanRuntime/7.49.0","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:06:22:17 +0000] \"POST /api/rentals/items HTTP/1.1\" 201 1167 \"-\" \"PostmanRuntime/7.49.0\"","timestamp":"2025-10-25T06:22:17.518Z"}
+{"action":"admin_action","actor":"68f7265e60f48a4fd66ef03d","auditId":"9f597eb5ec548728fed339669486eb6b","category":"system","level":"info","message":"Audit Event Logged","severity":"low","target":"system","timestamp":"2025-10-25T06:22:17.574Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T06:22:24.471Z","url":"/api/rentals/items?category=tools&page=1&limit=10","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"168ms","statusCode":200,"timestamp":"2025-10-25T06:22:24.639Z","url":"/api/rentals/items?category=tools&page=1&limit=10","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:06:22:24 +0000] \"GET /api/rentals/items?category=tools&page=1&limit=10 HTTP/1.1\" 200 1186 \"-\" \"PostmanRuntime/7.49.0\"","timestamp":"2025-10-25T06:22:24.641Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T06:22:57.482Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"168ms","statusCode":200,"timestamp":"2025-10-25T06:22:57.650Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:06:22:57 +0000] \"GET /api/rentals HTTP/1.1\" 200 1186 \"-\" \"node\"","timestamp":"2025-10-25T06:22:57.651Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T06:22:59.395Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"105ms","statusCode":200,"timestamp":"2025-10-25T06:22:59.500Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:06:22:59 +0000] \"GET /api/rentals HTTP/1.1\" 200 1186 \"-\" \"node\"","timestamp":"2025-10-25T06:22:59.501Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T06:23:58.621Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"112ms","statusCode":200,"timestamp":"2025-10-25T06:23:58.733Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:06:23:58 +0000] \"GET /api/rentals HTTP/1.1\" 200 1186 \"-\" \"node\"","timestamp":"2025-10-25T06:23:58.734Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T06:23:59.133Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"102ms","statusCode":200,"timestamp":"2025-10-25T06:23:59.234Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:06:23:59 +0000] \"GET /api/rentals HTTP/1.1\" 200 1186 \"-\" \"node\"","timestamp":"2025-10-25T06:23:59.235Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T06:26:26.282Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"117ms","statusCode":200,"timestamp":"2025-10-25T06:26:26.398Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:06:26:26 +0000] \"GET /api/rentals HTTP/1.1\" 200 1186 \"-\" \"node\"","timestamp":"2025-10-25T06:26:26.400Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T06:26:26.837Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"108ms","statusCode":200,"timestamp":"2025-10-25T06:26:26.945Z","url":"/api/rentals","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:06:26:26 +0000] \"GET /api/rentals HTTP/1.1\" 200 1186 \"-\" \"node\"","timestamp":"2025-10-25T06:26:26.946Z"}

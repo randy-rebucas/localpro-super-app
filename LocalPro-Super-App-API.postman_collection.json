@@ -1162,21 +1162,54 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rentals/items?category=tools&page=1&limit=10",
+              "raw": "{{baseUrl}}/api/rentals?search=pressure&category=tools&location=New York&minPrice=50&maxPrice=200&page=1&limit=10&sortBy=createdAt&sortOrder=desc",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "rentals", "items"],
+              "path": ["api", "rentals"],
               "query": [
                 {
+                  "key": "search",
+                  "value": "pressure",
+                  "description": "Search term for title, description, or tags"
+                },
+                {
                   "key": "category",
-                  "value": "tools"
+                  "value": "tools",
+                  "description": "Filter by category"
+                },
+                {
+                  "key": "location",
+                  "value": "New York",
+                  "description": "Filter by city location"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "50",
+                  "description": "Minimum daily rate"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "200",
+                  "description": "Maximum daily rate"
                 },
                 {
                   "key": "page",
-                  "value": "1"
+                  "value": "1",
+                  "description": "Page number"
                 },
                 {
                   "key": "limit",
-                  "value": "10"
+                  "value": "10",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Sort field (createdAt, price, rating, etc.)"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order (asc, desc)"
                 }
               ]
             }
@@ -1189,9 +1222,82 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rentals/items/{{rentalItemId}}",
+              "raw": "{{baseUrl}}/api/rentals/{{rentalItemId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "rentals", "items", "{{rentalItemId}}"]
+              "path": ["api", "rentals", "{{rentalItemId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rental Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Featured Rental Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/featured?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "featured"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of featured items to return"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Nearby Rental Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/nearby?lat=40.7128&lng=-74.0060&radius=10&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "nearby"],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "40.7128",
+                  "description": "Latitude coordinate"
+                },
+                {
+                  "key": "lng",
+                  "value": "-74.0060",
+                  "description": "Longitude coordinate"
+                },
+                {
+                  "key": "radius",
+                  "value": "10",
+                  "description": "Search radius in kilometers"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page"
+                }
+              ]
             }
           },
           "response": []
@@ -1222,18 +1328,103 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Professional Pressure Washer\",\n  \"description\": \"High-pressure washer for cleaning driveways, patios, and exterior surfaces\",\n  \"category\": \"tools\",\n  \"subcategory\": \"cleaning_equipment\",\n  \"pricing\": {\n    \"hourly\": 15,\n    \"daily\": 75,\n    \"weekly\": 300,\n    \"monthly\": 1000,\n    \"currency\": \"USD\"\n  },\n  \"location\": {\n    \"address\": {\n      \"street\": \"123 Tool St\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"zipCode\": \"10001\",\n      \"country\": \"USA\"\n    },\n    \"pickupRequired\": true,\n    \"deliveryAvailable\": true,\n    \"deliveryFee\": 25\n  },\n  \"specifications\": {\n    \"brand\": \"ProClean\",\n    \"model\": \"PC-2000\",\n    \"condition\": \"excellent\",\n    \"features\": [\"Adjustable pressure\", \"Multiple nozzles\", \"Hose included\"]\n  },\n  \"requirements\": {\n    \"minAge\": 18,\n    \"licenseRequired\": false,\n    \"deposit\": 100,\n    \"insuranceRequired\": true\n  }\n}"
+              "raw": "{\n  \"title\": \"Professional Pressure Washer\",\n  \"description\": \"High-pressure washer for cleaning driveways, patios, and exterior surfaces. Perfect for professional cleaning services.\",\n  \"category\": \"tools\",\n  \"tags\": [\"cleaning\", \"pressure washer\", \"professional\", \"outdoor\"],\n  \"pricing\": {\n    \"dailyRate\": 75,\n    \"currency\": \"USD\"\n  },\n  \"location\": {\n    \"street\": \"123 Tool Street\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"country\": \"USA\"\n  },\n  \"availability\": {\n    \"maxQuantity\": 2,\n    \"availableQuantity\": 2\n  },\n  \"specifications\": {\n    \"brand\": \"ProClean\",\n    \"model\": \"PC-2000\",\n    \"condition\": \"excellent\",\n    \"features\": [\"Adjustable pressure\", \"Multiple nozzles\", \"Hose included\", \"Portable design\"]\n  },\n  \"requirements\": {\n    \"minAge\": 18,\n    \"deposit\": 100,\n    \"insuranceRequired\": true\n  },\n  \"isActive\": true,\n  \"isFeatured\": false\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/rentals/items",
+              "raw": "{{baseUrl}}/api/rentals",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "rentals", "items"]
+              "path": ["api", "rentals"]
             }
           },
           "response": []
         },
         {
-          "name": "Create Rental Booking",
+          "name": "Update Rental Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional Pressure Washer - Updated\",\n  \"description\": \"High-pressure washer for cleaning driveways, patios, and exterior surfaces. Now with extended warranty!\",\n  \"pricing\": {\n    \"dailyRate\": 85,\n    \"currency\": \"USD\"\n  },\n  \"isFeatured\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalItemId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Rental Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalItemId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Rental Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalItemId}}/images",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalItemId}}", "images"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Rental Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalItemId}}/images/{{imageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalItemId}}", "images", "{{imageId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Book Rental Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('bookingId', response.data._id);",
+                  "    console.log('Rental booking created, ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -1244,31 +1435,119 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"itemId\": \"{{rentalItemId}}\",\n  \"startDate\": \"2024-02-15T09:00:00Z\",\n  \"endDate\": \"2024-02-15T17:00:00Z\",\n  \"pickupLocation\": {\n    \"address\": \"123 Tool St, New York, NY 10001\",\n    \"coordinates\": {\n      \"lat\": 40.7128,\n      \"lng\": -74.0060\n    }\n  },\n  \"contactPerson\": \"John Doe\",\n  \"contactPhone\": \"+1234567890\"\n}"
+              "raw": "{\n  \"startDate\": \"2024-02-15T09:00:00Z\",\n  \"endDate\": \"2024-02-15T17:00:00Z\",\n  \"quantity\": 1,\n  \"specialRequests\": \"Please ensure the pressure washer is clean and ready for use\",\n  \"contactInfo\": {\n    \"phone\": \"+1234567890\",\n    \"email\": \"john.doe@example.com\"\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/rentals/book",
+              "raw": "{{baseUrl}}/api/rentals/{{rentalItemId}}/book",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "rentals", "book"]
+              "path": ["api", "rentals", "{{rentalItemId}}", "book"]
             }
           },
           "response": []
         },
         {
-          "name": "Get User Rentals",
+          "name": "Update Booking Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalItemId}}/bookings/{{bookingId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalItemId}}", "bookings", "{{bookingId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Rental Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent pressure washer! Very clean and worked perfectly for my driveway cleaning project. Highly recommended!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalItemId}}/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalItemId}}", "reviews"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Rental Items",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rentals?type=renter",
+              "raw": "{{baseUrl}}/api/rentals/my-rentals?page=1&limit=10",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "rentals"],
+              "path": ["api", "rentals", "my-rentals"],
               "query": [
                 {
-                  "key": "type",
-                  "value": "renter"
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page"
                 }
               ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Rental Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/my-bookings?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "my-bookings"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rental Statistics (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "statistics"]
             }
           },
           "response": []
@@ -8224,3 +8503,4 @@
     }
   ]
 }
+
