@@ -1,6 +1,6 @@
-const Analytics = require('../models/Analytics');
+const { AnalyticsEvent } = require('../models/Analytics');
 const User = require('../models/User');
-const Marketplace = require('../models/Marketplace');
+const { Service, Booking } = require('../models/Marketplace');
 const Job = require('../models/Job');
 const Referral = require('../models/Referral');
 const Agency = require('../models/Agency');
@@ -24,7 +24,7 @@ const getAnalyticsOverview = async (req, res) => {
     const totalUsers = await User.countDocuments();
 
     // Get total services
-    const totalServices = await Marketplace.countDocuments({ type: 'service' });
+    const totalServices = await Service.countDocuments();
 
     // Get total jobs
     const totalJobs = await Job.countDocuments();
@@ -55,10 +55,7 @@ const getAnalyticsOverview = async (req, res) => {
     ]);
 
     // Get service categories
-    const serviceCategories = await Marketplace.aggregate([
-      {
-        $match: { type: 'service' }
-      },
+    const serviceCategories = await Service.aggregate([
       {
         $group: {
           _id: '$category',
@@ -90,7 +87,7 @@ const getAnalyticsOverview = async (req, res) => {
       },
       {
         $lookup: {
-          from: 'marketplaces',
+          from: 'services',
           localField: '_id',
           foreignField: 'provider',
           as: 'services'
@@ -98,9 +95,9 @@ const getAnalyticsOverview = async (req, res) => {
       },
       {
         $lookup: {
-          from: 'marketplaces',
+          from: 'bookings',
           localField: '_id',
-          foreignField: 'bookings.provider',
+          foreignField: 'provider',
           as: 'bookings'
         }
       },
@@ -123,10 +120,9 @@ const getAnalyticsOverview = async (req, res) => {
     ]);
 
     // Get revenue analytics
-    const revenueAnalytics = await Marketplace.aggregate([
+    const revenueAnalytics = await Booking.aggregate([
       {
         $match: {
-          type: 'booking',
           status: 'completed',
           ...dateFilter
         }
@@ -137,7 +133,7 @@ const getAnalyticsOverview = async (req, res) => {
             year: { $year: '$createdAt' },
             month: { $month: '$createdAt' }
           },
-          totalRevenue: { $sum: '$pricing.total' },
+          totalRevenue: { $sum: '$pricing.totalAmount' },
           bookingCount: { $sum: 1 }
         }
       },
@@ -311,16 +307,15 @@ const getMarketplaceAnalytics = async (req, res) => {
     }
 
     // Get service analytics
-    const serviceAnalytics = await Marketplace.aggregate([
+    const serviceAnalytics = await Service.aggregate([
       {
-        $match: { type: 'service', ...dateFilter }
+        $match: { ...dateFilter }
       },
       {
         $group: {
           _id: '$category',
           count: { $sum: 1 },
-          avgPrice: { $avg: '$pricing.basePrice' },
-          totalViews: { $sum: '$views' }
+          avgPrice: { $avg: '$pricing.basePrice' }
         }
       },
       {
@@ -329,27 +324,24 @@ const getMarketplaceAnalytics = async (req, res) => {
     ]);
 
     // Get booking analytics
-    const bookingAnalytics = await Marketplace.aggregate([
+    const bookingAnalytics = await Booking.aggregate([
       {
-        $match: { type: 'booking', ...dateFilter }
+        $match: { ...dateFilter }
       },
       {
         $group: {
           _id: '$status',
           count: { $sum: 1 },
-          totalRevenue: { $sum: '$pricing.total' }
+          totalRevenue: { $sum: '$pricing.totalAmount' }
         }
       }
     ]);
 
     // Get top services by bookings
-    const topServices = await Marketplace.aggregate([
-      {
-        $match: { type: 'service' }
-      },
+    const topServices = await Service.aggregate([
       {
         $lookup: {
-          from: 'marketplaces',
+          from: 'bookings',
           localField: '_id',
           foreignField: 'service',
           as: 'bookings'
@@ -362,7 +354,7 @@ const getMarketplaceAnalytics = async (req, res) => {
           'pricing.basePrice': 1,
           bookingCount: { $size: '$bookings' },
           totalRevenue: {
-            $sum: '$bookings.pricing.total'
+            $sum: '$bookings.pricing.totalAmount'
           }
         }
       },
@@ -381,7 +373,7 @@ const getMarketplaceAnalytics = async (req, res) => {
       },
       {
         $lookup: {
-          from: 'marketplaces',
+          from: 'services',
           localField: '_id',
           foreignField: 'provider',
           as: 'services'
@@ -389,9 +381,9 @@ const getMarketplaceAnalytics = async (req, res) => {
       },
       {
         $lookup: {
-          from: 'marketplaces',
+          from: 'bookings',
           localField: '_id',
-          foreignField: 'bookings.provider',
+          foreignField: 'provider',
           as: 'bookings'
         }
       },
@@ -404,7 +396,7 @@ const getMarketplaceAnalytics = async (req, res) => {
           serviceCount: { $size: '$services' },
           bookingCount: { $size: '$bookings' },
           totalRevenue: {
-            $sum: '$bookings.pricing.total'
+            $sum: '$bookings.pricing.totalAmount'
           }
         }
       },
@@ -779,11 +771,10 @@ const trackEvent = async (req, res) => {
       });
     }
 
-    const analytics = await Analytics.create({
+    const analytics = await AnalyticsEvent.create({
       eventType,
-      user: req.user.id,
-      module,
-      data,
+      userId: req.user.id,
+      eventData: data,
       timestamp: new Date()
     });
 
@@ -818,8 +809,8 @@ const getCustomAnalytics = async (req, res) => {
       if (endDate) filter.timestamp.$lte = new Date(endDate);
     }
 
-    const analytics = await Analytics.find(filter)
-      .populate('user', 'firstName lastName profile.avatar')
+    const analytics = await AnalyticsEvent.find(filter)
+      .populate('userId', 'firstName lastName profile.avatar')
       .sort({ timestamp: -1 })
       .limit(100);
 
