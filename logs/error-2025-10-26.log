@@ -1,0 +1,1 @@
+{"clientInfo":{"ip":"::1","timestamp":"2025-10-26T06:38:32.364Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.6899"},"duration":1375,"error":"Invalid parameter `To`: +1234567890","level":"error","message":"Twilio verification code send failed","phoneNumber":"+1234***","timestamp":"2025-10-26T06:38:33.739Z"}
