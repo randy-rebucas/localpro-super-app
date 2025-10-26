@@ -28,7 +28,7 @@ router.get('/jobs', getJobAnalytics);
 router.get('/referrals', getReferralAnalytics);
 router.get('/agencies', getAgencyAnalytics);
 
-// Custom analytics (Admin only)
+// Custom analytics (Admin only) - [ADMIN ONLY]
 router.get('/custom', authorize('admin'), getCustomAnalytics);
 
 // Event tracking

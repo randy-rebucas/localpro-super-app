@@ -49,7 +49,7 @@ router.get('/:id/analytics', getAdAnalytics);
 // User-specific routes
 router.get('/my-ads', getMyAds);
 
-// Statistics route (Admin only)
+// Statistics route (Admin only) - [ADMIN ONLY]
 router.get('/statistics', authorize('admin'), getAdStatistics);
 
 module.exports = router;

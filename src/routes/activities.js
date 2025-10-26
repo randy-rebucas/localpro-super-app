@@ -474,7 +474,7 @@ router.get('/stats/my', queryValidation, getActivityStats);
  *   }
  * }
  */
-router.get('/stats/global', authorize(['admin']), queryValidation, getGlobalActivityStats);
+router.get('/stats/global', authorize(['admin']), queryValidation, getGlobalActivityStats); // [ADMIN ONLY]
 
 /**
  * @route   GET /api/activities/metadata

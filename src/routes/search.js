@@ -334,7 +334,7 @@ router.get('/trending', (req, res) => {
  * @access  Private (Admin only)
  * @body    { query, results, filters, userId, timestamp }
  */
-router.post('/analytics', authenticate, auditGeneralOperations, (req, res) => {
+router.post('/analytics', authenticate, auditGeneralOperations, (req, res) => { // [ADMIN ONLY]
   try {
     const { query, results, filters, userId, timestamp } = req.body;
 

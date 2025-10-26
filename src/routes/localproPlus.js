@@ -25,7 +25,7 @@ router.get('/plans/:id', getPlan);
 // Protected routes
 router.use(auth);
 
-// Plan management routes (Admin only)
+// Plan management routes (Admin only) - [ADMIN ONLY]
 router.post('/plans', authorize('admin'), createPlan);
 router.put('/plans/:id', authorize('admin'), updatePlan);
 router.delete('/plans/:id', authorize('admin'), deletePlan);
@@ -41,7 +41,7 @@ router.get('/my-subscription', getMySubscription);
 router.put('/settings', updateSubscriptionSettings);
 router.get('/usage', getSubscriptionUsage);
 
-// Analytics routes (Admin only)
+// Analytics routes (Admin only) - [ADMIN ONLY]
 router.get('/analytics', authorize('admin'), getSubscriptionAnalytics);
 
 module.exports = router;

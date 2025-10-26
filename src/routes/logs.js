@@ -5,7 +5,7 @@ const { body, param, query } = require('express-validator');
 const logManagementService = require('../services/logManagementService');
 const logger = require('../config/logger');
 
-// Get log statistics
+// Get log statistics - [ADMIN ONLY]
 router.get('/stats', auth, async (req, res) => {
   try {
     // Only allow admin users to view log statistics
@@ -42,7 +42,7 @@ router.get('/stats', auth, async (req, res) => {
   }
 });
 
-// Get logs with filtering and pagination
+// Get logs with filtering and pagination - [ADMIN ONLY]
 router.get('/', auth, async (req, res) => {
   try {
     // Only allow admin users to view logs
@@ -117,7 +117,7 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// Get log details
+// Get log details - [ADMIN ONLY]
 router.get('/:logId', auth, async (req, res) => {
   try {
     // Only allow admin users to view log details
@@ -153,7 +153,7 @@ router.get('/:logId', auth, async (req, res) => {
   }
 });
 
-// Get error trends
+// Get error trends - [ADMIN ONLY]
 router.get('/analytics/error-trends', auth, async (req, res) => {
   try {
     // Only allow admin users to view error trends
@@ -190,7 +190,7 @@ router.get('/analytics/error-trends', auth, async (req, res) => {
   }
 });
 
-// Get performance metrics
+// Get performance metrics - [ADMIN ONLY]
 router.get('/analytics/performance', auth, async (req, res) => {
   try {
     // Only allow admin users to view performance metrics
@@ -227,7 +227,7 @@ router.get('/analytics/performance', auth, async (req, res) => {
   }
 });
 
-// Get user activity logs
+// Get user activity logs - [ADMIN ONLY]
 router.get('/user/:userId/activity', auth, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -272,7 +272,7 @@ router.get('/user/:userId/activity', auth, async (req, res) => {
   }
 });
 
-// Export logs
+// Export logs - [ADMIN ONLY]
 router.get('/export/data', auth, async (req, res) => {
   try {
     // Only allow admin users to export logs
@@ -344,7 +344,7 @@ router.get('/export/data', auth, async (req, res) => {
   }
 });
 
-// Get log dashboard summary
+// Get log dashboard summary - [ADMIN ONLY]
 router.get('/dashboard/summary', auth, async (req, res) => {
   try {
     // Only allow admin users to view log dashboard
@@ -379,7 +379,7 @@ router.get('/dashboard/summary', auth, async (req, res) => {
   }
 });
 
-// Search logs across all collections
+// Search logs across all collections - [ADMIN ONLY]
 router.get('/search/global', auth, async (req, res) => {
   try {
     // Only allow admin users to search logs
@@ -426,7 +426,7 @@ router.get('/search/global', auth, async (req, res) => {
   }
 });
 
-// Clean up expired logs
+// Clean up expired logs - [ADMIN ONLY]
 router.post('/cleanup', auth, async (req, res) => {
   try {
     // Only allow admin users to perform cleanup
@@ -461,7 +461,7 @@ router.post('/cleanup', auth, async (req, res) => {
   }
 });
 
-// Flush all logs (admin only)
+// Flush all logs (admin only) - [ADMIN ONLY]
 router.post('/flush', auth, async (req, res) => {
   try {
     // Only allow admin users to flush logs
@@ -523,7 +523,7 @@ router.post('/flush', auth, async (req, res) => {
   }
 });
 
-// Flush all logs (alternative endpoint for convenience)
+// Flush all logs (alternative endpoint for convenience) - [ADMIN ONLY]
 router.delete('/flush', auth, async (req, res) => {
   try {
     // Only allow admin users to flush logs

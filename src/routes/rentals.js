@@ -54,7 +54,7 @@ router.post('/:id/reviews', addRentalReview);
 router.get('/my-rentals', getMyRentalItem);
 router.get('/my-bookings', getMyRentalBookings);
 
-// Statistics route (Admin only)
+// Statistics route (Admin only) - [ADMIN ONLY]
 router.get('/statistics', authorize('admin'), getRentalStatistics);
 
 module.exports = router;

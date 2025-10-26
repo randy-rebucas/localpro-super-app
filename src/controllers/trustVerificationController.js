@@ -1,4 +1,4 @@
-const TrustVerification = require('../models/TrustVerification');
+const { VerificationRequest } = require('../models/TrustVerification');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
@@ -6,7 +6,7 @@ const EmailService = require('../services/emailService');
 // @desc    Get all trust verification requests
 // @route   GET /api/trust-verification
 // @access  Private (Admin only)
-const getTrustVerificationRequests = async (req, res) => {
+const getVerificationRequestRequests = async (req, res) => {
   try {
     const { page = 1, limit = 20, status, type } = req.query;
     const skip = (page - 1) * limit;
@@ -16,14 +16,14 @@ const getTrustVerificationRequests = async (req, res) => {
     if (status) filter.status = status;
     if (type) filter.type = type;
 
-    const requests = await TrustVerification.find(filter)
+    const requests = await VerificationRequest.find(filter)
       .populate('user', 'firstName lastName profile.avatar profile.rating')
-      .populate('reviewedBy', 'firstName lastName profile.avatar')
+      .populate('review.reviewedBy', 'firstName lastName profile.avatar')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await TrustVerification.countDocuments(filter);
+    const total = await VerificationRequest.countDocuments(filter);
 
     res.status(200).json({
       success: true,
@@ -45,11 +45,11 @@ const getTrustVerificationRequests = async (req, res) => {
 // @desc    Get single trust verification request
 // @route   GET /api/trust-verification/:id
 // @access  Private
-const getTrustVerificationRequest = async (req, res) => {
+const getVerificationRequestRequest = async (req, res) => {
   try {
-    const request = await TrustVerification.findById(req.params.id)
+    const request = await VerificationRequest.findById(req.params.id)
       .populate('user', 'firstName lastName profile.avatar profile.rating profile.bio')
-      .populate('reviewedBy', 'firstName lastName profile.avatar');
+      .populate('review.reviewedBy', 'firstName lastName profile.avatar');
 
     if (!request) {
       return res.status(404).json({
@@ -82,7 +82,7 @@ const getTrustVerificationRequest = async (req, res) => {
 // @desc    Create trust verification request
 // @route   POST /api/trust-verification
 // @access  Private
-const createTrustVerificationRequest = async (req, res) => {
+const createVerificationRequestRequest = async (req, res) => {
   try {
     const { type, documents, additionalInfo } = req.body;
 
@@ -94,7 +94,7 @@ const createTrustVerificationRequest = async (req, res) => {
     }
 
     // Check if user already has a pending request of this type
-    const existingRequest = await TrustVerification.findOne({
+    const existingRequest = await VerificationRequest.findOne({
       user: req.user.id,
       type,
       status: 'pending'
@@ -107,7 +107,7 @@ const createTrustVerificationRequest = async (req, res) => {
       });
     }
 
-    const request = await TrustVerification.create({
+    const request = await VerificationRequest.create({
       user: req.user.id,
       type,
       documents,
@@ -118,16 +118,18 @@ const createTrustVerificationRequest = async (req, res) => {
     await request.populate('user', 'firstName lastName profile.avatar');
 
     // Send notification email to admin
-    await EmailService.sendEmail({
-      to: process.env.ADMIN_EMAIL,
-      subject: 'New Trust Verification Request',
-      template: 'verification-request',
-      data: {
-        userName: `${req.user.firstName} ${req.user.lastName}`,
-        type,
-        requestId: request._id
-      }
-    });
+    if (process.env.ADMIN_EMAIL) {
+      await EmailService.sendEmail({
+        to: process.env.ADMIN_EMAIL,
+        subject: 'New Trust Verification Request',
+        template: 'verification-request',
+        data: {
+          userName: `${req.user.firstName} ${req.user.lastName}`,
+          type,
+          requestId: request._id
+        }
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -146,11 +148,11 @@ const createTrustVerificationRequest = async (req, res) => {
 // @desc    Update trust verification request
 // @route   PUT /api/trust-verification/:id
 // @access  Private
-const updateTrustVerificationRequest = async (req, res) => {
+const updateVerificationRequestRequest = async (req, res) => {
   try {
     const { documents, additionalInfo } = req.body;
 
-    const request = await TrustVerification.findById(req.params.id);
+    const request = await VerificationRequest.findById(req.params.id);
 
     if (!request) {
       return res.status(404).json({
@@ -199,7 +201,7 @@ const updateTrustVerificationRequest = async (req, res) => {
 // @desc    Review trust verification request
 // @route   PUT /api/trust-verification/:id/review
 // @access  Private (Admin only)
-const reviewTrustVerificationRequest = async (req, res) => {
+const reviewVerificationRequestRequest = async (req, res) => {
   try {
     const { status, adminNotes, trustScore } = req.body;
 
@@ -217,7 +219,7 @@ const reviewTrustVerificationRequest = async (req, res) => {
       });
     }
 
-    const request = await TrustVerification.findById(req.params.id);
+    const request = await VerificationRequest.findById(req.params.id);
 
     if (!request) {
       return res.status(404).json({
@@ -282,9 +284,9 @@ const reviewTrustVerificationRequest = async (req, res) => {
 // @desc    Delete trust verification request
 // @route   DELETE /api/trust-verification/:id
 // @access  Private
-const deleteTrustVerificationRequest = async (req, res) => {
+const deleteVerificationRequestRequest = async (req, res) => {
   try {
-    const request = await TrustVerification.findById(req.params.id);
+    const request = await VerificationRequest.findById(req.params.id);
 
     if (!request) {
       return res.status(404).json({
@@ -309,7 +311,7 @@ const deleteTrustVerificationRequest = async (req, res) => {
       });
     }
 
-    await TrustVerification.findByIdAndDelete(req.params.id);
+    await VerificationRequest.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
@@ -336,7 +338,7 @@ const uploadVerificationDocuments = async (req, res) => {
       });
     }
 
-    const request = await TrustVerification.findById(req.params.id);
+    const request = await VerificationRequest.findById(req.params.id);
 
     if (!request) {
       return res.status(404).json({
@@ -407,7 +409,7 @@ const deleteVerificationDocument = async (req, res) => {
   try {
     const { documentId } = req.params;
 
-    const request = await TrustVerification.findById(req.params.id);
+    const request = await VerificationRequest.findById(req.params.id);
 
     if (!request) {
       return res.status(404).json({
@@ -464,7 +466,7 @@ const deleteVerificationDocument = async (req, res) => {
 // @desc    Get user's trust verification requests
 // @route   GET /api/trust-verification/my-requests
 // @access  Private
-const getMyTrustVerificationRequests = async (req, res) => {
+const getMyVerificationRequestRequests = async (req, res) => {
   try {
     const { page = 1, limit = 20, status, type } = req.query;
     const skip = (page - 1) * limit;
@@ -474,13 +476,13 @@ const getMyTrustVerificationRequests = async (req, res) => {
     if (status) filter.status = status;
     if (type) filter.type = type;
 
-    const requests = await TrustVerification.find(filter)
-      .populate('reviewedBy', 'firstName lastName profile.avatar')
+    const requests = await VerificationRequest.find(filter)
+      .populate('review.reviewedBy', 'firstName lastName profile.avatar')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await TrustVerification.countDocuments(filter);
+    const total = await VerificationRequest.countDocuments(filter);
 
     res.status(200).json({
       success: true,
@@ -502,13 +504,13 @@ const getMyTrustVerificationRequests = async (req, res) => {
 // @desc    Get trust verification statistics
 // @route   GET /api/trust-verification/statistics
 // @access  Private (Admin only)
-const getTrustVerificationStatistics = async (req, res) => {
+const getVerificationRequestStatistics = async (req, res) => {
   try {
     // Get total requests
-    const totalRequests = await TrustVerification.countDocuments();
+    const totalRequests = await VerificationRequest.countDocuments();
 
     // Get requests by status
-    const requestsByStatus = await TrustVerification.aggregate([
+    const requestsByStatus = await VerificationRequest.aggregate([
       {
         $group: {
           _id: '$status',
@@ -518,7 +520,7 @@ const getTrustVerificationStatistics = async (req, res) => {
     ]);
 
     // Get requests by type
-    const requestsByType = await TrustVerification.aggregate([
+    const requestsByType = await VerificationRequest.aggregate([
       {
         $group: {
           _id: '$type',
@@ -528,7 +530,7 @@ const getTrustVerificationStatistics = async (req, res) => {
     ]);
 
     // Get monthly trends
-    const monthlyTrends = await TrustVerification.aggregate([
+    const monthlyTrends = await VerificationRequest.aggregate([
       {
         $group: {
           _id: {
@@ -544,7 +546,7 @@ const getTrustVerificationStatistics = async (req, res) => {
     ]);
 
     // Get average processing time
-    const processingTime = await TrustVerification.aggregate([
+    const processingTime = await VerificationRequest.aggregate([
       {
         $match: {
           status: { $in: ['approved', 'rejected'] },
@@ -623,15 +625,15 @@ const getVerifiedUsers = async (req, res) => {
 };
 
 module.exports = {
-  getTrustVerificationRequests,
-  getTrustVerificationRequest,
-  createTrustVerificationRequest,
-  updateTrustVerificationRequest,
-  reviewTrustVerificationRequest,
-  deleteTrustVerificationRequest,
+  getVerificationRequestRequests,
+  getVerificationRequestRequest,
+  createVerificationRequestRequest,
+  updateVerificationRequestRequest,
+  reviewVerificationRequestRequest,
+  deleteVerificationRequestRequest,
   uploadVerificationDocuments,
   deleteVerificationDocument,
-  getMyTrustVerificationRequests,
-  getTrustVerificationStatistics,
+  getMyVerificationRequestRequests,
+  getVerificationRequestStatistics,
   getVerifiedUsers
 };

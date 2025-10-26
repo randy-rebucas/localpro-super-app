@@ -1,16 +1,16 @@
 const express = require('express');
 const { auth, authorize } = require('../middleware/auth');
 const {
-  getTrustVerificationRequests,
-  getTrustVerificationRequest,
-  createTrustVerificationRequest,
-  updateTrustVerificationRequest,
-  reviewTrustVerificationRequest,
-  deleteTrustVerificationRequest,
+  getVerificationRequestRequests,
+  getVerificationRequestRequest,
+  createVerificationRequestRequest,
+  updateVerificationRequestRequest,
+  reviewVerificationRequestRequest,
+  deleteVerificationRequestRequest,
   uploadVerificationDocuments,
   deleteVerificationDocument,
-  getMyTrustVerificationRequests,
-  getTrustVerificationStatistics,
+  getMyVerificationRequestRequests,
+  getVerificationRequestStatistics,
   getVerifiedUsers
 } = require('../controllers/trustVerificationController');
 
@@ -23,21 +23,21 @@ router.get('/verified-users', getVerifiedUsers);
 router.use(auth);
 
 // Verification request routes
-router.get('/requests', getTrustVerificationRequests);
-router.get('/requests/:id', getTrustVerificationRequest);
-router.post('/requests', createTrustVerificationRequest);
-router.put('/requests/:id', updateTrustVerificationRequest);
-router.delete('/requests/:id', deleteTrustVerificationRequest);
+router.get('/requests', getVerificationRequestRequests);
+router.get('/requests/:id', getVerificationRequestRequest);
+router.post('/requests', createVerificationRequestRequest);
+router.put('/requests/:id', updateVerificationRequestRequest);
+router.delete('/requests/:id', deleteVerificationRequestRequest);
 
 // Document management routes
 router.post('/requests/:id/documents', uploadVerificationDocuments);
 router.delete('/requests/:id/documents/:documentId', deleteVerificationDocument);
 
 // User-specific routes
-router.get('/my-requests', getMyTrustVerificationRequests);
+router.get('/my-requests', getMyVerificationRequestRequests);
 
-// Admin routes
-router.put('/requests/:id/review', authorize('admin'), reviewTrustVerificationRequest);
-router.get('/statistics', authorize('admin'), getTrustVerificationStatistics);
+// Admin routes - [ADMIN ONLY]
+router.put('/requests/:id/review', authorize('admin'), reviewVerificationRequestRequest);
+router.get('/statistics', authorize('admin'), getVerificationRequestStatistics);
 
 module.exports = router;

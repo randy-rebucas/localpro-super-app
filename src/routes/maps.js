@@ -28,7 +28,7 @@ router.post('/validate-service-area', validateServiceArea);
 // Protected routes
 router.post('/analyze-coverage', auth, analyzeServiceCoverage);
 
-// Admin routes
+// Admin routes - [ADMIN ONLY]
 router.get('/test', auth, authorize('admin'), testConnection);
 
 module.exports = router;

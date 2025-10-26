@@ -30,7 +30,7 @@ router.post('/expenses', addExpense);
 
 // Withdrawal management
 router.post('/withdraw', requestWithdrawal);
-router.put('/withdrawals/:withdrawalId/process', authorize('admin'), processWithdrawal);
+router.put('/withdrawals/:withdrawalId/process', authorize('admin'), processWithdrawal); // [ADMIN ONLY]
 
 // Tax documents
 router.get('/tax-documents', getTaxDocuments);

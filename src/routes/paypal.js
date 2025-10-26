@@ -13,7 +13,7 @@ router.post('/webhook', handlePayPalWebhook);
 // Admin routes (require authentication)
 router.use(auth);
 
-// Webhook events (for debugging/admin purposes)
+// Webhook events (for debugging/admin purposes) - [ADMIN ONLY]
 router.get('/webhook/events', authorize('admin'), getWebhookEvents);
 
 module.exports = router;

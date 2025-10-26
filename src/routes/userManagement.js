@@ -21,7 +21,7 @@ router.use(auth);
 
 // @desc    Get all users with filtering and pagination
 // @route   GET /api/users
-// @access  Admin/Manager
+// @access  Admin/Manager - [ADMIN/AGENCY ONLY]
 router.get('/', 
   authorize(['admin', 'agency_admin', 'agency_owner']),
   getAllUsers
@@ -29,7 +29,7 @@ router.get('/',
 
 // @desc    Get user statistics
 // @route   GET /api/users/stats
-// @access  Admin/Manager
+// @access  Admin/Manager - [ADMIN/AGENCY ONLY]
 router.get('/stats',
   authorize(['admin', 'agency_admin', 'agency_owner']),
   getUserStats
@@ -37,7 +37,7 @@ router.get('/stats',
 
 // @desc    Get user by ID
 // @route   GET /api/users/:id
-// @access  Admin/Manager/Owner
+// @access  Admin/Manager/Owner - [ADMIN/AGENCY/USER ONLY]
 router.get('/:id',
   authorize(['admin', 'agency_admin', 'agency_owner', 'provider', 'client']),
   getUserById
@@ -45,7 +45,7 @@ router.get('/:id',
 
 // @desc    Create new user
 // @route   POST /api/users
-// @access  Admin
+// @access  Admin - [ADMIN ONLY]
 router.post('/',
   authorize(['admin']),
   createUser
@@ -53,7 +53,7 @@ router.post('/',
 
 // @desc    Update user
 // @route   PUT /api/users/:id
-// @access  Admin/Manager/Owner
+// @access  Admin/Manager/Owner - [ADMIN/AGENCY/USER ONLY]
 router.put('/:id',
   authorize(['admin', 'agency_admin', 'agency_owner', 'provider', 'client']),
   updateUser
@@ -61,7 +61,7 @@ router.put('/:id',
 
 // @desc    Update user status (activate/deactivate)
 // @route   PATCH /api/users/:id/status
-// @access  Admin/Manager
+// @access  Admin/Manager - [ADMIN/AGENCY ONLY]
 router.patch('/:id/status',
   authorize(['admin', 'agency_admin']),
   updateUserStatus
@@ -69,7 +69,7 @@ router.patch('/:id/status',
 
 // @desc    Update user verification status
 // @route   PATCH /api/users/:id/verification
-// @access  Admin/Manager
+// @access  Admin/Manager - [ADMIN/AGENCY ONLY]
 router.patch('/:id/verification',
   authorize(['admin', 'agency_admin']),
   updateUserVerification
@@ -77,7 +77,7 @@ router.patch('/:id/verification',
 
 // @desc    Add badge to user
 // @route   POST /api/users/:id/badges
-// @access  Admin/Manager
+// @access  Admin/Manager - [ADMIN/AGENCY ONLY]
 router.post('/:id/badges',
   authorize(['admin', 'agency_admin']),
   addUserBadge
@@ -85,7 +85,7 @@ router.post('/:id/badges',
 
 // @desc    Bulk update users
 // @route   PATCH /api/users/bulk
-// @access  Admin
+// @access  Admin - [ADMIN ONLY]
 router.patch('/bulk',
   authorize(['admin']),
   bulkUpdateUsers
@@ -93,7 +93,7 @@ router.patch('/bulk',
 
 // @desc    Delete user (soft delete)
 // @route   DELETE /api/users/:id
-// @access  Admin
+// @access  Admin - [ADMIN ONLY]
 router.delete('/:id',
   authorize(['admin']),
   deleteUser

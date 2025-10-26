@@ -195,7 +195,7 @@ router.put('/user/:category', auth, validateCategory, validateUserSettings, upda
 router.post('/user/reset', auth, resetUserSettings);
 router.delete('/user', auth, deleteUserSettings);
 
-// App Settings Routes (Admin only)
+// App Settings Routes (Admin only) - [ADMIN ONLY]
 router.get('/app', auth, getAppSettings);
 router.put('/app', auth, validateAppSettings, updateAppSettings);
 router.put('/app/:category', auth, validateCategory, validateAppSettings, updateAppSettingsCategory);

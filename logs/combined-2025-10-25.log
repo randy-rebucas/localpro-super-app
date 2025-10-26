@@ -2213,3 +2213,364 @@
 {"ip":"::1","level":"http","message":"HTTP Request","method":"POST","responseTime":"215ms","statusCode":201,"timestamp":"2025-10-25T08:46:25.111Z","url":"/api/finance/expenses","userAgent":"PostmanRuntime/7.49.0","userId":"68f7265e60f48a4fd66ef03d"}
 {"level":"http","message":"::1 - - [25/Oct/2025:08:46:25 +0000] \"POST /api/finance/expenses HTTP/1.1\" 201 241 \"-\" \"PostmanRuntime/7.49.0\"","timestamp":"2025-10-25T08:46:25.114Z"}
 {"action":"admin_action","actor":"68f7265e60f48a4fd66ef03d","auditId":"408644de8d83a5185cc918c901ff5f9d","category":"system","level":"info","message":"Audit Event Logged","severity":"low","target":"system","timestamp":"2025-10-25T08:46:25.176Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:13:44.656Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:13:46.121Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:13:49.012Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:13:52.071Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:13:54.908Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:13:57.763Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:00.547Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:03.702Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:07.070Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:10.382Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:13.254Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:16.886Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:19.510Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:22.495Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:25.200Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:28.325Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:31.474Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:34.378Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:37.150Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:40.249Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:42.907Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:45.803Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:49.542Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:52.147Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:54.966Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:14:57.809Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:01.912Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:04.832Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:07.973Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:11.076Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:14.150Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:18.190Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:21.339Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:24.651Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:31.202Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:34.464Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:39.942Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:43.161Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:46.990Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:50.998Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:55.696Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:15:59.614Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:16:03.192Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:16:08.466Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:16:55.286Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:10.302Z","url":"/api/users/68f7265e60f48a4fd66ef03d","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"action":"user_view","actor":"68f7265e60f48a4fd66ef03d","auditId":"770046014c782980a0d42b0a4859cf7d","category":"user_management","level":"info","message":"Audit Event Logged","severity":"low","target":"user","timestamp":"2025-10-25T10:19:10.500Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"200ms","statusCode":200,"timestamp":"2025-10-25T10:19:10.502Z","url":"/api/users/68f7265e60f48a4fd66ef03d","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:10 +0000] \"GET /api/users/68f7265e60f48a4fd66ef03d HTTP/1.1\" 200 5330 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"","timestamp":"2025-10-25T10:19:10.504Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:11.187Z","url":"/api/announcements","userAgent":"node","userId":null}
+{"context":"App","level":"info","message":"Announcements retrieved","query":{},"resultCount":0,"timestamp":"2025-10-25T10:19:11.279Z","totalCount":0}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"93ms","statusCode":200,"timestamp":"2025-10-25T10:19:11.280Z","url":"/api/announcements","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:11 +0000] \"GET /api/announcements HTTP/1.1\" 200 155 \"-\" \"node\"","timestamp":"2025-10-25T10:19:11.281Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:11.652Z","url":"/api/announcements","userAgent":"node","userId":null}
+{"context":"App","level":"info","message":"Announcements retrieved","query":{},"resultCount":0,"timestamp":"2025-10-25T10:19:11.730Z","totalCount":0}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"78ms","statusCode":200,"timestamp":"2025-10-25T10:19:11.730Z","url":"/api/announcements","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:11 +0000] \"GET /api/announcements HTTP/1.1\" 200 155 \"-\" \"node\"","timestamp":"2025-10-25T10:19:11.731Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:28.597Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:28.601Z","url":"/api/supplies/analytics?startDate=2025-09-25T10%3A19%3A28.588Z&endDate=2025-10-25T10%3A19%3A28.588Z&groupBy=day&metrics=revenue%2Corders%2Cviews%2Cclicks","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":400,"timestamp":"2025-10-25T10:19:28.603Z","url":"/api/supplies/analytics?startDate=2025-09-25T10%3A19%3A28.588Z&endDate=2025-10-25T10%3A19%3A28.588Z&groupBy=day&metrics=revenue%2Corders%2Cviews%2Cclicks","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:28 +0000] \"GET /api/supplies/analytics?startDate=2025-09-25T10%3A19%3A28.588Z&endDate=2025-10-25T10%3A19%3A28.588Z&groupBy=day&metrics=revenue%2Corders%2Cviews%2Cclicks HTTP/1.1\" 400 54 \"-\" \"node\"","timestamp":"2025-10-25T10:19:28.612Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:28.613Z","url":"/api/logs/stats","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:28.618Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"253ms","statusCode":200,"timestamp":"2025-10-25T10:19:28.850Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:28 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T10:19:28.851Z"}
+{"level":"info","message":"Log statistics retrieved","timeframe":"24h","timestamp":"2025-10-25T10:19:29.086Z","totalLogs":1040,"userId":"68f7265e60f48a4fd66ef03d"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"474ms","statusCode":200,"timestamp":"2025-10-25T10:19:29.087Z","url":"/api/logs/stats","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:29 +0000] \"GET /api/logs/stats HTTP/1.1\" 200 864 \"-\" \"node\"","timestamp":"2025-10-25T10:19:29.088Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"523ms","statusCode":200,"timestamp":"2025-10-25T10:19:29.141Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:29 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T10:19:29.142Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:29.148Z","url":"/api/logs/user/[userId]/activity/68f7265e60f48a4fd66ef03d?limit=10","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"0ms","statusCode":404,"timestamp":"2025-10-25T10:19:29.148Z","url":"/api/logs/user/[userId]/activity/68f7265e60f48a4fd66ef03d?limit=10","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:29 +0000] \"GET /api/logs/user/[userId]/activity/68f7265e60f48a4fd66ef03d?limit=10 HTTP/1.1\" 404 52 \"-\" \"node\"","timestamp":"2025-10-25T10:19:29.149Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:29.557Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:29.559Z","url":"/api/supplies/analytics?startDate=2025-09-25T10%3A19%3A29.548Z&endDate=2025-10-25T10%3A19%3A29.548Z&groupBy=day&metrics=revenue%2Corders%2Cviews%2Cclicks","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":400,"timestamp":"2025-10-25T10:19:29.561Z","url":"/api/supplies/analytics?startDate=2025-09-25T10%3A19%3A29.548Z&endDate=2025-10-25T10%3A19%3A29.548Z&groupBy=day&metrics=revenue%2Corders%2Cviews%2Cclicks","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:29 +0000] \"GET /api/supplies/analytics?startDate=2025-09-25T10%3A19%3A29.548Z&endDate=2025-10-25T10%3A19%3A29.548Z&groupBy=day&metrics=revenue%2Corders%2Cviews%2Cclicks HTTP/1.1\" 400 54 \"-\" \"node\"","timestamp":"2025-10-25T10:19:29.563Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:29.563Z","url":"/api/logs/stats","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:29.571Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"208ms","statusCode":200,"timestamp":"2025-10-25T10:19:29.765Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:29 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T10:19:29.766Z"}
+{"level":"info","message":"Log statistics retrieved","timeframe":"24h","timestamp":"2025-10-25T10:19:30.251Z","totalLogs":1053,"userId":"68f7265e60f48a4fd66ef03d"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"688ms","statusCode":200,"timestamp":"2025-10-25T10:19:30.251Z","url":"/api/logs/stats","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:30 +0000] \"GET /api/logs/stats HTTP/1.1\" 200 864 \"-\" \"node\"","timestamp":"2025-10-25T10:19:30.252Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"3199ms","statusCode":200,"timestamp":"2025-10-25T10:19:32.770Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"3199ms","statusCode":200,"timestamp":"2025-10-25T10:19:32.771Z","url":"/api/analytics/overview","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:32 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T10:19:32.772Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:32.781Z","url":"/api/logs/user/[userId]/activity/68f7265e60f48a4fd66ef03d?limit=10","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":404,"timestamp":"2025-10-25T10:19:32.782Z","url":"/api/logs/user/[userId]/activity/68f7265e60f48a4fd66ef03d?limit=10","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:32 +0000] \"GET /api/logs/user/[userId]/activity/68f7265e60f48a4fd66ef03d?limit=10 HTTP/1.1\" 404 52 \"-\" \"node\"","timestamp":"2025-10-25T10:19:32.785Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:33.717Z","url":"/api/analytics/custom?startDate=2025-10-18&endDate=2025-10-25&sortBy=timestamp&sortOrder=desc&page=1&limit=50&type=audit&includeUserDetails=true&includeSystemLogs=true&includeSecurityEvents=true","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:33.719Z","url":"/api/analytics/custom?type=audit&includeUserStats=true&includeSecurityStats=true&includeSystemStats=true","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"211ms","statusCode":200,"timestamp":"2025-10-25T10:19:33.930Z","url":"/api/analytics/custom?type=audit&includeUserStats=true&includeSecurityStats=true&includeSystemStats=true","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:33 +0000] \"GET /api/analytics/custom?type=audit&includeUserStats=true&includeSecurityStats=true&includeSystemStats=true HTTP/1.1\" 200 36 \"-\" \"node\"","timestamp":"2025-10-25T10:19:33.930Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:34.300Z","url":"/api/analytics/custom?type=audit&includeUserStats=true&includeSecurityStats=true&includeSystemStats=true","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"734ms","statusCode":200,"timestamp":"2025-10-25T10:19:34.451Z","url":"/api/analytics/custom?startDate=2025-10-18&endDate=2025-10-25&sortBy=timestamp&sortOrder=desc&page=1&limit=50&type=audit&includeUserDetails=true&includeSystemLogs=true&includeSecurityEvents=true","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:34 +0000] \"GET /api/analytics/custom?startDate=2025-10-18&endDate=2025-10-25&sortBy=timestamp&sortOrder=desc&page=1&limit=50&type=audit&includeUserDetails=true&includeSystemLogs=true&includeSecurityEvents=true HTTP/1.1\" 200 36 \"-\" \"node\"","timestamp":"2025-10-25T10:19:34.451Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:19:34.812Z","url":"/api/analytics/custom?startDate=2025-10-18&endDate=2025-10-25&sortBy=timestamp&sortOrder=desc&page=1&limit=50&type=audit&includeUserDetails=true&includeSystemLogs=true&includeSecurityEvents=true","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"297ms","statusCode":200,"timestamp":"2025-10-25T10:19:35.109Z","url":"/api/analytics/custom?startDate=2025-10-18&endDate=2025-10-25&sortBy=timestamp&sortOrder=desc&page=1&limit=50&type=audit&includeUserDetails=true&includeSystemLogs=true&includeSecurityEvents=true","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:35 +0000] \"GET /api/analytics/custom?startDate=2025-10-18&endDate=2025-10-25&sortBy=timestamp&sortOrder=desc&page=1&limit=50&type=audit&includeUserDetails=true&includeSystemLogs=true&includeSecurityEvents=true HTTP/1.1\" 200 36 \"-\" \"node\"","timestamp":"2025-10-25T10:19:35.110Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1740ms","statusCode":200,"timestamp":"2025-10-25T10:19:36.039Z","url":"/api/analytics/custom?type=audit&includeUserStats=true&includeSecurityStats=true&includeSystemStats=true","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:19:36 +0000] \"GET /api/analytics/custom?type=audit&includeUserStats=true&includeSecurityStats=true&includeSystemStats=true HTTP/1.1\" 200 36 \"-\" \"node\"","timestamp":"2025-10-25T10:19:36.040Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:45:12.495Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:45:32.438Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:45:42 +0000] \"GET /api/analytics/overview HTTP/1.1\" - - \"-\" \"node\"","timestamp":"2025-10-25T10:45:42.492Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:45:43.154Z","url":"/api/localpro-plus/plans","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"126ms","statusCode":200,"timestamp":"2025-10-25T10:45:43.280Z","url":"/api/localpro-plus/plans","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:45:43 +0000] \"GET /api/localpro-plus/plans HTTP/1.1\" 200 36 \"-\" \"node\"","timestamp":"2025-10-25T10:45:43.281Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:45:43.859Z","url":"/api/localpro-plus/my-subscription","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"676ms","statusCode":404,"timestamp":"2025-10-25T10:45:44.535Z","url":"/api/localpro-plus/my-subscription","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:45:44 +0000] \"GET /api/localpro-plus/my-subscription HTTP/1.1\" 404 51 \"-\" \"node\"","timestamp":"2025-10-25T10:45:44.536Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:45:45.586Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:45:45.867Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"486ms","statusCode":200,"timestamp":"2025-10-25T10:45:46.353Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:45:46 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T10:45:46.354Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:45:46.731Z","url":"/api/localpro-plus/plans","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"41ms","statusCode":200,"timestamp":"2025-10-25T10:45:46.772Z","url":"/api/localpro-plus/plans","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:45:46 +0000] \"GET /api/localpro-plus/plans HTTP/1.1\" 200 36 \"-\" \"node\"","timestamp":"2025-10-25T10:45:46.773Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:45:47.217Z","url":"/api/localpro-plus/my-subscription","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"81ms","statusCode":404,"timestamp":"2025-10-25T10:45:47.298Z","url":"/api/localpro-plus/my-subscription","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:45:47 +0000] \"GET /api/localpro-plus/my-subscription HTTP/1.1\" 404 51 \"-\" \"node\"","timestamp":"2025-10-25T10:45:47.299Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2008ms","statusCode":200,"timestamp":"2025-10-25T10:45:47.594Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"2008ms","statusCode":200,"timestamp":"2025-10-25T10:45:47.595Z","url":"/api/analytics/overview","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:45:47 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T10:45:47.595Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:45:47.983Z","url":"/api/localpro-plus/plans","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"478ms","statusCode":200,"timestamp":"2025-10-25T10:45:48.461Z","url":"/api/localpro-plus/plans","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:45:48 +0000] \"GET /api/localpro-plus/plans HTTP/1.1\" 200 36 \"-\" \"node\"","timestamp":"2025-10-25T10:45:48.461Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:45:48.932Z","url":"/api/localpro-plus/my-subscription","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1389ms","statusCode":404,"timestamp":"2025-10-25T10:45:50.321Z","url":"/api/localpro-plus/my-subscription","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:45:50 +0000] \"GET /api/localpro-plus/my-subscription HTTP/1.1\" 404 51 \"-\" \"node\"","timestamp":"2025-10-25T10:45:50.322Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"23816ms","statusCode":200,"timestamp":"2025-10-25T10:45:56.254Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"23816ms","statusCode":200,"timestamp":"2025-10-25T10:45:56.254Z","url":"/api/analytics/overview","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:45:56 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T10:45:56.255Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"44431ms","statusCode":200,"timestamp":"2025-10-25T10:45:56.926Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"44431ms","statusCode":200,"timestamp":"2025-10-25T10:45:56.926Z","url":"/api/analytics/overview","userId":"68f7265e60f48a4fd66ef03d"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-25T10:47:42.971Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:52:38.070Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:52:38.080Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"556ms","statusCode":200,"timestamp":"2025-10-25T10:52:38.636Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:52:38 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T10:52:38.639Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"580ms","statusCode":200,"timestamp":"2025-10-25T10:52:38.650Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:52:38 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T10:52:38.651Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:52:39.195Z","url":"/api/localpro-plus/plans","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:52:39.198Z","url":"/api/localpro-plus/plans","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"45ms","statusCode":200,"timestamp":"2025-10-25T10:52:39.240Z","url":"/api/localpro-plus/plans","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:52:39 +0000] \"GET /api/localpro-plus/plans HTTP/1.1\" 200 36 \"-\" \"node\"","timestamp":"2025-10-25T10:52:39.241Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"43ms","statusCode":200,"timestamp":"2025-10-25T10:52:39.241Z","url":"/api/localpro-plus/plans","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:52:39 +0000] \"GET /api/localpro-plus/plans HTTP/1.1\" 200 36 \"-\" \"node\"","timestamp":"2025-10-25T10:52:39.242Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:52:39.740Z","url":"/api/localpro-plus/my-subscription","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T10:52:39.742Z","url":"/api/localpro-plus/my-subscription","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"133ms","statusCode":404,"timestamp":"2025-10-25T10:52:39.873Z","url":"/api/localpro-plus/my-subscription","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:52:39 +0000] \"GET /api/localpro-plus/my-subscription HTTP/1.1\" 404 51 \"-\" \"node\"","timestamp":"2025-10-25T10:52:39.874Z"}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"135ms","statusCode":404,"timestamp":"2025-10-25T10:52:39.876Z","url":"/api/localpro-plus/my-subscription","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:10:52:39 +0000] \"GET /api/localpro-plus/my-subscription HTTP/1.1\" 404 51 \"-\" \"node\"","timestamp":"2025-10-25T10:52:39.877Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:46:46.929Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"4999ms","statusCode":200,"timestamp":"2025-10-25T12:46:51.928Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"4999ms","statusCode":200,"timestamp":"2025-10-25T12:46:51.928Z","url":"/api/analytics/overview","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:46:51 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T12:46:51.929Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:46:52.373Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"5926ms","statusCode":200,"timestamp":"2025-10-25T12:46:58.299Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"5926ms","statusCode":200,"timestamp":"2025-10-25T12:46:58.300Z","url":"/api/analytics/overview","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:46:58 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T12:46:58.300Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:48:14.223Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"3545ms","statusCode":200,"timestamp":"2025-10-25T12:48:17.768Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"3545ms","statusCode":200,"timestamp":"2025-10-25T12:48:17.769Z","url":"/api/analytics/overview","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:48:17 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T12:48:17.769Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:48:18.186Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"5907ms","statusCode":200,"timestamp":"2025-10-25T12:48:24.093Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"5907ms","statusCode":200,"timestamp":"2025-10-25T12:48:24.093Z","url":"/api/analytics/overview","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:48:24 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T12:48:24.094Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:49:07.600Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"5675ms","statusCode":200,"timestamp":"2025-10-25T12:49:13.275Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"5675ms","statusCode":200,"timestamp":"2025-10-25T12:49:13.276Z","url":"/api/analytics/overview","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:49:13 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T12:49:13.277Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:49:13.639Z","url":"/api/analytics/overview","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2713ms","statusCode":200,"timestamp":"2025-10-25T12:49:16.352Z","url":"/api/analytics/overview","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"2713ms","statusCode":200,"timestamp":"2025-10-25T12:49:16.352Z","url":"/api/analytics/overview","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:49:16 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 453 \"-\" \"node\"","timestamp":"2025-10-25T12:49:16.353Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:49:35.253Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:49:35.254Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"646ms","statusCode":200,"timestamp":"2025-10-25T12:49:35.899Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:49:35 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:49:35.900Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:49:36.293Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"5956ms","statusCode":200,"timestamp":"2025-10-25T12:49:42.249Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"5956ms","statusCode":200,"timestamp":"2025-10-25T12:49:42.249Z","url":"/api/analytics/user?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:49:42 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:49:42.250Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:49:54.899Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1670ms","statusCode":200,"timestamp":"2025-10-25T12:49:56.569Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:49:56 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:49:56.570Z"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:50:05 +0000] \"GET /api/analytics/user HTTP/1.1\" - - \"-\" \"node\"","timestamp":"2025-10-25T12:50:05.254Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"94367ms","statusCode":200,"timestamp":"2025-10-25T12:51:09.621Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"94367ms","statusCode":200,"timestamp":"2025-10-25T12:51:09.621Z","url":"/api/analytics/user","userId":"68f7265e60f48a4fd66ef03d"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:51:17.866Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:51:17.868Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1527ms","statusCode":200,"timestamp":"2025-10-25T12:51:19.393Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:51:19 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:51:19.394Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1984ms","statusCode":200,"timestamp":"2025-10-25T12:51:19.852Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:51:19 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:51:19.853Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:51:27.938Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:51:27.939Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"981ms","statusCode":200,"timestamp":"2025-10-25T12:51:28.919Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:51:28 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:51:28.920Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:51:45.948Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:51:45.950Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2875ms","statusCode":200,"timestamp":"2025-10-25T12:51:48.825Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"2875ms","statusCode":200,"timestamp":"2025-10-25T12:51:48.825Z","url":"/api/analytics/user","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:51:48 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:51:48.826Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"3325ms","statusCode":200,"timestamp":"2025-10-25T12:51:49.273Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"3325ms","statusCode":200,"timestamp":"2025-10-25T12:51:49.273Z","url":"/api/analytics/user?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:51:49 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:51:49.274Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"24862ms","statusCode":200,"timestamp":"2025-10-25T12:51:52.801Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"24862ms","statusCode":200,"timestamp":"2025-10-25T12:51:52.802Z","url":"/api/analytics/user?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:51:52 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:51:52.802Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:51:53.377Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:51:53.382Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1632ms","statusCode":200,"timestamp":"2025-10-25T12:51:55.014Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:51:55 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:51:55.015Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"7369ms","statusCode":200,"timestamp":"2025-10-25T12:52:00.746Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"7369ms","statusCode":200,"timestamp":"2025-10-25T12:52:00.746Z","url":"/api/analytics/user","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:52:00 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:52:00.747Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:52:27.280Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:52:27.281Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1165ms","statusCode":200,"timestamp":"2025-10-25T12:52:28.445Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:52:28 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:52:28.446Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1781ms","statusCode":200,"timestamp":"2025-10-25T12:52:29.062Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:52:29 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:52:29.063Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:54:33.114Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:54:33.115Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1526ms","statusCode":200,"timestamp":"2025-10-25T12:54:34.640Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:54:34 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:54:34.641Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:54:34.999Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:55:03 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" - - \"-\" \"node\"","timestamp":"2025-10-25T12:55:03.118Z"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:55:05 +0000] \"GET /api/analytics/user HTTP/1.1\" - - \"-\" \"node\"","timestamp":"2025-10-25T12:55:05.002Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:56:00.073Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:56:00.074Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1608ms","statusCode":200,"timestamp":"2025-10-25T12:56:01.682Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:56:01 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:56:01.683Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2875ms","statusCode":200,"timestamp":"2025-10-25T12:56:02.948Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"2875ms","statusCode":200,"timestamp":"2025-10-25T12:56:02.948Z","url":"/api/analytics/user","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:56:02 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:56:02.949Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:56:04.387Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1271ms","statusCode":200,"timestamp":"2025-10-25T12:56:05.658Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:56:05 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:56:05.659Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"91726ms","statusCode":200,"timestamp":"2025-10-25T12:56:06.726Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"91726ms","statusCode":200,"timestamp":"2025-10-25T12:56:06.726Z","url":"/api/analytics/user","userId":"68f7265e60f48a4fd66ef03d"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:56:08.289Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2294ms","statusCode":200,"timestamp":"2025-10-25T12:56:10.583Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"2294ms","statusCode":200,"timestamp":"2025-10-25T12:56:10.584Z","url":"/api/analytics/user?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:56:10 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:56:10.584Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:56:11.311Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:56:21.635Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"613ms","statusCode":200,"timestamp":"2025-10-25T12:56:22.248Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:56:22 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:56:22.249Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:56:24.179Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2323ms","statusCode":200,"timestamp":"2025-10-25T12:56:26.502Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"2323ms","statusCode":200,"timestamp":"2025-10-25T12:56:26.503Z","url":"/api/analytics/user?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:56:26 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:56:26.503Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:56:27.233Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1622ms","statusCode":200,"timestamp":"2025-10-25T12:56:28.855Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:56:28 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:56:28.855Z"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:56:41 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" - - \"-\" \"node\"","timestamp":"2025-10-25T12:56:41.322Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:56:54.673Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:56:54.675Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"634ms","statusCode":200,"timestamp":"2025-10-25T12:56:55.309Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:56:55 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:56:55.310Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:56:55.649Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1558ms","statusCode":200,"timestamp":"2025-10-25T12:56:56.231Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:56:56 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:56:56.231Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"632ms","statusCode":200,"timestamp":"2025-10-25T12:56:56.281Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:56:56 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T12:56:56.281Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:57:04.256Z","url":"/api/analytics/marketplace","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:57:04.305Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1696ms","statusCode":200,"timestamp":"2025-10-25T12:57:05.952Z","url":"/api/analytics/marketplace","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:57:05 +0000] \"GET /api/analytics/marketplace HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:57:05.953Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1695ms","statusCode":200,"timestamp":"2025-10-25T12:57:06.000Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:57:06 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:57:06.002Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:57:06.400Z","url":"/api/analytics/marketplace","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:57:06.404Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1129ms","statusCode":200,"timestamp":"2025-10-25T12:57:07.529Z","url":"/api/analytics/marketplace","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:57:07 +0000] \"GET /api/analytics/marketplace HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:57:07.529Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2480ms","statusCode":200,"timestamp":"2025-10-25T12:57:08.884Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"2480ms","statusCode":200,"timestamp":"2025-10-25T12:57:08.885Z","url":"/api/analytics/marketplace?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:57:08 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:57:08.885Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"175562ms","statusCode":200,"timestamp":"2025-10-25T12:57:28.677Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"175562ms","statusCode":200,"timestamp":"2025-10-25T12:57:28.677Z","url":"/api/analytics/user?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:57:43.979Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"93816ms","statusCode":200,"timestamp":"2025-10-25T12:57:45.127Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"93816ms","statusCode":200,"timestamp":"2025-10-25T12:57:45.128Z","url":"/api/analytics/user?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2648ms","statusCode":200,"timestamp":"2025-10-25T12:57:46.627Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"2648ms","statusCode":200,"timestamp":"2025-10-25T12:57:46.627Z","url":"/api/analytics/marketplace?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:57:46 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:57:46.628Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:57:47.596Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1758ms","statusCode":200,"timestamp":"2025-10-25T12:57:49.354Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:57:49 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:57:49.355Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:58:10.881Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"987ms","statusCode":200,"timestamp":"2025-10-25T12:58:11.868Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:58:11 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:58:11.868Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:58:12.237Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"636ms","statusCode":200,"timestamp":"2025-10-25T12:58:12.873Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:58:12 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:58:12.874Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:58:41.323Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1346ms","statusCode":200,"timestamp":"2025-10-25T12:58:42.669Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:58:42 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:58:42.669Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:58:43.041Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"954ms","statusCode":200,"timestamp":"2025-10-25T12:58:43.995Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:58:43 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:58:43.996Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:59:43.139Z","url":"/api/marketplace/listings?page=1&limit=50","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:59:43.141Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1077ms","statusCode":404,"timestamp":"2025-10-25T12:59:44.216Z","url":"/api/marketplace/listings?page=1&limit=50","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:59:44 +0000] \"GET /api/marketplace/listings?page=1&limit=50 HTTP/1.1\" 404 52 \"-\" \"node\"","timestamp":"2025-10-25T12:59:44.217Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:59:44.707Z","url":"/api/marketplace/listings?page=1&limit=50","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"257ms","statusCode":404,"timestamp":"2025-10-25T12:59:44.964Z","url":"/api/marketplace/listings?page=1&limit=50","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:59:44 +0000] \"GET /api/marketplace/listings?page=1&limit=50 HTTP/1.1\" 404 52 \"-\" \"node\"","timestamp":"2025-10-25T12:59:44.965Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2039ms","statusCode":200,"timestamp":"2025-10-25T12:59:45.180Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"2039ms","statusCode":200,"timestamp":"2025-10-25T12:59:45.180Z","url":"/api/analytics/marketplace?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:59:45 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:59:45.181Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T12:59:45.535Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"3789ms","statusCode":200,"timestamp":"2025-10-25T12:59:49.324Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"3789ms","statusCode":200,"timestamp":"2025-10-25T12:59:49.324Z","url":"/api/analytics/marketplace?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:12:59:49 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T12:59:49.325Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:00:35.157Z","url":"/api/marketplace/services?page=1&limit=50","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:00:35.159Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"669ms","statusCode":200,"timestamp":"2025-10-25T13:00:35.826Z","url":"/api/marketplace/services?page=1&limit=50","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:00:35 +0000] \"GET /api/marketplace/services?page=1&limit=50 HTTP/1.1\" 200 1957 \"-\" \"node\"","timestamp":"2025-10-25T13:00:35.826Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"673ms","statusCode":200,"timestamp":"2025-10-25T13:00:35.832Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:00:35 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T13:00:35.833Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:00:36.299Z","url":"/api/marketplace/services?page=1&limit=50","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:00:36.301Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1678ms","statusCode":200,"timestamp":"2025-10-25T13:00:37.979Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:00:37 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T13:00:37.980Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1912ms","statusCode":200,"timestamp":"2025-10-25T13:00:38.211Z","url":"/api/marketplace/services?page=1&limit=50","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:00:38 +0000] \"GET /api/marketplace/services?page=1&limit=50 HTTP/1.1\" 200 1957 \"-\" \"node\"","timestamp":"2025-10-25T13:00:38.211Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:00:59.697Z","url":"/api/analytics/user","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:00:59.698Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"981ms","statusCode":200,"timestamp":"2025-10-25T13:01:00.679Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:01:00 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T13:01:00.680Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:01:01.054Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2284ms","statusCode":200,"timestamp":"2025-10-25T13:01:03.338Z","url":"/api/analytics/user?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"2284ms","statusCode":200,"timestamp":"2025-10-25T13:01:03.339Z","url":"/api/analytics/user?period=week","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:01:03 +0000] \"GET /api/analytics/user?period=week HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T13:01:03.340Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"5958ms","statusCode":200,"timestamp":"2025-10-25T13:01:05.655Z","url":"/api/analytics/user","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"warn","message":"Slow Request Detected","method":"GET","responseTime":"5958ms","statusCode":200,"timestamp":"2025-10-25T13:01:05.656Z","url":"/api/analytics/user","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:01:05 +0000] \"GET /api/analytics/user HTTP/1.1\" 200 1362 \"-\" \"node\"","timestamp":"2025-10-25T13:01:05.657Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:01:27.818Z","url":"/api/marketplace/services?page=1&limit=50","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:01:27.820Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"648ms","statusCode":200,"timestamp":"2025-10-25T13:01:28.468Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:01:28 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T13:01:28.469Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"773ms","statusCode":200,"timestamp":"2025-10-25T13:01:28.591Z","url":"/api/marketplace/services?page=1&limit=50","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:01:28 +0000] \"GET /api/marketplace/services?page=1&limit=50 HTTP/1.1\" 200 1957 \"-\" \"node\"","timestamp":"2025-10-25T13:01:28.595Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:01:28.875Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":null}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:01:29.001Z","url":"/api/marketplace/services?page=1&limit=50","userAgent":"node","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"643ms","statusCode":200,"timestamp":"2025-10-25T13:01:29.644Z","url":"/api/marketplace/services?page=1&limit=50","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:01:29 +0000] \"GET /api/marketplace/services?page=1&limit=50 HTTP/1.1\" 200 1957 \"-\" \"node\"","timestamp":"2025-10-25T13:01:29.645Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"926ms","statusCode":200,"timestamp":"2025-10-25T13:01:29.801Z","url":"/api/analytics/marketplace?period=week","userAgent":"node","userId":"68f7265e60f48a4fd66ef03d"}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:01:29 +0000] \"GET /api/analytics/marketplace?period=week HTTP/1.1\" 200 458 \"-\" \"node\"","timestamp":"2025-10-25T13:01:29.802Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:01:32.096Z","url":"/api/supplies/statistics","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":400,"timestamp":"2025-10-25T13:01:32.097Z","url":"/api/supplies/statistics","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:01:32 +0000] \"GET /api/supplies/statistics HTTP/1.1\" 400 54 \"-\" \"node\"","timestamp":"2025-10-25T13:01:32.098Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-25T13:01:32.703Z","url":"/api/supplies/statistics","userAgent":"node","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":400,"timestamp":"2025-10-25T13:01:32.704Z","url":"/api/supplies/statistics","userAgent":"node","userId":null}
+{"level":"http","message":"::1 - - [25/Oct/2025:13:01:32 +0000] \"GET /api/supplies/statistics HTTP/1.1\" 400 54 \"-\" \"node\"","timestamp":"2025-10-25T13:01:32.704Z"}

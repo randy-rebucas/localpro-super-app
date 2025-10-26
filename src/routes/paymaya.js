@@ -188,13 +188,13 @@ router.get('/payment/:paymentId', getPayment);
 router.post('/invoice', invoiceValidation, createInvoice);
 router.get('/invoice/:invoiceId', getInvoice);
 
-// Admin routes
+// Admin routes - [ADMIN ONLY]
 router.use(authorize('admin'));
 
-// Configuration validation
+// Configuration validation - [ADMIN ONLY]
 router.get('/config/validate', validateConfig);
 
-// Webhook events (for debugging/admin purposes)
+// Webhook events (for debugging/admin purposes) - [ADMIN ONLY]
 router.get('/webhook/events', getWebhookEvents);
 
 module.exports = router;

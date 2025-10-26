@@ -21,7 +21,7 @@ router.get('/', (req, res) => {
   });
 });
 
-// Get error statistics
+// Get error statistics - [ADMIN ONLY]
 router.get('/stats', auth, async (req, res) => {
   try {
     const { timeframe = '24h' } = req.query;
@@ -63,7 +63,7 @@ router.get('/stats', auth, async (req, res) => {
   }
 });
 
-// Get unresolved errors
+// Get unresolved errors - [ADMIN ONLY]
 router.get('/unresolved', auth, async (req, res) => {
   try {
     // Only allow admin users to view unresolved errors
@@ -104,7 +104,7 @@ router.get('/unresolved', auth, async (req, res) => {
   }
 });
 
-// Get error details
+// Get error details - [ADMIN ONLY]
 router.get('/:errorId', auth, async (req, res) => {
   try {
     // Only allow admin users to view error details
@@ -147,7 +147,7 @@ router.get('/:errorId', auth, async (req, res) => {
   }
 });
 
-// Resolve error
+// Resolve error - [ADMIN ONLY]
 router.patch('/:errorId/resolve', auth, async (req, res) => {
   try {
     // Only allow admin users to resolve errors
@@ -205,7 +205,7 @@ router.patch('/:errorId/resolve', auth, async (req, res) => {
   }
 });
 
-// Get error monitoring dashboard data
+// Get error monitoring dashboard data - [ADMIN ONLY]
 router.get('/dashboard/summary', auth, async (req, res) => {
   try {
     // Only allow admin users to view dashboard

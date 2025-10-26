@@ -32,7 +32,7 @@ router.get('/rewards', getReferralRewards);
 router.post('/invite', sendReferralInvitation);
 router.put('/preferences', updateReferralPreferences);
 
-// Admin/System routes
+// Admin/System routes - [ADMIN ONLY]
 router.post('/process', authorize('admin'), processReferralCompletion);
 router.get('/analytics', authorize('admin'), getReferralAnalytics);
 

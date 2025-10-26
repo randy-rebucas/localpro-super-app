@@ -342,7 +342,7 @@ router.get('/my/list', queryValidation, getMyAnnouncements);
  *   "data": {...}
  * }
  */
-router.post('/', authorize(['admin', 'agency_admin', 'agency_owner']), createAnnouncementValidation, createAnnouncement);
+router.post('/', authorize(['admin', 'agency_admin', 'agency_owner']), createAnnouncementValidation, createAnnouncement); // [ADMIN/AGENCY ONLY]
 
 /**
  * @route   PUT /api/announcements/:id
@@ -433,6 +433,6 @@ router.post('/:id/comments', paramValidation, addCommentValidation, addComment);
  *   }
  * }
  */
-router.get('/admin/statistics', authorize(['admin']), getAnnouncementStats);
+router.get('/admin/statistics', authorize(['admin']), getAnnouncementStats); // [ADMIN ONLY]
 
 module.exports = router;

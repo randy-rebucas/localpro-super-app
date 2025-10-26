@@ -54,7 +54,7 @@ router.post('/:id/reviews', addSupplyReview);
 router.get('/my-supplies', getMySupplies);
 router.get('/my-orders', getMySupplyOrders);
 
-// Statistics route (Admin only)
+// Statistics route (Admin only) - [ADMIN ONLY]
 router.get('/statistics', authorize('admin'), getSupplyStatistics);
 
 module.exports = router;

@@ -423,7 +423,7 @@ activitySchema.statics.getActivityStats = function(userId, timeframe = '30d') {
   return this.aggregate([
     {
       $match: {
-        user: mongoose.Types.ObjectId(userId),
+        user: new mongoose.Types.ObjectId(userId),
         createdAt: { $gte: cutoff },
         isDeleted: false
       }

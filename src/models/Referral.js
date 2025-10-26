@@ -297,7 +297,7 @@ referralSchema.statics.getReferralStats = async function(userId, timeRange = 30)
   const stats = await this.aggregate([
     {
       $match: {
-        referrer: mongoose.Types.ObjectId(userId),
+        referrer: new mongoose.Types.ObjectId(userId),
         'timeline.referredAt': { $gte: startDate }
       }
     },

@@ -52,7 +52,7 @@ router.post('/courses/:id/reviews', addCourseReview);
 router.get('/my-courses', getMyCourses);
 router.get('/my-created-courses', getMyCreatedCourses);
 
-// Statistics route (Admin only)
+// Statistics route (Admin only) - [ADMIN ONLY]
 router.get('/statistics', authorize('admin'), getCourseStatistics);
 
 module.exports = router;

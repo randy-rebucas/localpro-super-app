@@ -8,7 +8,7 @@ const verificationRequestSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['identity', 'business', 'address', 'bank_account', 'insurance', 'certification'],
+    enum: ['identity', 'identity_verification', 'business', 'address', 'bank_account', 'insurance', 'certification'],
     required: true
   },
   status: {
@@ -20,7 +20,7 @@ const verificationRequestSchema = new mongoose.Schema({
     type: {
       type: String,
       enum: [
-        'government_id', 'passport', 'driver_license', 'business_license',
+        'government_id', 'passport', 'driver_license', 'drivers_license', 'business_license',
         'tax_certificate', 'insurance_certificate', 'bank_statement',
         'utility_bill', 'certification_document', 'other'
       ],

@@ -3,6 +3,7 @@ const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
 const EmailService = require('../services/emailService');
+const { validateObjectId } = require('../utils/controllerValidation');
 
 // @desc    Get all rental items
 // @route   GET /api/rentals
@@ -87,7 +88,7 @@ const getRentalItem = async (req, res) => {
 const getRental = async (req, res) => {
   try {
     // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!validateObjectId(req.params.id)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid rental ID format'
@@ -175,6 +176,14 @@ const createRental = async (req, res) => {
 // @access  Private
 const updateRental = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!validateObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid rental ID format'
+      });
+    }
+
     let rental = await RentalItem.findById(req.params.id);
 
     if (!rental) {
@@ -236,6 +245,14 @@ const updateRental = async (req, res) => {
 // @access  Private
 const deleteRental = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!validateObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid rental ID format'
+      });
+    }
+
     const rental = await RentalItem.findById(req.params.id);
 
     if (!rental) {
@@ -275,6 +292,14 @@ const deleteRental = async (req, res) => {
 // @access  Private
 const uploadRentalImages = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!validateObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid rental ID format'
+      });
+    }
+
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
@@ -342,6 +367,14 @@ const uploadRentalImages = async (req, res) => {
 // @access  Private
 const deleteRentalImage = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!validateObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid rental ID format'
+      });
+    }
+
     const { imageId } = req.params;
 
     const rental = await RentalItem.findById(req.params.id);
@@ -395,6 +428,14 @@ const deleteRentalImage = async (req, res) => {
 // @access  Private
 const bookRental = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!validateObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid rental ID format'
+      });
+    }
+
     const { 
       startDate,
       endDate,
@@ -509,6 +550,14 @@ const bookRental = async (req, res) => {
 // @access  Private
 const updateBookingStatus = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!validateObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid rental ID format'
+      });
+    }
+
     const { bookingId } = req.params;
     const { status } = req.body;
 
@@ -583,6 +632,14 @@ const updateBookingStatus = async (req, res) => {
 // @access  Private
 const addRentalReview = async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!validateObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid rental ID format'
+      });
+    }
+
     const { rating, comment } = req.body;
 
     if (!rating || rating < 1 || rating > 5) {

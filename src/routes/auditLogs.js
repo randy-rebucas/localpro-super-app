@@ -4,7 +4,7 @@ const { auth } = require('../middleware/auth');
 const auditService = require('../services/auditService');
 const { logger } = require('../utils/logger');
 
-// Get audit logs with filtering and pagination
+// Get audit logs with filtering and pagination - [ADMIN ONLY]
 router.get('/', auth, async (req, res) => {
   try {
     // Only allow admin users to view audit logs
@@ -78,7 +78,7 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// Get audit statistics
+// Get audit statistics - [ADMIN ONLY]
 router.get('/stats', auth, async (req, res) => {
   try {
     // Only allow admin users to view audit statistics
@@ -119,7 +119,7 @@ router.get('/stats', auth, async (req, res) => {
   }
 });
 
-// Get user activity summary
+// Get user activity summary - [ADMIN ONLY]
 router.get('/user/:userId/activity', auth, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -165,7 +165,7 @@ router.get('/user/:userId/activity', auth, async (req, res) => {
   }
 });
 
-// Get audit log details
+// Get audit log details - [ADMIN ONLY]
 router.get('/:auditId', auth, async (req, res) => {
   try {
     // Only allow admin users to view detailed audit logs
@@ -211,7 +211,7 @@ router.get('/:auditId', auth, async (req, res) => {
   }
 });
 
-// Export audit logs
+// Export audit logs - [ADMIN ONLY]
 router.get('/export/data', auth, async (req, res) => {
   try {
     // Only allow admin users to export audit logs
@@ -279,7 +279,7 @@ router.get('/export/data', auth, async (req, res) => {
   }
 });
 
-// Get audit dashboard summary
+// Get audit dashboard summary - [ADMIN ONLY]
 router.get('/dashboard/summary', auth, async (req, res) => {
   try {
     // Only allow admin users to view audit dashboard
@@ -340,7 +340,7 @@ router.get('/dashboard/summary', auth, async (req, res) => {
   }
 });
 
-// Clean up expired audit logs (Admin only)
+// Clean up expired audit logs (Admin only) - [ADMIN ONLY]
 router.post('/cleanup', auth, async (req, res) => {
   try {
     // Only allow admin users to perform cleanup
@@ -378,7 +378,7 @@ router.post('/cleanup', auth, async (req, res) => {
   }
 });
 
-// Get audit log categories and actions
+// Get audit log categories and actions - [ADMIN ONLY]
 router.get('/metadata/categories', auth, async (req, res) => {
   try {
     // Only allow admin users to view metadata
