@@ -1,17 +1,18 @@
 const UserSettings = require('../models/UserSettings');
 const AppSettings = require('../models/AppSettings');
-const User = require('../models/User');
+const logger = require('../utils/logger');
+
 const { validationResult } = require('express-validator');
 
 // User Settings Controllers
 
 // Get user settings
-const getUserSettings = async (req, res) => {
+const getUserSettings = async(req, res) => {
   try {
     const userId = req.user.id;
-    
+
     let userSettings = await UserSettings.findOne({ userId }).populate('userId', 'firstName lastName email phoneNumber role');
-    
+
     if (!userSettings) {
       // Create default settings if none exist
       userSettings = new UserSettings({
@@ -20,13 +21,13 @@ const getUserSettings = async (req, res) => {
       });
       await userSettings.save();
     }
-    
+
     res.status(200).json({
       success: true,
       data: userSettings
     });
   } catch (error) {
-    console.error('Error getting user settings:', error);
+    logger.error('Error getting user settings:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get user settings',
@@ -36,7 +37,7 @@ const getUserSettings = async (req, res) => {
 };
 
 // Update user settings
-const updateUserSettings = async (req, res) => {
+const updateUserSettings = async(req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -49,16 +50,16 @@ const updateUserSettings = async (req, res) => {
 
     const userId = req.user.id;
     const updates = req.body;
-    
+
     let userSettings = await UserSettings.findOne({ userId });
-    
+
     if (!userSettings) {
       userSettings = new UserSettings({
         userId,
         ...UserSettings.getDefaultSettings()
       });
     }
-    
+
     // Update settings
     Object.keys(updates).forEach(key => {
       if (userSettings[key] && typeof userSettings[key] === 'object') {
@@ -67,16 +68,16 @@ const updateUserSettings = async (req, res) => {
         userSettings[key] = updates[key];
       }
     });
-    
+
     await userSettings.save();
-    
+
     res.status(200).json({
       success: true,
       message: 'User settings updated successfully',
       data: userSettings
     });
   } catch (error) {
-    console.error('Error updating user settings:', error);
+    logger.error('Error updating user settings:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update user settings',
@@ -86,7 +87,7 @@ const updateUserSettings = async (req, res) => {
 };
 
 // Update specific setting category
-const updateUserSettingsCategory = async (req, res) => {
+const updateUserSettingsCategory = async(req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -100,16 +101,16 @@ const updateUserSettingsCategory = async (req, res) => {
     const userId = req.user.id;
     const { category } = req.params;
     const updates = req.body;
-    
+
     let userSettings = await UserSettings.findOne({ userId });
-    
+
     if (!userSettings) {
       userSettings = new UserSettings({
         userId,
         ...UserSettings.getDefaultSettings()
       });
     }
-    
+
     // Validate category exists
     if (!userSettings[category]) {
       return res.status(400).json({
@@ -117,16 +118,16 @@ const updateUserSettingsCategory = async (req, res) => {
         message: `Invalid category: ${category}`
       });
     }
-    
+
     await userSettings.updateCategory(category, updates);
-    
+
     res.status(200).json({
       success: true,
       message: `${category} settings updated successfully`,
       data: userSettings[category]
     });
   } catch (error) {
-    console.error('Error updating user settings category:', error);
+    logger.error('Error updating user settings category:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update user settings category',
@@ -136,12 +137,12 @@ const updateUserSettingsCategory = async (req, res) => {
 };
 
 // Reset user settings to defaults
-const resetUserSettings = async (req, res) => {
+const resetUserSettings = async(req, res) => {
   try {
     const userId = req.user.id;
-    
+
     let userSettings = await UserSettings.findOne({ userId });
-    
+
     if (!userSettings) {
       userSettings = new UserSettings({
         userId,
@@ -150,16 +151,16 @@ const resetUserSettings = async (req, res) => {
     } else {
       await userSettings.resetToDefaults();
     }
-    
+
     await userSettings.save();
-    
+
     res.status(200).json({
       success: true,
       message: 'User settings reset to defaults successfully',
       data: userSettings
     });
   } catch (error) {
-    console.error('Error resetting user settings:', error);
+    logger.error('Error resetting user settings:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to reset user settings',
@@ -169,25 +170,25 @@ const resetUserSettings = async (req, res) => {
 };
 
 // Delete user settings
-const deleteUserSettings = async (req, res) => {
+const deleteUserSettings = async(req, res) => {
   try {
     const userId = req.user.id;
-    
+
     const userSettings = await UserSettings.findOneAndDelete({ userId });
-    
+
     if (!userSettings) {
       return res.status(404).json({
         success: false,
         message: 'User settings not found'
       });
     }
-    
+
     res.status(200).json({
       success: true,
       message: 'User settings deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting user settings:', error);
+    logger.error('Error deleting user settings:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete user settings',
@@ -199,7 +200,7 @@ const deleteUserSettings = async (req, res) => {
 // App Settings Controllers
 
 // Get app settings (admin only)
-const getAppSettings = async (req, res) => {
+const getAppSettings = async(req, res) => {
   try {
     // Check if user is admin
     if (req.user.role !== 'admin') {
@@ -208,15 +209,15 @@ const getAppSettings = async (req, res) => {
         message: 'Access denied. Admin privileges required.'
       });
     }
-    
+
     const appSettings = await AppSettings.getCurrentSettings();
-    
+
     res.status(200).json({
       success: true,
       data: appSettings
     });
   } catch (error) {
-    console.error('Error getting app settings:', error);
+    logger.error('Error getting app settings:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get app settings',
@@ -226,7 +227,7 @@ const getAppSettings = async (req, res) => {
 };
 
 // Update app settings (admin only)
-const updateAppSettings = async (req, res) => {
+const updateAppSettings = async(req, res) => {
   try {
     // Check if user is admin
     if (req.user.role !== 'admin') {
@@ -247,14 +248,14 @@ const updateAppSettings = async (req, res) => {
 
     const updates = req.body;
     const appSettings = await AppSettings.updateAppSettings(updates);
-    
+
     res.status(200).json({
       success: true,
       message: 'App settings updated successfully',
       data: appSettings
     });
   } catch (error) {
-    console.error('Error updating app settings:', error);
+    logger.error('Error updating app settings:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update app settings',
@@ -264,7 +265,7 @@ const updateAppSettings = async (req, res) => {
 };
 
 // Update specific app setting category (admin only)
-const updateAppSettingsCategory = async (req, res) => {
+const updateAppSettingsCategory = async(req, res) => {
   try {
     // Check if user is admin
     if (req.user.role !== 'admin') {
@@ -285,9 +286,9 @@ const updateAppSettingsCategory = async (req, res) => {
 
     const { category } = req.params;
     const updates = req.body;
-    
+
     const appSettings = await AppSettings.getCurrentSettings();
-    
+
     // Validate category exists
     if (!appSettings[category]) {
       return res.status(400).json({
@@ -295,16 +296,16 @@ const updateAppSettingsCategory = async (req, res) => {
         message: `Invalid category: ${category}`
       });
     }
-    
+
     await appSettings.updateCategory(category, updates);
-    
+
     res.status(200).json({
       success: true,
       message: `${category} settings updated successfully`,
       data: appSettings[category]
     });
   } catch (error) {
-    console.error('Error updating app settings category:', error);
+    logger.error('Error updating app settings category:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update app settings category',
@@ -314,10 +315,10 @@ const updateAppSettingsCategory = async (req, res) => {
 };
 
 // Get public app settings (no auth required)
-const getPublicAppSettings = async (req, res) => {
+const getPublicAppSettings = async(req, res) => {
   try {
     const appSettings = await AppSettings.getCurrentSettings();
-    
+
     // Only return public settings
     const publicSettings = {
       general: {
@@ -342,13 +343,13 @@ const getPublicAppSettings = async (req, res) => {
         minimumPayout: appSettings.payments.minimumPayout
       }
     };
-    
+
     res.status(200).json({
       success: true,
       data: publicSettings
     });
   } catch (error) {
-    console.error('Error getting public app settings:', error);
+    logger.error('Error getting public app settings:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get public app settings',
@@ -358,7 +359,7 @@ const getPublicAppSettings = async (req, res) => {
 };
 
 // Toggle feature flag (admin only)
-const toggleFeatureFlag = async (req, res) => {
+const toggleFeatureFlag = async(req, res) => {
   try {
     // Check if user is admin
     if (req.user.role !== 'admin') {
@@ -369,20 +370,20 @@ const toggleFeatureFlag = async (req, res) => {
     }
 
     const { feature, enabled } = req.body;
-    
+
     if (typeof enabled !== 'boolean') {
       return res.status(400).json({
         success: false,
         message: 'Enabled must be a boolean value'
       });
     }
-    
+
     const appSettings = await AppSettings.getCurrentSettings();
-    
+
     // Find and update the feature flag
     const featurePath = `features.${feature}.enabled`;
     await appSettings.setSetting(featurePath, enabled);
-    
+
     res.status(200).json({
       success: true,
       message: `Feature ${feature} ${enabled ? 'enabled' : 'disabled'} successfully`,
@@ -392,7 +393,7 @@ const toggleFeatureFlag = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error toggling feature flag:', error);
+    logger.error('Error toggling feature flag:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to toggle feature flag',
@@ -402,10 +403,10 @@ const toggleFeatureFlag = async (req, res) => {
 };
 
 // Get app health status
-const getAppHealth = async (req, res) => {
+const getAppHealth = async(req, res) => {
   try {
     const appSettings = await AppSettings.getCurrentSettings();
-    
+
     const health = {
       status: appSettings.general.maintenanceMode.enabled ? 'maintenance' : 'healthy',
       version: appSettings.general.appVersion,
@@ -417,13 +418,13 @@ const getAppHealth = async (req, res) => {
       }, {}),
       timestamp: new Date().toISOString()
     };
-    
+
     res.status(200).json({
       success: true,
       data: health
     });
   } catch (error) {
-    console.error('Error getting app health:', error);
+    logger.error('Error getting app health:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get app health',
@@ -439,7 +440,7 @@ module.exports = {
   updateUserSettingsCategory,
   resetUserSettings,
   deleteUserSettings,
-  
+
   // App Settings
   getAppSettings,
   updateAppSettings,

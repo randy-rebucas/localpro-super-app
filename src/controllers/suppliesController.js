@@ -3,11 +3,13 @@ const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
 const EmailService = require('../services/emailService');
+const logger = require('../utils/logger');
+
 
 // @desc    Get all supplies
 // @route   GET /api/supplies
 // @access  Public
-const getSupplies = async (req, res) => {
+const getSupplies = async(req, res) => {
   try {
     const {
       search,
@@ -73,7 +75,7 @@ const getSupplies = async (req, res) => {
       data: supplies
     });
   } catch (error) {
-    console.error('Get supplies error:', error);
+    logger.error('Get supplies error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -84,7 +86,7 @@ const getSupplies = async (req, res) => {
 // @desc    Get single supply item
 // @route   GET /api/supplies/:id
 // @access  Public
-const getSupply = async (req, res) => {
+const getSupply = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -115,7 +117,7 @@ const getSupply = async (req, res) => {
       data: supply
     });
   } catch (error) {
-    console.error('Get supply error:', error);
+    logger.error('Get supply error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -126,7 +128,7 @@ const getSupply = async (req, res) => {
 // @desc    Create new supply item
 // @route   POST /api/supplies
 // @access  Private
-const createSupply = async (req, res) => {
+const createSupply = async(req, res) => {
   try {
     const supplyData = {
       ...req.body,
@@ -138,7 +140,7 @@ const createSupply = async (req, res) => {
       try {
         const address = `${supplyData.location.street}, ${supplyData.location.city}, ${supplyData.location.state}`;
         const geocodeResult = await GoogleMapsService.geocodeAddress(address);
-        
+
         if (geocodeResult.success && geocodeResult.data.length > 0) {
           const location = geocodeResult.data[0];
           supplyData.location.coordinates = {
@@ -147,7 +149,7 @@ const createSupply = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', geocodeError);
         // Continue without geocoding if it fails
       }
     }
@@ -162,7 +164,7 @@ const createSupply = async (req, res) => {
       data: supply
     });
   } catch (error) {
-    console.error('Create supply error:', error);
+    logger.error('Create supply error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -173,7 +175,7 @@ const createSupply = async (req, res) => {
 // @desc    Update supply item
 // @route   PUT /api/supplies/:id
 // @access  Private
-const updateSupply = async (req, res) => {
+const updateSupply = async(req, res) => {
   try {
     let supply = await Supplies.findById(req.params.id);
 
@@ -193,12 +195,12 @@ const updateSupply = async (req, res) => {
     }
 
     // Geocode location if changed
-    if (req.body.location?.street && 
+    if (req.body.location?.street &&
         req.body.location.street !== supply.location.street) {
       try {
         const address = `${req.body.location.street}, ${req.body.location.city}, ${req.body.location.state}`;
         const geocodeResult = await GoogleMapsService.geocodeAddress(address);
-        
+
         if (geocodeResult.success && geocodeResult.data.length > 0) {
           const location = geocodeResult.data[0];
           req.body.location.coordinates = {
@@ -207,7 +209,7 @@ const updateSupply = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', geocodeError);
         // Continue without geocoding if it fails
       }
     }
@@ -223,7 +225,7 @@ const updateSupply = async (req, res) => {
       data: supply
     });
   } catch (error) {
-    console.error('Update supply error:', error);
+    logger.error('Update supply error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -234,7 +236,7 @@ const updateSupply = async (req, res) => {
 // @desc    Delete supply item
 // @route   DELETE /api/supplies/:id
 // @access  Private
-const deleteSupply = async (req, res) => {
+const deleteSupply = async(req, res) => {
   try {
     const supply = await Supplies.findById(req.params.id);
 
@@ -262,7 +264,7 @@ const deleteSupply = async (req, res) => {
       message: 'Supply item deleted successfully'
     });
   } catch (error) {
-    console.error('Delete supply error:', error);
+    logger.error('Delete supply error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -273,7 +275,7 @@ const deleteSupply = async (req, res) => {
 // @desc    Upload supply images
 // @route   POST /api/supplies/:id/images
 // @access  Private
-const uploadSupplyImages = async (req, res) => {
+const uploadSupplyImages = async(req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
@@ -299,7 +301,7 @@ const uploadSupplyImages = async (req, res) => {
       });
     }
 
-    const uploadPromises = req.files.map(file => 
+    const uploadPromises = req.files.map(file =>
       CloudinaryService.uploadFile(file, 'localpro/supplies')
     );
 
@@ -329,7 +331,7 @@ const uploadSupplyImages = async (req, res) => {
       data: successfulUploads
     });
   } catch (error) {
-    console.error('Upload supply images error:', error);
+    logger.error('Upload supply images error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -340,7 +342,7 @@ const uploadSupplyImages = async (req, res) => {
 // @desc    Delete supply image
 // @route   DELETE /api/supplies/:id/images/:imageId
 // @access  Private
-const deleteSupplyImage = async (req, res) => {
+const deleteSupplyImage = async(req, res) => {
   try {
     const { imageId } = req.params;
 
@@ -382,7 +384,7 @@ const deleteSupplyImage = async (req, res) => {
       message: 'Image deleted successfully'
     });
   } catch (error) {
-    console.error('Delete supply image error:', error);
+    logger.error('Delete supply image error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -393,9 +395,9 @@ const deleteSupplyImage = async (req, res) => {
 // @desc    Order supply item
 // @route   POST /api/supplies/:id/order
 // @access  Private
-const orderSupply = async (req, res) => {
+const orderSupply = async(req, res) => {
   try {
-    const { 
+    const {
       quantity,
       deliveryAddress,
       specialInstructions,
@@ -472,7 +474,7 @@ const orderSupply = async (req, res) => {
       data: order
     });
   } catch (error) {
-    console.error('Order supply error:', error);
+    logger.error('Order supply error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -483,7 +485,7 @@ const orderSupply = async (req, res) => {
 // @desc    Update order status
 // @route   PUT /api/supplies/:id/orders/:orderId/status
 // @access  Private
-const updateOrderStatus = async (req, res) => {
+const updateOrderStatus = async(req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -551,7 +553,7 @@ const updateOrderStatus = async (req, res) => {
       data: order
     });
   } catch (error) {
-    console.error('Update order status error:', error);
+    logger.error('Update order status error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -562,7 +564,7 @@ const updateOrderStatus = async (req, res) => {
 // @desc    Add supply review
 // @route   POST /api/supplies/:id/reviews
 // @access  Private
-const addSupplyReview = async (req, res) => {
+const addSupplyReview = async(req, res) => {
   try {
     const { rating, comment } = req.body;
 
@@ -583,8 +585,8 @@ const addSupplyReview = async (req, res) => {
     }
 
     // Check if user has ordered this supply
-    const hasOrdered = supply.orders.some(order => 
-      order.user.toString() === req.user.id && 
+    const hasOrdered = supply.orders.some(order =>
+      order.user.toString() === req.user.id &&
       order.status === 'completed'
     );
 
@@ -596,7 +598,7 @@ const addSupplyReview = async (req, res) => {
     }
 
     // Check if user has already reviewed
-    const existingReview = supply.reviews.find(review => 
+    const existingReview = supply.reviews.find(review =>
       review.user.toString() === req.user.id
     );
 
@@ -628,7 +630,7 @@ const addSupplyReview = async (req, res) => {
       data: review
     });
   } catch (error) {
-    console.error('Add supply review error:', error);
+    logger.error('Add supply review error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -639,7 +641,7 @@ const addSupplyReview = async (req, res) => {
 // @desc    Get user's supply items
 // @route   GET /api/supplies/my-supplies
 // @access  Private
-const getMySupplies = async (req, res) => {
+const getMySupplies = async(req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
@@ -660,7 +662,7 @@ const getMySupplies = async (req, res) => {
       data: supplies
     });
   } catch (error) {
-    console.error('Get my supplies error:', error);
+    logger.error('Get my supplies error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -671,7 +673,7 @@ const getMySupplies = async (req, res) => {
 // @desc    Get user's supply orders
 // @route   GET /api/supplies/my-orders
 // @access  Private
-const getMySupplyOrders = async (req, res) => {
+const getMySupplyOrders = async(req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
@@ -679,10 +681,10 @@ const getMySupplyOrders = async (req, res) => {
     const supplies = await Supplies.find({
       'orders.user': req.user.id
     })
-    .populate('supplier', 'firstName lastName profile.avatar')
-    .sort({ 'orders.createdAt': -1 })
-    .skip(skip)
-    .limit(Number(limit));
+      .populate('supplier', 'firstName lastName profile.avatar')
+      .sort({ 'orders.createdAt': -1 })
+      .skip(skip)
+      .limit(Number(limit));
 
     // Extract orders for the user
     const userOrders = [];
@@ -707,7 +709,7 @@ const getMySupplyOrders = async (req, res) => {
       data: userOrders
     });
   } catch (error) {
-    console.error('Get my supply orders error:', error);
+    logger.error('Get my supply orders error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -718,7 +720,7 @@ const getMySupplyOrders = async (req, res) => {
 // @desc    Get nearby supply items
 // @route   GET /api/supplies/nearby
 // @access  Public
-const getNearbySupplies = async (req, res) => {
+const getNearbySupplies = async(req, res) => {
   try {
     const { lat, lng, radius = 10, page = 1, limit = 10 } = req.query;
 
@@ -743,10 +745,10 @@ const getNearbySupplies = async (req, res) => {
         }
       }
     })
-    .populate('supplier', 'firstName lastName profile.avatar profile.rating')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(Number(limit));
+      .populate('supplier', 'firstName lastName profile.avatar profile.rating')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
 
     const total = await Supplies.countDocuments({
       isActive: true,
@@ -770,7 +772,7 @@ const getNearbySupplies = async (req, res) => {
       data: supplies
     });
   } catch (error) {
-    console.error('Get nearby supplies error:', error);
+    logger.error('Get nearby supplies error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -781,7 +783,7 @@ const getNearbySupplies = async (req, res) => {
 // @desc    Get supply categories
 // @route   GET /api/supplies/categories
 // @access  Public
-const getSupplyCategories = async (req, res) => {
+const getSupplyCategories = async(req, res) => {
   try {
     const categories = await Supplies.aggregate([
       {
@@ -803,7 +805,7 @@ const getSupplyCategories = async (req, res) => {
       data: categories
     });
   } catch (error) {
-    console.error('Get supply categories error:', error);
+    logger.error('Get supply categories error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -814,7 +816,7 @@ const getSupplyCategories = async (req, res) => {
 // @desc    Get featured supply items
 // @route   GET /api/supplies/featured
 // @access  Public
-const getFeaturedSupplies = async (req, res) => {
+const getFeaturedSupplies = async(req, res) => {
   try {
     const { limit = 10 } = req.query;
 
@@ -822,9 +824,9 @@ const getFeaturedSupplies = async (req, res) => {
       isActive: true,
       isFeatured: true
     })
-    .populate('supplier', 'firstName lastName profile.avatar')
-    .sort({ createdAt: -1 })
-    .limit(Number(limit));
+      .populate('supplier', 'firstName lastName profile.avatar')
+      .sort({ createdAt: -1 })
+      .limit(Number(limit));
 
     res.status(200).json({
       success: true,
@@ -832,7 +834,7 @@ const getFeaturedSupplies = async (req, res) => {
       data: supplies
     });
   } catch (error) {
-    console.error('Get featured supplies error:', error);
+    logger.error('Get featured supplies error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -843,7 +845,7 @@ const getFeaturedSupplies = async (req, res) => {
 // @desc    Get supply statistics
 // @route   GET /api/supplies/statistics
 // @access  Private (Admin only)
-const getSupplyStatistics = async (req, res) => {
+const getSupplyStatistics = async(req, res) => {
   try {
     // Get total supplies
     const totalSupplies = await Supplies.countDocuments();
@@ -897,7 +899,7 @@ const getSupplyStatistics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get supply statistics error:', error);
+    logger.error('Get supply statistics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

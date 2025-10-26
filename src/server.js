@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-// const rateLimit = require('express-rate-limit'); // Rate limiting disabled
+const compression = require('compression');
 require('dotenv').config();
 
 const connectDB = require('./config/database');
@@ -10,6 +10,9 @@ const logger = require('./config/logger');
 const { errorHandler } = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
 const { auditGeneralOperations } = require('./middleware/auditLogger');
+const { monitorRequests, monitorErrors } = require('./middleware/monitoringMiddleware');
+const SanitizationService = require('./services/sanitizationService');
+const { specs, swaggerUi, swaggerOptions } = require('./config/swagger');
 const authRoutes = require('./routes/auth');
 const marketplaceRoutes = require('./routes/marketplace');
 const suppliesRoutes = require('./routes/supplies');
@@ -25,6 +28,7 @@ const analyticsRoutes = require('./routes/analytics');
 const mapsRoutes = require('./routes/maps');
 const paypalRoutes = require('./routes/paypal');
 const paymayaRoutes = require('./routes/paymaya');
+const databaseRoutes = require('./routes/database');
 const jobsRoutes = require('./routes/jobs');
 const referralsRoutes = require('./routes/referrals');
 const agenciesRoutes = require('./routes/agencies');
@@ -37,6 +41,7 @@ const userManagementRoutes = require('./routes/userManagement');
 const searchRoutes = require('./routes/search');
 const announcementsRoutes = require('./routes/announcements');
 const activitiesRoutes = require('./routes/activities');
+const monitoringRoutes = require('./routes/monitoring');
 
 const app = express();
 
@@ -44,33 +49,68 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Connect to MongoDB
-connectDB();
+// Connect to database (skipped in test environment)
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
 
 // Security middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ['\'self\''],
+      styleSrc: ['\'self\'', '\'unsafe-inline\''],
+      scriptSrc: ['\'self\''],
+      imgSrc: ['\'self\'', 'data:', 'https:'],
+      connectSrc: ['\'self\''],
+      fontSrc: ['\'self\''],
+      objectSrc: ['\'none\''],
+      mediaSrc: ['\'self\''],
+      frameSrc: ['\'none\'']
+    }
+  },
+  crossOriginEmbedderPolicy: false
 }));
 
-// Rate limiting - DISABLED
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 100, // limit each IP to 100 requests per windowMs
-//   message: 'Too many requests from this IP, please try again later.'
-// });
-// app.use('/api/', limiter);
+// CORS configuration
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Compression middleware
+app.use(compression());
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Input sanitization middleware
+app.use(SanitizationService.sanitizeRequest());
+
 // Logging middleware
 app.use(morgan('combined', { stream: logger.stream }));
 app.use(requestLogger);
 
+// Monitoring middleware
+app.use(monitorRequests);
+
+// Rate limiting middleware
+
 // Audit logging middleware
 app.use(auditGeneralOperations);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
 // Index API info endpoint
 app.get('/', (req, res) => {
@@ -81,13 +121,13 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     baseUrl: `${req.protocol}://${req.get('host')}`,
-    
+
     // Summarized Info
     summary: {
       description: 'LocalPro Super App - A comprehensive platform connecting local service providers with customers',
       features: [
         'Service Marketplace & Bookings',
-        'Learning Academy & Certifications', 
+        'Learning Academy & Certifications',
         'Equipment & Supplies Management',
         'Financial Management & Payments',
         'Job Board & Employment',
@@ -135,9 +175,10 @@ app.get('/', (req, res) => {
 });
 
 // Health check functions
-const checkDatabaseHealth = async () => {
+const checkDatabaseHealth = async() => {
   try {
     const mongoose = require('mongoose');
+
     const state = mongoose.connection.readyState;
     const states = {
       0: 'disconnected',
@@ -145,7 +186,7 @@ const checkDatabaseHealth = async () => {
       2: 'connecting',
       3: 'disconnecting'
     };
-    
+
     return {
       status: state === 1 ? 'healthy' : 'unhealthy',
       state: states[state] || 'unknown',
@@ -161,32 +202,69 @@ const checkDatabaseHealth = async () => {
   }
 };
 
-const checkExternalAPIs = async () => {
+const checkExternalAPIs = async() => {
   const apis = {
     twilio: { status: 'unknown', response_time: null },
     paypal: { status: 'unknown', response_time: null },
     paymaya: { status: 'unknown', response_time: null },
     cloudinary: { status: 'unknown', response_time: null }
   };
-  
+
   // For now, just return basic status
   // In production, you might want to actually ping these services
   return apis;
 };
 
-// Health check endpoint
-app.get('/health', async (req, res) => {
-  const health = {
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database: await checkDatabaseHealth(),
-    external_apis: await checkExternalAPIs(),
-    memory: process.memoryUsage(),
-    version: process.env.npm_package_version
-  };
-  res.status(200).json(health);
+// Enhanced health check endpoint
+app.get('/health', async(req, res) => {
+  try {
+    const health = {
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      version: process.env.npm_package_version || '1.0.0',
+      memory: process.memoryUsage(),
+      services: {
+        database: await checkDatabaseHealth(),
+        external_apis: await checkExternalAPIs()
+      }
+    };
+
+
+    // Check external services configuration
+    health.services.twilio = {
+      status: process.env.TWILIO_ACCOUNT_SID ? 'configured' : 'not_configured'
+    };
+
+    health.services.paypal = {
+      status: process.env.PAYPAL_CLIENT_ID ? 'configured' : 'not_configured'
+    };
+
+    health.services.cloudinary = {
+      status: process.env.CLOUDINARY_CLOUD_NAME ? 'configured' : 'not_configured'
+    };
+
+    // Determine overall health
+    const allServicesHealthy = Object.values(health.services).every(
+      service => service.status === 'healthy' || service.status === 'configured'
+    );
+
+    const statusCode = allServicesHealthy ? 200 : 503;
+    health.status = allServicesHealthy ? 'OK' : 'DEGRADED';
+
+    res.status(statusCode).json(health);
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      timestamp: new Date().toISOString(),
+      error: error.message
+    });
+  }
 });
+
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, swaggerOptions));
 
 // Serve Postman collection
 app.get('/LocalPro-Super-App-API.postman_collection.json', (req, res) => {
@@ -195,7 +273,7 @@ app.get('/LocalPro-Super-App-API.postman_collection.json', (req, res) => {
   res.sendFile('LocalPro-Super-App-API.postman_collection.json', { root: '.' });
 });
 
-// API Routes
+// API Routes with specific rate limiting
 app.use('/api/auth', authRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/supplies', suppliesRoutes);
@@ -211,6 +289,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/maps', mapsRoutes);
 app.use('/api/paypal', paypalRoutes);
 app.use('/api/paymaya', paymayaRoutes);
+app.use('/api/database', databaseRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/referrals', referralsRoutes);
 app.use('/api/agencies', agenciesRoutes);
@@ -223,6 +302,7 @@ app.use('/api/users', userManagementRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/announcements', announcementsRoutes);
 app.use('/api/activities', activitiesRoutes);
+app.use('/api/monitoring', monitoringRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -231,6 +311,9 @@ app.use('*', (req, res) => {
     message: 'API endpoint not found'
   });
 });
+
+// Error monitoring middleware
+app.use(monitorErrors);
 
 // Error handling middleware
 app.use(errorHandler);
@@ -245,11 +328,11 @@ if (require.main === module) {
       environment: process.env.NODE_ENV || 'development',
       timestamp: new Date().toISOString()
     });
-    
-    console.log(`🚀 LocalPro Super App API running on port ${PORT}`);
-    console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`📊 Logging enabled with Winston`);
-    console.log(`🔍 Error monitoring active`);
+
+    logger.info(`🚀 LocalPro Super App API running on port ${PORT}`);
+    logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info('📊 Logging enabled with Winston');
+    logger.info('🔍 Error monitoring active');
   });
 }
 

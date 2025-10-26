@@ -3,11 +3,11 @@
  * Handles all errors in a consistent manner
  */
 
-const { 
-  sendValidationError, 
-  sendNotFoundError, 
-  sendServerError,
-  sendAuthorizationError 
+const {
+  sendValidationError,
+  // sendNotFoundError,
+  sendServerError
+  // sendAuthorizationError
 } = require('../utils/responseHelper');
 const logger = require('../config/logger');
 
@@ -31,7 +31,7 @@ const handleAsyncErrors = (fn) => {
  * @param {Object} res - Express response object
  * @param {Function} next - Express next function
  */
-const errorHandler = (error, req, res, next) => {
+const errorHandler = (error, req, res, _next) => {
   let statusCode = 500;
   let message = 'Internal server error';
   let code = 'SERVER_ERROR';
@@ -52,14 +52,14 @@ const errorHandler = (error, req, res, next) => {
     statusCode = 400;
     message = 'Validation failed';
     code = 'VALIDATION_ERROR';
-    
+
     // Format Mongoose validation errors
     const errors = Object.values(error.errors).map(err => ({
       field: err.path,
       message: err.message,
       code: 'VALIDATION_ERROR'
     }));
-    
+
     return sendValidationError(res, errors);
   }
 
@@ -67,7 +67,7 @@ const errorHandler = (error, req, res, next) => {
     statusCode = 400;
     message = 'Invalid ID format';
     code = 'INVALID_ID_FORMAT';
-    
+
     return res.status(statusCode).json({
       success: false,
       message,
@@ -79,7 +79,7 @@ const errorHandler = (error, req, res, next) => {
     statusCode = 409;
     message = 'Duplicate entry';
     code = 'DUPLICATE_ENTRY';
-    
+
     return res.status(statusCode).json({
       success: false,
       message,
@@ -91,7 +91,7 @@ const errorHandler = (error, req, res, next) => {
     statusCode = 401;
     message = 'Invalid token';
     code = 'INVALID_TOKEN';
-    
+
     return res.status(statusCode).json({
       success: false,
       message,
@@ -103,7 +103,7 @@ const errorHandler = (error, req, res, next) => {
     statusCode = 401;
     message = 'Token expired';
     code = 'TOKEN_EXPIRED';
-    
+
     return res.status(statusCode).json({
       success: false,
       message,
@@ -115,7 +115,7 @@ const errorHandler = (error, req, res, next) => {
     statusCode = 400;
     message = 'File upload error';
     code = 'FILE_UPLOAD_ERROR';
-    
+
     return res.status(statusCode).json({
       success: false,
       message: error.message,
@@ -128,7 +128,7 @@ const errorHandler = (error, req, res, next) => {
   //   statusCode = 429;
   //   message = 'Too many requests';
   //   code = 'RATE_LIMIT_EXCEEDED';
-  //   
+  //
   //   return res.status(statusCode).json({
   //     success: false,
   //     message,
@@ -167,7 +167,7 @@ const notFoundHandler = (req, res, next) => {
  */
 const requestLogger = (req, res, next) => {
   const start = Date.now();
-  
+
   // Log request
   logger.info('Request received:', {
     method: req.method,
@@ -176,7 +176,7 @@ const requestLogger = (req, res, next) => {
     userAgent: req.get('User-Agent'),
     userId: req.user?.id
   });
-  
+
   // Log response
   res.on('finish', () => {
     const duration = Date.now() - start;
@@ -189,7 +189,7 @@ const requestLogger = (req, res, next) => {
       userId: req.user?.id
     });
   });
-  
+
   next();
 };
 
@@ -206,7 +206,7 @@ const securityHeaders = (req, res, next) => {
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-  
+
   // Set CORS headers if needed
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -215,7 +215,7 @@ const securityHeaders = (req, res, next) => {
     res.setHeader('Access-Control-Max-Age', '86400');
     return res.status(200).end();
   }
-  
+
   next();
 };
 
@@ -227,10 +227,10 @@ const securityHeaders = (req, res, next) => {
  */
 const performanceMonitor = (req, res, next) => {
   const start = Date.now();
-  
+
   res.on('finish', () => {
     const duration = Date.now() - start;
-    
+
     // Log slow requests
     if (duration > 1000) {
       logger.warn('Slow request detected:', {
@@ -241,7 +241,7 @@ const performanceMonitor = (req, res, next) => {
         userId: req.user?.id
       });
     }
-    
+
     // Log performance metrics
     logger.info('Performance metrics:', {
       method: req.method,
@@ -252,7 +252,7 @@ const performanceMonitor = (req, res, next) => {
       userId: req.user?.id
     });
   });
-  
+
   next();
 };
 

@@ -8,21 +8,21 @@ const providerSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  
+
   // Provider Status
   status: {
     type: String,
     enum: ['pending', 'active', 'suspended', 'inactive', 'rejected'],
     default: 'pending'
   },
-  
+
   // Provider Type
   providerType: {
     type: String,
     enum: ['individual', 'business', 'agency'],
     required: true
   },
-  
+
   // Business Information (for business/agency providers)
   businessInfo: {
     businessName: String,
@@ -47,7 +47,7 @@ const providerSchema = new mongoose.Schema({
     yearEstablished: Number,
     numberOfEmployees: Number
   },
-  
+
   // Professional Information
   professionalInfo: {
     specialties: [{
@@ -87,7 +87,7 @@ const providerSchema = new mongoose.Schema({
     minimumJobValue: Number,
     maximumJobValue: Number
   },
-  
+
   // Verification & Documentation
   verification: {
     identityVerified: { type: Boolean, default: false },
@@ -132,7 +132,7 @@ const providerSchema = new mongoose.Schema({
       }]
     }
   },
-  
+
   // Financial Information
   financialInfo: {
     bankAccount: {
@@ -156,7 +156,7 @@ const providerSchema = new mongoose.Schema({
     commissionRate: { type: Number, default: 0.1 }, // 10% default
     minimumPayout: { type: Number, default: 50 }
   },
-  
+
   // Performance Metrics
   performance: {
     rating: { type: Number, default: 0, min: 0, max: 5 },
@@ -180,7 +180,7 @@ const providerSchema = new mongoose.Schema({
       category: String
     }]
   },
-  
+
   // Provider Preferences
   preferences: {
     notificationSettings: {
@@ -203,7 +203,7 @@ const providerSchema = new mongoose.Schema({
       autoAcceptJobs: { type: Boolean, default: false }
     }
   },
-  
+
   // Subscription & Plans
   subscription: {
     plan: {
@@ -222,7 +222,7 @@ const providerSchema = new mongoose.Schema({
     nextBillingDate: Date,
     autoRenew: { type: Boolean, default: true }
   },
-  
+
   // Onboarding Progress
   onboarding: {
     completed: { type: Boolean, default: false },
@@ -235,7 +235,7 @@ const providerSchema = new mongoose.Schema({
     currentStep: { type: String, default: 'profile_setup' },
     progress: { type: Number, default: 0 } // percentage
   },
-  
+
   // Provider Settings
   settings: {
     profileVisibility: { type: String, enum: ['public', 'private', 'verified_only'], default: 'public' },
@@ -245,7 +245,7 @@ const providerSchema = new mongoose.Schema({
     allowDirectBooking: { type: Boolean, default: true },
     requireApproval: { type: Boolean, default: false }
   },
-  
+
   // Metadata
   metadata: {
     lastActive: Date,
@@ -261,7 +261,7 @@ const providerSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-providerSchema.index({ userId: 1 });
+// userId already has unique: true which creates an index
 providerSchema.index({ status: 1 });
 providerSchema.index({ providerType: 1 });
 providerSchema.index({ 'professionalInfo.specialties.category': 1 });
@@ -292,10 +292,10 @@ providerSchema.pre('save', function(next) {
   if (this.performance.totalJobs > 0) {
     this.performance.completionRate = (this.performance.completedJobs / this.performance.totalJobs) * 100;
   }
-  
+
   // Update last active
   this.metadata.lastActive = new Date();
-  
+
   next();
 });
 
@@ -324,18 +324,18 @@ providerSchema.methods.updateEarnings = function(amount) {
 };
 
 providerSchema.methods.isVerified = function() {
-  return this.verification.identityVerified && 
+  return this.verification.identityVerified &&
          (this.providerType === 'individual' || this.verification.businessVerified);
 };
 
 providerSchema.methods.canAcceptJobs = function() {
-  return this.status === 'active' && 
+  return this.status === 'active' &&
          this.verification.identityVerified &&
          (this.providerType === 'individual' || this.verification.businessVerified);
 };
 
 providerSchema.methods.getServiceAreas = function() {
-  return this.professionalInfo.specialties.flatMap(specialty => 
+  return this.professionalInfo.specialties.flatMap(specialty =>
     specialty.serviceAreas.map(area => ({
       ...area,
       category: specialty.category
@@ -351,11 +351,11 @@ providerSchema.statics.findByLocation = function(city, state, category) {
       $elemMatch: { city, state }
     }
   };
-  
+
   if (category) {
     query['professionalInfo.specialties.category'] = category;
   }
-  
+
   return this.find(query);
 };
 
@@ -366,9 +366,9 @@ providerSchema.statics.findTopRated = function(limit = 10) {
 };
 
 providerSchema.statics.findFeatured = function() {
-  return this.find({ 
-    status: 'active', 
-    'metadata.featured': true 
+  return this.find({
+    status: 'active',
+    'metadata.featured': true
   }).sort({ 'performance.rating': -1 });
 };
 

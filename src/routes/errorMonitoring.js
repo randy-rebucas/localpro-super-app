@@ -22,10 +22,10 @@ router.get('/', (req, res) => {
 });
 
 // Get error statistics - [ADMIN ONLY]
-router.get('/stats', auth, async (req, res) => {
+router.get('/stats', auth, async(req, res) => {
   try {
     const { timeframe = '24h' } = req.query;
-    
+
     // Only allow admin users to view error stats
     if (req.user.role !== 'admin') {
       return res.status(403).json({
@@ -35,7 +35,7 @@ router.get('/stats', auth, async (req, res) => {
     }
 
     const stats = await errorMonitoringService.getErrorStats(timeframe);
-    
+
     logger.info('Error stats retrieved', {
       userId: req.user.id,
       timeframe,
@@ -55,7 +55,7 @@ router.get('/stats', auth, async (req, res) => {
       userId: req.user.id,
       timeframe: req.query.timeframe
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve error statistics'
@@ -64,7 +64,7 @@ router.get('/stats', auth, async (req, res) => {
 });
 
 // Get unresolved errors - [ADMIN ONLY]
-router.get('/unresolved', auth, async (req, res) => {
+router.get('/unresolved', auth, async(req, res) => {
   try {
     // Only allow admin users to view unresolved errors
     if (req.user.role !== 'admin') {
@@ -76,7 +76,7 @@ router.get('/unresolved', auth, async (req, res) => {
 
     const { limit = 50 } = req.query;
     const errors = await errorMonitoringService.getUnresolvedErrors(parseInt(limit));
-    
+
     logger.info('Unresolved errors retrieved', {
       userId: req.user.id,
       limit,
@@ -96,7 +96,7 @@ router.get('/unresolved', auth, async (req, res) => {
       userId: req.user.id,
       limit: req.query.limit
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve unresolved errors'
@@ -105,7 +105,7 @@ router.get('/unresolved', auth, async (req, res) => {
 });
 
 // Get error details - [ADMIN ONLY]
-router.get('/:errorId', auth, async (req, res) => {
+router.get('/:errorId', auth, async(req, res) => {
   try {
     // Only allow admin users to view error details
     if (req.user.role !== 'admin') {
@@ -117,7 +117,7 @@ router.get('/:errorId', auth, async (req, res) => {
 
     const { errorId } = req.params;
     const errorDetails = await errorMonitoringService.getErrorDetails(errorId);
-    
+
     if (!errorDetails) {
       return res.status(404).json({
         success: false,
@@ -139,7 +139,7 @@ router.get('/:errorId', auth, async (req, res) => {
       userId: req.user.id,
       errorId: req.params.errorId
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve error details'
@@ -148,7 +148,7 @@ router.get('/:errorId', auth, async (req, res) => {
 });
 
 // Resolve error - [ADMIN ONLY]
-router.patch('/:errorId/resolve', auth, async (req, res) => {
+router.patch('/:errorId/resolve', auth, async(req, res) => {
   try {
     // Only allow admin users to resolve errors
     if (req.user.role !== 'admin') {
@@ -160,7 +160,7 @@ router.patch('/:errorId/resolve', auth, async (req, res) => {
 
     const { errorId } = req.params;
     const { resolution } = req.body;
-    
+
     if (!resolution) {
       return res.status(400).json({
         success: false,
@@ -173,7 +173,7 @@ router.patch('/:errorId/resolve', auth, async (req, res) => {
       req.user.id,
       resolution
     );
-    
+
     if (!resolvedError) {
       return res.status(404).json({
         success: false,
@@ -197,7 +197,7 @@ router.patch('/:errorId/resolve', auth, async (req, res) => {
       userId: req.user.id,
       errorId: req.params.errorId
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to resolve error'
@@ -206,7 +206,7 @@ router.patch('/:errorId/resolve', auth, async (req, res) => {
 });
 
 // Get error monitoring dashboard data - [ADMIN ONLY]
-router.get('/dashboard/summary', auth, async (req, res) => {
+router.get('/dashboard/summary', auth, async(req, res) => {
   try {
     // Only allow admin users to view dashboard
     if (req.user.role !== 'admin') {
@@ -253,7 +253,7 @@ router.get('/dashboard/summary', auth, async (req, res) => {
     logger.error('Failed to get dashboard data', error, {
       userId: req.user.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve dashboard data'

@@ -9,7 +9,7 @@ const levels = {
   warn: 1,
   info: 2,
   http: 3,
-  debug: 4,
+  debug: 4
 };
 
 // Define colors for each level
@@ -18,7 +18,7 @@ const colors = {
   warn: 'yellow',
   info: 'green',
   http: 'magenta',
-  debug: 'white',
+  debug: 'white'
 };
 
 // Tell winston that you want to link the colors
@@ -34,9 +34,9 @@ const transports = [
       winston.format.printf(
         (info) => `${info.timestamp} ${info.level}: ${info.message}`
       )
-    ),
+    )
   }),
-  
+
   // Error log file
   new DailyRotateFile({
     filename: path.join('logs', 'error-%DATE%.log'),
@@ -48,9 +48,9 @@ const transports = [
       winston.format.json()
     ),
     maxSize: '20m',
-    maxFiles: '14d',
+    maxFiles: '14d'
   }),
-  
+
   // Combined log file
   new DailyRotateFile({
     filename: path.join('logs', 'combined-%DATE%.log'),
@@ -61,9 +61,9 @@ const transports = [
       winston.format.json()
     ),
     maxSize: '20m',
-    maxFiles: '14d',
+    maxFiles: '14d'
   }),
-  
+
   // HTTP requests log file
   new DailyRotateFile({
     filename: path.join('logs', 'http-%DATE%.log'),
@@ -74,7 +74,7 @@ const transports = [
       winston.format.json()
     ),
     maxSize: '20m',
-    maxFiles: '7d',
+    maxFiles: '7d'
   }),
 
   // Database transport for storing logs in MongoDB
@@ -82,7 +82,7 @@ const transports = [
     level: process.env.LOG_LEVEL || 'info',
     batchSize: parseInt(process.env.LOG_BATCH_SIZE) || 100,
     flushInterval: parseInt(process.env.LOG_FLUSH_INTERVAL) || 5000
-  }),
+  })
 ];
 
 // Create the logger instance
@@ -90,7 +90,7 @@ const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'development' ? 'debug' : 'warn',
   levels,
   transports,
-  exitOnError: false,
+  exitOnError: false
 });
 
 // Create logs directory if it doesn't exist
@@ -104,7 +104,7 @@ if (!fs.existsSync(logsDir)) {
 logger.stream = {
   write: (message) => {
     logger.http(message.trim());
-  },
+  }
 };
 
 // Add request logging method
@@ -117,7 +117,7 @@ logger.logRequest = (req, res, responseTime) => {
     userAgent: req.get('User-Agent'),
     ip: req.ip || req.connection.remoteAddress,
     userId: req.user ? req.user.id : null,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
 
   if (res.statusCode >= 400) {
@@ -134,7 +134,7 @@ logger.logError = (error, req = null, additionalInfo = {}) => {
     stack: error.stack,
     name: error.name,
     timestamp: new Date().toISOString(),
-    ...additionalInfo,
+    ...additionalInfo
   };
 
   if (req) {
@@ -146,7 +146,7 @@ logger.logError = (error, req = null, additionalInfo = {}) => {
       params: req.params,
       query: req.query,
       ip: req.ip || req.connection.remoteAddress,
-      userId: req.user ? req.user.id : null,
+      userId: req.user ? req.user.id : null
     };
   }
 
@@ -159,7 +159,7 @@ logger.logPerformance = (operation, duration, metadata = {}) => {
     operation,
     duration: `${duration}ms`,
     timestamp: new Date().toISOString(),
-    ...metadata,
+    ...metadata
   };
 
   if (duration > 1000) {
@@ -174,7 +174,7 @@ logger.logBusinessEvent = (event, data = {}) => {
   const eventData = {
     event,
     timestamp: new Date().toISOString(),
-    ...data,
+    ...data
   };
 
   logger.info('Business Event', eventData);
@@ -185,7 +185,7 @@ logger.logSecurityEvent = (event, data = {}) => {
   const securityData = {
     event,
     timestamp: new Date().toISOString(),
-    ...data,
+    ...data
   };
 
   logger.warn('Security Event', securityData);

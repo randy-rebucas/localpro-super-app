@@ -333,7 +333,7 @@ const trustScoreSchema = new mongoose.Schema({
     type: {
       type: String,
       enum: ['verified_identity', 'verified_business', 'verified_address', 'verified_bank',
-             'top_rated', 'reliable', 'fast_response', 'excellent_service', 'trusted_provider']
+        'top_rated', 'reliable', 'fast_response', 'excellent_service', 'trusted_provider']
     },
     earnedAt: {
       type: Date,
@@ -377,7 +377,7 @@ trustScoreSchema.index({ lastCalculated: -1 });
 trustScoreSchema.methods.calculateScore = function() {
   let totalScore = 0;
   let totalWeight = 0;
-  
+
   Object.keys(this.components).forEach(component => {
     const comp = this.components[component];
     if (comp.score > 0) {
@@ -385,34 +385,34 @@ trustScoreSchema.methods.calculateScore = function() {
       totalWeight += comp.weight;
     }
   });
-  
+
   this.overallScore = totalWeight > 0 ? Math.round(totalScore / totalWeight) : 0;
   this.lastCalculated = new Date();
-  
+
   // Add to history
   this.history.push({
     score: this.overallScore,
     reason: 'Automatic calculation',
     timestamp: new Date()
   });
-  
+
   // Keep only last 50 history entries
   if (this.history.length > 50) {
     this.history = this.history.slice(-50);
   }
-  
+
   return this.overallScore;
 };
 
 // Method to update component score
-trustScoreSchema.methods.updateComponentScore = function(component, score, reason = 'Manual update') {
+trustScoreSchema.methods.updateComponentScore = function(component, score, _reason = 'Manual update') {
   if (this.components[component]) {
     this.components[component].score = score;
     this.components[component].lastUpdated = new Date();
-    
+
     // Recalculate overall score
     this.calculateScore();
-    
+
     return this.save();
   }
   throw new Error(`Invalid component: ${component}`);
@@ -440,75 +440,77 @@ trustScoreSchema.methods.removeBadge = function(badgeType) {
 // Static method to get user trust score
 trustScoreSchema.statics.getUserTrustScore = async function(userId) {
   let trustScore = await this.findOne({ user: userId });
-  
+
   if (!trustScore) {
     trustScore = new this({ user: userId });
     await trustScore.save();
   }
-  
+
   return trustScore;
 };
 
 // Static method to update trust score based on activity
 trustScoreSchema.statics.updateFromActivity = async function(userId, activityType, data) {
   const trustScore = await this.getUserTrustScore(userId);
-  
+
   switch (activityType) {
-    case 'booking_completed':
-      trustScore.factors.activityMetrics.completedBookings += 1;
-      break;
-    case 'booking_cancelled':
-      trustScore.factors.activityMetrics.cancelledBookings += 1;
-      break;
-    case 'review_received':
-      const { rating } = data;
-      const currentTotal = trustScore.factors.activityMetrics.averageRating * trustScore.factors.activityMetrics.totalReviews;
-      trustScore.factors.activityMetrics.totalReviews += 1;
-      trustScore.factors.activityMetrics.averageRating = (currentTotal + rating) / trustScore.factors.activityMetrics.totalReviews;
-      break;
-    case 'payment_completed':
-      trustScore.factors.financialMetrics.totalTransactions += 1;
-      trustScore.factors.financialMetrics.totalAmount += data.amount || 0;
-      break;
-    case 'dispute_filed':
-      trustScore.factors.complianceMetrics.disputesFiled += 1;
-      break;
-    case 'dispute_resolved':
-      trustScore.factors.complianceMetrics.disputesResolved += 1;
-      break;
+  case 'booking_completed':
+    trustScore.factors.activityMetrics.completedBookings += 1;
+    break;
+  case 'booking_cancelled':
+    trustScore.factors.activityMetrics.cancelledBookings += 1;
+    break;
+  case 'review_received': {
+    const { rating } = data;
+    const currentTotal = trustScore.factors.activityMetrics.averageRating * trustScore.factors.activityMetrics.totalReviews;
+    trustScore.factors.activityMetrics.totalReviews += 1;
+    trustScore.factors.activityMetrics.averageRating = (currentTotal + rating) / trustScore.factors.activityMetrics.totalReviews;
+    break;
   }
-  
+  case 'payment_completed': {
+    trustScore.factors.financialMetrics.totalTransactions += 1;
+    trustScore.factors.financialMetrics.totalAmount += data.amount || 0;
+    break;
+  }
+  case 'dispute_filed':
+    trustScore.factors.complianceMetrics.disputesFiled += 1;
+    break;
+  case 'dispute_resolved':
+    trustScore.factors.complianceMetrics.disputesResolved += 1;
+    break;
+  }
+
   // Recalculate behavior score based on activity
   const behaviorScore = this.calculateBehaviorScore(trustScore.factors);
   trustScore.updateComponentScore('behavior', behaviorScore, 'Activity-based update');
-  
+
   return trustScore.save();
 };
 
 // Static method to calculate behavior score
 trustScoreSchema.statics.calculateBehaviorScore = function(factors) {
   let score = 0;
-  
+
   // Completion rate (40% weight)
   const totalBookings = factors.activityMetrics.totalBookings;
   if (totalBookings > 0) {
     const completionRate = factors.activityMetrics.completedBookings / totalBookings;
     score += completionRate * 40;
   }
-  
+
   // Rating score (30% weight)
   score += (factors.activityMetrics.averageRating / 5) * 30;
-  
+
   // Payment success rate (20% weight)
   score += factors.financialMetrics.paymentSuccessRate * 20;
-  
+
   // Dispute resolution rate (10% weight)
   const totalDisputes = factors.complianceMetrics.disputesFiled;
   if (totalDisputes > 0) {
     const resolutionRate = factors.complianceMetrics.disputesResolved / totalDisputes;
     score += resolutionRate * 10;
   }
-  
+
   return Math.round(score);
 };
 

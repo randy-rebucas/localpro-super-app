@@ -14,7 +14,7 @@ const { sendValidationError } = require('../utils/responseHelper');
 const validateObjectIdParam = (paramName = 'id') => {
   return (req, res, next) => {
     const id = req.params[paramName];
-    
+
     if (!validateObjectId(id)) {
       return sendValidationError(res, [{
         field: paramName,
@@ -22,7 +22,7 @@ const validateObjectIdParam = (paramName = 'id') => {
         code: `INVALID_${paramName.toUpperCase()}_FORMAT`
       }]);
     }
-    
+
     next();
   };
 };
@@ -35,7 +35,7 @@ const validateObjectIdParam = (paramName = 'id') => {
 const validateMultipleObjectIds = (paramNames) => {
   return (req, res, next) => {
     const errors = [];
-    
+
     paramNames.forEach(paramName => {
       const id = req.params[paramName];
       if (id && !validateObjectId(id)) {
@@ -46,11 +46,11 @@ const validateMultipleObjectIds = (paramNames) => {
         });
       }
     });
-    
+
     if (errors.length > 0) {
       return sendValidationError(res, errors);
     }
-    
+
     next();
   };
 };
@@ -63,9 +63,9 @@ const validatePaginationParams = (req, res, next) => {
   const { page = 1, limit = 10 } = req.query;
   const pageNum = parseInt(page);
   const limitNum = parseInt(limit);
-  
+
   const errors = [];
-  
+
   if (isNaN(pageNum) || pageNum < 1) {
     errors.push({
       field: 'page',
@@ -73,7 +73,7 @@ const validatePaginationParams = (req, res, next) => {
       code: 'INVALID_PAGE_NUMBER'
     });
   }
-  
+
   if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
     errors.push({
       field: 'limit',
@@ -81,11 +81,11 @@ const validatePaginationParams = (req, res, next) => {
       code: 'INVALID_LIMIT'
     });
   }
-  
+
   if (errors.length > 0) {
     return sendValidationError(res, errors);
   }
-  
+
   next();
 };
 
@@ -94,8 +94,8 @@ const validatePaginationParams = (req, res, next) => {
  * @returns {Function} - Express middleware
  */
 const validateSearchParams = (req, res, next) => {
-  const { search, category, location } = req.query;
-  
+  const { search, category } = req.query;
+
   // Validate search term length
   if (search && search.length < 2) {
     return sendValidationError(res, [{
@@ -104,7 +104,7 @@ const validateSearchParams = (req, res, next) => {
       code: 'SEARCH_TERM_TOO_SHORT'
     }]);
   }
-  
+
   // Validate category if provided
   if (category && typeof category !== 'string') {
     return sendValidationError(res, [{
@@ -113,7 +113,7 @@ const validateSearchParams = (req, res, next) => {
       code: 'INVALID_CATEGORY'
     }]);
   }
-  
+
   next();
 };
 
@@ -125,7 +125,7 @@ const validateSearchParams = (req, res, next) => {
 const validateFileUpload = (options = {}) => {
   return (req, res, next) => {
     const { maxSize = 5 * 1024 * 1024, allowedTypes = ['image/jpeg', 'image/png', 'image/gif'] } = options;
-    
+
     if (!req.file && !req.files) {
       return sendValidationError(res, [{
         field: 'file',
@@ -133,9 +133,9 @@ const validateFileUpload = (options = {}) => {
         code: 'NO_FILE_UPLOADED'
       }]);
     }
-    
+
     const files = req.files || [req.file];
-    
+
     for (const file of files) {
       if (file.size > maxSize) {
         return sendValidationError(res, [{
@@ -144,7 +144,7 @@ const validateFileUpload = (options = {}) => {
           code: 'FILE_TOO_LARGE'
         }]);
       }
-      
+
       if (!allowedTypes.includes(file.mimetype)) {
         return sendValidationError(res, [{
           field: 'file',
@@ -153,7 +153,7 @@ const validateFileUpload = (options = {}) => {
         }]);
       }
     }
-    
+
     next();
   };
 };
@@ -164,7 +164,7 @@ const validateFileUpload = (options = {}) => {
  */
 const validateDateRange = (req, res, next) => {
   const { startDate, endDate } = req.query;
-  
+
   if (startDate && isNaN(Date.parse(startDate))) {
     return sendValidationError(res, [{
       field: 'startDate',
@@ -172,7 +172,7 @@ const validateDateRange = (req, res, next) => {
       code: 'INVALID_START_DATE'
     }]);
   }
-  
+
   if (endDate && isNaN(Date.parse(endDate))) {
     return sendValidationError(res, [{
       field: 'endDate',
@@ -180,7 +180,7 @@ const validateDateRange = (req, res, next) => {
       code: 'INVALID_END_DATE'
     }]);
   }
-  
+
   if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
     return sendValidationError(res, [{
       field: 'dateRange',
@@ -188,7 +188,7 @@ const validateDateRange = (req, res, next) => {
       code: 'INVALID_DATE_RANGE'
     }]);
   }
-  
+
   next();
 };
 

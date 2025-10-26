@@ -120,14 +120,14 @@ class ProviderDashboardService {
   }
 
   // Get recent activity
-  async getRecentActivity(userId, since) {
+  async getRecentActivity(_userId, _since) {
     // This would integrate with actual activity data
     return {
-      bookings: await this.getRecentBookings(userId, since),
-      reviews: await this.getRecentReviews(userId, since),
-      messages: await this.getRecentMessages(userId, since),
-      payments: await this.getRecentPayments(userId, since),
-      profileViews: await this.getRecentProfileViews(userId, since)
+      bookings: await this.getRecentBookings(_userId, _since),
+      reviews: await this.getRecentReviews(_userId, _since),
+      messages: await this.getRecentMessages(_userId, _since),
+      payments: await this.getRecentPayments(_userId, _since),
+      profileViews: await this.getRecentProfileViews(_userId, _since)
     };
   }
 
@@ -157,7 +157,7 @@ class ProviderDashboardService {
   }
 
   // Helper methods for data aggregation
-  async getEarningsByCategory(providerId, since) {
+  async getEarningsByCategory(_providerId, _since) {
     // Placeholder - would integrate with actual financial data
     return [
       { category: 'cleaning', amount: 1500, percentage: 40 },
@@ -167,7 +167,7 @@ class ProviderDashboardService {
     ];
   }
 
-  async getEarningsByPaymentMethod(providerId, since) {
+  async getEarningsByPaymentMethod(_providerId, _since) {
     // Placeholder - would integrate with actual financial data
     return [
       { method: 'bank_transfer', amount: 2000, percentage: 60 },
@@ -176,11 +176,11 @@ class ProviderDashboardService {
     ];
   }
 
-  async getEarningsByTimeframe(providerId, since) {
+  async getEarningsByTimeframe(_providerId, _since) {
     // Placeholder - would integrate with actual financial data
-    const days = Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000));
+    const days = Math.ceil((Date.now() - _since.getTime()) / (24 * 60 * 60 * 1000));
     const data = [];
-    
+
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(Date.now() - (i * 24 * 60 * 60 * 1000));
       data.push({
@@ -188,11 +188,11 @@ class ProviderDashboardService {
         amount: Math.floor(Math.random() * 200) + 50
       });
     }
-    
+
     return data;
   }
 
-  async getRatingTrend(providerId, since) {
+  async getRatingTrend(_providerId, _since) {
     // Placeholder - would integrate with actual review data
     return {
       current: 4.8,
@@ -202,7 +202,7 @@ class ProviderDashboardService {
     };
   }
 
-  async getResponseTimeTrend(providerId, since) {
+  async getResponseTimeTrend(_providerId, _since) {
     // Placeholder - would integrate with actual response data
     return {
       current: 15, // minutes
@@ -212,7 +212,7 @@ class ProviderDashboardService {
     };
   }
 
-  async getCompletionRateTrend(providerId, since) {
+  async getCompletionRateTrend(_providerId, _since) {
     // Placeholder - would integrate with actual job data
     return {
       current: 95, // percentage
@@ -222,7 +222,7 @@ class ProviderDashboardService {
     };
   }
 
-  async getPerformanceComparisons(providerId) {
+  async getPerformanceComparisons(_providerId) {
     // Placeholder - would integrate with actual comparison data
     return {
       rating: { provider: 4.8, average: 4.2, percentile: 85 },
@@ -231,7 +231,7 @@ class ProviderDashboardService {
     };
   }
 
-  async getTopPerformersComparison(providerId) {
+  async getTopPerformersComparison(_providerId) {
     // Placeholder - would integrate with actual comparison data
     return {
       rating: { provider: 4.8, topPerformers: 4.9, gap: -0.1 },
@@ -240,7 +240,7 @@ class ProviderDashboardService {
     };
   }
 
-  async getRecentBookings(userId, since) {
+  async getRecentBookings(_userId, _since) {
     // Placeholder - would integrate with actual booking data
     return [
       {
@@ -254,7 +254,7 @@ class ProviderDashboardService {
     ];
   }
 
-  async getRecentReviews(userId, since) {
+  async getRecentReviews(_userId, _since) {
     // Placeholder - would integrate with actual review data
     return [
       {
@@ -268,7 +268,7 @@ class ProviderDashboardService {
     ];
   }
 
-  async getRecentMessages(userId, since) {
+  async getRecentMessages(_userId, _since) {
     // Placeholder - would integrate with actual message data
     return [
       {
@@ -281,7 +281,7 @@ class ProviderDashboardService {
     ];
   }
 
-  async getRecentPayments(userId, since) {
+  async getRecentPayments(_userId, _since) {
     // Placeholder - would integrate with actual payment data
     return [
       {
@@ -294,7 +294,7 @@ class ProviderDashboardService {
     ];
   }
 
-  async getRecentProfileViews(userId, since) {
+  async getRecentProfileViews(_userId, _since) {
     // Placeholder - would integrate with actual view data
     return {
       total: 45,
@@ -307,22 +307,22 @@ class ProviderDashboardService {
     };
   }
 
-  async getPendingJobs(userId) {
+  async getPendingJobs(_userId) {
     // Placeholder - would integrate with actual job data
     return 3;
   }
 
-  async getUnreadMessages(userId) {
+  async getUnreadMessages(_userId) {
     // Placeholder - would integrate with actual message data
     return 5;
   }
 
-  async getPendingReviews(userId) {
+  async getPendingReviews(_userId) {
     // Placeholder - would integrate with actual review data
     return 2;
   }
 
-  async getSystemAlerts(userId) {
+  async getSystemAlerts(_userId) {
     // Placeholder - would integrate with actual alert data
     return [
       {
@@ -333,7 +333,7 @@ class ProviderDashboardService {
     ];
   }
 
-  async getPaymentNotifications(userId) {
+  async getPaymentNotifications(_userId) {
     // Placeholder - would integrate with actual payment data
     return [
       {
@@ -344,11 +344,11 @@ class ProviderDashboardService {
     ];
   }
 
-  async getJobTrends(providerId, since) {
+  async getJobTrends(_providerId, _since) {
     // Placeholder - would integrate with actual job data
-    const days = Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000));
+    const days = Math.ceil((Date.now() - _since.getTime()) / (24 * 60 * 60 * 1000));
     const data = [];
-    
+
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(Date.now() - (i * 24 * 60 * 60 * 1000));
       data.push({
@@ -356,20 +356,20 @@ class ProviderDashboardService {
         jobs: Math.floor(Math.random() * 5) + 1
       });
     }
-    
+
     return data;
   }
 
-  async getEarningsTrends(providerId, since) {
+  async getEarningsTrends(_providerId, _since) {
     // Placeholder - would integrate with actual earnings data
-    return this.getEarningsByTimeframe(providerId, since);
+    return this.getEarningsByTimeframe(_providerId, _since);
   }
 
-  async getRatingTrends(providerId, since) {
+  async getRatingTrends(_providerId, _since) {
     // Placeholder - would integrate with actual rating data
-    const days = Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000));
+    const days = Math.ceil((Date.now() - _since.getTime()) / (24 * 60 * 60 * 1000));
     const data = [];
-    
+
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(Date.now() - (i * 24 * 60 * 60 * 1000));
       data.push({
@@ -377,15 +377,15 @@ class ProviderDashboardService {
         rating: 4.5 + (Math.random() * 0.5)
       });
     }
-    
+
     return data;
   }
 
-  async getProfileViewTrends(providerId, since) {
+  async getProfileViewTrends(_providerId, _since) {
     // Placeholder - would integrate with actual view data
-    const days = Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000));
+    const days = Math.ceil((Date.now() - _since.getTime()) / (24 * 60 * 60 * 1000));
     const data = [];
-    
+
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(Date.now() - (i * 24 * 60 * 60 * 1000));
       data.push({
@@ -393,15 +393,15 @@ class ProviderDashboardService {
         views: Math.floor(Math.random() * 20) + 5
       });
     }
-    
+
     return data;
   }
 
-  async getCustomerSatisfactionTrends(providerId, since) {
+  async getCustomerSatisfactionTrends(_providerId, _since) {
     // Placeholder - would integrate with actual satisfaction data
-    const days = Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000));
+    const days = Math.ceil((Date.now() - _since.getTime()) / (24 * 60 * 60 * 1000));
     const data = [];
-    
+
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(Date.now() - (i * 24 * 60 * 60 * 1000));
       data.push({
@@ -409,7 +409,7 @@ class ProviderDashboardService {
         satisfaction: 85 + (Math.random() * 15)
       });
     }
-    
+
     return data;
   }
 

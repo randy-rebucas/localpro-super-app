@@ -1,11 +1,11 @@
 const express = require('express');
 const { auth, authorize } = require('../middleware/auth');
 // const { searchLimiter, generalLimiter } = require('../middleware/rateLimiter'); // Rate limiting disabled
-const { 
-  validateObjectIdParam, 
-  validatePaginationParams, 
-  validateSearchParams,
-  validateFileUpload 
+const {
+  validateObjectIdParam,
+  validatePaginationParams,
+  validateSearchParams
+  // validateFileUpload
 } = require('../middleware/routeValidation');
 const {
   getServices,
@@ -30,16 +30,16 @@ const { uploaders } = require('../config/cloudinary');
 const router = express.Router();
 
 // Public routes - rate limiting disabled
-router.get('/services', 
+router.get('/services',
   validatePaginationParams,
   validateSearchParams,
   getServices
 );
-router.get('/services/nearby', 
+router.get('/services/nearby',
   validateSearchParams,
   getNearbyServices
 );
-router.get('/services/:id', 
+router.get('/services/:id',
   validateObjectIdParam('id'),
   getService
 );

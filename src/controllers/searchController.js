@@ -17,17 +17,17 @@ const logger = require('../config/logger');
  * @route   GET /api/search
  * @access  Public
  */
-const globalSearch = async (req, res) => {
+const globalSearch = async(req, res) => {
   try {
-    const { 
-      q: query, 
-      type, 
-      category, 
-      location, 
-      minPrice, 
-      maxPrice, 
-      rating, 
-      limit = 20, 
+    const {
+      q: query,
+      type,
+      category,
+      location,
+      minPrice,
+      maxPrice,
+      rating,
+      limit = 20,
       page = 1,
       sortBy = 'relevance',
       sortOrder = 'desc'
@@ -156,7 +156,7 @@ const globalSearch = async (req, res) => {
 /**
  * Search Users/Providers
  */
-const searchUsers = async (query, filters = {}) => {
+const searchUsers = async(query, filters = {}) => {
   try {
     const searchQuery = {
       role: { $in: ['provider', 'supplier', 'instructor'] },
@@ -221,7 +221,7 @@ const searchUsers = async (query, filters = {}) => {
 /**
  * Search Jobs
  */
-const searchJobs = async (query, filters = {}) => {
+const searchJobs = async(query, filters = {}) => {
   try {
     const searchQuery = {
       isActive: true,
@@ -289,7 +289,7 @@ const searchJobs = async (query, filters = {}) => {
 /**
  * Search Marketplace Services
  */
-const searchServices = async (query, filters = {}) => {
+const searchServices = async(query, filters = {}) => {
   try {
     const searchQuery = {
       isActive: true
@@ -355,7 +355,7 @@ const searchServices = async (query, filters = {}) => {
 /**
  * Search Supplies
  */
-const searchSupplies = async (query, filters = {}) => {
+const searchSupplies = async(query, filters = {}) => {
   try {
     const searchQuery = {
       isActive: true
@@ -414,7 +414,7 @@ const searchSupplies = async (query, filters = {}) => {
 /**
  * Search Academy Courses
  */
-const searchCourses = async (query, filters = {}) => {
+const searchCourses = async(query, filters = {}) => {
   try {
     const searchQuery = {
       isActive: true
@@ -473,7 +473,7 @@ const searchCourses = async (query, filters = {}) => {
 /**
  * Search Rental Items
  */
-const searchRentals = async (query, filters = {}) => {
+const searchRentals = async(query, filters = {}) => {
   try {
     const searchQuery = {
       isActive: true,
@@ -503,7 +503,7 @@ const searchRentals = async (query, filters = {}) => {
       const priceQuery = {};
       if (filters.minPrice) priceQuery.$gte = parseFloat(filters.minPrice);
       if (filters.maxPrice) priceQuery.$lte = parseFloat(filters.maxPrice);
-      
+
       searchQuery.$or = [
         { 'pricing.hourly': priceQuery },
         { 'pricing.daily': priceQuery },
@@ -549,7 +549,7 @@ const searchRentals = async (query, filters = {}) => {
 /**
  * Search Agencies
  */
-const searchAgencies = async (query, filters = {}) => {
+const searchAgencies = async(query, filters = {}) => {
   try {
     const searchQuery = {
       isActive: true
@@ -611,7 +611,7 @@ const searchAgencies = async (query, filters = {}) => {
 /**
  * Get search suggestions/autocomplete
  */
-const getSearchSuggestions = async (req, res) => {
+const getSearchSuggestions = async(req, res) => {
   try {
     const { q: query, limit = 10 } = req.query;
 
@@ -702,7 +702,7 @@ const getSearchSuggestions = async (req, res) => {
 
     // Remove duplicates and limit results
     const uniqueSuggestions = suggestions
-      .filter((suggestion, index, self) => 
+      .filter((suggestion, index, self) =>
         index === self.findIndex(s => s.text === suggestion.text)
       )
       .slice(0, limit);
@@ -733,7 +733,7 @@ const getSearchSuggestions = async (req, res) => {
 /**
  * Get popular search terms
  */
-const getPopularSearches = async (req, res) => {
+const getPopularSearches = async(req, res) => {
   try {
     // In a real application, you might want to track search analytics
     // For now, we'll return some popular terms based on common categories
@@ -834,26 +834,26 @@ const sortResults = (results, sortBy, sortOrder) => {
   const order = sortOrder === 'desc' ? -1 : 1;
 
   switch (sortBy) {
-    case 'relevance':
-      return results.sort((a, b) => (b.relevanceScore - a.relevanceScore) * order);
-    case 'rating':
-      return results.sort((a, b) => (b.rating - a.rating) * order);
-    case 'price_low':
-      return results.sort((a, b) => {
-        const priceA = extractPrice(a.price) || 0;
-        const priceB = extractPrice(b.price) || 0;
-        return (priceA - priceB) * order;
-      });
-    case 'price_high':
-      return results.sort((a, b) => {
-        const priceA = extractPrice(a.price) || 0;
-        const priceB = extractPrice(b.price) || 0;
-        return (priceB - priceA) * order;
-      });
-    case 'newest':
-      return results.sort((a, b) => (new Date(b.createdAt) - new Date(a.createdAt)) * order);
-    default:
-      return results.sort((a, b) => (b.relevanceScore - a.relevanceScore) * order);
+  case 'relevance':
+    return results.sort((a, b) => (b.relevanceScore - a.relevanceScore) * order);
+  case 'rating':
+    return results.sort((a, b) => (b.rating - a.rating) * order);
+  case 'price_low':
+    return results.sort((a, b) => {
+      const priceA = extractPrice(a.price) || 0;
+      const priceB = extractPrice(b.price) || 0;
+      return (priceA - priceB) * order;
+    });
+  case 'price_high':
+    return results.sort((a, b) => {
+      const priceA = extractPrice(a.price) || 0;
+      const priceB = extractPrice(b.price) || 0;
+      return (priceB - priceA) * order;
+    });
+  case 'newest':
+    return results.sort((a, b) => (new Date(b.createdAt) - new Date(a.createdAt)) * order);
+  default:
+    return results.sort((a, b) => (b.relevanceScore - a.relevanceScore) * order);
   }
 };
 
@@ -875,7 +875,7 @@ const getRentalPriceRange = (pricing) => {
   if (pricing.daily) prices.push(`${pricing.daily}/day`);
   if (pricing.weekly) prices.push(`${pricing.weekly}/week`);
   if (pricing.monthly) prices.push(`${pricing.monthly}/month`);
-  
+
   return prices.length > 0 ? prices.join(', ') : 'Price on request';
 };
 

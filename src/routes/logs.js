@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
-const { body, param, query } = require('express-validator');
+// const { body, param, query } = require('express-validator');
 const logManagementService = require('../services/logManagementService');
 const logger = require('../config/logger');
 
 // Get log statistics - [ADMIN ONLY]
-router.get('/stats', auth, async (req, res) => {
+router.get('/stats', auth, async(req, res) => {
   try {
     // Only allow admin users to view log statistics
     if (req.user.role !== 'admin') {
@@ -34,7 +34,7 @@ router.get('/stats', auth, async (req, res) => {
       userId: req.user.id,
       timeframe: req.query.timeframe
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve log statistics'
@@ -43,7 +43,7 @@ router.get('/stats', auth, async (req, res) => {
 });
 
 // Get logs with filtering and pagination - [ADMIN ONLY]
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, async(req, res) => {
   try {
     // Only allow admin users to view logs
     if (req.user.role !== 'admin') {
@@ -109,7 +109,7 @@ router.get('/', auth, async (req, res) => {
       userId: req.user.id,
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve logs'
@@ -118,7 +118,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Get log details - [ADMIN ONLY]
-router.get('/:logId', auth, async (req, res) => {
+router.get('/:logId', auth, async(req, res) => {
   try {
     // Only allow admin users to view log details
     if (req.user.role !== 'admin') {
@@ -145,7 +145,7 @@ router.get('/:logId', auth, async (req, res) => {
       userId: req.user.id,
       logId: req.params.logId
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve log details'
@@ -154,7 +154,7 @@ router.get('/:logId', auth, async (req, res) => {
 });
 
 // Get error trends - [ADMIN ONLY]
-router.get('/analytics/error-trends', auth, async (req, res) => {
+router.get('/analytics/error-trends', auth, async(req, res) => {
   try {
     // Only allow admin users to view error trends
     if (req.user.role !== 'admin') {
@@ -182,7 +182,7 @@ router.get('/analytics/error-trends', auth, async (req, res) => {
       userId: req.user.id,
       timeframe: req.query.timeframe
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve error trends'
@@ -191,7 +191,7 @@ router.get('/analytics/error-trends', auth, async (req, res) => {
 });
 
 // Get performance metrics - [ADMIN ONLY]
-router.get('/analytics/performance', auth, async (req, res) => {
+router.get('/analytics/performance', auth, async(req, res) => {
   try {
     // Only allow admin users to view performance metrics
     if (req.user.role !== 'admin') {
@@ -219,7 +219,7 @@ router.get('/analytics/performance', auth, async (req, res) => {
       userId: req.user.id,
       timeframe: req.query.timeframe
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve performance metrics'
@@ -228,7 +228,7 @@ router.get('/analytics/performance', auth, async (req, res) => {
 });
 
 // Get user activity logs - [ADMIN ONLY]
-router.get('/user/:userId/activity', auth, async (req, res) => {
+router.get('/user/:userId/activity', auth, async(req, res) => {
   try {
     const { userId } = req.params;
     const { timeframe = '7d' } = req.query;
@@ -264,7 +264,7 @@ router.get('/user/:userId/activity', auth, async (req, res) => {
       targetUserId: req.params.userId,
       timeframe: req.query.timeframe
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve user activity logs'
@@ -273,7 +273,7 @@ router.get('/user/:userId/activity', auth, async (req, res) => {
 });
 
 // Export logs - [ADMIN ONLY]
-router.get('/export/data', auth, async (req, res) => {
+router.get('/export/data', auth, async(req, res) => {
   try {
     // Only allow admin users to export logs
     if (req.user.role !== 'admin') {
@@ -336,7 +336,7 @@ router.get('/export/data', auth, async (req, res) => {
       userId: req.user.id,
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to export logs'
@@ -345,7 +345,7 @@ router.get('/export/data', auth, async (req, res) => {
 });
 
 // Get log dashboard summary - [ADMIN ONLY]
-router.get('/dashboard/summary', auth, async (req, res) => {
+router.get('/dashboard/summary', auth, async(req, res) => {
   try {
     // Only allow admin users to view log dashboard
     if (req.user.role !== 'admin') {
@@ -371,7 +371,7 @@ router.get('/dashboard/summary', auth, async (req, res) => {
     logger.error('Failed to get log dashboard summary', error, {
       userId: req.user.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve log dashboard summary'
@@ -380,7 +380,7 @@ router.get('/dashboard/summary', auth, async (req, res) => {
 });
 
 // Search logs across all collections - [ADMIN ONLY]
-router.get('/search/global', auth, async (req, res) => {
+router.get('/search/global', auth, async(req, res) => {
   try {
     // Only allow admin users to search logs
     if (req.user.role !== 'admin') {
@@ -418,7 +418,7 @@ router.get('/search/global', auth, async (req, res) => {
       query: req.query.q,
       timeframe: req.query.timeframe
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to search logs'
@@ -427,7 +427,7 @@ router.get('/search/global', auth, async (req, res) => {
 });
 
 // Clean up expired logs - [ADMIN ONLY]
-router.post('/cleanup', auth, async (req, res) => {
+router.post('/cleanup', auth, async(req, res) => {
   try {
     // Only allow admin users to perform cleanup
     if (req.user.role !== 'admin') {
@@ -453,7 +453,7 @@ router.post('/cleanup', auth, async (req, res) => {
     logger.error('Failed to perform log cleanup', error, {
       userId: req.user.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to perform log cleanup'
@@ -462,7 +462,7 @@ router.post('/cleanup', auth, async (req, res) => {
 });
 
 // Flush all logs (admin only) - [ADMIN ONLY]
-router.post('/flush', auth, async (req, res) => {
+router.post('/flush', auth, async(req, res) => {
   try {
     // Only allow admin users to flush logs
     if (req.user.role !== 'admin') {
@@ -500,7 +500,7 @@ router.post('/flush', auth, async (req, res) => {
 
     res.json({
       success: true,
-      message: `Log flush completed successfully`,
+      message: 'Log flush completed successfully',
       data: {
         type,
         deletedFromDB: flushResult.deletedFromDB,
@@ -515,7 +515,7 @@ router.post('/flush', auth, async (req, res) => {
       userId: req.user.id,
       type: req.body.type
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to flush logs'
@@ -524,7 +524,7 @@ router.post('/flush', auth, async (req, res) => {
 });
 
 // Flush all logs (alternative endpoint for convenience) - [ADMIN ONLY]
-router.delete('/flush', auth, async (req, res) => {
+router.delete('/flush', auth, async(req, res) => {
   try {
     // Only allow admin users to flush logs
     if (req.user.role !== 'admin') {
@@ -559,7 +559,7 @@ router.delete('/flush', auth, async (req, res) => {
     logger.error('Failed to flush logs via DELETE', error, {
       userId: req.user.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to flush logs'

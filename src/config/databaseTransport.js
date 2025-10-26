@@ -1,5 +1,6 @@
 const winston = require('winston');
 const Log = require('../models/Log');
+const logger = require('./logger');
 
 class DatabaseTransport extends winston.Transport {
   constructor(options = {}) {
@@ -10,9 +11,11 @@ class DatabaseTransport extends winston.Transport {
     this.flushInterval = options.flushInterval || 5000; // 5 seconds
     this.logBuffer = [];
     this.isFlushing = false;
-    
-    // Start periodic flush
-    this.startFlushTimer();
+
+    // Start periodic flush (skip in test environment)
+    if (process.env.NODE_ENV !== 'test') {
+      this.startFlushTimer();
+    }
   }
 
   log(info, callback) {
@@ -109,25 +112,25 @@ class DatabaseTransport extends winston.Transport {
 
   sanitizeHeaders(headers) {
     if (!headers || typeof headers !== 'object') return headers;
-    
+
     const sanitized = { ...headers };
     const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key', 'x-auth-token'];
-    
+
     sensitiveHeaders.forEach(header => {
       if (sanitized[header]) {
         sanitized[header] = '[REDACTED]';
       }
     });
-    
+
     return sanitized;
   }
 
   sanitizeBody(body) {
     if (!body || typeof body !== 'object') return body;
-    
+
     const sanitized = { ...body };
     const sensitiveFields = ['password', 'token', 'secret', 'key', 'creditCard', 'ssn', 'pin'];
-    
+
     const sanitizeObject = (obj) => {
       for (const key in obj) {
         if (typeof obj[key] === 'object' && obj[key] !== null) {
@@ -137,17 +140,17 @@ class DatabaseTransport extends winston.Transport {
         }
       }
     };
-    
+
     sanitizeObject(sanitized);
     return sanitized;
   }
 
   sanitizeData(data) {
     if (!data || typeof data !== 'object') return data;
-    
+
     const sanitized = { ...data };
     const sensitiveFields = ['password', 'token', 'secret', 'key', 'creditCard', 'ssn', 'pin'];
-    
+
     const sanitizeObject = (obj) => {
       for (const key in obj) {
         if (typeof obj[key] === 'object' && obj[key] !== null) {
@@ -157,7 +160,7 @@ class DatabaseTransport extends winston.Transport {
         }
       }
     };
-    
+
     sanitizeObject(sanitized);
     return sanitized;
   }
@@ -167,13 +170,10 @@ class DatabaseTransport extends winston.Transport {
       return;
     }
 
-    // Skip database operations in test environment if connection is not ready
+    // Skip database operations in test environment
     if (process.env.NODE_ENV === 'test') {
-      const mongoose = require('mongoose');
-      if (mongoose.connection.readyState !== 1) {
-        this.logBuffer = []; // Clear buffer to prevent memory leaks
-        return;
-      }
+      this.logBuffer = []; // Clear buffer to prevent memory leaks
+      return;
     }
 
     this.isFlushing = true;
@@ -184,14 +184,14 @@ class DatabaseTransport extends winston.Transport {
       await Log.insertMany(logsToFlush, { ordered: false });
     } catch (error) {
       // Log error but don't throw to avoid breaking the application
-      console.error('Database transport flush error:', error.message);
-      
+      console.error('Database transport flush error:', error);
+
       // Try to log individual entries if batch insert fails
       for (const logEntry of logsToFlush) {
         try {
           await Log.create(logEntry);
         } catch (individualError) {
-          console.error('Individual log insert error:', individualError.message);
+          logger.error('Individual log insert error:', individualError);
         }
       }
     } finally {

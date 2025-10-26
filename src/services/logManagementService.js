@@ -325,11 +325,11 @@ class LogManagementService {
   async exportLogs(filters = {}, format = 'json') {
     try {
       const logs = await this.getLogs(filters, { limit: 10000 });
-      
+
       if (format === 'csv') {
         return this.convertToCSV(logs.logs);
       }
-      
+
       return logs.logs;
     } catch (error) {
       logger.error('Failed to export logs', error);
@@ -369,12 +369,12 @@ class LogManagementService {
   async cleanupExpiredLogs() {
     try {
       const now = new Date();
-      
+
       const [logCleanup, auditCleanup, errorCleanup] = await Promise.all([
         Log.cleanupExpiredLogs(),
-        Log.deleteMany({ 
+        Log.deleteMany({
           category: 'audit',
-          retentionDate: { $lt: now } 
+          retentionDate: { $lt: now }
         }),
         Log.deleteMany({
           level: 'error',
@@ -423,27 +423,27 @@ class LogManagementService {
           .limit(10)
           .select('logId level message timestamp request.url response.statusCode')
           .lean(),
-        
+
         Log.countDocuments({
           level: 'error',
           timestamp: { $gte: last24h }
         }),
-        
+
         Log.countDocuments({
           level: 'error',
           timestamp: { $gte: last7d }
         }),
-        
+
         Log.countDocuments({
           category: 'audit',
           timestamp: { $gte: last24h }
         }),
-        
+
         Log.countDocuments({
           category: 'audit',
           timestamp: { $gte: last7d }
         }),
-        
+
         Log.countDocuments({
           category: 'performance',
           'response.responseTime': { $gt: 2000 },
@@ -491,10 +491,10 @@ class LogManagementService {
           ],
           timestamp: { $gte: since }
         })
-        .sort({ timestamp: -1 })
-        .limit(50)
-        .select('logId level message timestamp source category')
-        .lean(),
+          .sort({ timestamp: -1 })
+          .limit(50)
+          .select('logId level message timestamp source category')
+          .lean(),
 
         Log.find({
           category: 'audit',
@@ -504,10 +504,10 @@ class LogManagementService {
           ],
           timestamp: { $gte: since }
         })
-        .sort({ timestamp: -1 })
-        .limit(50)
-        .select('logId message category timestamp metadata')
-        .lean(),
+          .sort({ timestamp: -1 })
+          .limit(50)
+          .select('logId message category timestamp metadata')
+          .lean(),
 
         Log.find({
           level: 'error',
@@ -517,10 +517,10 @@ class LogManagementService {
           ],
           timestamp: { $gte: since }
         })
-        .sort({ timestamp: -1 })
-        .limit(50)
-        .select('logId message level timestamp error.name error.message')
-        .lean()
+          .sort({ timestamp: -1 })
+          .limit(50)
+          .select('logId message level timestamp error.name error.message')
+          .lean()
       ]);
 
       return {
@@ -540,17 +540,17 @@ class LogManagementService {
     try {
       const fs = require('fs');
       const path = require('path');
-      
+
       // Delete all logs from database
       const dbResult = await Log.deleteMany({});
-      
+
       // Delete all log files from both logs directories
       const logsDir = path.join(process.cwd(), 'logs');
       const routesLogsDir = path.join(process.cwd(), 'src', 'routes', 'logs');
       let totalFileCount = 0;
       let logsDirCount = 0;
       let routesLogsDirCount = 0;
-      
+
       // Flush main logs directory
       if (fs.existsSync(logsDir)) {
         const files = fs.readdirSync(logsDir);
@@ -622,7 +622,7 @@ class LogManagementService {
         const routesLogsDir = path.join(process.cwd(), 'src', 'routes', 'logs');
         let logsDirCount = 0;
         let routesLogsDirCount = 0;
-        
+
         // Flush main logs directory
         if (fs.existsSync(logsDir)) {
           const files = fs.readdirSync(logsDir);

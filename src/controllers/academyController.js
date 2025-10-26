@@ -1,12 +1,13 @@
-const { Course, Enrollment, Certification } = require('../models/Academy');
+const { Course } = require('../models/Academy');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
+const logger = require('../utils/logger');
 
 // @desc    Get all academy courses
 // @route   GET /api/academy/courses
 // @access  Public
-const getCourses = async (req, res) => {
+const getCourses = async(req, res) => {
   try {
     const {
       search,
@@ -69,7 +70,7 @@ const getCourses = async (req, res) => {
       data: courses
     });
   } catch (error) {
-    console.error('Get courses error:', error);
+    logger.error('Get courses error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -80,7 +81,7 @@ const getCourses = async (req, res) => {
 // @desc    Get single course
 // @route   GET /api/academy/courses/:id
 // @access  Public
-const getCourse = async (req, res) => {
+const getCourse = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -111,7 +112,7 @@ const getCourse = async (req, res) => {
       data: course
     });
   } catch (error) {
-    console.error('Get course error:', error);
+    logger.error('Get course error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -122,7 +123,7 @@ const getCourse = async (req, res) => {
 // @desc    Create new course
 // @route   POST /api/academy/courses
 // @access  Private
-const createCourse = async (req, res) => {
+const createCourse = async(req, res) => {
   try {
     const courseData = {
       ...req.body,
@@ -139,7 +140,7 @@ const createCourse = async (req, res) => {
       data: course
     });
   } catch (error) {
-    console.error('Create course error:', error);
+    logger.error('Create course error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -150,9 +151,9 @@ const createCourse = async (req, res) => {
 // @desc    Update course
 // @route   PUT /api/academy/courses/:id
 // @access  Private
-const updateCourse = async (req, res) => {
+const updateCourse = async(req, res) => {
   try {
-    let course = await Academy.findById(req.params.id);
+    let course = await Course.findById(req.params.id);
 
     if (!course) {
       return res.status(404).json({
@@ -169,7 +170,7 @@ const updateCourse = async (req, res) => {
       });
     }
 
-    course = await Academy.findByIdAndUpdate(req.params.id, req.body, {
+    course = await Course.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true
     });
@@ -180,7 +181,7 @@ const updateCourse = async (req, res) => {
       data: course
     });
   } catch (error) {
-    console.error('Update course error:', error);
+    logger.error('Update course error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -191,7 +192,7 @@ const updateCourse = async (req, res) => {
 // @desc    Delete course
 // @route   DELETE /api/academy/courses/:id
 // @access  Private
-const deleteCourse = async (req, res) => {
+const deleteCourse = async(req, res) => {
   try {
     const course = await Course.findById(req.params.id);
 
@@ -219,7 +220,7 @@ const deleteCourse = async (req, res) => {
       message: 'Course deleted successfully'
     });
   } catch (error) {
-    console.error('Delete course error:', error);
+    logger.error('Delete course error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -230,7 +231,7 @@ const deleteCourse = async (req, res) => {
 // @desc    Upload course thumbnail
 // @route   POST /api/academy/courses/:id/thumbnail
 // @access  Private
-const uploadCourseThumbnail = async (req, res) => {
+const uploadCourseThumbnail = async(req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -258,7 +259,7 @@ const uploadCourseThumbnail = async (req, res) => {
 
     // Upload to Cloudinary
     const uploadResult = await CloudinaryService.uploadFile(
-      req.file, 
+      req.file,
       'localpro/academy/thumbnails'
     );
 
@@ -289,7 +290,7 @@ const uploadCourseThumbnail = async (req, res) => {
       data: course.thumbnail
     });
   } catch (error) {
-    console.error('Upload course thumbnail error:', error);
+    logger.error('Upload course thumbnail error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -300,7 +301,7 @@ const uploadCourseThumbnail = async (req, res) => {
 // @desc    Upload course video
 // @route   POST /api/academy/courses/:id/videos
 // @access  Private
-const uploadCourseVideo = async (req, res) => {
+const uploadCourseVideo = async(req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -328,7 +329,7 @@ const uploadCourseVideo = async (req, res) => {
 
     // Upload to Cloudinary
     const uploadResult = await CloudinaryService.uploadFile(
-      req.file, 
+      req.file,
       'localpro/academy/videos'
     );
 
@@ -358,7 +359,7 @@ const uploadCourseVideo = async (req, res) => {
       data: video
     });
   } catch (error) {
-    console.error('Upload course video error:', error);
+    logger.error('Upload course video error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -369,7 +370,7 @@ const uploadCourseVideo = async (req, res) => {
 // @desc    Delete course video
 // @route   DELETE /api/academy/courses/:id/videos/:videoId
 // @access  Private
-const deleteCourseVideo = async (req, res) => {
+const deleteCourseVideo = async(req, res) => {
   try {
     const { videoId } = req.params;
 
@@ -411,7 +412,7 @@ const deleteCourseVideo = async (req, res) => {
       message: 'Video deleted successfully'
     });
   } catch (error) {
-    console.error('Delete course video error:', error);
+    logger.error('Delete course video error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -422,7 +423,7 @@ const deleteCourseVideo = async (req, res) => {
 // @desc    Enroll in course
 // @route   POST /api/academy/courses/:id/enroll
 // @access  Private
-const enrollInCourse = async (req, res) => {
+const enrollInCourse = async(req, res) => {
   try {
     const course = await Course.findById(req.params.id);
 
@@ -482,7 +483,7 @@ const enrollInCourse = async (req, res) => {
       data: enrollment
     });
   } catch (error) {
-    console.error('Enroll in course error:', error);
+    logger.error('Enroll in course error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -493,7 +494,7 @@ const enrollInCourse = async (req, res) => {
 // @desc    Update course progress
 // @route   PUT /api/academy/courses/:id/progress
 // @access  Private
-const updateCourseProgress = async (req, res) => {
+const updateCourseProgress = async(req, res) => {
   try {
     const { progress, completedVideos } = req.body;
 
@@ -544,7 +545,7 @@ const updateCourseProgress = async (req, res) => {
       data: enrollment
     });
   } catch (error) {
-    console.error('Update course progress error:', error);
+    logger.error('Update course progress error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -555,7 +556,7 @@ const updateCourseProgress = async (req, res) => {
 // @desc    Add course review
 // @route   POST /api/academy/courses/:id/reviews
 // @access  Private
-const addCourseReview = async (req, res) => {
+const addCourseReview = async(req, res) => {
   try {
     const { rating, comment } = req.body;
 
@@ -627,7 +628,7 @@ const addCourseReview = async (req, res) => {
       data: review
     });
   } catch (error) {
-    console.error('Add course review error:', error);
+    logger.error('Add course review error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -638,7 +639,7 @@ const addCourseReview = async (req, res) => {
 // @desc    Get user's enrolled courses
 // @route   GET /api/academy/my-courses
 // @access  Private
-const getMyCourses = async (req, res) => {
+const getMyCourses = async(req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
     const skip = (page - 1) * limit;
@@ -675,7 +676,7 @@ const getMyCourses = async (req, res) => {
       data: userCourses
     });
   } catch (error) {
-    console.error('Get my courses error:', error);
+    logger.error('Get my courses error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -686,17 +687,17 @@ const getMyCourses = async (req, res) => {
 // @desc    Get user's created courses
 // @route   GET /api/academy/my-created-courses
 // @access  Private
-const getMyCreatedCourses = async (req, res) => {
+const getMyCreatedCourses = async(req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
 
-    const courses = await Academy.find({ instructor: req.user.id })
+    const courses = await Course.find({ instructor: req.user.id })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
 
-    const total = await Academy.countDocuments({ instructor: req.user.id });
+    const total = await Course.countDocuments({ instructor: req.user.id });
 
     res.status(200).json({
       success: true,
@@ -707,7 +708,7 @@ const getMyCreatedCourses = async (req, res) => {
       data: courses
     });
   } catch (error) {
-    console.error('Get my created courses error:', error);
+    logger.error('Get my created courses error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -718,9 +719,9 @@ const getMyCreatedCourses = async (req, res) => {
 // @desc    Get course categories
 // @route   GET /api/academy/categories
 // @access  Public
-const getCourseCategories = async (req, res) => {
+const getCourseCategories = async(req, res) => {
   try {
-    const categories = await Academy.aggregate([
+    const categories = await Course.aggregate([
       {
         $match: { isActive: true }
       },
@@ -740,7 +741,7 @@ const getCourseCategories = async (req, res) => {
       data: categories
     });
   } catch (error) {
-    console.error('Get course categories error:', error);
+    logger.error('Get course categories error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -751,17 +752,17 @@ const getCourseCategories = async (req, res) => {
 // @desc    Get featured courses
 // @route   GET /api/academy/featured
 // @access  Public
-const getFeaturedCourses = async (req, res) => {
+const getFeaturedCourses = async(req, res) => {
   try {
     const { limit = 10 } = req.query;
 
-    const courses = await Academy.find({
+    const courses = await Course.find({
       isActive: true,
       isFeatured: true
     })
-    .populate('instructor', 'firstName lastName profile.avatar')
-    .sort({ createdAt: -1 })
-    .limit(Number(limit));
+      .populate('instructor', 'firstName lastName profile.avatar')
+      .sort({ createdAt: -1 })
+      .limit(Number(limit));
 
     res.status(200).json({
       success: true,
@@ -769,7 +770,7 @@ const getFeaturedCourses = async (req, res) => {
       data: courses
     });
   } catch (error) {
-    console.error('Get featured courses error:', error);
+    logger.error('Get featured courses error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -780,13 +781,13 @@ const getFeaturedCourses = async (req, res) => {
 // @desc    Get course statistics
 // @route   GET /api/academy/statistics
 // @access  Private (Admin only)
-const getCourseStatistics = async (req, res) => {
+const getCourseStatistics = async(req, res) => {
   try {
     // Get total courses
-    const totalCourses = await Academy.countDocuments();
+    const totalCourses = await Course.countDocuments();
 
     // Get courses by category
-    const coursesByCategory = await Academy.aggregate([
+    const coursesByCategory = await Course.aggregate([
       {
         $group: {
           _id: '$category',
@@ -799,7 +800,7 @@ const getCourseStatistics = async (req, res) => {
     ]);
 
     // Get total enrollments
-    const totalEnrollments = await Academy.aggregate([
+    const totalEnrollments = await Course.aggregate([
       {
         $group: {
           _id: null,
@@ -809,7 +810,7 @@ const getCourseStatistics = async (req, res) => {
     ]);
 
     // Get monthly trends
-    const monthlyTrends = await Academy.aggregate([
+    const monthlyTrends = await Course.aggregate([
       {
         $group: {
           _id: {
@@ -834,7 +835,7 @@ const getCourseStatistics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get course statistics error:', error);
+    logger.error('Get course statistics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

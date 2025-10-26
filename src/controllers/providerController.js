@@ -5,7 +5,7 @@ const { auditLogger } = require('../utils/auditLogger');
 const { validationResult } = require('express-validator');
 
 // Get all providers with filtering and pagination
-const getProviders = async (req, res) => {
+const getProviders = async(req, res) => {
   try {
     const {
       status,
@@ -87,7 +87,7 @@ const getProviders = async (req, res) => {
       userId: req.user?.id,
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve providers'
@@ -96,10 +96,10 @@ const getProviders = async (req, res) => {
 };
 
 // Get single provider by ID
-const getProvider = async (req, res) => {
+const getProvider = async(req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Validate ObjectId format
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({
@@ -107,7 +107,7 @@ const getProvider = async (req, res) => {
         message: 'Invalid provider ID format'
       });
     }
-    
+
     const provider = await Provider.findById(id)
       .populate('userId', 'firstName lastName email phone profileImage')
       .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents');
@@ -138,7 +138,7 @@ const getProvider = async (req, res) => {
       userId: req.user?.id,
       providerId: req.params.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve provider'
@@ -147,7 +147,7 @@ const getProvider = async (req, res) => {
 };
 
 // Get current user's provider profile
-const getMyProviderProfile = async (req, res) => {
+const getMyProviderProfile = async(req, res) => {
   try {
     const provider = await Provider.findOne({ userId: req.user.id })
       .populate('userId', 'firstName lastName email phone profileImage');
@@ -173,7 +173,7 @@ const getMyProviderProfile = async (req, res) => {
     logger.error('Failed to get provider profile', error, {
       userId: req.user.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve provider profile'
@@ -182,7 +182,7 @@ const getMyProviderProfile = async (req, res) => {
 };
 
 // Create provider profile (upgrade from client)
-const createProviderProfile = async (req, res) => {
+const createProviderProfile = async(req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -273,7 +273,7 @@ const createProviderProfile = async (req, res) => {
       userId: req.user.id,
       body: req.body
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to create provider profile'
@@ -282,7 +282,7 @@ const createProviderProfile = async (req, res) => {
 };
 
 // Update provider profile
-const updateProviderProfile = async (req, res) => {
+const updateProviderProfile = async(req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -335,7 +335,7 @@ const updateProviderProfile = async (req, res) => {
       userId: req.user.id,
       body: req.body
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to update provider profile'
@@ -344,7 +344,7 @@ const updateProviderProfile = async (req, res) => {
 };
 
 // Update provider onboarding step
-const updateOnboardingStep = async (req, res) => {
+const updateOnboardingStep = async(req, res) => {
   try {
     const { step, data } = req.body;
 
@@ -405,7 +405,7 @@ const updateOnboardingStep = async (req, res) => {
       userId: req.user.id,
       step: req.body.step
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to update onboarding step'
@@ -414,7 +414,7 @@ const updateOnboardingStep = async (req, res) => {
 };
 
 // Upload provider documents
-const uploadDocuments = async (req, res) => {
+const uploadDocuments = async(req, res) => {
   try {
     const { documentType, category } = req.body;
     const files = req.files;
@@ -438,32 +438,32 @@ const uploadDocuments = async (req, res) => {
 
     // Update verification documents based on type
     switch (documentType) {
-      case 'insurance':
-        if (!provider.verification.insurance.documents) {
-          provider.verification.insurance.documents = [];
-        }
-        provider.verification.insurance.documents.push(...fileUrls);
-        break;
-      case 'license':
-        if (!provider.verification.licenses) {
-          provider.verification.licenses = [];
-        }
-        provider.verification.licenses.push({
-          type: category,
-          documents: fileUrls
-        });
-        break;
-      case 'portfolio':
-        if (!provider.verification.portfolio.images) {
-          provider.verification.portfolio.images = [];
-        }
-        provider.verification.portfolio.images.push(...fileUrls);
-        break;
-      default:
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid document type'
-        });
+    case 'insurance':
+      if (!provider.verification.insurance.documents) {
+        provider.verification.insurance.documents = [];
+      }
+      provider.verification.insurance.documents.push(...fileUrls);
+      break;
+    case 'license':
+      if (!provider.verification.licenses) {
+        provider.verification.licenses = [];
+      }
+      provider.verification.licenses.push({
+        type: category,
+        documents: fileUrls
+      });
+      break;
+    case 'portfolio':
+      if (!provider.verification.portfolio.images) {
+        provider.verification.portfolio.images = [];
+      }
+      provider.verification.portfolio.images.push(...fileUrls);
+      break;
+    default:
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid document type'
+      });
     }
 
     await provider.save();
@@ -500,7 +500,7 @@ const uploadDocuments = async (req, res) => {
       userId: req.user.id,
       documentType: req.body.documentType
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to upload documents'
@@ -509,7 +509,7 @@ const uploadDocuments = async (req, res) => {
 };
 
 // Get provider dashboard data
-const getProviderDashboard = async (req, res) => {
+const getProviderDashboard = async(req, res) => {
   try {
     const provider = await Provider.findOne({ userId: req.user.id });
     if (!provider) {
@@ -567,7 +567,7 @@ const getProviderDashboard = async (req, res) => {
     logger.error('Failed to get provider dashboard', error, {
       userId: req.user.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve provider dashboard'
@@ -576,10 +576,10 @@ const getProviderDashboard = async (req, res) => {
 };
 
 // Get provider analytics
-const getProviderAnalytics = async (req, res) => {
+const getProviderAnalytics = async(req, res) => {
   try {
     const { timeframe = '30d' } = req.query;
-    
+
     const provider = await Provider.findOne({ userId: req.user.id });
     if (!provider) {
       return res.status(404).json({
@@ -630,7 +630,7 @@ const getProviderAnalytics = async (req, res) => {
       userId: req.user.id,
       timeframe: req.query.timeframe
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve provider analytics'
@@ -639,7 +639,7 @@ const getProviderAnalytics = async (req, res) => {
 };
 
 // Admin: Update provider status
-const updateProviderStatus = async (req, res) => {
+const updateProviderStatus = async(req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
@@ -696,7 +696,7 @@ const updateProviderStatus = async (req, res) => {
       providerId: req.params.id,
       status: req.body.status
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to update provider status'
@@ -705,7 +705,7 @@ const updateProviderStatus = async (req, res) => {
 };
 
 // Admin: Get all providers for management
-const getProvidersForAdmin = async (req, res) => {
+const getProvidersForAdmin = async(req, res) => {
   try {
     const {
       status,
@@ -754,7 +754,7 @@ const getProvidersForAdmin = async (req, res) => {
       adminId: req.user.id,
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve providers'

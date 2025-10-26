@@ -1,11 +1,13 @@
 const ReferralService = require('../services/referralService');
 const Referral = require('../models/Referral');
-const User = require('../models/User');
+// const User = require('../models/User');
+const logger = require('../utils/logger');
+
 
 /**
  * Middleware to process referral completion for service bookings
  */
-const processServiceBookingReferral = async (req, res, next) => {
+const processServiceBookingReferral = async(req, res, next) => {
   try {
     const booking = req.booking || res.locals.booking;
     const user = req.user;
@@ -33,7 +35,7 @@ const processServiceBookingReferral = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Error processing service booking referral:', error);
+    logger.error('Error processing service booking referral:', error);
     // Don't fail the main request if referral processing fails
     next();
   }
@@ -42,7 +44,7 @@ const processServiceBookingReferral = async (req, res, next) => {
 /**
  * Middleware to process referral completion for supplies orders
  */
-const processSuppliesOrderReferral = async (req, res, next) => {
+const processSuppliesOrderReferral = async(req, res, next) => {
   try {
     const order = req.order || res.locals.order;
     const user = req.user;
@@ -70,7 +72,7 @@ const processSuppliesOrderReferral = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Error processing supplies order referral:', error);
+    logger.error('Error processing supplies order referral:', error);
     // Don't fail the main request if referral processing fails
     next();
   }
@@ -79,7 +81,7 @@ const processSuppliesOrderReferral = async (req, res, next) => {
 /**
  * Middleware to process referral completion for course enrollments
  */
-const processCourseEnrollmentReferral = async (req, res, next) => {
+const processCourseEnrollmentReferral = async(req, res, next) => {
   try {
     const enrollment = req.enrollment || res.locals.enrollment;
     const user = req.user;
@@ -107,7 +109,7 @@ const processCourseEnrollmentReferral = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Error processing course enrollment referral:', error);
+    logger.error('Error processing course enrollment referral:', error);
     // Don't fail the main request if referral processing fails
     next();
   }
@@ -116,7 +118,7 @@ const processCourseEnrollmentReferral = async (req, res, next) => {
 /**
  * Middleware to process referral completion for loan applications
  */
-const processLoanApplicationReferral = async (req, res, next) => {
+const processLoanApplicationReferral = async(req, res, next) => {
   try {
     const loan = req.loan || res.locals.loan;
     const user = req.user;
@@ -144,7 +146,7 @@ const processLoanApplicationReferral = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Error processing loan application referral:', error);
+    logger.error('Error processing loan application referral:', error);
     // Don't fail the main request if referral processing fails
     next();
   }
@@ -153,7 +155,7 @@ const processLoanApplicationReferral = async (req, res, next) => {
 /**
  * Middleware to process referral completion for rental bookings
  */
-const processRentalBookingReferral = async (req, res, next) => {
+const processRentalBookingReferral = async(req, res, next) => {
   try {
     const rental = req.rental || res.locals.rental;
     const user = req.user;
@@ -181,7 +183,7 @@ const processRentalBookingReferral = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Error processing rental booking referral:', error);
+    logger.error('Error processing rental booking referral:', error);
     // Don't fail the main request if referral processing fails
     next();
   }
@@ -190,7 +192,7 @@ const processRentalBookingReferral = async (req, res, next) => {
 /**
  * Middleware to process referral completion for subscription upgrades
  */
-const processSubscriptionUpgradeReferral = async (req, res, next) => {
+const processSubscriptionUpgradeReferral = async(req, res, next) => {
   try {
     const subscription = req.subscription || res.locals.subscription;
     const user = req.user;
@@ -218,7 +220,7 @@ const processSubscriptionUpgradeReferral = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Error processing subscription upgrade referral:', error);
+    logger.error('Error processing subscription upgrade referral:', error);
     // Don't fail the main request if referral processing fails
     next();
   }
@@ -227,7 +229,7 @@ const processSubscriptionUpgradeReferral = async (req, res, next) => {
 /**
  * Middleware to handle user signup with referral code
  */
-const processSignupReferral = async (req, res, next) => {
+const processSignupReferral = async(req, res, next) => {
   try {
     const { referralCode } = req.body;
     const user = req.user;
@@ -235,7 +237,7 @@ const processSignupReferral = async (req, res, next) => {
     if (referralCode && user) {
       // Validate referral code
       const validation = await ReferralService.validateReferralCode(referralCode);
-      
+
       if (validation.valid) {
         // Create referral record
         await ReferralService.createReferral({
@@ -259,7 +261,7 @@ const processSignupReferral = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Error processing signup referral:', error);
+    logger.error('Error processing signup referral:', error);
     // Don't fail the main request if referral processing fails
     next();
   }
@@ -268,11 +270,11 @@ const processSignupReferral = async (req, res, next) => {
 /**
  * Utility function to get referral statistics for a user
  */
-const getReferralStats = async (userId) => {
+const getReferralStats = async(userId) => {
   try {
     return await ReferralService.getReferralStats(userId);
   } catch (error) {
-    console.error('Error getting referral stats:', error);
+    logger.error('Error getting referral stats:', error);
     return null;
   }
 };
@@ -280,7 +282,7 @@ const getReferralStats = async (userId) => {
 /**
  * Utility function to check if user has pending referrals
  */
-const hasPendingReferrals = async (userId) => {
+const hasPendingReferrals = async(userId) => {
   try {
     const count = await Referral.countDocuments({
       referrer: userId,
@@ -289,7 +291,7 @@ const hasPendingReferrals = async (userId) => {
     });
     return count > 0;
   } catch (error) {
-    console.error('Error checking pending referrals:', error);
+    logger.error('Error checking pending referrals:', error);
     return false;
   }
 };

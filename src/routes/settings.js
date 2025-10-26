@@ -10,7 +10,7 @@ const {
   updateUserSettingsCategory,
   resetUserSettings,
   deleteUserSettings,
-  
+
   // App Settings
   getAppSettings,
   updateAppSettings,
@@ -31,7 +31,7 @@ const validateUserSettings = [
   body('privacy.allowDirectMessages').optional().isBoolean(),
   body('privacy.allowJobInvitations').optional().isBoolean(),
   body('privacy.allowReferralRequests').optional().isBoolean(),
-  
+
   body('notifications.push.enabled').optional().isBoolean(),
   body('notifications.push.newMessages').optional().isBoolean(),
   body('notifications.push.jobMatches').optional().isBoolean(),
@@ -40,7 +40,7 @@ const validateUserSettings = [
   body('notifications.push.referralUpdates').optional().isBoolean(),
   body('notifications.push.systemUpdates').optional().isBoolean(),
   body('notifications.push.marketing').optional().isBoolean(),
-  
+
   body('notifications.email.enabled').optional().isBoolean(),
   body('notifications.email.newMessages').optional().isBoolean(),
   body('notifications.email.jobMatches').optional().isBoolean(),
@@ -51,13 +51,13 @@ const validateUserSettings = [
   body('notifications.email.marketing').optional().isBoolean(),
   body('notifications.email.weeklyDigest').optional().isBoolean(),
   body('notifications.email.monthlyReport').optional().isBoolean(),
-  
+
   body('notifications.sms.enabled').optional().isBoolean(),
   body('notifications.sms.urgentMessages').optional().isBoolean(),
   body('notifications.sms.bookingReminders').optional().isBoolean(),
   body('notifications.sms.paymentAlerts').optional().isBoolean(),
   body('notifications.sms.securityAlerts').optional().isBoolean(),
-  
+
   body('communication.preferredLanguage').optional().isIn(['en', 'fil', 'es', 'zh', 'ja', 'ko']),
   body('communication.timezone').optional().isString(),
   body('communication.dateFormat').optional().isIn(['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']),
@@ -65,7 +65,7 @@ const validateUserSettings = [
   body('communication.currency').optional().isIn(['PHP', 'USD', 'EUR', 'GBP', 'JPY', 'KRW', 'CNY']),
   body('communication.autoReply.enabled').optional().isBoolean(),
   body('communication.autoReply.message').optional().isString().isLength({ max: 500 }),
-  
+
   body('service.defaultServiceRadius').optional().isInt({ min: 1, max: 100 }),
   body('service.autoAcceptJobs').optional().isBoolean(),
   body('service.minimumJobValue').optional().isFloat({ min: 0 }),
@@ -78,7 +78,7 @@ const validateUserSettings = [
   body('service.workingHours.days.*').optional().isIn(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
   body('service.emergencyService.enabled').optional().isBoolean(),
   body('service.emergencyService.surcharge').optional().isFloat({ min: 0 }),
-  
+
   body('payment.preferredPaymentMethod').optional().isIn(['paypal', 'paymaya', 'gcash', 'bank_transfer', 'cash']),
   body('payment.autoWithdraw.enabled').optional().isBoolean(),
   body('payment.autoWithdraw.threshold').optional().isFloat({ min: 0 }),
@@ -86,7 +86,7 @@ const validateUserSettings = [
   body('payment.invoiceSettings.includeTax').optional().isBoolean(),
   body('payment.invoiceSettings.taxRate').optional().isFloat({ min: 0, max: 100 }),
   body('payment.invoiceSettings.invoiceTemplate').optional().isIn(['standard', 'detailed', 'minimal']),
-  
+
   body('security.twoFactorAuth.enabled').optional().isBoolean(),
   body('security.twoFactorAuth.method').optional().isIn(['sms', 'email', 'authenticator']),
   body('security.loginAlerts.enabled').optional().isBoolean(),
@@ -95,7 +95,7 @@ const validateUserSettings = [
   body('security.sessionTimeout').optional().isInt({ min: 1, max: 168 }),
   body('security.passwordChangeReminder.enabled').optional().isBoolean(),
   body('security.passwordChangeReminder.frequency').optional().isInt({ min: 30, max: 365 }),
-  
+
   body('app.theme').optional().isIn(['light', 'dark', 'auto']),
   body('app.fontSize').optional().isIn(['small', 'medium', 'large']),
   body('app.soundEffects.enabled').optional().isBoolean(),
@@ -106,7 +106,7 @@ const validateUserSettings = [
   body('app.dataUsage.imageQuality').optional().isIn(['low', 'medium', 'high']),
   body('app.dataUsage.videoQuality').optional().isIn(['low', 'medium', 'high']),
   body('app.dataUsage.autoDownload').optional().isBoolean(),
-  
+
   body('analytics.shareUsageData').optional().isBoolean(),
   body('analytics.shareLocationData').optional().isBoolean(),
   body('analytics.sharePerformanceData').optional().isBoolean(),
@@ -123,7 +123,7 @@ const validateAppSettings = [
   body('general.forceUpdate.enabled').optional().isBoolean(),
   body('general.forceUpdate.minVersion').optional().isString(),
   body('general.forceUpdate.message').optional().isString().isLength({ max: 500 }),
-  
+
   body('business.companyName').optional().isString().isLength({ max: 100 }),
   body('business.companyEmail').optional().isEmail(),
   body('business.companyPhone').optional().isString(),
@@ -138,7 +138,7 @@ const validateAppSettings = [
   body('business.businessHours.schedule.*.startTime').optional().matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
   body('business.businessHours.schedule.*.endTime').optional().matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
   body('business.businessHours.schedule.*.isOpen').optional().isBoolean(),
-  
+
   body('features.marketplace.enabled').optional().isBoolean(),
   body('features.marketplace.allowNewProviders').optional().isBoolean(),
   body('features.marketplace.requireVerification').optional().isBoolean(),
@@ -151,7 +151,7 @@ const validateAppSettings = [
   body('features.referrals.enabled').optional().isBoolean(),
   body('features.referrals.rewardAmount').optional().isFloat({ min: 0 }),
   body('features.referrals.maxReferralsPerUser').optional().isInt({ min: 0 }),
-  
+
   body('security.passwordPolicy.minLength').optional().isInt({ min: 6, max: 20 }),
   body('security.passwordPolicy.requireUppercase').optional().isBoolean(),
   body('security.passwordPolicy.requireLowercase').optional().isBoolean(),
@@ -159,7 +159,7 @@ const validateAppSettings = [
   body('security.passwordPolicy.requireSpecialChars').optional().isBoolean(),
   body('security.passwordPolicy.maxLoginAttempts').optional().isInt({ min: 3, max: 10 }),
   body('security.passwordPolicy.lockoutDuration').optional().isInt({ min: 5, max: 60 }),
-  
+
   body('uploads.maxFileSize').optional().isInt({ min: 1048576, max: 104857600 }),
   body('uploads.allowedImageTypes').optional().isArray(),
   body('uploads.allowedImageTypes.*').optional().isIn(['image/jpeg', 'image/png', 'image/gif', 'image/webp']),
@@ -168,7 +168,7 @@ const validateAppSettings = [
   body('uploads.maxImagesPerUpload').optional().isInt({ min: 1, max: 50 }),
   body('uploads.imageCompression.enabled').optional().isBoolean(),
   body('uploads.imageCompression.quality').optional().isInt({ min: 10, max: 100 }),
-  
+
   body('payments.defaultCurrency').optional().isIn(['PHP', 'USD', 'EUR', 'GBP', 'JPY', 'KRW', 'CNY']),
   body('payments.supportedCurrencies').optional().isArray(),
   body('payments.supportedCurrencies.*').optional().isIn(['PHP', 'USD', 'EUR', 'GBP', 'JPY', 'KRW', 'CNY']),
@@ -182,8 +182,8 @@ const validateAppSettings = [
 
 const validateCategory = [
   param('category').isIn([
-    'privacy', 'notifications', 'communication', 'service', 'payment', 
-    'security', 'app', 'analytics', 'general', 'business', 'features', 
+    'privacy', 'notifications', 'communication', 'service', 'payment',
+    'security', 'app', 'analytics', 'general', 'business', 'features',
     'uploads', 'payments', 'rateLimiting', 'notifications', 'integrations'
   ])
 ];

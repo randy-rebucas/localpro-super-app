@@ -245,7 +245,7 @@ router.use(auth);
  * @desc    Get activity feed for current user
  * @access  Private
  * @query   page, limit, types, categories, visibility, includeOwn, timeframe
- * 
+ *
  * Query Parameters:
  * - page (optional): Page number (default: 1)
  * - limit (optional): Items per page (default: 20, max: 100)
@@ -254,7 +254,7 @@ router.use(auth);
  * - visibility (optional): Visibility level (default: public)
  * - includeOwn (optional): Include user's own activities (default: true)
  * - timeframe (optional): Time range (default: 7d)
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -278,7 +278,7 @@ router.get('/feed', queryValidation, getActivityFeed);
  * @desc    Get current user's activities
  * @access  Private
  * @query   page, limit, types, categories, timeframe
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -296,7 +296,7 @@ router.get('/my', queryValidation, getUserActivities);
  * @access  Private (Admin or connections)
  * @param   userId: User ID
  * @query   page, limit, types, categories, timeframe
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -313,7 +313,7 @@ router.get('/user/:userId', paramValidation, queryValidation, getSpecificUserAct
  * @desc    Get single activity by ID
  * @access  Private
  * @param   id: Activity ID
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -329,12 +329,12 @@ router.get('/:id', paramValidation, getActivity);
  * @desc    Create new activity
  * @access  Private
  * @body    type, action, description, category, impact, visibility, targetEntity, relatedEntities, location, tags, details
- * 
+ *
  * Required Fields:
  * - type: Activity type
  * - action: Action description (1-100 characters)
  * - description: Activity description (1-500 characters)
- * 
+ *
  * Optional Fields:
  * - category: Activity category
  * - impact: Impact level (low, medium, high, critical)
@@ -344,7 +344,7 @@ router.get('/:id', paramValidation, getActivity);
  * - location: Location information
  * - tags: Array of tags
  * - details: Additional details object
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -360,7 +360,7 @@ router.post('/', createActivityValidation, createActivity);
  * @access  Private (Author/Admin)
  * @param   id: Activity ID
  * @body    Any activity fields to update
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -375,7 +375,7 @@ router.put('/:id', paramValidation, updateActivityValidation, updateActivity);
  * @desc    Delete activity (soft delete)
  * @access  Private (Author/Admin)
  * @param   id: Activity ID
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -390,13 +390,13 @@ router.delete('/:id', paramValidation, deleteActivity);
  * @access  Private
  * @param   id: Activity ID
  * @body    type, metadata
- * 
+ *
  * Required Fields:
  * - type: Interaction type (view, like, share, comment, bookmark)
- * 
+ *
  * Optional Fields:
  * - metadata: Additional interaction metadata
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -415,10 +415,10 @@ router.post('/:id/interactions', paramValidation, interactionValidation, addInte
  * @access  Private
  * @param   id: Activity ID
  * @body    type
- * 
+ *
  * Required Fields:
  * - type: Interaction type to remove
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -436,7 +436,7 @@ router.delete('/:id/interactions', paramValidation, interactionValidation, remov
  * @desc    Get current user's activity statistics
  * @access  Private
  * @query   timeframe
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -458,7 +458,7 @@ router.get('/stats/my', queryValidation, getActivityStats);
  * @desc    Get global activity statistics
  * @access  Private (Admin only)
  * @query   timeframe
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -480,7 +480,7 @@ router.get('/stats/global', authorize(['admin']), queryValidation, getGlobalActi
  * @route   GET /api/activities/metadata
  * @desc    Get activity types, categories, and other metadata
  * @access  Private
- * 
+ *
  * Response:
  * {
  *   "success": true,

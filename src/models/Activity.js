@@ -4,8 +4,7 @@ const activitySchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   type: {
     type: String,
@@ -14,60 +13,60 @@ const activitySchema = new mongoose.Schema({
       // Authentication & Profile
       'user_login', 'user_logout', 'user_register', 'profile_update', 'avatar_upload',
       'password_change', 'email_verification', 'phone_verification',
-      
+
       // Marketplace Activities
       'service_created', 'service_updated', 'service_deleted', 'service_published',
       'service_viewed', 'service_favorited', 'service_shared',
       'booking_created', 'booking_accepted', 'booking_rejected', 'booking_completed',
       'booking_cancelled', 'booking_rescheduled',
       'review_created', 'review_updated', 'review_deleted',
-      
+
       // Job Board Activities
       'job_created', 'job_updated', 'job_deleted', 'job_published', 'job_closed',
       'job_applied', 'job_application_withdrawn', 'job_application_approved',
       'job_application_rejected', 'job_application_shortlisted',
-      
+
       // Academy Activities
       'course_created', 'course_updated', 'course_deleted', 'course_published',
       'course_enrolled', 'course_completed', 'course_progress_updated',
       'course_review_created', 'certificate_earned',
-      
+
       // Financial Activities
       'payment_made', 'payment_received', 'payment_failed', 'payment_refunded',
       'withdrawal_requested', 'withdrawal_approved', 'withdrawal_rejected',
       'invoice_created', 'invoice_paid', 'invoice_overdue',
-      
+
       // Communication Activities
       'message_sent', 'message_received', 'conversation_started',
       'notification_sent', 'notification_read', 'email_sent',
-      
+
       // Agency Activities
       'agency_joined', 'agency_left', 'agency_created', 'agency_updated',
       'provider_added', 'provider_removed', 'provider_status_updated',
-      
+
       // Referral Activities
       'referral_sent', 'referral_accepted', 'referral_completed',
       'referral_reward_earned', 'referral_invitation_sent',
-      
+
       // Trust & Verification
       'verification_requested', 'verification_approved', 'verification_rejected',
       'document_uploaded', 'document_verified', 'badge_earned',
-      
+
       // Supply & Rental Activities
       'supply_created', 'supply_ordered', 'supply_delivered', 'supply_reviewed',
       'rental_created', 'rental_booked', 'rental_returned', 'rental_reviewed',
-      
+
       // Advertisement Activities
       'ad_created', 'ad_updated', 'ad_published', 'ad_clicked', 'ad_promoted',
-      
+
       // System Activities
       'settings_updated', 'preferences_changed', 'subscription_created',
       'subscription_cancelled', 'subscription_renewed',
-      
+
       // Social Activities
       'connection_made', 'connection_removed', 'follow_started', 'follow_stopped',
       'content_liked', 'content_shared', 'content_commented',
-      
+
       // Other
       'search_performed', 'filter_applied', 'export_requested', 'report_generated'
     ],
@@ -79,9 +78,8 @@ const activitySchema = new mongoose.Schema({
     enum: [
       'authentication', 'profile', 'marketplace', 'job_board', 'academy',
       'financial', 'communication', 'agency', 'referral', 'verification',
-      'supplies', 'rentals', 'advertising', 'system', 'social', 'other'
-    ],
-    index: true
+      'supplies', 'rentals', 'advertising', 'system', 'social',       'other'
+    ]
   },
   action: {
     type: String,
@@ -257,7 +255,7 @@ activitySchema.virtual('age').get(function() {
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  
+
   if (minutes < 1) return 'just now';
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
@@ -286,12 +284,12 @@ activitySchema.pre('save', function(next) {
   if (!this.category) {
     this.category = this.getCategoryFromType(this.type);
   }
-  
+
   // Set points based on type and impact
   if (this.points === 0) {
     this.points = this.calculatePoints(this.type, this.impact);
   }
-  
+
   next();
 });
 
@@ -562,7 +560,7 @@ activitySchema.methods.getCategoryFromType = function(type) {
     'referral_sent': 'referral',
     'verification_requested': 'verification'
   };
-  
+
   return categoryMap[type] || 'other';
 };
 
@@ -585,7 +583,7 @@ activitySchema.methods.calculatePoints = function(type, impact) {
 
   const base = basePoints[impact] || 1;
   const multiplier = typeMultipliers[type] || 1;
-  
+
   return base * multiplier;
 };
 

@@ -1,23 +1,26 @@
 const PayPalService = require('../services/paypalService');
-const PayPalSubscriptionService = require('../services/paypalSubscriptionService');
+// const PayPalSubscriptionService = require('../services/paypalSubscriptionService');
 const { Payment, UserSubscription } = require('../models/LocalProPlus');
 const { Transaction } = require('../models/Finance');
 const { Booking } = require('../models/Marketplace');
 const { Order } = require('../models/Supplies');
+const User = require('../models/User');
+const logger = require('../utils/logger');
+
 
 // @desc    Handle PayPal webhook events
 // @route   POST /api/paypal/webhook
 // @access  Public (PayPal webhook)
-const handlePayPalWebhook = async (req, res) => {
+const handlePayPalWebhook = async(req, res) => {
   try {
     const headers = req.headers;
     const body = req.body;
 
     // Verify webhook signature
     const isValidSignature = await PayPalService.verifyWebhookSignature(headers, JSON.stringify(body));
-    
+
     if (!isValidSignature) {
-      console.error('Invalid PayPal webhook signature');
+      logger.error('Invalid PayPal webhook signature');
       return res.status(400).json({
         success: false,
         message: 'Invalid webhook signature'
@@ -26,9 +29,9 @@ const handlePayPalWebhook = async (req, res) => {
 
     // Process the webhook event
     const result = await PayPalService.processWebhookEvent(body);
-    
+
     if (!result.success) {
-      console.error('PayPal webhook processing failed:', result.error);
+      logger.error('PayPal webhook processing failed:', result.error);
       return res.status(500).json({
         success: false,
         message: 'Webhook processing failed'
@@ -43,7 +46,7 @@ const handlePayPalWebhook = async (req, res) => {
       message: 'Webhook processed successfully'
     });
   } catch (error) {
-    console.error('PayPal webhook error:', error);
+    logger.error('PayPal webhook error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -52,91 +55,91 @@ const handlePayPalWebhook = async (req, res) => {
 };
 
 // Handle specific webhook events
-const handleSpecificWebhookEvent = async (event) => {
+const handleSpecificWebhookEvent = async(event) => {
   const eventType = event.event_type;
   const resource = event.resource;
 
   try {
     switch (eventType) {
-      case 'PAYMENT.CAPTURE.COMPLETED':
-        await handlePaymentCompleted(resource);
-        break;
-      case 'PAYMENT.CAPTURE.DENIED':
-        await handlePaymentDenied(resource);
-        break;
-      case 'BILLING.SUBSCRIPTION.ACTIVATED':
-        await handleSubscriptionActivated(resource);
-        break;
-      case 'BILLING.SUBSCRIPTION.CANCELLED':
-        await handleSubscriptionCancelled(resource);
-        break;
-      case 'BILLING.SUBSCRIPTION.SUSPENDED':
-        await handleSubscriptionSuspended(resource);
-        break;
-      case 'BILLING.SUBSCRIPTION.PAYMENT.COMPLETED':
-        await handleSubscriptionPaymentCompleted(resource);
-        break;
-      case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
-        await handleSubscriptionPaymentFailed(resource);
-        break;
-      case 'BILLING.SUBSCRIPTION.EXPIRED':
-        await handleSubscriptionExpired(resource);
-        break;
-      default:
-        console.log(`Unhandled PayPal webhook event: ${eventType}`);
+    case 'PAYMENT.CAPTURE.COMPLETED':
+      await handlePaymentCompleted(resource);
+      break;
+    case 'PAYMENT.CAPTURE.DENIED':
+      await handlePaymentDenied(resource);
+      break;
+    case 'BILLING.SUBSCRIPTION.ACTIVATED':
+      await handleSubscriptionActivated(resource);
+      break;
+    case 'BILLING.SUBSCRIPTION.CANCELLED':
+      await handleSubscriptionCancelled(resource);
+      break;
+    case 'BILLING.SUBSCRIPTION.SUSPENDED':
+      await handleSubscriptionSuspended(resource);
+      break;
+    case 'BILLING.SUBSCRIPTION.PAYMENT.COMPLETED':
+      await handleSubscriptionPaymentCompleted(resource);
+      break;
+    case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
+      await handleSubscriptionPaymentFailed(resource);
+      break;
+    case 'BILLING.SUBSCRIPTION.EXPIRED':
+      await handleSubscriptionExpired(resource);
+      break;
+    default:
+      logger.info(`Unhandled PayPal webhook event: ${eventType}`);
     }
   } catch (error) {
-    console.error(`Error handling PayPal webhook event ${eventType}:`, error);
+    logger.error(`Error handling PayPal webhook event ${eventType}:`, error);
   }
 };
 
 // Handle payment completed
-const handlePaymentCompleted = async (resource) => {
+const handlePaymentCompleted = async(resource) => {
   try {
     const orderId = resource.supplementary_data?.related_ids?.order_id;
     const captureId = resource.id;
 
     if (!orderId) {
-      console.error('No order ID found in payment capture');
+      logger.error('No order ID found in payment capture');
       return;
     }
 
     // Find and update the relevant record based on order ID
     await updatePaymentStatus(orderId, 'completed', captureId);
-    
-    console.log(`Payment completed for order: ${orderId}`);
+
+    logger.info(`Payment completed for order: ${orderId}`);
   } catch (error) {
-    console.error('Error handling payment completed:', error);
+    logger.error('Error handling payment completed:', error);
   }
 };
 
 // Handle payment denied
-const handlePaymentDenied = async (resource) => {
+const handlePaymentDenied = async(resource) => {
   try {
     const orderId = resource.supplementary_data?.related_ids?.order_id;
 
     if (!orderId) {
-      console.error('No order ID found in payment denial');
+      logger.error('No order ID found in payment denial');
       return;
     }
 
     // Find and update the relevant record
     await updatePaymentStatus(orderId, 'failed');
-    
-    console.log(`Payment denied for order: ${orderId}`);
+
+    logger.info(`Payment denied for order: ${orderId}`);
   } catch (error) {
-    console.error('Error handling payment denied:', error);
+    logger.error('Error handling payment denied:', error);
   }
 };
 
 // Handle subscription activated
-const handleSubscriptionActivated = async (resource) => {
+const handleSubscriptionActivated = async(resource) => {
   try {
     const subscriptionId = resource.id;
     const customId = resource.custom_id;
 
     if (!customId) {
-      console.error('No custom ID found in subscription activation');
+      logger.error('No custom ID found in subscription activation');
       return;
     }
 
@@ -153,7 +156,7 @@ const handleSubscriptionActivated = async (resource) => {
         subscription: subscription._id,
         paypalOrderId: subscription.paymentDetails.paypalOrderId
       });
-      
+
       if (payment) {
         payment.status = 'completed';
         payment.processedAt = new Date();
@@ -167,21 +170,21 @@ const handleSubscriptionActivated = async (resource) => {
         await user.save();
       }
     }
-    
-    console.log(`Subscription activated: ${subscriptionId}`);
+
+    logger.info(`Subscription activated: ${subscriptionId}`);
   } catch (error) {
-    console.error('Error handling subscription activated:', error);
+    logger.error('Error handling subscription activated:', error);
   }
 };
 
 // Handle subscription cancelled
-const handleSubscriptionCancelled = async (resource) => {
+const handleSubscriptionCancelled = async(resource) => {
   try {
     const subscriptionId = resource.id;
     const customId = resource.custom_id;
 
     if (!customId) {
-      console.error('No custom ID found in subscription cancellation');
+      logger.error('No custom ID found in subscription cancellation');
       return;
     }
 
@@ -196,28 +199,28 @@ const handleSubscriptionCancelled = async (resource) => {
       };
       await subscription.save();
     }
-    
-    console.log(`Subscription cancelled: ${subscriptionId}`);
+
+    logger.info(`Subscription cancelled: ${subscriptionId}`);
   } catch (error) {
-    console.error('Error handling subscription cancelled:', error);
+    logger.error('Error handling subscription cancelled:', error);
   }
 };
 
 // Handle subscription payment completed
-const handleSubscriptionPaymentCompleted = async (resource) => {
+const handleSubscriptionPaymentCompleted = async(resource) => {
   try {
     const subscriptionId = resource.billing_agreement_id;
     const customId = resource.custom_id;
 
     if (!customId) {
-      console.error('No custom ID found in subscription payment');
+      logger.error('No custom ID found in subscription payment');
       return;
     }
 
     // Find the subscription and create a new payment record
     const subscription = await UserSubscription.findById(customId);
     if (subscription) {
-      const payment = await Payment.create({
+      await Payment.create({
         user: subscription.user,
         subscription: subscription._id,
         amount: parseFloat(resource.amount.total),
@@ -229,7 +232,7 @@ const handleSubscriptionPaymentCompleted = async (resource) => {
           paypalOrderId: resource.id,
           transactionId: resource.id
         },
-        description: `Subscription renewal payment`,
+        description: 'Subscription renewal payment',
         processedAt: new Date()
       });
 
@@ -246,28 +249,28 @@ const handleSubscriptionPaymentCompleted = async (resource) => {
       subscription.paymentDetails.lastPaymentDate = new Date();
       await subscription.save();
     }
-    
-    console.log(`Subscription payment completed: ${subscriptionId}`);
+
+    logger.info(`Subscription payment completed: ${subscriptionId}`);
   } catch (error) {
-    console.error('Error handling subscription payment completed:', error);
+    logger.error('Error handling subscription payment completed:', error);
   }
 };
 
 // Handle subscription payment failed
-const handleSubscriptionPaymentFailed = async (resource) => {
+const handleSubscriptionPaymentFailed = async(resource) => {
   try {
     const subscriptionId = resource.billing_agreement_id;
     const customId = resource.custom_id;
 
     if (!customId) {
-      console.error('No custom ID found in subscription payment failure');
+      logger.error('No custom ID found in subscription payment failure');
       return;
     }
 
     // Find the subscription and create a failed payment record
     const subscription = await UserSubscription.findById(customId);
     if (subscription) {
-      const payment = await Payment.create({
+      await Payment.create({
         user: subscription.user,
         subscription: subscription._id,
         amount: parseFloat(resource.amount.total),
@@ -284,15 +287,15 @@ const handleSubscriptionPaymentFailed = async (resource) => {
       subscription.status = 'payment_failed';
       await subscription.save();
     }
-    
-    console.log(`Subscription payment failed: ${subscriptionId}`);
+
+    logger.info(`Subscription payment failed: ${subscriptionId}`);
   } catch (error) {
-    console.error('Error handling subscription payment failed:', error);
+    logger.error('Error handling subscription payment failed:', error);
   }
 };
 
 // Update payment status across different models
-const updatePaymentStatus = async (orderId, status, transactionId = null) => {
+const updatePaymentStatus = async(orderId, status, transactionId = null) => {
   try {
     // Check LocalPro Plus payments
     const localProPayment = await Payment.findOne({ paypalOrderId: orderId });
@@ -345,16 +348,16 @@ const updatePaymentStatus = async (orderId, status, transactionId = null) => {
       return;
     }
 
-    console.log(`No record found for PayPal order: ${orderId}`);
+    logger.info(`No record found for PayPal order: ${orderId}`);
   } catch (error) {
-    console.error('Error updating payment status:', error);
+    logger.error('Error updating payment status:', error);
   }
 };
 
 // @desc    Get PayPal webhook events (for debugging)
 // @route   GET /api/paypal/webhook/events
 // @access  Private (Admin)
-const getWebhookEvents = async (req, res) => {
+const getWebhookEvents = async(req, res) => {
   try {
     // This would typically be stored in a database
     // For now, we'll return a simple response
@@ -364,7 +367,7 @@ const getWebhookEvents = async (req, res) => {
       data: []
     });
   } catch (error) {
-    console.error('Get webhook events error:', error);
+    logger.error('Get webhook events error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -373,12 +376,12 @@ const getWebhookEvents = async (req, res) => {
 };
 
 // Handle subscription suspended
-const handleSubscriptionSuspended = async (resource) => {
+const handleSubscriptionSuspended = async(resource) => {
   try {
     const subscriptionId = resource.id;
     const customId = resource.custom_id;
-    console.log('Subscription suspended:', subscriptionId);
-    
+    logger.info('Subscription suspended:', subscriptionId);
+
     // Update subscription status
     const subscription = await UserSubscription.findById(customId);
     if (subscription) {
@@ -386,17 +389,17 @@ const handleSubscriptionSuspended = async (resource) => {
       await subscription.save();
     }
   } catch (error) {
-    console.error('Error handling subscription suspended:', error);
+    logger.error('Error handling subscription suspended:', error);
   }
 };
 
 // Handle subscription expired
-const handleSubscriptionExpired = async (resource) => {
+const handleSubscriptionExpired = async(resource) => {
   try {
     const subscriptionId = resource.id;
     const customId = resource.custom_id;
-    console.log('Subscription expired:', subscriptionId);
-    
+    logger.info('Subscription expired:', subscriptionId);
+
     // Update subscription status
     const subscription = await UserSubscription.findById(customId);
     if (subscription) {
@@ -404,7 +407,7 @@ const handleSubscriptionExpired = async (resource) => {
       await subscription.save();
     }
   } catch (error) {
-    console.error('Error handling subscription expired:', error);
+    logger.error('Error handling subscription expired:', error);
   }
 };
 

@@ -1,32 +1,15 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const TwilioService = require('../services/twilioService');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
-const { uploaders } = require('../config/cloudinary');
+const { 
+  generateAccessToken, 
+  generateRefreshToken, 
+  generateTokenPair,
+  isOnboardingComplete 
+} = require('../config/jwt');
 const logger = require('../config/logger');
 // const { authLimiter, verificationLimiter } = require('../middleware/rateLimiter'); // Rate limiting disabled
-
-// Generate JWT Token with enhanced payload for mobile
-const generateToken = (user) => {
-  const payload = {
-    id: user._id,
-    phoneNumber: user.phoneNumber,
-    role: user.role,
-    isVerified: user.isVerified,
-    onboardingComplete: isOnboardingComplete(user)
-  };
-  
-  return jwt.sign(payload, process.env.JWT_SECRET, {
-    issuer: 'localpro-api',
-    audience: 'localpro-mobile'
-  });
-};
-
-// Helper function to check if user has completed onboarding
-const isOnboardingComplete = (user) => {
-  return !!(user.firstName && user.lastName && user.email);
-};
 
 // Helper function to validate phone number format
 const validatePhoneNumber = (phoneNumber) => {
@@ -51,10 +34,10 @@ const getClientInfo = (req) => {
 // @desc    Send verification code
 // @route   POST /api/auth/send-code
 // @access  Public
-const sendVerificationCode = async (req, res) => {
+const sendVerificationCode = async(req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { phoneNumber } = req.body;
 
@@ -88,13 +71,13 @@ const sendVerificationCode = async (req, res) => {
     // Check if user already exists
     const existingUser = await User.findOne({ phoneNumber });
     const isNewUser = !existingUser;
-    
+
     // Rate limiting check (prevent spam)
     if (existingUser) {
       const lastVerification = existingUser.lastVerificationSent;
       const now = new Date();
       const timeDiff = now - lastVerification;
-      
+
       // Allow only one verification per minute
       if (lastVerification && timeDiff < 60000) {
         logger.warn('Send verification code failed: Rate limit exceeded', {
@@ -110,7 +93,7 @@ const sendVerificationCode = async (req, res) => {
         });
       }
     }
-    
+
     // Send verification code via Twilio
     const result = await TwilioService.sendVerificationCode(phoneNumber);
 
@@ -164,17 +147,17 @@ const sendVerificationCode = async (req, res) => {
 // @desc    Verify code and register/login user
 // @route   POST /api/auth/verify-code
 // @access  Public
-const verifyCode = async (req, res) => {
+const verifyCode = async(req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { phoneNumber, code } = req.body;
 
     // Input validation
     if (!phoneNumber || !code) {
       logger.warn('Verify code failed: Missing required fields', {
-        hasPhoneNumber: !!phoneNumber, 
+        hasPhoneNumber: !!phoneNumber,
         hasCode: !!code,
         clientInfo,
         duration: Date.now() - startTime
@@ -233,17 +216,17 @@ const verifyCode = async (req, res) => {
       user.lastLoginIP = clientInfo.ip;
       user.loginCount += 1;
       user.status = 'active';
-      
+
       // Update activity tracking
       user.activity.lastActiveAt = new Date();
       user.activity.totalSessions += 1;
-      
+
       // Update device info
       const deviceType = user.getDeviceType(clientInfo.userAgent);
-      const existingDevice = user.activity.deviceInfo.find(device => 
+      const existingDevice = user.activity.deviceInfo.find(device =>
         device.deviceType === deviceType && device.userAgent === clientInfo.userAgent
       );
-      
+
       if (existingDevice) {
         existingDevice.lastUsed = new Date();
       } else {
@@ -253,14 +236,15 @@ const verifyCode = async (req, res) => {
           lastUsed: new Date()
         });
       }
-      
+
       await user.save();
 
       // Check if user has completed onboarding
       const onboardingComplete = isOnboardingComplete(user);
-      
-      // Generate token
-      const token = generateToken(user);
+
+      // Generate token pair
+      const tokenData = generateTokenPair(user);
+      const token = tokenData.accessToken;
 
       logger.info('Existing user login successful', {
         userId: user._id,
@@ -273,7 +257,9 @@ const verifyCode = async (req, res) => {
       res.status(200).json({
         success: true,
         message: 'Login successful',
-        token,
+        accessToken: token,
+        refreshToken: tokenData.refreshToken,
+        expiresIn: tokenData.expiresIn,
         user: {
           id: user._id,
           phoneNumber: user.phoneNumber,
@@ -291,8 +277,8 @@ const verifyCode = async (req, res) => {
         },
         redirect: {
           destination: onboardingComplete ? 'dashboard' : 'onboarding',
-          reason: onboardingComplete 
-            ? 'User has complete profile information' 
+          reason: onboardingComplete
+            ? 'User has complete profile information'
             : 'User needs to complete profile setup'
         }
       });
@@ -319,8 +305,9 @@ const verifyCode = async (req, res) => {
         }
       });
 
-      // Generate token
-      const token = generateToken(user);
+      // Generate token pair
+      const tokenData = generateTokenPair(user);
+      const token = tokenData.accessToken;
 
       logger.info('New user registration successful', {
         userId: user._id,
@@ -332,7 +319,9 @@ const verifyCode = async (req, res) => {
       res.status(201).json({
         success: true,
         message: 'Registration successful. Please complete your profile.',
-        token,
+        accessToken: token,
+        refreshToken: tokenData.refreshToken,
+        expiresIn: tokenData.expiresIn,
         user: {
           id: user._id,
           phoneNumber: user.phoneNumber,
@@ -368,10 +357,10 @@ const verifyCode = async (req, res) => {
 // @desc    Complete user onboarding
 // @route   POST /api/auth/complete-onboarding
 // @access  Private
-const completeOnboarding = async (req, res) => {
+const completeOnboarding = async(req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { firstName, lastName, email } = req.body;
     const userId = req.user.id;
@@ -421,9 +410,9 @@ const completeOnboarding = async (req, res) => {
     }
 
     // Check if email is already taken by another user
-    const existingUser = await User.findOne({ 
-      email: email.toLowerCase(), 
-      _id: { $ne: userId } 
+    const existingUser = await User.findOne({
+      email: email.toLowerCase(),
+      _id: { $ne: userId }
     });
 
     if (existingUser) {
@@ -499,7 +488,8 @@ const completeOnboarding = async (req, res) => {
     }
 
     // Generate new token with updated user info
-    const token = generateToken(user);
+    const tokenData = generateTokenPair(user);
+    const token = tokenData.accessToken;
 
     logger.info('Onboarding completed successfully', {
       userId: user._id,
@@ -512,7 +502,9 @@ const completeOnboarding = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Onboarding completed successfully',
-      token,
+      accessToken: token,
+      refreshToken: tokenData.refreshToken,
+      expiresIn: tokenData.expiresIn,
       user: {
         id: user._id,
         phoneNumber: user.phoneNumber,
@@ -555,10 +547,10 @@ const completeOnboarding = async (req, res) => {
 // @desc    Check profile completeness status
 // @route   GET /api/auth/profile-completeness
 // @access  Private
-const getProfileCompleteness = async (req, res) => {
+const getProfileCompleteness = async(req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
@@ -645,7 +637,7 @@ const getProfileCompleteness = async (req, res) => {
       ...completeness.profile.missing,
       ...completeness.verification.missing
     ].length;
-    
+
     completeness.overall.percentage = Math.round((completedFields / totalFields) * 100);
     completeness.overall.completed = completeness.overall.percentage === 100;
     completeness.overall.missingFields = [
@@ -665,7 +657,7 @@ const getProfileCompleteness = async (req, res) => {
         fields: completeness.basic.missing
       });
     }
-    
+
     if (completeness.profile.missing.length > 0 && completeness.basic.completed) {
       nextSteps.push({
         priority: 'medium',
@@ -675,7 +667,7 @@ const getProfileCompleteness = async (req, res) => {
         fields: completeness.profile.missing
       });
     }
-    
+
     if (completeness.verification.missing.length > 0 && completeness.basic.completed) {
       nextSteps.push({
         priority: 'medium',
@@ -738,7 +730,7 @@ const getProfileCompleteness = async (req, res) => {
 // @desc    Get current user
 // @route   GET /api/auth/me
 // @access  Private
-const getMe = async (req, res) => {
+const getMe = async(req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
 
@@ -747,7 +739,7 @@ const getMe = async (req, res) => {
       user
     });
   } catch (error) {
-    console.error('Get me error:', error);
+    logger.error('Get me error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -758,7 +750,7 @@ const getMe = async (req, res) => {
 // @desc    Update user profile
 // @route   PUT /api/auth/profile
 // @access  Private
-const updateProfile = async (req, res) => {
+const updateProfile = async(req, res) => {
   try {
     const { firstName, lastName, email, profile } = req.body;
     const userId = req.user.id;
@@ -780,7 +772,7 @@ const updateProfile = async (req, res) => {
       user
     });
   } catch (error) {
-    console.error('Update profile error:', error);
+    logger.error('Update profile error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -791,7 +783,7 @@ const updateProfile = async (req, res) => {
 // @desc    Upload profile avatar
 // @route   POST /api/auth/upload-avatar
 // @access  Private
-const uploadAvatar = async (req, res) => {
+const uploadAvatar = async(req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -812,7 +804,7 @@ const uploadAvatar = async (req, res) => {
 
     // Upload to Cloudinary
     const uploadResult = await CloudinaryService.uploadFile(
-      req.file, 
+      req.file,
       'localpro/users/profiles'
     );
 
@@ -846,7 +838,7 @@ const uploadAvatar = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Upload avatar error:', error);
+    logger.error('Upload avatar error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -857,7 +849,7 @@ const uploadAvatar = async (req, res) => {
 // @desc    Upload portfolio images
 // @route   POST /api/auth/upload-portfolio
 // @access  Private
-const uploadPortfolioImages = async (req, res) => {
+const uploadPortfolioImages = async(req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
@@ -887,7 +879,7 @@ const uploadPortfolioImages = async (req, res) => {
 
     // Upload multiple files to Cloudinary
     const uploadResult = await CloudinaryService.uploadMultipleFiles(
-      req.files, 
+      req.files,
       'localpro/users/portfolio'
     );
 
@@ -921,7 +913,7 @@ const uploadPortfolioImages = async (req, res) => {
       data: portfolioEntry
     });
   } catch (error) {
-    console.error('Upload portfolio images error:', error);
+    logger.error('Upload portfolio images error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -929,21 +921,134 @@ const uploadPortfolioImages = async (req, res) => {
   }
 };
 
+// @desc    Refresh access token using refresh token
+// @route   POST /api/auth/refresh
+// @access  Public
+const refreshToken = async(req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      logger.warn('Refresh token failed: No refresh token provided', {
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Refresh token is required',
+        code: 'MISSING_REFRESH_TOKEN'
+      });
+    }
+
+    // Verify refresh token
+    const { verifyRefreshToken } = require('../config/jwt');
+    const decoded = verifyRefreshToken(refreshToken);
+
+    // Check if token is a refresh token
+    if (decoded.type !== 'refresh') {
+      logger.warn('Refresh token failed: Invalid token type', {
+        tokenType: decoded.type,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid refresh token',
+        code: 'INVALID_REFRESH_TOKEN'
+      });
+    }
+
+    // Get user and check if they still exist and are active
+    const user = await User.findById(decoded.id);
+    if (!user || user.status !== 'active') {
+      logger.warn('Refresh token failed: User not found or inactive', {
+        userId: decoded.id,
+        userStatus: user?.status,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(401).json({
+        success: false,
+        message: 'User not found or inactive',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // Check token version for invalidation (if implemented)
+    if (user.tokenVersion && decoded.tokenVersion !== user.tokenVersion) {
+      logger.warn('Refresh token failed: Token version mismatch', {
+        userId: user._id,
+        expectedVersion: user.tokenVersion,
+        tokenVersion: decoded.tokenVersion,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token has been invalidated',
+        code: 'TOKEN_INVALIDATED'
+      });
+    }
+
+    // Generate new token pair
+    const tokenData = generateTokenPair(user);
+
+    logger.info('Token refreshed successfully', {
+      userId: user._id,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Token refreshed successfully',
+      ...tokenData
+    });
+  } catch (error) {
+    logger.error('Refresh token error', {
+      error: error.message,
+      stack: error.stack,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    let message = 'Invalid refresh token';
+    let code = 'INVALID_REFRESH_TOKEN';
+
+    if (error.name === 'TokenExpiredError') {
+      message = 'Refresh token has expired';
+      code = 'REFRESH_TOKEN_EXPIRED';
+    } else if (error.name === 'JsonWebTokenError') {
+      message = 'Invalid refresh token';
+      code = 'INVALID_REFRESH_TOKEN';
+    }
+
+    res.status(401).json({
+      success: false,
+      message,
+      code
+    });
+  }
+};
+
 // @desc    Logout user
 // @route   POST /api/auth/logout
 // @access  Private
-const logout = async (req, res) => {
+const logout = async(req, res) => {
   try {
     // In a JWT-based system, logout is typically handled client-side
     // by removing the token. However, we can implement token blacklisting
     // or other server-side logout mechanisms here if needed.
-    
+
     res.status(200).json({
       success: true,
       message: 'Logged out successfully'
     });
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error('Logout error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -960,5 +1065,6 @@ module.exports = {
   updateProfile,
   uploadAvatar,
   uploadPortfolioImages,
+  refreshToken,
   logout
 };

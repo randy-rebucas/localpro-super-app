@@ -5,12 +5,12 @@
  */
 
 // Rate limiting disabled - uncomment to re-enable
-// const { 
-//   generalLimiter, 
-//   authLimiter, 
-//   verificationLimiter, 
-//   uploadLimiter, 
-//   searchLimiter 
+// const {
+//   generalLimiter,
+//   authLimiter,
+//   verificationLimiter,
+//   uploadLimiter,
+//   searchLimiter
 // } = require('./rateLimiter');
 
 /**
@@ -18,20 +18,11 @@
  * @param {string} routeType - Type of route (auth, search, upload, verification, general)
  * @returns {Function} - Rate limiter middleware
  */
-const applyRateLimiting = (routeType) => {
-  switch (routeType) {
-    case 'auth':
-      return authLimiter;
-    case 'verification':
-      return verificationLimiter;
-    case 'upload':
-      return uploadLimiter;
-    case 'search':
-      return searchLimiter;
-    case 'general':
-    default:
-      return generalLimiter;
-  }
+const applyRateLimiting = (_routeType) => {
+  // Rate limiting is disabled - return no-op middleware
+  return (req, res, next) => {
+    next();
+  };
 };
 
 /**
@@ -45,20 +36,20 @@ const rateLimitConfig = {
   '/api/auth/register': 'auth',
   '/api/auth/forgot-password': 'verification',
   '/api/auth/reset-password': 'auth',
-  
+
   // Search endpoints
   '/api/jobs': 'search',
   '/api/marketplace/services': 'search',
   '/api/rentals': 'search',
   '/api/academy/courses': 'search',
   '/api/search': 'search',
-  
+
   // Upload endpoints
   '/api/upload': 'upload',
   '/api/upload/avatar': 'upload',
   '/api/upload/service-images': 'upload',
   '/api/upload/job-images': 'upload',
-  
+
   // General API endpoints
   '/api/users': 'general',
   '/api/communication': 'general',
@@ -74,7 +65,6 @@ const rateLimitConfig = {
   '/api/maps': 'general',
   '/api/payments': 'general',
   '/api/provider': 'general',
-  '/api/rentals': 'general',
   '/api/settings': 'general',
   '/api/supplies': 'general',
   '/api/trust-verification': 'general'
@@ -90,14 +80,14 @@ const getRateLimiterForRoute = (route) => {
   if (rateLimitConfig[route]) {
     return applyRateLimiting(rateLimitConfig[route]);
   }
-  
+
   // Check for pattern matches
   for (const pattern in rateLimitConfig) {
     if (route.startsWith(pattern)) {
       return applyRateLimiting(rateLimitConfig[pattern]);
     }
   }
-  
+
   // Default to general rate limiting
   return applyRateLimiting('general');
 };
@@ -111,7 +101,7 @@ const getRateLimiterForRoute = (route) => {
 const dynamicRateLimiter = (req, res, next) => {
   const route = req.path;
   const rateLimiter = getRateLimiterForRoute(route);
-  
+
   return rateLimiter(req, res, next);
 };
 

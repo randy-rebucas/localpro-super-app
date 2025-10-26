@@ -1,4 +1,5 @@
 const cloudinary = require('cloudinary').v2;
+const logger = require('../utils/logger');
 
 class CloudinaryService {
   constructor() {
@@ -13,7 +14,7 @@ class CloudinaryService {
     cloudinary.config({
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
       api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
+      api_secret: process.env.CLOUDINARY_API_SECRET
     });
   }
 
@@ -52,7 +53,7 @@ class CloudinaryService {
         }
       };
     } catch (error) {
-      console.error('Cloudinary upload error:', error);
+      logger.error('Cloudinary upload error:', error);
       return {
         success: false,
         error: error.message
@@ -88,7 +89,7 @@ class CloudinaryService {
         failed: failed.length
       };
     } catch (error) {
-      console.error('Cloudinary multiple upload error:', error);
+      logger.error('Cloudinary multiple upload error:', error);
       return {
         success: false,
         error: error.message
@@ -115,7 +116,7 @@ class CloudinaryService {
         data: result
       };
     } catch (error) {
-      console.error('Cloudinary delete error:', error);
+      logger.error('Cloudinary delete error:', error);
       return {
         success: false,
         error: error.message
@@ -150,7 +151,7 @@ class CloudinaryService {
         failed: failed.length
       };
     } catch (error) {
-      console.error('Cloudinary multiple delete error:', error);
+      logger.error('Cloudinary multiple delete error:', error);
       return {
         success: false,
         error: error.message
@@ -176,7 +177,7 @@ class CloudinaryService {
         data: result
       };
     } catch (error) {
-      console.error('Cloudinary get file info error:', error);
+      logger.error('Cloudinary get file info error:', error);
       return {
         success: false,
         error: error.message
@@ -303,7 +304,7 @@ class CloudinaryService {
         }
       };
     } catch (error) {
-      console.error('Cloudinary upload from URL error:', error);
+      logger.error('Cloudinary upload from URL error:', error);
       return {
         success: false,
         error: error.message
@@ -330,7 +331,7 @@ class CloudinaryService {
         total: result.total_count
       };
     } catch (error) {
-      console.error('Cloudinary search error:', error);
+      logger.error('Cloudinary search error:', error);
       return {
         success: false,
         error: error.message
@@ -356,7 +357,7 @@ class CloudinaryService {
         message: 'Folder will be created when files are uploaded to it'
       };
     } catch (error) {
-      console.error('Cloudinary create folder error:', error);
+      logger.error('Cloudinary create folder error:', error);
       return {
         success: false,
         error: error.message
@@ -377,7 +378,7 @@ class CloudinaryService {
         data: result
       };
     } catch (error) {
-      console.error('Cloudinary usage stats error:', error);
+      logger.error('Cloudinary usage stats error:', error);
       return {
         success: false,
         error: error.message

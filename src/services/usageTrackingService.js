@@ -1,4 +1,5 @@
 const { UserSubscription, FeatureUsage } = require('../models/LocalProPlus');
+const logger = require('../utils/logger');
 
 class UsageTrackingService {
   /**
@@ -11,7 +12,7 @@ class UsageTrackingService {
   static async trackUsage(userId, feature, amount = 1, metadata = {}) {
     try {
       const subscription = await UserSubscription.findOne({ user: userId });
-      
+
       if (!subscription) {
         throw new Error('No subscription found for user');
       }
@@ -48,7 +49,7 @@ class UsageTrackingService {
         limit: subscription.usage[feature]?.limit || 'unlimited'
       };
     } catch (error) {
-      console.error('Usage tracking error:', error);
+      logger.error('Usage tracking error:', error);
       return {
         success: false,
         error: error.message
@@ -64,7 +65,7 @@ class UsageTrackingService {
   static async getUserUsageStats(userId, period = 'month') {
     try {
       const subscription = await UserSubscription.findOne({ user: userId });
-      
+
       if (!subscription) {
         return {
           success: false,
@@ -76,20 +77,20 @@ class UsageTrackingService {
       let startDate;
 
       switch (period) {
-        case 'day':
-          startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-          break;
-        case 'week':
-          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          break;
-        case 'month':
-          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          break;
-        case 'year':
-          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-          break;
-        default:
-          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      case 'day':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'month':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case 'year':
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       }
 
       // Get feature usage statistics
@@ -129,7 +130,7 @@ class UsageTrackingService {
         }
       };
     } catch (error) {
-      console.error('Get usage stats error:', error);
+      logger.error('Get usage stats error:', error);
       return {
         success: false,
         error: error.message
@@ -146,7 +147,7 @@ class UsageTrackingService {
   static async canPerformAction(userId, feature, amount = 1) {
     try {
       const subscription = await UserSubscription.findOne({ user: userId });
-      
+
       if (!subscription) {
         return {
           canPerform: false,
@@ -188,7 +189,7 @@ class UsageTrackingService {
         remaining: limit ? limit - currentUsage : 'unlimited'
       };
     } catch (error) {
-      console.error('Check action permission error:', error);
+      logger.error('Check action permission error:', error);
       return {
         canPerform: false,
         reason: 'Error checking permissions'
@@ -203,7 +204,7 @@ class UsageTrackingService {
   static async resetUsageCounters(userId) {
     try {
       const subscription = await UserSubscription.findOne({ user: userId });
-      
+
       if (!subscription) {
         return {
           success: false,
@@ -225,7 +226,7 @@ class UsageTrackingService {
         message: 'Usage counters reset successfully'
       };
     } catch (error) {
-      console.error('Reset usage counters error:', error);
+      logger.error('Reset usage counters error:', error);
       return {
         success: false,
         error: error.message
@@ -318,7 +319,7 @@ class UsageTrackingService {
         }
       };
     } catch (error) {
-      console.error('Get usage analytics error:', error);
+      logger.error('Get usage analytics error:', error);
       return {
         success: false,
         error: error.message

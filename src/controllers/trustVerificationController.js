@@ -2,11 +2,13 @@ const { VerificationRequest } = require('../models/TrustVerification');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
+const logger = require('../utils/logger');
+
 
 // @desc    Get all trust verification requests
 // @route   GET /api/trust-verification
 // @access  Private (Admin only)
-const getVerificationRequestRequests = async (req, res) => {
+const getVerificationRequestRequests = async(req, res) => {
   try {
     const { page = 1, limit = 20, status, type } = req.query;
     const skip = (page - 1) * limit;
@@ -34,7 +36,7 @@ const getVerificationRequestRequests = async (req, res) => {
       data: requests
     });
   } catch (error) {
-    console.error('Get trust verification requests error:', error);
+    logger.error('Get trust verification requests error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -45,7 +47,7 @@ const getVerificationRequestRequests = async (req, res) => {
 // @desc    Get single trust verification request
 // @route   GET /api/trust-verification/:id
 // @access  Private
-const getVerificationRequestRequest = async (req, res) => {
+const getVerificationRequestRequest = async(req, res) => {
   try {
     const request = await VerificationRequest.findById(req.params.id)
       .populate('user', 'firstName lastName profile.avatar profile.rating profile.bio')
@@ -71,7 +73,7 @@ const getVerificationRequestRequest = async (req, res) => {
       data: request
     });
   } catch (error) {
-    console.error('Get trust verification request error:', error);
+    logger.error('Get trust verification request error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -82,7 +84,7 @@ const getVerificationRequestRequest = async (req, res) => {
 // @desc    Create trust verification request
 // @route   POST /api/trust-verification
 // @access  Private
-const createVerificationRequestRequest = async (req, res) => {
+const createVerificationRequestRequest = async(req, res) => {
   try {
     const { type, documents, additionalInfo } = req.body;
 
@@ -137,7 +139,7 @@ const createVerificationRequestRequest = async (req, res) => {
       data: request
     });
   } catch (error) {
-    console.error('Create trust verification request error:', error);
+    logger.error('Create trust verification request error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -148,7 +150,7 @@ const createVerificationRequestRequest = async (req, res) => {
 // @desc    Update trust verification request
 // @route   PUT /api/trust-verification/:id
 // @access  Private
-const updateVerificationRequestRequest = async (req, res) => {
+const updateVerificationRequestRequest = async(req, res) => {
   try {
     const { documents, additionalInfo } = req.body;
 
@@ -190,7 +192,7 @@ const updateVerificationRequestRequest = async (req, res) => {
       data: request
     });
   } catch (error) {
-    console.error('Update trust verification request error:', error);
+    logger.error('Update trust verification request error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -201,7 +203,7 @@ const updateVerificationRequestRequest = async (req, res) => {
 // @desc    Review trust verification request
 // @route   PUT /api/trust-verification/:id/review
 // @access  Private (Admin only)
-const reviewVerificationRequestRequest = async (req, res) => {
+const reviewVerificationRequestRequest = async(req, res) => {
   try {
     const { status, adminNotes, trustScore } = req.body;
 
@@ -273,7 +275,7 @@ const reviewVerificationRequestRequest = async (req, res) => {
       data: request
     });
   } catch (error) {
-    console.error('Review trust verification request error:', error);
+    logger.error('Review trust verification request error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -284,7 +286,7 @@ const reviewVerificationRequestRequest = async (req, res) => {
 // @desc    Delete trust verification request
 // @route   DELETE /api/trust-verification/:id
 // @access  Private
-const deleteVerificationRequestRequest = async (req, res) => {
+const deleteVerificationRequestRequest = async(req, res) => {
   try {
     const request = await VerificationRequest.findById(req.params.id);
 
@@ -318,7 +320,7 @@ const deleteVerificationRequestRequest = async (req, res) => {
       message: 'Trust verification request deleted successfully'
     });
   } catch (error) {
-    console.error('Delete trust verification request error:', error);
+    logger.error('Delete trust verification request error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -329,7 +331,7 @@ const deleteVerificationRequestRequest = async (req, res) => {
 // @desc    Upload verification documents
 // @route   POST /api/trust-verification/:id/documents
 // @access  Private
-const uploadVerificationDocuments = async (req, res) => {
+const uploadVerificationDocuments = async(req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
@@ -363,7 +365,7 @@ const uploadVerificationDocuments = async (req, res) => {
       });
     }
 
-    const uploadPromises = req.files.map(file => 
+    const uploadPromises = req.files.map(file =>
       CloudinaryService.uploadFile(file, 'localpro/verification-documents')
     );
 
@@ -394,7 +396,7 @@ const uploadVerificationDocuments = async (req, res) => {
       data: successfulUploads
     });
   } catch (error) {
-    console.error('Upload verification documents error:', error);
+    logger.error('Upload verification documents error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -405,7 +407,7 @@ const uploadVerificationDocuments = async (req, res) => {
 // @desc    Delete verification document
 // @route   DELETE /api/trust-verification/:id/documents/:documentId
 // @access  Private
-const deleteVerificationDocument = async (req, res) => {
+const deleteVerificationDocument = async(req, res) => {
   try {
     const { documentId } = req.params;
 
@@ -455,7 +457,7 @@ const deleteVerificationDocument = async (req, res) => {
       message: 'Document deleted successfully'
     });
   } catch (error) {
-    console.error('Delete verification document error:', error);
+    logger.error('Delete verification document error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -466,7 +468,7 @@ const deleteVerificationDocument = async (req, res) => {
 // @desc    Get user's trust verification requests
 // @route   GET /api/trust-verification/my-requests
 // @access  Private
-const getMyVerificationRequestRequests = async (req, res) => {
+const getMyVerificationRequestRequests = async(req, res) => {
   try {
     const { page = 1, limit = 20, status, type } = req.query;
     const skip = (page - 1) * limit;
@@ -493,7 +495,7 @@ const getMyVerificationRequestRequests = async (req, res) => {
       data: requests
     });
   } catch (error) {
-    console.error('Get my trust verification requests error:', error);
+    logger.error('Get my trust verification requests error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -504,7 +506,7 @@ const getMyVerificationRequestRequests = async (req, res) => {
 // @desc    Get trust verification statistics
 // @route   GET /api/trust-verification/statistics
 // @access  Private (Admin only)
-const getVerificationRequestStatistics = async (req, res) => {
+const getVerificationRequestStatistics = async(req, res) => {
   try {
     // Get total requests
     const totalRequests = await VerificationRequest.countDocuments();
@@ -579,7 +581,7 @@ const getVerificationRequestStatistics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get trust verification statistics error:', error);
+    logger.error('Get trust verification statistics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -590,7 +592,7 @@ const getVerificationRequestStatistics = async (req, res) => {
 // @desc    Get verified users
 // @route   GET /api/trust-verification/verified-users
 // @access  Public
-const getVerifiedUsers = async (req, res) => {
+const getVerifiedUsers = async(req, res) => {
   try {
     const { page = 1, limit = 20, minTrustScore } = req.query;
     const skip = (page - 1) * limit;
@@ -616,7 +618,7 @@ const getVerifiedUsers = async (req, res) => {
       data: users
     });
   } catch (error) {
-    console.error('Get verified users error:', error);
+    logger.error('Get verified users error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

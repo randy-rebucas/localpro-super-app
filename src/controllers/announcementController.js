@@ -1,10 +1,8 @@
 const Announcement = require('../models/Announcement');
-const User = require('../models/User');
 const { logger } = require('../utils/logger');
-const { auditGeneralOperations } = require('../middleware/auditLogger');
 
 // Get all announcements (public and filtered)
-const getAnnouncements = async (req, res) => {
+const getAnnouncements = async(req, res) => {
   try {
     const {
       type,
@@ -128,7 +126,7 @@ const getAnnouncements = async (req, res) => {
       userId: req.user?.id,
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve announcements'
@@ -137,7 +135,7 @@ const getAnnouncements = async (req, res) => {
 };
 
 // Get announcements for current user (personalized)
-const getMyAnnouncements = async (req, res) => {
+const getMyAnnouncements = async(req, res) => {
   try {
     const user = req.user;
     const {
@@ -149,13 +147,19 @@ const getMyAnnouncements = async (req, res) => {
     let query = {
       isDeleted: false,
       status: 'published',
-      $or: [
-        { scheduledAt: { $lte: new Date() } },
-        { scheduledAt: null }
-      ],
-      $or: [
-        { expiresAt: { $gt: new Date() } },
-        { expiresAt: null }
+      $and: [
+        {
+          $or: [
+            { scheduledAt: { $lte: new Date() } },
+            { scheduledAt: null }
+          ]
+        },
+        {
+          $or: [
+            { expiresAt: { $gt: new Date() } },
+            { expiresAt: null }
+          ]
+        }
       ]
     };
 
@@ -185,7 +189,7 @@ const getMyAnnouncements = async (req, res) => {
       const isAcknowledged = announcement.acknowledgments.some(
         ack => ack.user.toString() === user.id
       );
-      
+
       return {
         ...announcement,
         isAcknowledged,
@@ -217,7 +221,7 @@ const getMyAnnouncements = async (req, res) => {
     logger.error('Failed to get user announcements', error, {
       userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve user announcements'
@@ -226,7 +230,7 @@ const getMyAnnouncements = async (req, res) => {
 };
 
 // Get single announcement
-const getAnnouncement = async (req, res) => {
+const getAnnouncement = async(req, res) => {
   try {
     const { id } = req.params;
     const user = req.user;
@@ -297,7 +301,7 @@ const getAnnouncement = async (req, res) => {
       userId: req.user?.id,
       announcementId: req.params.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve announcement'
@@ -306,7 +310,7 @@ const getAnnouncement = async (req, res) => {
 };
 
 // Create announcement
-const createAnnouncement = async (req, res) => {
+const createAnnouncement = async(req, res) => {
   try {
     const user = req.user;
     const announcementData = {
@@ -346,7 +350,7 @@ const createAnnouncement = async (req, res) => {
       userId: req.user?.id,
       announcementData: req.body
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to create announcement'
@@ -355,7 +359,7 @@ const createAnnouncement = async (req, res) => {
 };
 
 // Update announcement
-const updateAnnouncement = async (req, res) => {
+const updateAnnouncement = async(req, res) => {
   try {
     const { id } = req.params;
     const user = req.user;
@@ -393,7 +397,7 @@ const updateAnnouncement = async (req, res) => {
       updateData,
       { new: true, runValidators: true }
     ).populate('author', 'firstName lastName email avatar role')
-     .populate('metadata.lastModifiedBy', 'firstName lastName email');
+      .populate('metadata.lastModifiedBy', 'firstName lastName email');
 
     logger.info('Announcement updated', {
       userId: user.id,
@@ -413,7 +417,7 @@ const updateAnnouncement = async (req, res) => {
       announcementId: req.params.id,
       updateData: req.body
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to update announcement'
@@ -422,7 +426,7 @@ const updateAnnouncement = async (req, res) => {
 };
 
 // Delete announcement (soft delete)
-const deleteAnnouncement = async (req, res) => {
+const deleteAnnouncement = async(req, res) => {
   try {
     const { id } = req.params;
     const user = req.user;
@@ -464,7 +468,7 @@ const deleteAnnouncement = async (req, res) => {
       userId: req.user?.id,
       announcementId: req.params.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to delete announcement'
@@ -473,7 +477,7 @@ const deleteAnnouncement = async (req, res) => {
 };
 
 // Acknowledge announcement
-const acknowledgeAnnouncement = async (req, res) => {
+const acknowledgeAnnouncement = async(req, res) => {
   try {
     const { id } = req.params;
     const user = req.user;
@@ -520,7 +524,7 @@ const acknowledgeAnnouncement = async (req, res) => {
       userId: req.user?.id,
       announcementId: req.params.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to acknowledge announcement'
@@ -529,7 +533,7 @@ const acknowledgeAnnouncement = async (req, res) => {
 };
 
 // Add comment to announcement
-const addComment = async (req, res) => {
+const addComment = async(req, res) => {
   try {
     const { id } = req.params;
     const { content } = req.body;
@@ -590,7 +594,7 @@ const addComment = async (req, res) => {
       userId: req.user?.id,
       announcementId: req.params.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to add comment'
@@ -599,7 +603,7 @@ const addComment = async (req, res) => {
 };
 
 // Get announcement statistics
-const getAnnouncementStats = async (req, res) => {
+const getAnnouncementStats = async(req, res) => {
   try {
     const user = req.user;
 
@@ -687,7 +691,7 @@ const getAnnouncementStats = async (req, res) => {
     logger.error('Failed to get announcement statistics', error, {
       userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve announcement statistics'

@@ -233,7 +233,7 @@ const paramValidation = [
  * @desc    Get all announcements with filtering and pagination
  * @access  Public
  * @query   type, priority, status, targetAudience, page, limit, sortBy, sortOrder, search, tags, isSticky, author
- * 
+ *
  * Query Parameters:
  * - type (optional): Filter by announcement type
  * - priority (optional): Filter by priority level
@@ -247,7 +247,7 @@ const paramValidation = [
  * - tags (optional): Filter by tags (comma-separated)
  * - isSticky (optional): Filter by sticky announcements
  * - author (optional): Filter by author ID
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -271,7 +271,7 @@ router.get('/', queryValidation, getAnnouncements);
  * @desc    Get single announcement by ID
  * @access  Public
  * @param   id: Announcement ID
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -293,12 +293,12 @@ router.use(auth);
  * @desc    Get personalized announcements for current user
  * @access  Private
  * @query   page, limit, includeAcknowledged
- * 
+ *
  * Query Parameters:
  * - page (optional): Page number (default: 1)
  * - limit (optional): Items per page (default: 20, max: 100)
  * - includeAcknowledged (optional): Include acknowledged announcements (default: false)
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -315,12 +315,12 @@ router.get('/my/list', queryValidation, getMyAnnouncements);
  * @desc    Create new announcement
  * @access  Private (Admin/Manager roles)
  * @body    title, content, summary, type, priority, targetAudience, targetRoles, targetLocations, targetCategories, scheduledAt, expiresAt, isSticky, allowComments, requireAcknowledgment, tags
- * 
+ *
  * Required Fields:
  * - title: Announcement title (5-200 characters)
  * - content: Announcement content (10-5000 characters)
  * - summary: Announcement summary (10-500 characters)
- * 
+ *
  * Optional Fields:
  * - type: Announcement type (default: general)
  * - priority: Priority level (default: medium)
@@ -334,7 +334,7 @@ router.get('/my/list', queryValidation, getMyAnnouncements);
  * - allowComments: Allow comments (default: true)
  * - requireAcknowledgment: Require acknowledgment (default: false)
  * - tags: Array of tags
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -350,7 +350,7 @@ router.post('/', authorize(['admin', 'agency_admin', 'agency_owner']), createAnn
  * @access  Private (Author/Admin)
  * @param   id: Announcement ID
  * @body    Any announcement fields to update
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -365,7 +365,7 @@ router.put('/:id', paramValidation, updateAnnouncementValidation, updateAnnounce
  * @desc    Delete announcement (soft delete)
  * @access  Private (Author/Admin)
  * @param   id: Announcement ID
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -379,7 +379,7 @@ router.delete('/:id', paramValidation, deleteAnnouncement);
  * @desc    Acknowledge announcement
  * @access  Private
  * @param   id: Announcement ID
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -397,7 +397,7 @@ router.post('/:id/acknowledge', paramValidation, acknowledgeAnnouncement);
  * @access  Private
  * @param   id: Announcement ID
  * @body    content: Comment content (1-1000 characters)
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -414,7 +414,7 @@ router.post('/:id/comments', paramValidation, addCommentValidation, addComment);
  * @route   GET /api/announcements/admin/statistics
  * @desc    Get announcement statistics
  * @access  Private (Admin only)
- * 
+ *
  * Response:
  * {
  *   "success": true,

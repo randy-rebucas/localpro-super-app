@@ -1,12 +1,13 @@
 const { Conversation, Message, Notification } = require('../models/Communication');
-const User = require('../models/User');
 const EmailService = require('../services/emailService');
 const TwilioService = require('../services/twilioService');
+const logger = require('../utils/logger');
+
 
 // @desc    Get user conversations
 // @route   GET /api/communication/conversations
 // @access  Private
-const getConversations = async (req, res) => {
+const getConversations = async(req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
     const skip = (page - 1) * limit;
@@ -14,13 +15,13 @@ const getConversations = async (req, res) => {
     const conversations = await Conversation.find({
       'participants.user': req.user.id
     })
-    .populate('participants.user', 'firstName lastName profile.avatar profile.isOnline')
-    .populate('lastMessage.sender', 'firstName lastName profile.avatar')
-    .select('-messages') // Exclude full messages for list view
-    .sort({ updatedAt: -1 })
-    .skip(skip)
-    .limit(Number(limit))
-    .lean(); // Use lean() for better performance
+      .populate('participants.user', 'firstName lastName profile.avatar profile.isOnline')
+      .populate('lastMessage.sender', 'firstName lastName profile.avatar')
+      .select('-messages') // Exclude full messages for list view
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .lean(); // Use lean() for better performance
 
     const total = await Conversation.countDocuments({
       'participants.user': req.user.id
@@ -35,7 +36,7 @@ const getConversations = async (req, res) => {
       data: conversations
     });
   } catch (error) {
-    console.error('Get conversations error:', error);
+    logger.error('Get conversations error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -46,7 +47,7 @@ const getConversations = async (req, res) => {
 // @desc    Get single conversation
 // @route   GET /api/communication/conversations/:id
 // @access  Private
-const getConversation = async (req, res) => {
+const getConversation = async(req, res) => {
   try {
     const conversation = await Conversation.findById(req.params.id)
       .populate('participants.user', 'firstName lastName profile.avatar')
@@ -75,7 +76,7 @@ const getConversation = async (req, res) => {
 
     // Mark messages as read for this user
     await Message.updateMany(
-      { 
+      {
         conversation: req.params.id,
         'readBy.user': { $ne: req.user.id }
       },
@@ -97,7 +98,7 @@ const getConversation = async (req, res) => {
       data: conversation
     });
   } catch (error) {
-    console.error('Get conversation error:', error);
+    logger.error('Get conversation error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -108,9 +109,9 @@ const getConversation = async (req, res) => {
 // @desc    Create new conversation
 // @route   POST /api/communication/conversations
 // @access  Private
-const createConversation = async (req, res) => {
+const createConversation = async(req, res) => {
   try {
-    const { participants, type = 'direct', metadata = {} } = req.body;
+    const { participants, type = 'direct' } = req.body;
 
     if (!participants || !Array.isArray(participants) || participants.length === 0) {
       return res.status(400).json({
@@ -157,7 +158,7 @@ const createConversation = async (req, res) => {
       data: conversation
     });
   } catch (error) {
-    console.error('Create conversation error:', error);
+    logger.error('Create conversation error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -168,9 +169,9 @@ const createConversation = async (req, res) => {
 // @desc    Send message
 // @route   POST /api/communication/conversations/:id/messages
 // @access  Private
-const sendMessage = async (req, res) => {
+const sendMessage = async(req, res) => {
   try {
-    const { content, type = 'text', metadata = {} } = req.body;
+    const { content, type = 'text' } = req.body;
 
     if (!content) {
       return res.status(400).json({
@@ -202,7 +203,7 @@ const sendMessage = async (req, res) => {
       sender: req.user.id,
       content,
       type,
-      metadata,
+      metadata: {},
       readBy: [{
         user: req.user.id,
         readAt: new Date()
@@ -223,8 +224,8 @@ const sendMessage = async (req, res) => {
     await message.populate('sender', 'firstName lastName profile.avatar');
 
     // Send push notification to other participants
-    const otherParticipants = conversation.participants.filter(p => p.user.toString() !== req.user.id);
-    
+    // const otherParticipants = conversation.participants.filter(p => p.user.toString() !== req.user.id);
+
     // TODO: Implement push notification service
     // await PushNotificationService.sendNotification({
     //   recipients: otherParticipants,
@@ -239,7 +240,7 @@ const sendMessage = async (req, res) => {
       data: message
     });
   } catch (error) {
-    console.error('Send message error:', error);
+    logger.error('Send message error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -250,7 +251,7 @@ const sendMessage = async (req, res) => {
 // @desc    Mark messages as read
 // @route   PUT /api/communication/conversations/:id/read
 // @access  Private
-const markAsRead = async (req, res) => {
+const markAsRead = async(req, res) => {
   try {
     const conversation = await Conversation.findById(req.params.id);
 
@@ -271,7 +272,7 @@ const markAsRead = async (req, res) => {
 
     // Mark all messages as read for this user
     await Message.updateMany(
-      { 
+      {
         conversation: req.params.id,
         'readBy.user': { $ne: req.user.id }
       },
@@ -290,7 +291,7 @@ const markAsRead = async (req, res) => {
       message: 'Messages marked as read'
     });
   } catch (error) {
-    console.error('Mark as read error:', error);
+    logger.error('Mark as read error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -301,7 +302,7 @@ const markAsRead = async (req, res) => {
 // @desc    Delete conversation
 // @route   DELETE /api/communication/conversations/:id
 // @access  Private
-const deleteConversation = async (req, res) => {
+const deleteConversation = async(req, res) => {
   try {
     const conversation = await Conversation.findById(req.params.id);
 
@@ -322,7 +323,7 @@ const deleteConversation = async (req, res) => {
 
     // Delete all messages in this conversation
     await Message.deleteMany({ conversation: req.params.id });
-    
+
     // Delete the conversation
     await Conversation.findByIdAndDelete(req.params.id);
 
@@ -331,7 +332,7 @@ const deleteConversation = async (req, res) => {
       message: 'Conversation deleted successfully'
     });
   } catch (error) {
-    console.error('Delete conversation error:', error);
+    logger.error('Delete conversation error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -342,7 +343,7 @@ const deleteConversation = async (req, res) => {
 // @desc    Send email notification
 // @route   POST /api/communication/email
 // @access  Private
-const sendEmailNotification = async (req, res) => {
+const sendEmailNotification = async(req, res) => {
   try {
     const { to, subject, template, data } = req.body;
 
@@ -373,7 +374,7 @@ const sendEmailNotification = async (req, res) => {
       message: 'Email sent successfully'
     });
   } catch (error) {
-    console.error('Send email notification error:', error);
+    logger.error('Send email notification error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -384,7 +385,7 @@ const sendEmailNotification = async (req, res) => {
 // @desc    Send SMS notification
 // @route   POST /api/communication/sms
 // @access  Private
-const sendSMSNotification = async (req, res) => {
+const sendSMSNotification = async(req, res) => {
   try {
     const { to, message } = req.body;
 
@@ -410,7 +411,7 @@ const sendSMSNotification = async (req, res) => {
       message: 'SMS sent successfully'
     });
   } catch (error) {
-    console.error('Send SMS notification error:', error);
+    logger.error('Send SMS notification error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -421,7 +422,7 @@ const sendSMSNotification = async (req, res) => {
 // @desc    Get unread message count
 // @route   GET /api/communication/unread-count
 // @access  Private
-const getUnreadCount = async (req, res) => {
+const getUnreadCount = async(req, res) => {
   try {
     // Get all conversations for the user
     const conversations = await Conversation.find({
@@ -441,7 +442,7 @@ const getUnreadCount = async (req, res) => {
       data: { unreadCount }
     });
   } catch (error) {
-    console.error('Get unread count error:', error);
+    logger.error('Get unread count error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -452,7 +453,7 @@ const getUnreadCount = async (req, res) => {
 // @desc    Search conversations
 // @route   GET /api/communication/search
 // @access  Private
-const searchConversations = async (req, res) => {
+const searchConversations = async(req, res) => {
   try {
     const { query, page = 1, limit = 20 } = req.query;
     const skip = (page - 1) * limit;
@@ -475,11 +476,11 @@ const searchConversations = async (req, res) => {
       'participants.user': req.user.id,
       _id: { $in: conversationIds }
     })
-    .populate('participants.user', 'firstName lastName profile.avatar')
-    .populate('lastMessage.sender', 'firstName lastName profile.avatar')
-    .sort({ updatedAt: -1 })
-    .skip(skip)
-    .limit(Number(limit));
+      .populate('participants.user', 'firstName lastName profile.avatar')
+      .populate('lastMessage.sender', 'firstName lastName profile.avatar')
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
 
     const total = await Conversation.countDocuments({
       'participants.user': req.user.id,
@@ -495,7 +496,7 @@ const searchConversations = async (req, res) => {
       data: conversations
     });
   } catch (error) {
-    console.error('Search conversations error:', error);
+    logger.error('Search conversations error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -506,7 +507,7 @@ const searchConversations = async (req, res) => {
 // @desc    Get conversation with user
 // @route   GET /api/communication/conversation-with/:userId
 // @access  Private
-const getConversationWithUser = async (req, res) => {
+const getConversationWithUser = async(req, res) => {
   try {
     const { userId } = req.params;
 
@@ -514,8 +515,8 @@ const getConversationWithUser = async (req, res) => {
       'participants.user': { $all: [req.user.id, userId] },
       type: 'general' // Changed from 'direct' to match schema
     })
-    .populate('participants.user', 'firstName lastName profile.avatar')
-    .populate('lastMessage.sender', 'firstName lastName profile.avatar');
+      .populate('participants.user', 'firstName lastName profile.avatar')
+      .populate('lastMessage.sender', 'firstName lastName profile.avatar');
 
     // Get messages separately if conversation exists
     let messages = [];
@@ -541,7 +542,7 @@ const getConversationWithUser = async (req, res) => {
       data: conversation
     });
   } catch (error) {
-    console.error('Get conversation with user error:', error);
+    logger.error('Get conversation with user error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -552,7 +553,7 @@ const getConversationWithUser = async (req, res) => {
 // @desc    Update message
 // @route   PUT /api/communication/conversations/:id/messages/:messageId
 // @access  Private
-const updateMessage = async (req, res) => {
+const updateMessage = async(req, res) => {
   try {
     const { content } = req.body;
 
@@ -609,7 +610,7 @@ const updateMessage = async (req, res) => {
       data: message
     });
   } catch (error) {
-    console.error('Update message error:', error);
+    logger.error('Update message error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -620,7 +621,7 @@ const updateMessage = async (req, res) => {
 // @desc    Delete message
 // @route   DELETE /api/communication/conversations/:id/messages/:messageId
 // @access  Private
-const deleteMessage = async (req, res) => {
+const deleteMessage = async(req, res) => {
   try {
     const conversation = await Conversation.findById(req.params.id);
 
@@ -666,7 +667,7 @@ const deleteMessage = async (req, res) => {
       message: 'Message deleted successfully'
     });
   } catch (error) {
-    console.error('Delete message error:', error);
+    logger.error('Delete message error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -677,7 +678,7 @@ const deleteMessage = async (req, res) => {
 // @desc    Get user notifications
 // @route   GET /api/communication/notifications
 // @access  Private
-const getUserNotifications = async (req, res) => {
+const getUserNotifications = async(req, res) => {
   try {
     const { page = 1, limit = 20, isRead, type } = req.query;
     const skip = (page - 1) * limit;
@@ -716,7 +717,7 @@ const getUserNotifications = async (req, res) => {
       data: notifications
     });
   } catch (error) {
-    console.error('Get user notifications error:', error);
+    logger.error('Get user notifications error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -727,7 +728,7 @@ const getUserNotifications = async (req, res) => {
 // @desc    Mark notification as read
 // @route   PUT /api/communication/notifications/:notificationId/read
 // @access  Private
-const markNotificationAsRead = async (req, res) => {
+const markNotificationAsRead = async(req, res) => {
   try {
     const { notificationId } = req.params;
 
@@ -753,7 +754,7 @@ const markNotificationAsRead = async (req, res) => {
       data: notification
     });
   } catch (error) {
-    console.error('Mark notification as read error:', error);
+    logger.error('Mark notification as read error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -764,7 +765,7 @@ const markNotificationAsRead = async (req, res) => {
 // @desc    Mark all notifications as read
 // @route   PUT /api/communication/notifications/read-all
 // @access  Private
-const markAllNotificationsAsRead = async (req, res) => {
+const markAllNotificationsAsRead = async(req, res) => {
   try {
     const result = await Notification.updateMany(
       {
@@ -785,7 +786,7 @@ const markAllNotificationsAsRead = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Mark all notifications as read error:', error);
+    logger.error('Mark all notifications as read error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -796,7 +797,7 @@ const markAllNotificationsAsRead = async (req, res) => {
 // @desc    Delete notification
 // @route   DELETE /api/communication/notifications/:notificationId
 // @access  Private
-const deleteNotification = async (req, res) => {
+const deleteNotification = async(req, res) => {
   try {
     const { notificationId } = req.params;
 
@@ -817,7 +818,7 @@ const deleteNotification = async (req, res) => {
       message: 'Notification deleted successfully'
     });
   } catch (error) {
-    console.error('Delete notification error:', error);
+    logger.error('Delete notification error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -828,7 +829,7 @@ const deleteNotification = async (req, res) => {
 // @desc    Get notification count
 // @route   GET /api/communication/notifications/count
 // @access  Private
-const getNotificationCount = async (req, res) => {
+const getNotificationCount = async(req, res) => {
   try {
     const { isRead } = req.query;
 
@@ -851,7 +852,7 @@ const getNotificationCount = async (req, res) => {
       data: { count }
     });
   } catch (error) {
-    console.error('Get notification count error:', error);
+    logger.error('Get notification count error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

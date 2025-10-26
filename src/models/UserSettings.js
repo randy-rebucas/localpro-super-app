@@ -7,7 +7,7 @@ const userSettingsSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  
+
   // Privacy Settings
   privacy: {
     profileVisibility: {
@@ -86,7 +86,7 @@ const userSettingsSchema = new mongoose.Schema({
         default: false
       }
     },
-    
+
     // Email Notifications
     email: {
       enabled: {
@@ -130,7 +130,7 @@ const userSettingsSchema = new mongoose.Schema({
         default: true
       }
     },
-    
+
     // SMS Notifications
     sms: {
       enabled: {
@@ -420,7 +420,7 @@ const userSettingsSchema = new mongoose.Schema({
 });
 
 // Index for better performance
-userSettingsSchema.index({ userId: 1 });
+// userId already has unique: true which creates an index
 
 // Method to get default settings
 userSettingsSchema.statics.getDefaultSettings = function() {

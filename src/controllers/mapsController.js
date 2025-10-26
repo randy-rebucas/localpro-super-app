@@ -1,9 +1,11 @@
 const GoogleMapsService = require('../services/googleMapsService');
+const logger = require('../utils/logger');
+
 
 // @desc    Get maps service information
 // @route   GET /api/maps
 // @access  Public
-const getMapsInfo = async (req, res) => {
+const getMapsInfo = async(req, res) => {
   try {
     res.status(200).json({
       success: true,
@@ -22,7 +24,7 @@ const getMapsInfo = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get maps info error:', error);
+    logger.error('Get maps info error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -33,7 +35,7 @@ const getMapsInfo = async (req, res) => {
 // @desc    Geocode an address to get coordinates
 // @route   POST /api/maps/geocode
 // @access  Public
-const geocodeAddress = async (req, res) => {
+const geocodeAddress = async(req, res) => {
   try {
     const { address } = req.body;
 
@@ -59,7 +61,7 @@ const geocodeAddress = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Geocode address error:', error);
+    logger.error('Geocode address error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -70,7 +72,7 @@ const geocodeAddress = async (req, res) => {
 // @desc    Reverse geocode coordinates to get address
 // @route   POST /api/maps/reverse-geocode
 // @access  Public
-const reverseGeocode = async (req, res) => {
+const reverseGeocode = async(req, res) => {
   try {
     const { lat, lng } = req.body;
 
@@ -97,7 +99,7 @@ const reverseGeocode = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Reverse geocode error:', error);
+    logger.error('Reverse geocode error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -108,7 +110,7 @@ const reverseGeocode = async (req, res) => {
 // @desc    Search for places
 // @route   POST /api/maps/places/search
 // @access  Public
-const searchPlaces = async (req, res) => {
+const searchPlaces = async(req, res) => {
   try {
     const { query, location, radius, type } = req.body;
 
@@ -141,7 +143,7 @@ const searchPlaces = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Search places error:', error);
+    logger.error('Search places error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -152,7 +154,7 @@ const searchPlaces = async (req, res) => {
 // @desc    Get place details
 // @route   GET /api/maps/places/:placeId
 // @access  Public
-const getPlaceDetails = async (req, res) => {
+const getPlaceDetails = async(req, res) => {
   try {
     const { placeId } = req.params;
 
@@ -178,7 +180,7 @@ const getPlaceDetails = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Get place details error:', error);
+    logger.error('Get place details error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -189,7 +191,7 @@ const getPlaceDetails = async (req, res) => {
 // @desc    Calculate distance between two points
 // @route   POST /api/maps/distance
 // @access  Public
-const calculateDistance = async (req, res) => {
+const calculateDistance = async(req, res) => {
   try {
     const { origin, destination, mode = 'driving' } = req.body;
 
@@ -215,7 +217,7 @@ const calculateDistance = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Calculate distance error:', error);
+    logger.error('Calculate distance error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -226,7 +228,7 @@ const calculateDistance = async (req, res) => {
 // @desc    Find nearby places
 // @route   POST /api/maps/nearby
 // @access  Public
-const findNearbyPlaces = async (req, res) => {
+const findNearbyPlaces = async(req, res) => {
   try {
     const { location, radius, type, keyword } = req.body;
 
@@ -259,7 +261,7 @@ const findNearbyPlaces = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Find nearby places error:', error);
+    logger.error('Find nearby places error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -270,7 +272,7 @@ const findNearbyPlaces = async (req, res) => {
 // @desc    Validate service area coverage
 // @route   POST /api/maps/validate-service-area
 // @access  Public
-const validateServiceArea = async (req, res) => {
+const validateServiceArea = async(req, res) => {
   try {
     const { coordinates, serviceAreas } = req.body;
 
@@ -296,7 +298,7 @@ const validateServiceArea = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Validate service area error:', error);
+    logger.error('Validate service area error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -307,7 +309,7 @@ const validateServiceArea = async (req, res) => {
 // @desc    Analyze service coverage
 // @route   POST /api/maps/analyze-coverage
 // @access  Private
-const analyzeServiceCoverage = async (req, res) => {
+const analyzeServiceCoverage = async(req, res) => {
   try {
     const { serviceAreas, analysisType = 'basic' } = req.body;
 
@@ -333,7 +335,7 @@ const analyzeServiceCoverage = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Analyze service coverage error:', error);
+    logger.error('Analyze service coverage error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -344,7 +346,7 @@ const analyzeServiceCoverage = async (req, res) => {
 // @desc    Test Google Maps API connection
 // @route   GET /api/maps/test
 // @access  Private (Admin)
-const testConnection = async (req, res) => {
+const testConnection = async(req, res) => {
   try {
     const result = await GoogleMapsService.testConnection();
 
@@ -362,7 +364,7 @@ const testConnection = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Test Google Maps connection error:', error);
+    logger.error('Test Google Maps connection error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

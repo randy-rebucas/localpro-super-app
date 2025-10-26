@@ -2,11 +2,13 @@ const Referral = require('../models/Referral');
 const User = require('../models/User');
 const ReferralService = require('../services/referralService');
 const EmailService = require('../services/emailService');
+const logger = require('../utils/logger');
+
 
 // @desc    Get user's referral information
 // @route   GET /api/referrals/me
 // @access  Private
-const getMyReferrals = async (req, res) => {
+const getMyReferrals = async(req, res) => {
   try {
     const userId = req.user.id;
     const { timeRange = 30, page = 1, limit = 10 } = req.query;
@@ -44,7 +46,7 @@ const getMyReferrals = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get my referrals error:', error);
+    logger.error('Get my referrals error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -55,7 +57,7 @@ const getMyReferrals = async (req, res) => {
 // @desc    Get referral statistics
 // @route   GET /api/referrals/stats
 // @access  Private
-const getReferralStats = async (req, res) => {
+const getReferralStats = async(req, res) => {
   try {
     const userId = req.user.id;
     const { timeRange = 30 } = req.query;
@@ -67,7 +69,7 @@ const getReferralStats = async (req, res) => {
       data: stats
     });
   } catch (error) {
-    console.error('Get referral stats error:', error);
+    logger.error('Get referral stats error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -78,7 +80,7 @@ const getReferralStats = async (req, res) => {
 // @desc    Get referral links and sharing options
 // @route   GET /api/referrals/links
 // @access  Private
-const getReferralLinks = async (req, res) => {
+const getReferralLinks = async(req, res) => {
   try {
     const userId = req.user.id;
     const referralLinks = await ReferralService.getReferralLinks(userId);
@@ -88,7 +90,7 @@ const getReferralLinks = async (req, res) => {
       data: referralLinks
     });
   } catch (error) {
-    console.error('Get referral links error:', error);
+    logger.error('Get referral links error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -99,7 +101,7 @@ const getReferralLinks = async (req, res) => {
 // @desc    Validate referral code
 // @route   POST /api/referrals/validate
 // @access  Public
-const validateReferralCode = async (req, res) => {
+const validateReferralCode = async(req, res) => {
   try {
     const { referralCode } = req.body;
 
@@ -117,7 +119,7 @@ const validateReferralCode = async (req, res) => {
       data: validation
     });
   } catch (error) {
-    console.error('Validate referral code error:', error);
+    logger.error('Validate referral code error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -128,7 +130,7 @@ const validateReferralCode = async (req, res) => {
 // @desc    Track referral click
 // @route   POST /api/referrals/track
 // @access  Public
-const trackReferralClick = async (req, res) => {
+const trackReferralClick = async(req, res) => {
   try {
     const { referralCode, trackingData } = req.body;
 
@@ -146,7 +148,7 @@ const trackReferralClick = async (req, res) => {
       message: 'Referral click tracked'
     });
   } catch (error) {
-    console.error('Track referral click error:', error);
+    logger.error('Track referral click error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -157,7 +159,7 @@ const trackReferralClick = async (req, res) => {
 // @desc    Get referral leaderboard
 // @route   GET /api/referrals/leaderboard
 // @access  Public
-const getReferralLeaderboard = async (req, res) => {
+const getReferralLeaderboard = async(req, res) => {
   try {
     const { limit = 10, timeRange = 30 } = req.query;
 
@@ -171,7 +173,7 @@ const getReferralLeaderboard = async (req, res) => {
       data: leaderboard
     });
   } catch (error) {
-    console.error('Get referral leaderboard error:', error);
+    logger.error('Get referral leaderboard error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -182,7 +184,7 @@ const getReferralLeaderboard = async (req, res) => {
 // @desc    Send referral invitation
 // @route   POST /api/referrals/invite
 // @access  Private
-const sendReferralInvitation = async (req, res) => {
+const sendReferralInvitation = async(req, res) => {
   try {
     const { emails, phoneNumbers, message, method = 'email' } = req.body;
     const userId = req.user.id;
@@ -206,11 +208,11 @@ const sendReferralInvitation = async (req, res) => {
           await EmailService.sendReferralInvitation(email, {
             referrerName: user.firstName,
             referralLink: referralLinks.referralLink,
-            message: message || `Hi! I've been using LocalPro for local services and it's amazing! Join me and get started with a bonus.`
+            message: message || 'Hi! I\'ve been using LocalPro for local services and it\'s amazing! Join me and get started with a bonus.'
           });
           results.push({ email, status: 'sent' });
         } catch (error) {
-          console.error(`Failed to send email to ${email}:`, error);
+          logger.error(`Failed to send email to ${email}:`, error);
           results.push({ email, status: 'failed', error: error.message });
         }
       }
@@ -224,7 +226,7 @@ const sendReferralInvitation = async (req, res) => {
           // await TwilioService.sendSMS(phoneNumber, referralLinks.shareOptions.sms);
           results.push({ phoneNumber, status: 'sent' });
         } catch (error) {
-          console.error(`Failed to send SMS to ${phoneNumber}:`, error);
+          logger.error(`Failed to send SMS to ${phoneNumber}:`, error);
           results.push({ phoneNumber, status: 'failed', error: error.message });
         }
       }
@@ -236,7 +238,7 @@ const sendReferralInvitation = async (req, res) => {
       data: results
     });
   } catch (error) {
-    console.error('Send referral invitation error:', error);
+    logger.error('Send referral invitation error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -247,7 +249,7 @@ const sendReferralInvitation = async (req, res) => {
 // @desc    Update referral preferences
 // @route   PUT /api/referrals/preferences
 // @access  Private
-const updateReferralPreferences = async (req, res) => {
+const updateReferralPreferences = async(req, res) => {
   try {
     const userId = req.user.id;
     const { autoShare, shareOnSocial, emailNotifications, smsNotifications } = req.body;
@@ -274,7 +276,7 @@ const updateReferralPreferences = async (req, res) => {
       data: user.referral.referralPreferences
     });
   } catch (error) {
-    console.error('Update referral preferences error:', error);
+    logger.error('Update referral preferences error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -285,7 +287,7 @@ const updateReferralPreferences = async (req, res) => {
 // @desc    Get referral rewards history
 // @route   GET /api/referrals/rewards
 // @access  Private
-const getReferralRewards = async (req, res) => {
+const getReferralRewards = async(req, res) => {
   try {
     const userId = req.user.id;
     const { page = 1, limit = 10, status } = req.query;
@@ -356,7 +358,7 @@ const getReferralRewards = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get referral rewards error:', error);
+    logger.error('Get referral rewards error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -367,7 +369,7 @@ const getReferralRewards = async (req, res) => {
 // @desc    Process referral completion (Internal use)
 // @route   POST /api/referrals/process
 // @access  Private (Admin/System)
-const processReferralCompletion = async (req, res) => {
+const processReferralCompletion = async(req, res) => {
   try {
     const { referralId, triggerAction } = req.body;
 
@@ -386,7 +388,7 @@ const processReferralCompletion = async (req, res) => {
       data: referral
     });
   } catch (error) {
-    console.error('Process referral completion error:', error);
+    logger.error('Process referral completion error:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Server error'
@@ -397,7 +399,7 @@ const processReferralCompletion = async (req, res) => {
 // @desc    Get referral analytics (Admin)
 // @route   GET /api/referrals/analytics
 // @access  Private (Admin)
-const getReferralAnalytics = async (req, res) => {
+const getReferralAnalytics = async(req, res) => {
   try {
     const { timeRange = 30, groupBy = 'day' } = req.query;
 
@@ -485,7 +487,7 @@ const getReferralAnalytics = async (req, res) => {
       }
     ]);
 
-    const conversionRate = conversionRates[0] ? 
+    const conversionRate = conversionRates[0] ?
       (conversionRates[0].completedReferrals / conversionRates[0].totalReferrals * 100) : 0;
 
     res.status(200).json({
@@ -502,7 +504,7 @@ const getReferralAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get referral analytics error:', error);
+    logger.error('Get referral analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

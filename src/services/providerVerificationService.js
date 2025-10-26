@@ -1,5 +1,5 @@
 const Provider = require('../models/Provider');
-const User = require('../models/User');
+// const User = require('../models/User');
 const { logger } = require('../utils/logger');
 const { auditLogger } = require('../utils/auditLogger');
 
@@ -15,7 +15,7 @@ class ProviderVerificationService {
       'preferences',
       'review'
     ];
-    
+
     this.verificationRequirements = {
       individual: {
         required: ['identity', 'background_check', 'insurance'],
@@ -87,67 +87,67 @@ class ProviderVerificationService {
       };
 
       switch (step) {
-        case 'profile_setup':
-          validation.valid = this.validateProfileSetup(data);
+      case 'profile_setup':
+        validation.valid = this.validateProfileSetup(data);
+        if (!validation.valid) {
+          validation.errors.push('Profile setup is incomplete');
+        }
+        break;
+
+      case 'business_info':
+        if (provider.providerType !== 'individual') {
+          validation.valid = this.validateBusinessInfo(data);
           if (!validation.valid) {
-            validation.errors.push('Profile setup is incomplete');
+            validation.errors.push('Business information is incomplete');
           }
-          break;
+        }
+        break;
 
-        case 'business_info':
-          if (provider.providerType !== 'individual') {
-            validation.valid = this.validateBusinessInfo(data);
-            if (!validation.valid) {
-              validation.errors.push('Business information is incomplete');
-            }
-          }
-          break;
+      case 'professional_info':
+        validation.valid = this.validateProfessionalInfo(data);
+        if (!validation.valid) {
+          validation.errors.push('Professional information is incomplete');
+        }
+        break;
 
-        case 'professional_info':
-          validation.valid = this.validateProfessionalInfo(data);
-          if (!validation.valid) {
-            validation.errors.push('Professional information is incomplete');
-          }
-          break;
+      case 'verification':
+        validation.valid = this.validateVerificationInfo(data, provider.providerType);
+        if (!validation.valid) {
+          validation.errors.push('Verification information is incomplete');
+        }
+        break;
 
-        case 'verification':
-          validation.valid = this.validateVerificationInfo(data, provider.providerType);
-          if (!validation.valid) {
-            validation.errors.push('Verification information is incomplete');
-          }
-          break;
+      case 'documents':
+        validation.valid = this.validateDocuments(data, provider.providerType);
+        if (!validation.valid) {
+          validation.errors.push('Required documents are missing');
+        }
+        break;
 
-        case 'documents':
-          validation.valid = this.validateDocuments(data, provider.providerType);
-          if (!validation.valid) {
-            validation.errors.push('Required documents are missing');
-          }
-          break;
+      case 'portfolio':
+        validation.valid = this.validatePortfolio(data);
+        if (!validation.valid) {
+          validation.warnings.push('Portfolio is empty - consider adding work samples');
+        }
+        break;
 
-        case 'portfolio':
-          validation.valid = this.validatePortfolio(data);
-          if (!validation.valid) {
-            validation.warnings.push('Portfolio is empty - consider adding work samples');
-          }
-          break;
+      case 'preferences':
+        validation.valid = this.validatePreferences(data);
+        if (!validation.valid) {
+          validation.errors.push('Preferences configuration is incomplete');
+        }
+        break;
 
-        case 'preferences':
-          validation.valid = this.validatePreferences(data);
-          if (!validation.valid) {
-            validation.errors.push('Preferences configuration is incomplete');
-          }
-          break;
+      case 'review':
+        validation.valid = await this.validateCompleteProfile(provider);
+        if (!validation.valid) {
+          validation.errors.push('Profile is not ready for submission');
+        }
+        break;
 
-        case 'review':
-          validation.valid = await this.validateCompleteProfile(provider);
-          if (!validation.valid) {
-            validation.errors.push('Profile is not ready for submission');
-          }
-          break;
-
-        default:
-          validation.valid = false;
-          validation.errors.push('Invalid onboarding step');
+      default:
+        validation.valid = false;
+        validation.errors.push('Invalid onboarding step');
       }
 
       return validation;
@@ -164,18 +164,18 @@ class ProviderVerificationService {
 
   // Validate business information
   validateBusinessInfo(data) {
-    return data && 
-           data.businessName && 
-           data.businessType && 
-           data.businessAddress && 
+    return data &&
+           data.businessName &&
+           data.businessType &&
+           data.businessAddress &&
            data.businessPhone;
   }
 
   // Validate professional information
   validateProfessionalInfo(data) {
-    return data && 
-           data.specialties && 
-           Array.isArray(data.specialties) && 
+    return data &&
+           data.specialties &&
+           Array.isArray(data.specialties) &&
            data.specialties.length > 0 &&
            data.specialties.every(s => s.category && s.serviceAreas && s.serviceAreas.length > 0);
   }
@@ -187,18 +187,18 @@ class ProviderVerificationService {
 
     return requirements.required.every(req => {
       switch (req) {
-        case 'identity':
-          return data.identityVerified === true;
-        case 'business_registration':
-          return providerType !== 'individual' && data.businessVerified === true;
-        case 'insurance':
-          return data.insurance && data.insurance.hasInsurance === true;
-        case 'background_check':
-          return data.backgroundCheck && data.backgroundCheck.status === 'passed';
-        case 'agency_license':
-          return providerType === 'agency' && data.licenses && data.licenses.length > 0;
-        default:
-          return true;
+      case 'identity':
+        return data.identityVerified === true;
+      case 'business_registration':
+        return providerType !== 'individual' && data.businessVerified === true;
+      case 'insurance':
+        return data.insurance && data.insurance.hasInsurance === true;
+      case 'background_check':
+        return data.backgroundCheck && data.backgroundCheck.status === 'passed';
+      case 'agency_license':
+        return providerType === 'agency' && data.licenses && data.licenses.length > 0;
+      default:
+        return true;
       }
     });
   }
@@ -210,18 +210,18 @@ class ProviderVerificationService {
 
     return requirements.required.every(req => {
       switch (req) {
-        case 'identity':
-          return data.identityDocuments && data.identityDocuments.length > 0;
-        case 'business_registration':
-          return providerType !== 'individual' && data.businessDocuments && data.businessDocuments.length > 0;
-        case 'insurance':
-          return data.insuranceDocuments && data.insuranceDocuments.length > 0;
-        case 'background_check':
-          return data.backgroundCheckDocuments && data.backgroundCheckDocuments.length > 0;
-        case 'agency_license':
-          return providerType === 'agency' && data.licenseDocuments && data.licenseDocuments.length > 0;
-        default:
-          return true;
+      case 'identity':
+        return data.identityDocuments && data.identityDocuments.length > 0;
+      case 'business_registration':
+        return providerType !== 'individual' && data.businessDocuments && data.businessDocuments.length > 0;
+      case 'insurance':
+        return data.insuranceDocuments && data.insuranceDocuments.length > 0;
+      case 'background_check':
+        return data.backgroundCheckDocuments && data.backgroundCheckDocuments.length > 0;
+      case 'agency_license':
+        return providerType === 'agency' && data.licenseDocuments && data.licenseDocuments.length > 0;
+      default:
+        return true;
       }
     });
   }
@@ -233,9 +233,9 @@ class ProviderVerificationService {
 
   // Validate preferences
   validatePreferences(data) {
-    return data && 
-           data.notificationSettings && 
-           data.jobPreferences && 
+    return data &&
+           data.notificationSettings &&
+           data.jobPreferences &&
            data.communicationPreferences;
   }
 
@@ -245,7 +245,7 @@ class ProviderVerificationService {
       // Check if all required steps are completed
       const requiredSteps = this.onboardingSteps.slice(0, -1); // All except review
       const completedSteps = provider.onboarding.steps.filter(s => s.completed);
-      
+
       if (completedSteps.length < requiredSteps.length) {
         return false;
       }
@@ -343,21 +343,21 @@ class ProviderVerificationService {
       let newStatus;
 
       switch (decision) {
-        case 'approve':
-          newStatus = 'active';
-          provider.verification.identityVerified = true;
-          if (provider.providerType !== 'individual') {
-            provider.verification.businessVerified = true;
-          }
-          break;
-        case 'reject':
-          newStatus = 'rejected';
-          break;
-        case 'request_info':
-          newStatus = 'pending';
-          break;
-        default:
-          throw new Error('Invalid decision');
+      case 'approve':
+        newStatus = 'active';
+        provider.verification.identityVerified = true;
+        if (provider.providerType !== 'individual') {
+          provider.verification.businessVerified = true;
+        }
+        break;
+      case 'reject':
+        newStatus = 'rejected';
+        break;
+      case 'request_info':
+        newStatus = 'pending';
+        break;
+      default:
+        throw new Error('Invalid decision');
       }
 
       provider.status = newStatus;
@@ -454,21 +454,21 @@ class ProviderVerificationService {
 
     requirements.required.forEach(req => {
       switch (req) {
-        case 'identity':
-          if (provider.verification.identityVerified) completedRequirements++;
-          break;
-        case 'business_registration':
-          if (provider.verification.businessVerified) completedRequirements++;
-          break;
-        case 'insurance':
-          if (provider.verification.insurance.hasInsurance) completedRequirements++;
-          break;
-        case 'background_check':
-          if (provider.verification.backgroundCheck.status === 'passed') completedRequirements++;
-          break;
-        case 'agency_license':
-          if (provider.verification.licenses && provider.verification.licenses.length > 0) completedRequirements++;
-          break;
+      case 'identity':
+        if (provider.verification.identityVerified) completedRequirements++;
+        break;
+      case 'business_registration':
+        if (provider.verification.businessVerified) completedRequirements++;
+        break;
+      case 'insurance':
+        if (provider.verification.insurance.hasInsurance) completedRequirements++;
+        break;
+      case 'background_check':
+        if (provider.verification.backgroundCheck.status === 'passed') completedRequirements++;
+        break;
+      case 'agency_license':
+        if (provider.verification.licenses && provider.verification.licenses.length > 0) completedRequirements++;
+        break;
       }
     });
 

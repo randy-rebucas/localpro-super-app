@@ -39,11 +39,11 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Radius of the Earth in kilometers
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
 
@@ -76,7 +76,7 @@ const generateBookingReference = () => {
  */
 const calculateEMI = (principal, rate, tenure) => {
   const monthlyRate = rate / (12 * 100);
-  const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / 
+  const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, tenure)) /
               (Math.pow(1 + monthlyRate, tenure) - 1);
   return Math.round(emi * 100) / 100;
 };
@@ -122,7 +122,7 @@ const getPaginationMeta = (page, limit, total) => {
   const totalPages = Math.ceil(total / limit);
   const hasNextPage = page < totalPages;
   const hasPrevPage = page > 1;
-  
+
   return {
     currentPage: page,
     totalPages,
@@ -181,7 +181,7 @@ const formatDate = (date, locale = 'en-US') => {
  * @param {string} timezone - Timezone (default: UTC)
  * @returns {boolean} True if within business hours
  */
-const isBusinessHours = (date, timezone = 'UTC') => {
+const isBusinessHours = (date, _timezone = 'UTC') => {
   const hour = new Date(date).getHours();
   return hour >= 9 && hour <= 17; // 9 AM to 5 PM
 };

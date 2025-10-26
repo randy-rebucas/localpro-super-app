@@ -1,6 +1,8 @@
 const Referral = require('../models/Referral');
 const User = require('../models/User');
 const EmailService = require('./emailService');
+const logger = require('../utils/logger');
+
 
 class ReferralService {
   constructor() {
@@ -92,7 +94,7 @@ class ReferralService {
 
       return referral;
     } catch (error) {
-      console.error('Error creating referral:', error);
+      logger.error('Error creating referral:', error);
       throw error;
     }
   }
@@ -162,7 +164,7 @@ class ReferralService {
 
       return referral;
     } catch (error) {
-      console.error('Error processing referral completion:', error);
+      logger.error('Error processing referral completion:', error);
       throw error;
     }
   }
@@ -207,7 +209,7 @@ class ReferralService {
       referral.timeline.rewardedAt = new Date();
       await referral.save();
     } catch (error) {
-      console.error('Error processing rewards:', error);
+      logger.error('Error processing rewards:', error);
       throw error;
     }
   }
@@ -226,30 +228,30 @@ class ReferralService {
       }
 
       switch (reward.type) {
-        case 'credit':
-          user.wallet.balance += reward.amount;
-          break;
-        case 'discount':
-          // Create discount code or apply directly
-          // This would integrate with your discount system
-          break;
-        case 'subscription_days':
-          // Extend subscription
-          if (user.subscription.endDate) {
-            const newEndDate = new Date(user.subscription.endDate);
-            newEndDate.setDate(newEndDate.getDate() + reward.subscriptionDays);
-            user.subscription.endDate = newEndDate;
-          }
-          break;
-        case 'points':
-          // Add points to user account
-          // This would integrate with your points system
-          break;
+      case 'credit':
+        user.wallet.balance += reward.amount;
+        break;
+      case 'discount':
+        // Create discount code or apply directly
+        // This would integrate with your discount system
+        break;
+      case 'subscription_days':
+        // Extend subscription
+        if (user.subscription.endDate) {
+          const newEndDate = new Date(user.subscription.endDate);
+          newEndDate.setDate(newEndDate.getDate() + reward.subscriptionDays);
+          user.subscription.endDate = newEndDate;
+        }
+        break;
+      case 'points':
+        // Add points to user account
+        // This would integrate with your points system
+        break;
       }
 
       await user.save();
     } catch (error) {
-      console.error('Error applying reward:', error);
+      logger.error('Error applying reward:', error);
       throw error;
     }
   }
@@ -285,7 +287,7 @@ class ReferralService {
         });
       }
     } catch (error) {
-      console.error('Error sending completion notifications:', error);
+      logger.error('Error sending completion notifications:', error);
       // Don't throw error as this shouldn't fail the referral process
     }
   }
@@ -300,7 +302,7 @@ class ReferralService {
     try {
       const stats = await Referral.getReferralStats(userId, timeRange);
       const user = await User.findById(userId).select('referral.referralStats');
-      
+
       return {
         ...stats,
         tier: user.referral.referralStats.referralTier,
@@ -308,7 +310,7 @@ class ReferralService {
         totalRewardsPaid: user.referral.referralStats.totalRewardsPaid
       };
     } catch (error) {
-      console.error('Error getting referral stats:', error);
+      logger.error('Error getting referral stats:', error);
       throw error;
     }
   }
@@ -373,7 +375,7 @@ class ReferralService {
 
       return leaderboard;
     } catch (error) {
-      console.error('Error getting referral leaderboard:', error);
+      logger.error('Error getting referral leaderboard:', error);
       throw error;
     }
   }
@@ -386,13 +388,13 @@ class ReferralService {
   async validateReferralCode(referralCode) {
     try {
       const referral = await Referral.findActiveByCode(referralCode);
-      
+
       if (!referral) {
         return { valid: false, message: 'Invalid or expired referral code' };
       }
 
       const referrer = await User.findById(referral.referrer).select('firstName lastName profile.avatar');
-      
+
       return {
         valid: true,
         referral,
@@ -403,7 +405,7 @@ class ReferralService {
         }
       };
     } catch (error) {
-      console.error('Error validating referral code:', error);
+      logger.error('Error validating referral code:', error);
       throw error;
     }
   }
@@ -430,7 +432,7 @@ class ReferralService {
         qrCode: `${baseUrl}/api/referrals/qr/${referralCode}`,
         shareOptions: {
           email: {
-            subject: `Join me on LocalPro!`,
+            subject: 'Join me on LocalPro!',
             body: `I've been using LocalPro for local services and it's amazing! Use my referral link to get started: ${referralLink}`
           },
           sms: `Check out LocalPro for local services! Use my referral link: ${referralLink}`,
@@ -442,7 +444,7 @@ class ReferralService {
         }
       };
     } catch (error) {
-      console.error('Error getting referral links:', error);
+      logger.error('Error getting referral links:', error);
       throw error;
     }
   }
@@ -453,7 +455,7 @@ class ReferralService {
    * @param {Object} trackingData - Tracking data
    * @returns {Promise<void>}
    */
-  async trackReferralClick(referralCode, trackingData) {
+  async trackReferralClick(referralCode, _trackingData) {
     try {
       const referral = await Referral.findOne({ referralCode });
       if (referral) {
@@ -461,7 +463,7 @@ class ReferralService {
         await referral.save();
       }
     } catch (error) {
-      console.error('Error tracking referral click:', error);
+      logger.error('Error tracking referral click:', error);
       // Don't throw error as this shouldn't fail the main process
     }
   }

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+// const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   phoneNumber: {
@@ -269,13 +269,13 @@ const userSchema = new mongoose.Schema({
       smsNotifications: { type: Boolean, default: false }
     }
   },
-  
+
   // Settings reference
   settings: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'UserSettings'
   },
-  
+
   // User management fields
   lastLoginAt: Date,
   lastLoginIP: String,
@@ -311,7 +311,7 @@ const userSchema = new mongoose.Schema({
     }
   }],
   tags: [String], // For categorizing users (e.g., 'vip', 'high_risk', 'new_user')
-  
+
   // Activity tracking
   activity: {
     lastActiveAt: Date,
@@ -338,6 +338,16 @@ userSchema.index({ status: 1, isActive: 1 });
 userSchema.index({ 'referral.referredBy': 1, 'referral.referralStats.referralTier': 1 });
 userSchema.index({ trustScore: -1, 'profile.rating': -1 });
 
+// Performance optimization indexes
+userSchema.index({ role: 1, status: 1, isActive: 1 }); // Common query pattern
+userSchema.index({ 'profile.address.city': 1, 'profile.address.state': 1 }); // Location-based queries
+userSchema.index({ 'verification.phoneVerified': 1, 'verification.emailVerified': 1 }); // Verification queries
+userSchema.index({ createdAt: -1, role: 1 }); // Recent users by role
+userSchema.index({ 'profile.rating': -1, 'profile.totalReviews': -1 }); // Top-rated providers
+userSchema.index({ 'referral.referralStats.totalReferrals': -1 }); // Top referrers
+userSchema.index({ lastLoginAt: -1 }); // Recently active users
+userSchema.index({ 'activity.lastActiveAt': -1 }); // Activity-based queries
+
 // Virtual for full name
 userSchema.virtual('fullName').get(function() {
   return `${this.firstName} ${this.lastName}`;
@@ -358,7 +368,7 @@ userSchema.methods.verifyCode = function(code) {
 // Method to calculate trust score
 userSchema.methods.calculateTrustScore = function() {
   let score = 0;
-  
+
   // Base verification points
   if (this.verification.phoneVerified) score += 10;
   if (this.verification.emailVerified) score += 10;
@@ -366,21 +376,21 @@ userSchema.methods.calculateTrustScore = function() {
   if (this.verification.businessVerified) score += 15;
   if (this.verification.addressVerified) score += 10;
   if (this.verification.bankAccountVerified) score += 15;
-  
+
   // Rating points (up to 20 points)
   score += Math.round(this.profile.rating * 4);
-  
+
   // Review count bonus (up to 10 points)
   if (this.profile.totalReviews > 0) {
     score += Math.min(10, Math.floor(this.profile.totalReviews / 5));
   }
-  
+
   // Completion rate bonus (up to 10 points)
   score += Math.round(this.completionRate / 10);
-  
+
   // Badge bonus (up to 10 points)
   score += Math.min(10, this.badges.length * 2);
-  
+
   this.trustScore = Math.min(100, score);
   return this.trustScore;
 };
@@ -413,16 +423,16 @@ userSchema.methods.generateReferralCode = function() {
   if (!this.referral.referralCode) {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
-    
+
     // Generate 8-character code with user initials
     const initials = (this.firstName.charAt(0) + this.lastName.charAt(0)).toUpperCase();
     result = initials;
-    
+
     // Add 6 random characters
     for (let i = 0; i < 6; i++) {
       result += characters.charAt(Math.floor(Math.random() * characters.length));
     }
-    
+
     this.referral.referralCode = result;
   }
   return this.referral.referralCode;
@@ -440,7 +450,7 @@ userSchema.methods.updateReferralStats = function(type, amount = 0) {
   } else if (type === 'reward_paid') {
     this.referral.referralStats.totalRewardsPaid += amount;
   }
-  
+
   // Update referral tier based on successful referrals
   const successfulReferrals = this.referral.referralStats.successfulReferrals;
   if (successfulReferrals >= 50) {
@@ -452,7 +462,7 @@ userSchema.methods.updateReferralStats = function(type, amount = 0) {
   } else {
     this.referral.referralStats.referralTier = 'bronze';
   }
-  
+
   return this.save();
 };
 
@@ -474,13 +484,13 @@ userSchema.methods.updateLoginInfo = function(ip, userAgent) {
   this.loginCount += 1;
   this.activity.lastActiveAt = new Date();
   this.activity.totalSessions += 1;
-  
+
   // Update device info
   const deviceType = this.getDeviceType(userAgent);
-  const existingDevice = this.activity.deviceInfo.find(device => 
+  const existingDevice = this.activity.deviceInfo.find(device =>
     device.deviceType === deviceType && device.userAgent === userAgent
   );
-  
+
   if (existingDevice) {
     existingDevice.lastUsed = new Date();
   } else {
@@ -490,14 +500,14 @@ userSchema.methods.updateLoginInfo = function(ip, userAgent) {
       lastUsed: new Date()
     });
   }
-  
+
   return this.save();
 };
 
 // Method to get device type from user agent
 userSchema.methods.getDeviceType = function(userAgent) {
   if (!userAgent) return 'unknown';
-  
+
   if (/mobile|android|iphone|ipad/i.test(userAgent)) {
     return 'mobile';
   } else if (/tablet|ipad/i.test(userAgent)) {
@@ -523,10 +533,10 @@ userSchema.methods.updateStatus = function(status, reason, updatedBy) {
   this.statusReason = reason;
   this.statusUpdatedAt = new Date();
   this.statusUpdatedBy = updatedBy;
-  
+
   // Update isActive based on status
   this.isActive = ['active', 'pending_verification'].includes(status);
-  
+
   return this.save();
 };
 

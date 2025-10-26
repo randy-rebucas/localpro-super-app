@@ -1,5 +1,7 @@
 const axios = require('axios');
 const crypto = require('crypto');
+const logger = require('../utils/logger');
+
 
 // PayMaya API Configuration
 const PAYMAYA_CONFIG = {
@@ -37,7 +39,7 @@ class PayMayaService {
   static async createCheckout(checkoutData) {
     try {
       const service = new PayMayaService();
-      
+
       const checkoutRequest = {
         totalAmount: {
           amount: checkoutData.totalAmount.toFixed(2),
@@ -95,7 +97,7 @@ class PayMayaService {
         }
       };
     } catch (error) {
-      console.error('PayMaya create checkout error:', error.response?.data || error.message);
+      logger.error('PayMaya create checkout error:', error.response?.data || error.message);
       return {
         success: false,
         error: error.response?.data?.message || error.message,
@@ -112,7 +114,7 @@ class PayMayaService {
   static async getCheckout(checkoutId) {
     try {
       const service = new PayMayaService();
-      
+
       const response = await axios.get(
         `${service.config.baseUrl}/checkout/v1/checkouts/${checkoutId}`,
         {
@@ -128,7 +130,7 @@ class PayMayaService {
         data: response.data
       };
     } catch (error) {
-      console.error('PayMaya get checkout error:', error.response?.data || error.message);
+      logger.error('PayMaya get checkout error:', error.response?.data || error.message);
       return {
         success: false,
         error: error.response?.data?.message || error.message,
@@ -149,7 +151,7 @@ class PayMayaService {
   static async createPayment(paymentData) {
     try {
       const service = new PayMayaService();
-      
+
       const paymentRequest = {
         totalAmount: {
           amount: paymentData.amount.toFixed(2),
@@ -189,7 +191,7 @@ class PayMayaService {
         data: response.data
       };
     } catch (error) {
-      console.error('PayMaya create payment error:', error.response?.data || error.message);
+      logger.error('PayMaya create payment error:', error.response?.data || error.message);
       return {
         success: false,
         error: error.response?.data?.message || error.message,
@@ -206,7 +208,7 @@ class PayMayaService {
   static async getPayment(paymentId) {
     try {
       const service = new PayMayaService();
-      
+
       const response = await axios.get(
         `${service.config.baseUrl}/payments/v1/payments/${paymentId}`,
         {
@@ -222,7 +224,7 @@ class PayMayaService {
         data: response.data
       };
     } catch (error) {
-      console.error('PayMaya get payment error:', error.response?.data || error.message);
+      logger.error('PayMaya get payment error:', error.response?.data || error.message);
       return {
         success: false,
         error: error.response?.data?.message || error.message,
@@ -244,7 +246,7 @@ class PayMayaService {
   static async createInvoice(invoiceData) {
     try {
       const service = new PayMayaService();
-      
+
       const invoiceRequest = {
         totalAmount: {
           amount: invoiceData.amount.toFixed(2),
@@ -286,7 +288,7 @@ class PayMayaService {
         data: response.data
       };
     } catch (error) {
-      console.error('PayMaya create invoice error:', error.response?.data || error.message);
+      logger.error('PayMaya create invoice error:', error.response?.data || error.message);
       return {
         success: false,
         error: error.response?.data?.message || error.message,
@@ -303,7 +305,7 @@ class PayMayaService {
   static async getInvoice(invoiceId) {
     try {
       const service = new PayMayaService();
-      
+
       const response = await axios.get(
         `${service.config.baseUrl}/invoices/v1/invoices/${invoiceId}`,
         {
@@ -319,7 +321,7 @@ class PayMayaService {
         data: response.data
       };
     } catch (error) {
-      console.error('PayMaya get invoice error:', error.response?.data || error.message);
+      logger.error('PayMaya get invoice error:', error.response?.data || error.message);
       return {
         success: false,
         error: error.response?.data?.message || error.message,
@@ -337,15 +339,15 @@ class PayMayaService {
   static async verifyWebhookSignature(headers, body) {
     try {
       const service = new PayMayaService();
-      
+
       if (!service.webhookSecret) {
-        console.warn('PayMaya webhook secret not configured, skipping verification');
+        logger.warn('PayMaya webhook secret not configured, skipping verification');
         return true; // Allow in development
       }
 
       const signature = headers['x-paymaya-signature'];
       if (!signature) {
-        console.error('No PayMaya signature found in headers');
+        logger.error('No PayMaya signature found in headers');
         return false;
       }
 
@@ -356,7 +358,7 @@ class PayMayaService {
 
       return signature === expectedSignature;
     } catch (error) {
-      console.error('PayMaya webhook verification error:', error);
+      logger.error('PayMaya webhook verification error:', error);
       return false;
     }
   }
@@ -372,24 +374,24 @@ class PayMayaService {
       const data = event.data;
 
       switch (eventType) {
-        case 'CHECKOUT_SUCCESS':
-          return await this.handleCheckoutSuccess(data);
-        case 'CHECKOUT_FAILURE':
-          return await this.handleCheckoutFailure(data);
-        case 'PAYMENT_SUCCESS':
-          return await this.handlePaymentSuccess(data);
-        case 'PAYMENT_FAILURE':
-          return await this.handlePaymentFailure(data);
-        case 'INVOICE_PAID':
-          return await this.handleInvoicePaid(data);
-        case 'INVOICE_EXPIRED':
-          return await this.handleInvoiceExpired(data);
-        default:
-          console.log(`Unhandled PayMaya webhook event: ${eventType}`);
-          return { success: true, message: 'Event not handled' };
+      case 'CHECKOUT_SUCCESS':
+        return await this.handleCheckoutSuccess(data);
+      case 'CHECKOUT_FAILURE':
+        return await this.handleCheckoutFailure(data);
+      case 'PAYMENT_SUCCESS':
+        return await this.handlePaymentSuccess(data);
+      case 'PAYMENT_FAILURE':
+        return await this.handlePaymentFailure(data);
+      case 'INVOICE_PAID':
+        return await this.handleInvoicePaid(data);
+      case 'INVOICE_EXPIRED':
+        return await this.handleInvoiceExpired(data);
+      default:
+        logger.info(`Unhandled PayMaya webhook event: ${eventType}`);
+        return { success: true, message: 'Event not handled' };
       }
     } catch (error) {
-      console.error('PayMaya webhook processing error:', error);
+      logger.error('PayMaya webhook processing error:', error);
       return {
         success: false,
         error: error.message
@@ -401,7 +403,7 @@ class PayMayaService {
    * Handle checkout success webhook
    */
   static async handleCheckoutSuccess(data) {
-    console.log('Checkout success:', data.checkoutId);
+    logger.info('Checkout success:', data.checkoutId);
     return { success: true };
   }
 
@@ -409,7 +411,7 @@ class PayMayaService {
    * Handle checkout failure webhook
    */
   static async handleCheckoutFailure(data) {
-    console.log('Checkout failure:', data.checkoutId);
+    logger.info('Checkout failure:', data.checkoutId);
     return { success: true };
   }
 
@@ -417,7 +419,7 @@ class PayMayaService {
    * Handle payment success webhook
    */
   static async handlePaymentSuccess(data) {
-    console.log('Payment success:', data.paymentId);
+    logger.info('Payment success:', data.paymentId);
     return { success: true };
   }
 
@@ -425,7 +427,7 @@ class PayMayaService {
    * Handle payment failure webhook
    */
   static async handlePaymentFailure(data) {
-    console.log('Payment failure:', data.paymentId);
+    logger.info('Payment failure:', data.paymentId);
     return { success: true };
   }
 
@@ -433,7 +435,7 @@ class PayMayaService {
    * Handle invoice paid webhook
    */
   static async handleInvoicePaid(data) {
-    console.log('Invoice paid:', data.invoiceId);
+    logger.info('Invoice paid:', data.invoiceId);
     return { success: true };
   }
 
@@ -441,7 +443,7 @@ class PayMayaService {
    * Handle invoice expired webhook
    */
   static async handleInvoiceExpired(data) {
-    console.log('Invoice expired:', data.invoiceId);
+    logger.info('Invoice expired:', data.invoiceId);
     return { success: true };
   }
 

@@ -1,12 +1,14 @@
 const { AdCampaign: Ads } = require('../models/Ads');
-const User = require('../models/User');
+// const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
-const EmailService = require('../services/emailService');
+// const EmailService = require('../services/emailService');
+const logger = require('../utils/logger');
+
 
 // @desc    Get all ads
 // @route   GET /api/ads
 // @access  Public
-const getAds = async (req, res) => {
+const getAds = async(req, res) => {
   try {
     const {
       search,
@@ -62,7 +64,7 @@ const getAds = async (req, res) => {
       data: ads
     });
   } catch (error) {
-    console.error('Get ads error:', error);
+    logger.error('Get ads error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -73,7 +75,7 @@ const getAds = async (req, res) => {
 // @desc    Get single ad
 // @route   GET /api/ads/:id
 // @access  Public
-const getAd = async (req, res) => {
+const getAd = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -102,7 +104,7 @@ const getAd = async (req, res) => {
       data: ad
     });
   } catch (error) {
-    console.error('Get ad error:', error);
+    logger.error('Get ad error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -113,7 +115,7 @@ const getAd = async (req, res) => {
 // @desc    Create new ad
 // @route   POST /api/ads
 // @access  Private
-const createAd = async (req, res) => {
+const createAd = async(req, res) => {
   try {
     const {
       title,
@@ -216,8 +218,8 @@ const createAd = async (req, res) => {
       data: ad
     });
   } catch (error) {
-    console.error('Create ad error:', error);
-    
+    logger.error('Create ad error:', error);
+
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
@@ -238,7 +240,7 @@ const createAd = async (req, res) => {
 // @desc    Update ad
 // @route   PUT /api/ads/:id
 // @access  Private
-const updateAd = async (req, res) => {
+const updateAd = async(req, res) => {
   try {
     let ad = await Ads.findById(req.params.id);
 
@@ -268,7 +270,7 @@ const updateAd = async (req, res) => {
       data: ad
     });
   } catch (error) {
-    console.error('Update ad error:', error);
+    logger.error('Update ad error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -279,7 +281,7 @@ const updateAd = async (req, res) => {
 // @desc    Delete ad
 // @route   DELETE /api/ads/:id
 // @access  Private
-const deleteAd = async (req, res) => {
+const deleteAd = async(req, res) => {
   try {
     const ad = await Ads.findById(req.params.id);
 
@@ -307,7 +309,7 @@ const deleteAd = async (req, res) => {
       message: 'Ad deleted successfully'
     });
   } catch (error) {
-    console.error('Delete ad error:', error);
+    logger.error('Delete ad error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -318,7 +320,7 @@ const deleteAd = async (req, res) => {
 // @desc    Upload ad images
 // @route   POST /api/ads/:id/images
 // @access  Private
-const uploadAdImages = async (req, res) => {
+const uploadAdImages = async(req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
@@ -344,7 +346,7 @@ const uploadAdImages = async (req, res) => {
       });
     }
 
-    const uploadPromises = req.files.map(file => 
+    const uploadPromises = req.files.map(file =>
       CloudinaryService.uploadFile(file, 'localpro/ads')
     );
 
@@ -374,7 +376,7 @@ const uploadAdImages = async (req, res) => {
       data: successfulUploads
     });
   } catch (error) {
-    console.error('Upload ad images error:', error);
+    logger.error('Upload ad images error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -385,7 +387,7 @@ const uploadAdImages = async (req, res) => {
 // @desc    Delete ad image
 // @route   DELETE /api/ads/:id/images/:imageId
 // @access  Private
-const deleteAdImage = async (req, res) => {
+const deleteAdImage = async(req, res) => {
   try {
     const { imageId } = req.params;
 
@@ -427,7 +429,7 @@ const deleteAdImage = async (req, res) => {
       message: 'Image deleted successfully'
     });
   } catch (error) {
-    console.error('Delete ad image error:', error);
+    logger.error('Delete ad image error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -438,7 +440,7 @@ const deleteAdImage = async (req, res) => {
 // @desc    Get user's ads
 // @route   GET /api/ads/my-ads
 // @access  Private
-const getMyAds = async (req, res) => {
+const getMyAds = async(req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
@@ -459,7 +461,7 @@ const getMyAds = async (req, res) => {
       data: ads
     });
   } catch (error) {
-    console.error('Get my ads error:', error);
+    logger.error('Get my ads error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -470,7 +472,7 @@ const getMyAds = async (req, res) => {
 // @desc    Get ad analytics
 // @route   GET /api/ads/:id/analytics
 // @access  Private
-const getAdAnalytics = async (req, res) => {
+const getAdAnalytics = async(req, res) => {
   try {
     const ad = await Ads.findById(req.params.id);
 
@@ -503,7 +505,7 @@ const getAdAnalytics = async (req, res) => {
       data: analytics
     });
   } catch (error) {
-    console.error('Get ad analytics error:', error);
+    logger.error('Get ad analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -514,7 +516,7 @@ const getAdAnalytics = async (req, res) => {
 // @desc    Track ad click
 // @route   POST /api/ads/:id/click
 // @access  Public
-const trackAdClick = async (req, res) => {
+const trackAdClick = async(req, res) => {
   try {
     const ad = await Ads.findById(req.params.id);
 
@@ -534,7 +536,7 @@ const trackAdClick = async (req, res) => {
       message: 'Click tracked successfully'
     });
   } catch (error) {
-    console.error('Track ad click error:', error);
+    logger.error('Track ad click error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -545,11 +547,11 @@ const trackAdClick = async (req, res) => {
 // @desc    Get ad categories
 // @route   GET /api/ads/categories
 // @access  Public
-const getAdCategories = async (req, res) => {
+const getAdCategories = async(req, res) => {
   try {
     // Return valid categories with their usage count
     const validCategories = ['hardware_stores', 'suppliers', 'training_schools', 'services', 'products'];
-    
+
     const categories = await Ads.aggregate([
       {
         $match: { isActive: true }
@@ -581,7 +583,7 @@ const getAdCategories = async (req, res) => {
       data: allCategories
     });
   } catch (error) {
-    console.error('Get ad categories error:', error);
+    logger.error('Get ad categories error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -592,7 +594,7 @@ const getAdCategories = async (req, res) => {
 // @desc    Get featured ads
 // @route   GET /api/ads/featured
 // @access  Public
-const getFeaturedAds = async (req, res) => {
+const getFeaturedAds = async(req, res) => {
   try {
     const { limit = 10 } = req.query;
 
@@ -600,9 +602,9 @@ const getFeaturedAds = async (req, res) => {
       isActive: true,
       isFeatured: true
     })
-    .populate('advertiser', 'firstName lastName profile.avatar')
-    .sort({ createdAt: -1 })
-    .limit(Number(limit));
+      .populate('advertiser', 'firstName lastName profile.avatar')
+      .sort({ createdAt: -1 })
+      .limit(Number(limit));
 
     res.status(200).json({
       success: true,
@@ -610,7 +612,7 @@ const getFeaturedAds = async (req, res) => {
       data: ads
     });
   } catch (error) {
-    console.error('Get featured ads error:', error);
+    logger.error('Get featured ads error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -621,7 +623,7 @@ const getFeaturedAds = async (req, res) => {
 // @desc    Promote ad
 // @route   POST /api/ads/:id/promote
 // @access  Private
-const promoteAd = async (req, res) => {
+const promoteAd = async(req, res) => {
   try {
     const { promotionType, duration, budget } = req.body;
 
@@ -668,7 +670,7 @@ const promoteAd = async (req, res) => {
       data: ad.promotion
     });
   } catch (error) {
-    console.error('Promote ad error:', error);
+    logger.error('Promote ad error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -679,7 +681,7 @@ const promoteAd = async (req, res) => {
 // @desc    Get valid enum values for ad creation
 // @route   GET /api/ads/enum-values
 // @access  Public
-const getAdEnumValues = async (req, res) => {
+const getAdEnumValues = async(req, res) => {
   try {
     const enumValues = {
       types: ['banner', 'sponsored_listing', 'video', 'text', 'interactive'],
@@ -693,7 +695,7 @@ const getAdEnumValues = async (req, res) => {
       data: enumValues
     });
   } catch (error) {
-    console.error('Get ad enum values error:', error);
+    logger.error('Get ad enum values error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -704,7 +706,7 @@ const getAdEnumValues = async (req, res) => {
 // @desc    Get ad statistics
 // @route   GET /api/ads/statistics
 // @access  Private (Admin only)
-const getAdStatistics = async (req, res) => {
+const getAdStatistics = async(req, res) => {
   try {
     // Get total ads
     const totalAds = await Ads.countDocuments();
@@ -770,7 +772,7 @@ const getAdStatistics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get ad statistics error:', error);
+    logger.error('Get ad statistics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

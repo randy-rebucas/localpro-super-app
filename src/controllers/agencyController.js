@@ -2,11 +2,13 @@ const Agency = require('../models/Agency');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
+const logger = require('../utils/logger');
+
 
 // @desc    Get all agencies
 // @route   GET /api/agencies
 // @access  Public
-const getAgencies = async (req, res) => {
+const getAgencies = async(req, res) => {
   try {
     const {
       search,
@@ -63,7 +65,7 @@ const getAgencies = async (req, res) => {
       data: agencies
     });
   } catch (error) {
-    console.error('Get agencies error:', error);
+    logger.error('Get agencies error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -74,7 +76,7 @@ const getAgencies = async (req, res) => {
 // @desc    Get single agency
 // @route   GET /api/agencies/:id
 // @access  Public
-const getAgency = async (req, res) => {
+const getAgency = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -102,7 +104,7 @@ const getAgency = async (req, res) => {
       data: agency
     });
   } catch (error) {
-    console.error('Get agency error:', error);
+    logger.error('Get agency error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -113,7 +115,7 @@ const getAgency = async (req, res) => {
 // @desc    Create new agency
 // @route   POST /api/agencies
 // @access  Private
-const createAgency = async (req, res) => {
+const createAgency = async(req, res) => {
   try {
     const agencyData = {
       ...req.body,
@@ -125,7 +127,7 @@ const createAgency = async (req, res) => {
       try {
         const address = `${agencyData.contact.address.street}, ${agencyData.contact.address.city}, ${agencyData.contact.address.state}`;
         const geocodeResult = await GoogleMapsService.geocodeAddress(address);
-        
+
         if (geocodeResult.success && geocodeResult.data.length > 0) {
           const location = geocodeResult.data[0];
           agencyData.contact.address.coordinates = {
@@ -134,7 +136,7 @@ const createAgency = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', geocodeError);
         // Continue without geocoding if it fails
       }
     }
@@ -150,7 +152,7 @@ const createAgency = async (req, res) => {
       data: agency
     });
   } catch (error) {
-    console.error('Create agency error:', error);
+    logger.error('Create agency error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -161,7 +163,7 @@ const createAgency = async (req, res) => {
 // @desc    Update agency
 // @route   PUT /api/agencies/:id
 // @access  Private
-const updateAgency = async (req, res) => {
+const updateAgency = async(req, res) => {
   try {
     let agency = await Agency.findById(req.params.id);
 
@@ -181,12 +183,12 @@ const updateAgency = async (req, res) => {
     }
 
     // Geocode address if changed
-    if (req.body.contact?.address?.street && 
+    if (req.body.contact?.address?.street &&
         req.body.contact.address.street !== agency.contact.address.street) {
       try {
         const address = `${req.body.contact.address.street}, ${req.body.contact.address.city}, ${req.body.contact.address.state}`;
         const geocodeResult = await GoogleMapsService.geocodeAddress(address);
-        
+
         if (geocodeResult.success && geocodeResult.data.length > 0) {
           const location = geocodeResult.data[0];
           req.body.contact.address.coordinates = {
@@ -195,7 +197,7 @@ const updateAgency = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', geocodeError);
         // Continue without geocoding if it fails
       }
     }
@@ -211,7 +213,7 @@ const updateAgency = async (req, res) => {
       data: agency
     });
   } catch (error) {
-    console.error('Update agency error:', error);
+    logger.error('Update agency error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -222,7 +224,7 @@ const updateAgency = async (req, res) => {
 // @desc    Delete agency
 // @route   DELETE /api/agencies/:id
 // @access  Private
-const deleteAgency = async (req, res) => {
+const deleteAgency = async(req, res) => {
   try {
     const agency = await Agency.findById(req.params.id);
 
@@ -250,7 +252,7 @@ const deleteAgency = async (req, res) => {
       message: 'Agency deleted successfully'
     });
   } catch (error) {
-    console.error('Delete agency error:', error);
+    logger.error('Delete agency error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -261,7 +263,7 @@ const deleteAgency = async (req, res) => {
 // @desc    Upload agency logo
 // @route   POST /api/agencies/:id/logo
 // @access  Private
-const uploadAgencyLogo = async (req, res) => {
+const uploadAgencyLogo = async(req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -289,7 +291,7 @@ const uploadAgencyLogo = async (req, res) => {
 
     // Upload to Cloudinary
     const uploadResult = await CloudinaryService.uploadFile(
-      req.file, 
+      req.file,
       'localpro/agencies/logos'
     );
 
@@ -320,7 +322,7 @@ const uploadAgencyLogo = async (req, res) => {
       data: agency.logo
     });
   } catch (error) {
-    console.error('Upload agency logo error:', error);
+    logger.error('Upload agency logo error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -331,7 +333,7 @@ const uploadAgencyLogo = async (req, res) => {
 // @desc    Add provider to agency
 // @route   POST /api/agencies/:id/providers
 // @access  Private
-const addProvider = async (req, res) => {
+const addProvider = async(req, res) => {
   try {
     const { userId, commissionRate = 10 } = req.body;
 
@@ -375,7 +377,7 @@ const addProvider = async (req, res) => {
       message: 'Provider added successfully'
     });
   } catch (error) {
-    console.error('Add provider error:', error);
+    logger.error('Add provider error:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Server error'
@@ -386,7 +388,7 @@ const addProvider = async (req, res) => {
 // @desc    Remove provider from agency
 // @route   DELETE /api/agencies/:id/providers/:providerId
 // @access  Private
-const removeProvider = async (req, res) => {
+const removeProvider = async(req, res) => {
   try {
     const { providerId } = req.params;
 
@@ -415,7 +417,7 @@ const removeProvider = async (req, res) => {
       message: 'Provider removed successfully'
     });
   } catch (error) {
-    console.error('Remove provider error:', error);
+    logger.error('Remove provider error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -426,7 +428,7 @@ const removeProvider = async (req, res) => {
 // @desc    Update provider status
 // @route   PUT /api/agencies/:id/providers/:providerId/status
 // @access  Private
-const updateProviderStatus = async (req, res) => {
+const updateProviderStatus = async(req, res) => {
   try {
     const { providerId } = req.params;
     const { status } = req.body;
@@ -462,7 +464,7 @@ const updateProviderStatus = async (req, res) => {
       message: 'Provider status updated successfully'
     });
   } catch (error) {
-    console.error('Update provider status error:', error);
+    logger.error('Update provider status error:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Server error'
@@ -473,7 +475,7 @@ const updateProviderStatus = async (req, res) => {
 // @desc    Add admin to agency
 // @route   POST /api/agencies/:id/admins
 // @access  Private
-const addAdmin = async (req, res) => {
+const addAdmin = async(req, res) => {
   try {
     const { userId, role = 'admin', permissions = [] } = req.body;
 
@@ -517,7 +519,7 @@ const addAdmin = async (req, res) => {
       message: 'Admin added successfully'
     });
   } catch (error) {
-    console.error('Add admin error:', error);
+    logger.error('Add admin error:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Server error'
@@ -528,7 +530,7 @@ const addAdmin = async (req, res) => {
 // @desc    Remove admin from agency
 // @route   DELETE /api/agencies/:id/admins/:adminId
 // @access  Private
-const removeAdmin = async (req, res) => {
+const removeAdmin = async(req, res) => {
   try {
     const { adminId } = req.params;
 
@@ -556,7 +558,7 @@ const removeAdmin = async (req, res) => {
       message: 'Admin removed successfully'
     });
   } catch (error) {
-    console.error('Remove admin error:', error);
+    logger.error('Remove admin error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -567,7 +569,7 @@ const removeAdmin = async (req, res) => {
 // @desc    Get agency analytics
 // @route   GET /api/agencies/:id/analytics
 // @access  Private
-const getAgencyAnalytics = async (req, res) => {
+const getAgencyAnalytics = async(req, res) => {
   try {
     const agency = await Agency.findById(req.params.id);
 
@@ -607,7 +609,7 @@ const getAgencyAnalytics = async (req, res) => {
       data: analytics
     });
   } catch (error) {
-    console.error('Get agency analytics error:', error);
+    logger.error('Get agency analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -618,7 +620,7 @@ const getAgencyAnalytics = async (req, res) => {
 // @desc    Get user's agencies
 // @route   GET /api/agencies/my/agencies
 // @access  Private
-const getMyAgencies = async (req, res) => {
+const getMyAgencies = async(req, res) => {
   try {
     const userId = req.user.id;
 
@@ -630,9 +632,9 @@ const getMyAgencies = async (req, res) => {
       ],
       isActive: true
     })
-    .populate('owner', 'firstName lastName profile.avatar')
-    .populate('providers.user', 'firstName lastName profile.avatar')
-    .sort({ createdAt: -1 });
+      .populate('owner', 'firstName lastName profile.avatar')
+      .populate('providers.user', 'firstName lastName profile.avatar')
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -640,7 +642,7 @@ const getMyAgencies = async (req, res) => {
       data: agencies
     });
   } catch (error) {
-    console.error('Get my agencies error:', error);
+    logger.error('Get my agencies error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -651,7 +653,7 @@ const getMyAgencies = async (req, res) => {
 // @desc    Join agency
 // @route   POST /api/agencies/join
 // @access  Private
-const joinAgency = async (req, res) => {
+const joinAgency = async(req, res) => {
   try {
     const { agencyId } = req.body;
 
@@ -686,7 +688,7 @@ const joinAgency = async (req, res) => {
       message: 'Successfully requested to join agency'
     });
   } catch (error) {
-    console.error('Join agency error:', error);
+    logger.error('Join agency error:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Server error'
@@ -697,7 +699,7 @@ const joinAgency = async (req, res) => {
 // @desc    Leave agency
 // @route   POST /api/agencies/leave
 // @access  Private
-const leaveAgency = async (req, res) => {
+const leaveAgency = async(req, res) => {
   try {
     const { agencyId } = req.body;
 
@@ -733,7 +735,7 @@ const leaveAgency = async (req, res) => {
       message: 'Successfully left agency'
     });
   } catch (error) {
-    console.error('Leave agency error:', error);
+    logger.error('Leave agency error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

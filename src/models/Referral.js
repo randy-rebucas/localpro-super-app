@@ -4,32 +4,27 @@ const referralSchema = new mongoose.Schema({
   referrer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   referee: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   referralCode: {
     type: String,
     required: true,
-    unique: true,
-    index: true
+    unique: true
   },
   status: {
     type: String,
     enum: ['pending', 'completed', 'expired', 'cancelled'],
-    default: 'pending',
-    index: true
+    default: 'pending'
   },
   referralType: {
     type: String,
     enum: ['signup', 'service_booking', 'supplies_purchase', 'course_enrollment', 'loan_application', 'rental_booking', 'subscription_upgrade'],
-    required: true,
-    index: true
+    required: true
   },
   // The specific action that triggered the referral reward
   triggerAction: {
@@ -232,12 +227,12 @@ referralSchema.virtual('totalRewardValue').get(function() {
 referralSchema.statics.generateReferralCode = function() {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
-  
+
   // Generate 8-character code
   for (let i = 0; i < 8; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
-  
+
   return result;
 };
 
@@ -347,7 +342,7 @@ referralSchema.pre('save', async function(next) {
   if (this.isNew && !this.referralCode) {
     let referralCode;
     let isUnique = false;
-    
+
     while (!isUnique) {
       referralCode = this.constructor.generateReferralCode();
       const existing = await this.constructor.findOne({ referralCode });
@@ -355,7 +350,7 @@ referralSchema.pre('save', async function(next) {
         isUnique = true;
       }
     }
-    
+
     this.referralCode = referralCode;
   }
   next();

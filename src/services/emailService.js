@@ -4,12 +4,14 @@
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 const templateEngine = require('../utils/templateEngine');
+const logger = require('../utils/logger');
+
 
 class EmailService {
   constructor() {
     this.fromEmail = process.env.FROM_EMAIL || 'noreply@localpro.com';
     this.emailService = process.env.EMAIL_SERVICE || 'resend';
-    
+
     // Initialize email service based on configuration
     this.initializeEmailService();
   }
@@ -19,30 +21,30 @@ class EmailService {
    */
   initializeEmailService() {
     switch (this.emailService) {
-      case 'resend':
-        this.resend = new Resend(process.env.RESEND_API_KEY);
-        break;
-      case 'sendgrid':
-        // SendGrid will be handled in sendViaSendGrid method
-        break;
-      case 'hostinger':
-      case 'smtp':
-        this.transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST || 'smtp.hostinger.com',
-          port: parseInt(process.env.SMTP_PORT) || 587,
-          secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-          },
-          tls: {
-            rejectUnauthorized: false // For development, set to true in production
-          }
-        });
-        break;
-      default:
-        console.warn(`Unknown email service: ${this.emailService}. Using Resend as fallback.`);
-        this.resend = new Resend(process.env.RESEND_API_KEY);
+    case 'resend':
+      this.resend = new Resend(process.env.RESEND_API_KEY);
+      break;
+    case 'sendgrid':
+      // SendGrid will be handled in sendViaSendGrid method
+      break;
+    case 'hostinger':
+    case 'smtp':
+      this.transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.hostinger.com',
+        port: parseInt(process.env.SMTP_PORT) || 587,
+        secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        },
+        tls: {
+          rejectUnauthorized: false // For development, set to true in production
+        }
+      });
+      break;
+    default:
+      logger.warn(`Unknown email service: ${this.emailService}. Using Resend as fallback.`);
+      this.resend = new Resend(process.env.RESEND_API_KEY);
     }
   }
 
@@ -54,7 +56,7 @@ class EmailService {
    */
   async sendWelcomeEmail(to, firstName) {
     const subject = 'Welcome to LocalPro Super App!';
-    
+
     try {
       const html = templateEngine.render('welcome', {
         firstName: firstName,
@@ -63,7 +65,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error rendering welcome email template:', error);
+      logger.error('Error rendering welcome email template:', error);
       // Fallback to simple HTML
       const fallbackHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -85,7 +87,7 @@ class EmailService {
    */
   async sendBookingConfirmation(to, booking) {
     const subject = 'Booking Confirmation - LocalPro';
-    
+
     try {
       const html = templateEngine.render('booking-confirmation', {
         clientName: booking.client?.firstName || 'Valued Customer',
@@ -123,7 +125,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error rendering booking confirmation template:', error);
+      logger.error('Error rendering booking confirmation template:', error);
       // Fallback to simple HTML
       const fallbackHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -151,7 +153,7 @@ class EmailService {
    */
   async sendOrderConfirmation(to, order) {
     const subject = 'Order Confirmation - LocalPro';
-    
+
     try {
       const html = templateEngine.render('order-confirmation', {
         customerName: order.customer?.firstName || 'Valued Customer',
@@ -194,7 +196,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error rendering order confirmation template:', error);
+      logger.error('Error rendering order confirmation template:', error);
       // Fallback to simple HTML
       const fallbackHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -221,7 +223,7 @@ class EmailService {
    */
   async sendLoanApproval(to, loan) {
     const subject = 'Loan Approved - LocalPro Finance';
-    
+
     try {
       const html = templateEngine.render('loan-approval', {
         borrowerName: loan.borrower?.firstName || 'Valued Customer',
@@ -248,7 +250,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error rendering loan approval template:', error);
+      logger.error('Error rendering loan approval template:', error);
       // Fallback to simple HTML
       const fallbackHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -279,18 +281,18 @@ class EmailService {
   async sendEmail(to, subject, html) {
     try {
       switch (this.emailService) {
-        case 'resend':
-          return await this.sendViaResend(to, subject, html);
-        case 'sendgrid':
-          return await this.sendViaSendGrid(to, subject, html);
-        case 'hostinger':
-        case 'smtp':
-          return await this.sendViaSMTP(to, subject, html);
-        default:
-          throw new Error(`Unsupported email service: ${this.emailService}`);
+      case 'resend':
+        return await this.sendViaResend(to, subject, html);
+      case 'sendgrid':
+        return await this.sendViaSendGrid(to, subject, html);
+      case 'hostinger':
+      case 'smtp':
+        return await this.sendViaSMTP(to, subject, html);
+      default:
+        throw new Error(`Unsupported email service: ${this.emailService}`);
       }
     } catch (error) {
-      console.error('Email sending error:', error);
+      logger.error('Email sending error:', error);
       return {
         success: false,
         error: error.message
@@ -310,14 +312,14 @@ class EmailService {
       throw new Error('Resend client not initialized. Check your RESEND_API_KEY.');
     }
 
-    console.log(`[Resend] Sending email to: ${to}`);
-    console.log(`[Resend] Subject: ${subject}`);
+    logger.info(`[Resend] Sending email to: ${to}`);
+    logger.info(`[Resend] Subject: ${subject}`);
 
     const { data, error } = await this.resend.emails.send({
       from: this.fromEmail,
       to: [to],
       subject: subject,
-      html: html,
+      html: html
     });
 
     if (error) {
@@ -338,10 +340,10 @@ class EmailService {
    * @param {string} html - Email HTML content
    * @returns {Promise<object>} Send result
    */
-  async sendViaSendGrid(to, subject, html) {
+  async sendViaSendGrid(to, _subject, _html) {
     // SendGrid implementation would go here
     // For now, return a placeholder
-    console.log(`[SendGrid] Sending email to: ${to}`);
+    logger.info(`[SendGrid] Sending email to: ${to}`);
     return {
       success: true,
       messageId: `sg_${Date.now()}`,
@@ -368,11 +370,11 @@ class EmailService {
       html: html
     };
 
-    console.log(`[SMTP] Sending email to: ${to}`);
-    console.log(`[SMTP] Subject: ${subject}`);
+    logger.info(`[SMTP] Sending email to: ${to}`);
+    logger.info(`[SMTP] Subject: ${subject}`);
 
     const result = await this.transporter.sendMail(mailOptions);
-    
+
     return {
       success: true,
       messageId: result.messageId,
@@ -389,7 +391,7 @@ class EmailService {
   async sendJobApplicationNotification(to, data) {
     try {
       const subject = `New Job Application - ${data.jobTitle}`;
-      
+
       const templateData = {
         ...data,
         dashboard_url: `${process.env.FRONTEND_URL}/employer/dashboard`,
@@ -411,7 +413,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error sending job application notification:', error);
+      logger.error('Error sending job application notification:', error);
       return { success: false, error: error.message };
     }
   }
@@ -425,7 +427,7 @@ class EmailService {
   async sendApplicationStatusUpdate(to, data) {
     try {
       const subject = `Application Update - ${data.jobTitle}`;
-      
+
       const templateData = {
         ...data,
         applicantName: data.applicantName || 'Applicant',
@@ -448,7 +450,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error sending application status update:', error);
+      logger.error('Error sending application status update:', error);
       return { success: false, error: error.message };
     }
   }
@@ -462,7 +464,7 @@ class EmailService {
   async sendReferralInvitation(to, data) {
     try {
       const subject = `${data.referrerName} invited you to join LocalPro!`;
-      
+
       const templateData = {
         ...data,
         dashboard_url: `${process.env.FRONTEND_URL}/dashboard`,
@@ -484,7 +486,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error sending referral invitation:', error);
+      logger.error('Error sending referral invitation:', error);
       return { success: false, error: error.message };
     }
   }
@@ -498,7 +500,7 @@ class EmailService {
   async sendReferralRewardNotification(to, data) {
     try {
       const subject = `🎉 You earned $${data.rewardAmount} from your referral!`;
-      
+
       const templateData = {
         ...data,
         dashboard_url: `${process.env.FRONTEND_URL}/referrals`,
@@ -520,7 +522,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error sending referral reward notification:', error);
+      logger.error('Error sending referral reward notification:', error);
       return { success: false, error: error.message };
     }
   }
@@ -532,22 +534,22 @@ class EmailService {
   async testConnection() {
     try {
       switch (this.emailService) {
-        case 'resend':
-          if (!this.resend) {
-            throw new Error('Resend client not initialized. Check your RESEND_API_KEY.');
-          }
-          return { success: true, message: 'Resend configuration ready' };
-        case 'sendgrid':
-          return { success: true, message: 'SendGrid configuration ready' };
-        case 'hostinger':
-        case 'smtp':
-          if (!this.transporter) {
-            throw new Error('SMTP transporter not initialized. Check your SMTP configuration.');
-          }
-          await this.transporter.verify();
-          return { success: true, message: 'SMTP connection verified' };
-        default:
-          throw new Error(`Unknown email service: ${this.emailService}`);
+      case 'resend':
+        if (!this.resend) {
+          throw new Error('Resend client not initialized. Check your RESEND_API_KEY.');
+        }
+        return { success: true, message: 'Resend configuration ready' };
+      case 'sendgrid':
+        return { success: true, message: 'SendGrid configuration ready' };
+      case 'hostinger':
+      case 'smtp':
+        if (!this.transporter) {
+          throw new Error('SMTP transporter not initialized. Check your SMTP configuration.');
+        }
+        await this.transporter.verify();
+        return { success: true, message: 'SMTP connection verified' };
+      default:
+        throw new Error(`Unknown email service: ${this.emailService}`);
       }
     } catch (error) {
       return { success: false, error: error.message };

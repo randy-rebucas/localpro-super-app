@@ -13,8 +13,8 @@ const serviceSchema = new mongoose.Schema({
   category: {
     type: String,
     enum: [
-      'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 
-      'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 
+      'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping',
+      'painting', 'carpentry', 'flooring', 'roofing', 'hvac',
       'appliance_repair', 'locksmith', 'handyman', 'home_security',
       'pool_maintenance', 'pest_control', 'carpet_cleaning', 'window_cleaning',
       'gutter_cleaning', 'power_washing', 'snow_removal', 'other'
@@ -303,6 +303,14 @@ serviceSchema.index({ isActive: 1 });
 serviceSchema.index({ provider: 1, isActive: 1 });
 serviceSchema.index({ 'rating.average': -1, 'rating.count': -1 });
 
+// Performance optimization indexes
+serviceSchema.index({ category: 1, 'rating.average': -1, isActive: 1 }); // Category with rating
+serviceSchema.index({ 'pricing.basePrice': 1, category: 1 }); // Price range queries
+serviceSchema.index({ createdAt: -1, isActive: 1 }); // Recent services
+serviceSchema.index({ 'serviceArea': 1, category: 1, isActive: 1 }); // Location + category
+serviceSchema.index({ 'emergencyService.available': 1, isActive: 1 }); // Emergency services
+serviceSchema.index({ 'serviceType': 1, category: 1 }); // Service type queries
+
 bookingSchema.index({ client: 1 });
 bookingSchema.index({ provider: 1 });
 bookingSchema.index({ status: 1 });
@@ -310,6 +318,13 @@ bookingSchema.index({ bookingDate: 1 });
 bookingSchema.index({ client: 1, status: 1 });
 bookingSchema.index({ provider: 1, status: 1 });
 bookingSchema.index({ service: 1, status: 1 });
+
+// Performance optimization indexes for bookings
+bookingSchema.index({ bookingDate: 1, status: 1 }); // Date + status queries
+bookingSchema.index({ 'payment.status': 1, status: 1 }); // Payment status queries
+bookingSchema.index({ createdAt: -1, client: 1 }); // Recent bookings by client
+bookingSchema.index({ 'address.city': 1, status: 1 }); // Location-based booking queries
+bookingSchema.index({ 'pricing.totalAmount': -1, status: 1 }); // High-value bookings
 
 module.exports = {
   Service: mongoose.model('Service', serviceSchema),

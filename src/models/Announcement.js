@@ -282,7 +282,7 @@ announcementSchema.index({ createdAt: -1 });
 // Virtual for checking if announcement is active
 announcementSchema.virtual('isActive').get(function() {
   const now = new Date();
-  return this.status === 'published' && 
+  return this.status === 'published' &&
          (!this.scheduledAt || this.scheduledAt <= now) &&
          (!this.expiresAt || this.expiresAt > now);
 });
@@ -303,15 +303,15 @@ announcementSchema.pre('save', function(next) {
   if (this.isModified('status') && this.status === 'published' && !this.publishedAt) {
     this.publishedAt = new Date();
   }
-  
+
   // Update lastModifiedAt
   this.metadata.lastModifiedAt = new Date();
-  
+
   // Increment version on updates
   if (this.isModified() && !this.isNew) {
     this.metadata.version += 1;
   }
-  
+
   next();
 });
 
@@ -321,13 +321,19 @@ announcementSchema.statics.getActiveAnnouncements = function(targetAudience = 'a
   const query = {
     status: 'published',
     isDeleted: false,
-    $or: [
-      { scheduledAt: { $lte: now } },
-      { scheduledAt: null }
-    ],
-    $or: [
-      { expiresAt: { $gt: now } },
-      { expiresAt: null }
+    $and: [
+      {
+        $or: [
+          { scheduledAt: { $lte: now } },
+          { scheduledAt: null }
+        ]
+      },
+      {
+        $or: [
+          { expiresAt: { $gt: now } },
+          { expiresAt: null }
+        ]
+      }
     ]
   };
 
@@ -351,23 +357,31 @@ announcementSchema.statics.getActiveAnnouncements = function(targetAudience = 'a
 };
 
 // Static method to get announcements for user
-announcementSchema.statics.getAnnouncementsForUser = function(userId, userRole, userLocation, userCategories) {
+announcementSchema.statics.getAnnouncementsForUser = function(_userId, userRole, userLocation, userCategories) {
   const now = new Date();
   const query = {
     status: 'published',
     isDeleted: false,
-    $or: [
-      { scheduledAt: { $lte: now } },
-      { scheduledAt: null }
-    ],
-    $or: [
-      { expiresAt: { $gt: now } },
-      { expiresAt: null }
-    ],
-    $or: [
-      { targetAudience: 'all' },
-      { targetAudience: userRole },
-      { targetRoles: { $in: [userRole] } }
+    $and: [
+      {
+        $or: [
+          { scheduledAt: { $lte: now } },
+          { scheduledAt: null }
+        ]
+      },
+      {
+        $or: [
+          { expiresAt: { $gt: now } },
+          { expiresAt: null }
+        ]
+      },
+      {
+        $or: [
+          { targetAudience: 'all' },
+          { targetAudience: userRole },
+          { targetRoles: { $in: [userRole] } }
+        ]
+      }
     ]
   };
 
@@ -388,10 +402,10 @@ announcementSchema.statics.getAnnouncementsForUser = function(userId, userRole, 
 };
 
 // Instance method to increment views
-announcementSchema.methods.incrementViews = function(userId) {
+announcementSchema.methods.incrementViews = function(_userId) {
   this.views += 1;
   this.analytics.totalViews += 1;
-  
+
   // Track unique views (you might want to implement this with a separate collection)
   // For now, we'll just increment total views
   return this.save();
@@ -402,13 +416,13 @@ announcementSchema.methods.acknowledge = function(userId) {
   const existingAcknowledgment = this.acknowledgments.find(
     ack => ack.user.toString() === userId.toString()
   );
-  
+
   if (!existingAcknowledgment) {
     this.acknowledgments.push({ user: userId });
     this.analytics.totalAcknowledged += 1;
     return this.save();
   }
-  
+
   return Promise.resolve(this);
 };
 
@@ -417,13 +431,13 @@ announcementSchema.methods.addComment = function(userId, userName, content) {
   if (!this.allowComments) {
     throw new Error('Comments are not allowed for this announcement');
   }
-  
+
   this.comments.push({
     user: userId,
     userName: userName,
     content: content
   });
-  
+
   this.analytics.totalComments += 1;
   return this.save();
 };

@@ -1,4 +1,6 @@
 const twilio = require('twilio');
+const logger = require('../utils/logger');
+
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -10,7 +12,7 @@ if (accountSid && authToken) {
   try {
     client = twilio(accountSid, authToken);
   } catch (error) {
-    console.warn('Twilio client initialization failed:', error.message);
+    logger.warn('Twilio client initialization failed:', error.message);
   }
 }
 
@@ -18,13 +20,13 @@ class TwilioService {
   static async sendVerificationCode(phoneNumber) {
     try {
       // Use mock in test environment or when Twilio is not properly configured
-      if (process.env.NODE_ENV === 'test' || !client || !serviceSid || 
+      if (process.env.NODE_ENV === 'test' || !client || !serviceSid ||
           accountSid === 'test_account_sid' || authToken === 'test_auth_token') {
-        console.warn('Twilio not configured or in test mode, using mock verification code');
+        logger.warn('Twilio not configured or in test mode, using mock verification code');
         // Generate a mock verification code for development/testing
         const mockCode = Math.floor(100000 + Math.random() * 900000).toString();
-        console.log(`Mock verification code for ${phoneNumber}: ${mockCode}`);
-        
+        logger.info(`Mock verification code for ${phoneNumber}: ${mockCode}`);
+
         return {
           success: true,
           sid: `mock_${Date.now()}`,
@@ -47,7 +49,7 @@ class TwilioService {
         status: verification.status
       };
     } catch (error) {
-      console.error('Twilio verification error:', error);
+      logger.error('Twilio verification error:', error);
       return {
         success: false,
         error: error.message
@@ -58,9 +60,9 @@ class TwilioService {
   static async verifyCode(phoneNumber, code) {
     try {
       // Use mock in test environment or when Twilio is not properly configured
-      if (process.env.NODE_ENV === 'test' || !client || !serviceSid || 
+      if (process.env.NODE_ENV === 'test' || !client || !serviceSid ||
           accountSid === 'test_account_sid' || authToken === 'test_auth_token') {
-        console.warn('Twilio not configured or in test mode, accepting any 6-digit code for development/testing');
+        logger.warn('Twilio not configured or in test mode, accepting any 6-digit code for development/testing');
         // For development/testing, accept any 6-digit code
         if (code && code.length === 6 && /^\d{6}$/.test(code)) {
           return {
@@ -88,7 +90,7 @@ class TwilioService {
         status: verificationCheck.status
       };
     } catch (error) {
-      console.error('Twilio verification check error:', error);
+      logger.error('Twilio verification check error:', error);
       return {
         success: false,
         error: error.message
@@ -99,9 +101,9 @@ class TwilioService {
   static async sendSMS(to, message) {
     try {
       if (!client || !process.env.TWILIO_PHONE_NUMBER) {
-        console.warn('Twilio not configured, logging SMS for development');
-        console.log(`Mock SMS to ${to}: ${message}`);
-        
+        logger.warn('Twilio not configured, logging SMS for development');
+        logger.info(`Mock SMS to ${to}: ${message}`);
+
         return {
           success: true,
           sid: `mock_sms_${Date.now()}`,
@@ -121,7 +123,7 @@ class TwilioService {
         status: sms.status
       };
     } catch (error) {
-      console.error('Twilio SMS error:', error);
+      logger.error('Twilio SMS error:', error);
       return {
         success: false,
         error: error.message

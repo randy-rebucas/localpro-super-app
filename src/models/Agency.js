@@ -127,8 +127,8 @@ const agencySchema = new mongoose.Schema({
     category: {
       type: String,
       enum: [
-        'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 
-        'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 
+        'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping',
+        'painting', 'carpentry', 'flooring', 'roofing', 'hvac',
         'appliance_repair', 'locksmith', 'handyman', 'home_security',
         'pool_maintenance', 'pest_control', 'carpet_cleaning', 'window_cleaning',
         'gutter_cleaning', 'power_washing', 'snow_removal', 'other'
@@ -261,13 +261,13 @@ agencySchema.methods.addProvider = function(userId, commissionRate = 10) {
   if (existingProvider) {
     throw new Error('Provider already exists in this agency');
   }
-  
+
   this.providers.push({
     user: userId,
     commissionRate: commissionRate,
     status: 'pending'
   });
-  
+
   return this.save();
 };
 
@@ -277,7 +277,7 @@ agencySchema.methods.updateProviderStatus = function(userId, status) {
   if (!provider) {
     throw new Error('Provider not found in this agency');
   }
-  
+
   provider.status = status;
   return this.save();
 };
@@ -288,7 +288,7 @@ agencySchema.methods.updateProviderPerformance = function(userId, performanceDat
   if (!provider) {
     throw new Error('Provider not found in this agency');
   }
-  
+
   Object.assign(provider.performance, performanceData);
   return this.save();
 };
@@ -299,13 +299,13 @@ agencySchema.methods.addAdmin = function(userId, role = 'admin', permissions = [
   if (existingAdmin) {
     throw new Error('User is already an admin of this agency');
   }
-  
+
   this.admins.push({
     user: userId,
     role: role,
     permissions: permissions
   });
-  
+
   return this.save();
 };
 
@@ -327,8 +327,8 @@ agencySchema.methods.isProvider = function(userId) {
 
 // Method to check if user has access
 agencySchema.methods.hasAccess = function(userId) {
-  return this.owner.toString() === userId.toString() || 
-         this.isAdmin(userId) || 
+  return this.owner.toString() === userId.toString() ||
+         this.isAdmin(userId) ||
          this.isProvider(userId);
 };
 

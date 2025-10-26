@@ -317,10 +317,10 @@ userSubscriptionSchema.methods.isActive = function() {
 // Method to check if user has access to feature
 userSubscriptionSchema.methods.hasFeatureAccess = function(featureName) {
   if (!this.isActive()) return false;
-  
+
   const plan = this.plan;
   if (!plan) return false;
-  
+
   const feature = plan.features.find(f => f.name === featureName);
   return feature && feature.included;
 };
@@ -328,12 +328,12 @@ userSubscriptionSchema.methods.hasFeatureAccess = function(featureName) {
 // Method to check usage limit
 userSubscriptionSchema.methods.checkUsageLimit = function(featureName) {
   if (!this.hasFeatureAccess(featureName)) return false;
-  
+
   const plan = this.plan;
   const feature = plan.features.find(f => f.name === featureName);
-  
+
   if (!feature || !feature.limit) return true; // Unlimited
-  
+
   const currentUsage = this.usage[featureName]?.current || 0;
   return currentUsage < feature.limit;
 };
@@ -343,7 +343,7 @@ userSubscriptionSchema.methods.incrementUsage = function(featureName, amount = 1
   if (!this.usage[featureName]) {
     this.usage[featureName] = { current: 0 };
   }
-  
+
   this.usage[featureName].current += amount;
   return this.save();
 };
@@ -353,13 +353,13 @@ userSubscriptionSchema.methods.cancel = function(reason = 'User requested cancel
   this.status = 'cancelled';
   this.cancelledAt = new Date();
   this.cancellationReason = reason;
-  
+
   this.history.push({
     action: 'cancelled',
     reason: reason,
     timestamp: new Date()
   });
-  
+
   return this.save();
 };
 
@@ -367,15 +367,15 @@ userSubscriptionSchema.methods.cancel = function(reason = 'User requested cancel
 userSubscriptionSchema.methods.renew = function() {
   const now = new Date();
   const billingCycle = this.billingCycle === 'yearly' ? 365 : 30;
-  
+
   this.nextBillingDate = new Date(now.getTime() + billingCycle * 24 * 60 * 60 * 1000);
   this.endDate = this.nextBillingDate;
-  
+
   this.history.push({
     action: 'renewed',
     timestamp: now
   });
-  
+
   return this.save();
 };
 

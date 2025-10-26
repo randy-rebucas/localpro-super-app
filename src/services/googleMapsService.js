@@ -2,6 +2,7 @@
 // Handles geocoding, places search, distance calculations, and location services
 
 const { Client } = require('@googlemaps/google-maps-services-js');
+const logger = require('../utils/logger');
 
 class GoogleMapsService {
   constructor() {
@@ -10,9 +11,9 @@ class GoogleMapsService {
     this.geocodingApiKey = process.env.GOOGLE_MAPS_GEOCODING_API_KEY || this.apiKey;
     this.placesApiKey = process.env.GOOGLE_MAPS_PLACES_API_KEY || this.apiKey;
     this.distanceMatrixApiKey = process.env.GOOGLE_MAPS_DISTANCE_MATRIX_API_KEY || this.apiKey;
-    
+
     if (!this.apiKey) {
-      console.warn('Google Maps API key not configured. Some features may not work.');
+      logger.warn('Google Maps API key not configured. Some features may not work.');
     }
   }
 
@@ -30,14 +31,14 @@ class GoogleMapsService {
       const response = await this.client.geocode({
         params: {
           address: address,
-          key: this.geocodingApiKey,
-        },
+          key: this.geocodingApiKey
+        }
       });
 
       if (response.data.results && response.data.results.length > 0) {
         const result = response.data.results[0];
         const location = result.geometry.location;
-        
+
         return {
           success: true,
           coordinates: {
@@ -56,7 +57,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Geocoding error:', error);
+      logger.error('Geocoding error:', error);
       return {
         success: false,
         error: error.message || 'Geocoding failed'
@@ -79,13 +80,13 @@ class GoogleMapsService {
       const response = await this.client.reverseGeocode({
         params: {
           latlng: { lat, lng },
-          key: this.geocodingApiKey,
-        },
+          key: this.geocodingApiKey
+        }
       });
 
       if (response.data.results && response.data.results.length > 0) {
         const result = response.data.results[0];
-        
+
         return {
           success: true,
           formattedAddress: result.formatted_address,
@@ -100,7 +101,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Reverse geocoding error:', error);
+      logger.error('Reverse geocoding error:', error);
       return {
         success: false,
         error: error.message || 'Reverse geocoding failed'
@@ -127,7 +128,7 @@ class GoogleMapsService {
       };
 
       const response = await this.client.placeAutocomplete({
-        params: params,
+        params: params
       });
 
       if (response.data.predictions && response.data.predictions.length > 0) {
@@ -150,7 +151,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Places search error:', error);
+      logger.error('Places search error:', error);
       return {
         success: false,
         error: error.message || 'Places search failed'
@@ -174,12 +175,12 @@ class GoogleMapsService {
           place_id: placeId,
           key: this.placesApiKey,
           fields: ['name', 'formatted_address', 'geometry', 'address_components', 'types', 'place_id']
-        },
+        }
       });
 
       if (response.data.result) {
         const result = response.data.result;
-        
+
         return {
           success: true,
           placeId: result.place_id,
@@ -199,7 +200,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Place details error:', error);
+      logger.error('Place details error:', error);
       return {
         success: false,
         error: error.message || 'Failed to get place details'
@@ -233,12 +234,12 @@ class GoogleMapsService {
       };
 
       const response = await this.client.distancematrix({
-        params: params,
+        params: params
       });
 
       if (response.data.rows && response.data.rows.length > 0) {
         const element = response.data.rows[0].elements[0];
-        
+
         if (element.status === 'OK') {
           return {
             success: true,
@@ -268,7 +269,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Distance calculation error:', error);
+      logger.error('Distance calculation error:', error);
       return {
         success: false,
         error: error.message || 'Distance calculation failed'
@@ -294,8 +295,8 @@ class GoogleMapsService {
           location: location,
           radius: radius,
           type: type,
-          key: this.placesApiKey,
-        },
+          key: this.placesApiKey
+        }
       });
 
       if (response.data.results && response.data.results.length > 0) {
@@ -330,7 +331,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Nearby places search error:', error);
+      logger.error('Nearby places search error:', error);
       return {
         success: false,
         error: error.message || 'Nearby places search failed'
@@ -348,7 +349,7 @@ class GoogleMapsService {
     try {
       // First, get the address components for the coordinates
       const reverseGeocodeResult = await this.reverseGeocode(coordinates.lat, coordinates.lng);
-      
+
       if (!reverseGeocodeResult.success) {
         return {
           success: false,
@@ -384,7 +385,7 @@ class GoogleMapsService {
         }
       };
     } catch (error) {
-      console.error('Service area validation error:', error);
+      logger.error('Service area validation error:', error);
       return {
         success: false,
         error: error.message || 'Service area validation failed'
@@ -406,7 +407,7 @@ class GoogleMapsService {
       for (const area of serviceAreas) {
         // Geocode the service area to get coordinates
         const geocodeResult = await this.geocodeAddress(area);
-        
+
         if (geocodeResult.success) {
           // Calculate distance from provider to service area
           const distanceResult = await this.calculateDistance(
@@ -416,7 +417,7 @@ class GoogleMapsService {
 
           if (distanceResult.success) {
             const isWithinRange = distanceResult.distance.value <= maxDistance;
-            
+
             coverageAnalysis.push({
               area: area,
               coordinates: geocodeResult.coordinates,
@@ -441,7 +442,7 @@ class GoogleMapsService {
         recommendations: this.generateCoverageRecommendations(coverageAnalysis, maxDistance)
       };
     } catch (error) {
-      console.error('Service coverage analysis error:', error);
+      logger.error('Service coverage analysis error:', error);
       return {
         success: false,
         error: error.message || 'Service coverage analysis failed'
@@ -456,10 +457,10 @@ class GoogleMapsService {
    */
   parseAddressComponents(components) {
     const parsed = {};
-    
+
     components.forEach(component => {
       const types = component.types;
-      
+
       if (types.includes('street_number')) {
         parsed.streetNumber = component.long_name;
       } else if (types.includes('route')) {
@@ -496,9 +497,9 @@ class GoogleMapsService {
    */
   generateCoverageRecommendations(analysis, maxDistance) {
     const recommendations = [];
-    
+
     const outsideRangeAreas = analysis.filter(area => !area.isWithinRange);
-    
+
     if (outsideRangeAreas.length > 0) {
       recommendations.push({
         type: 'warning',
@@ -507,10 +508,10 @@ class GoogleMapsService {
       });
     }
 
-    const farAreas = analysis.filter(area => 
+    const farAreas = analysis.filter(area =>
       area.isWithinRange && area.distance.value > maxDistance * 0.8
     );
-    
+
     if (farAreas.length > 0) {
       recommendations.push({
         type: 'info',
@@ -537,7 +538,7 @@ class GoogleMapsService {
 
       // Test with a simple geocoding request
       const testResult = await this.geocodeAddress('New York, NY');
-      
+
       if (testResult.success) {
         return {
           success: true,

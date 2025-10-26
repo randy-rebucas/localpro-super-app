@@ -1,7 +1,7 @@
 const express = require('express');
 const { auth } = require('../middleware/auth');
 // const { authLimiter, verificationLimiter } = require('../middleware/rateLimiter'); // Rate limiting disabled
-const { validateObjectIdParam, validateFileUpload } = require('../middleware/routeValidation');
+const { validateFileUpload } = require('../middleware/routeValidation');
 const {
   sendVerificationCode,
   verifyCode,
@@ -33,13 +33,13 @@ router.put('/profile', updateProfile);
 router.post('/complete-onboarding', completeOnboarding);
 
 // Upload routes with validation
-router.post('/upload-avatar', 
+router.post('/upload-avatar',
   uploaders.userProfiles.single('avatar'),
   validateFileUpload({ maxSize: 2 * 1024 * 1024, allowedTypes: ['image/jpeg', 'image/png'] }),
   uploadAvatar
 );
 
-router.post('/upload-portfolio', 
+router.post('/upload-portfolio',
   uploaders.userProfiles.array('images', 5),
   validateFileUpload({ maxSize: 5 * 1024 * 1024, allowedTypes: ['image/jpeg', 'image/png', 'image/gif'] }),
   uploadPortfolioImages

@@ -1,5 +1,7 @@
 const PayMayaService = require('../services/paymayaService');
-const { Payment, UserSubscription } = require('../models/LocalProPlus');
+const logger = require('../utils/logger');
+
+const { Payment } = require('../models/LocalProPlus');
 const { Transaction } = require('../models/Finance');
 const { Booking } = require('../models/Marketplace');
 const { Order } = require('../models/Supplies');
@@ -8,7 +10,7 @@ const { validationResult } = require('express-validator');
 // @desc    Create PayMaya checkout session
 // @route   POST /api/paymaya/checkout
 // @access  Private
-const createCheckout = async (req, res) => {
+const createCheckout = async(req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -73,7 +75,7 @@ const createCheckout = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Create PayMaya checkout error:', error);
+    logger.error('Create PayMaya checkout error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -84,7 +86,7 @@ const createCheckout = async (req, res) => {
 // @desc    Get PayMaya checkout details
 // @route   GET /api/paymaya/checkout/:checkoutId
 // @access  Private
-const getCheckout = async (req, res) => {
+const getCheckout = async(req, res) => {
   try {
     const { checkoutId } = req.params;
 
@@ -110,7 +112,7 @@ const getCheckout = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Get PayMaya checkout error:', error);
+    logger.error('Get PayMaya checkout error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -121,7 +123,7 @@ const getCheckout = async (req, res) => {
 // @desc    Create PayMaya payment
 // @route   POST /api/paymaya/payment
 // @access  Private
-const createPayment = async (req, res) => {
+const createPayment = async(req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -178,7 +180,7 @@ const createPayment = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Create PayMaya payment error:', error);
+    logger.error('Create PayMaya payment error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -189,7 +191,7 @@ const createPayment = async (req, res) => {
 // @desc    Get PayMaya payment details
 // @route   GET /api/paymaya/payment/:paymentId
 // @access  Private
-const getPayment = async (req, res) => {
+const getPayment = async(req, res) => {
   try {
     const { paymentId } = req.params;
 
@@ -215,7 +217,7 @@ const getPayment = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Get PayMaya payment error:', error);
+    logger.error('Get PayMaya payment error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -226,7 +228,7 @@ const getPayment = async (req, res) => {
 // @desc    Create PayMaya invoice
 // @route   POST /api/paymaya/invoice
 // @access  Private
-const createInvoice = async (req, res) => {
+const createInvoice = async(req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -283,7 +285,7 @@ const createInvoice = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Create PayMaya invoice error:', error);
+    logger.error('Create PayMaya invoice error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -294,7 +296,7 @@ const createInvoice = async (req, res) => {
 // @desc    Get PayMaya invoice details
 // @route   GET /api/paymaya/invoice/:invoiceId
 // @access  Private
-const getInvoice = async (req, res) => {
+const getInvoice = async(req, res) => {
   try {
     const { invoiceId } = req.params;
 
@@ -320,7 +322,7 @@ const getInvoice = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Get PayMaya invoice error:', error);
+    logger.error('Get PayMaya invoice error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -331,19 +333,19 @@ const getInvoice = async (req, res) => {
 // @desc    Handle PayMaya webhook events
 // @route   POST /api/paymaya/webhook
 // @access  Public (PayMaya webhook)
-const handlePayMayaWebhook = async (req, res) => {
+const handlePayMayaWebhook = async(req, res) => {
   try {
     const headers = req.headers;
     const body = req.body;
 
     // Verify webhook signature
     const isValidSignature = await PayMayaService.verifyWebhookSignature(
-      headers, 
+      headers,
       JSON.stringify(body)
     );
-    
+
     if (!isValidSignature) {
-      console.error('Invalid PayMaya webhook signature');
+      logger.error('Invalid PayMaya webhook signature');
       return res.status(400).json({
         success: false,
         message: 'Invalid webhook signature'
@@ -352,9 +354,9 @@ const handlePayMayaWebhook = async (req, res) => {
 
     // Process the webhook event
     const result = await PayMayaService.processWebhookEvent(body);
-    
+
     if (!result.success) {
-      console.error('PayMaya webhook processing failed:', result.error);
+      logger.error('PayMaya webhook processing failed:', result.error);
       return res.status(500).json({
         success: false,
         message: 'Webhook processing failed'
@@ -369,7 +371,7 @@ const handlePayMayaWebhook = async (req, res) => {
       message: 'Webhook processed successfully'
     });
   } catch (error) {
-    console.error('PayMaya webhook error:', error);
+    logger.error('PayMaya webhook error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -378,160 +380,160 @@ const handlePayMayaWebhook = async (req, res) => {
 };
 
 // Handle specific webhook events
-const handleSpecificWebhookEvent = async (event) => {
+const handleSpecificWebhookEvent = async(event) => {
   const eventType = event.eventType;
   const data = event.data;
 
   try {
     switch (eventType) {
-      case 'CHECKOUT_SUCCESS':
-        await handleCheckoutSuccess(data);
-        break;
-      case 'CHECKOUT_FAILURE':
-        await handleCheckoutFailure(data);
-        break;
-      case 'PAYMENT_SUCCESS':
-        await handlePaymentSuccess(data);
-        break;
-      case 'PAYMENT_FAILURE':
-        await handlePaymentFailure(data);
-        break;
-      case 'INVOICE_PAID':
-        await handleInvoicePaid(data);
-        break;
-      case 'INVOICE_EXPIRED':
-        await handleInvoiceExpired(data);
-        break;
-      default:
-        console.log(`Unhandled PayMaya webhook event: ${eventType}`);
+    case 'CHECKOUT_SUCCESS':
+      await handleCheckoutSuccess(data);
+      break;
+    case 'CHECKOUT_FAILURE':
+      await handleCheckoutFailure(data);
+      break;
+    case 'PAYMENT_SUCCESS':
+      await handlePaymentSuccess(data);
+      break;
+    case 'PAYMENT_FAILURE':
+      await handlePaymentFailure(data);
+      break;
+    case 'INVOICE_PAID':
+      await handleInvoicePaid(data);
+      break;
+    case 'INVOICE_EXPIRED':
+      await handleInvoiceExpired(data);
+      break;
+    default:
+      logger.info(`Unhandled PayMaya webhook event: ${eventType}`);
     }
   } catch (error) {
-    console.error(`Error handling PayMaya webhook event ${eventType}:`, error);
+    logger.error(`Error handling PayMaya webhook event ${eventType}:`, error);
   }
 };
 
 // Handle checkout success
-const handleCheckoutSuccess = async (data) => {
+const handleCheckoutSuccess = async(data) => {
   try {
     const checkoutId = data.checkoutId;
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in checkout success');
+      logger.error('No reference number found in checkout success');
       return;
     }
 
     // Find and update the relevant record based on reference number
     await updatePaymentStatus(requestReferenceNumber, 'completed', checkoutId);
-    
-    console.log(`Checkout success for reference: ${requestReferenceNumber}`);
+
+    logger.info(`Checkout success for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling checkout success:', error);
+    logger.error('Error handling checkout success:', error);
   }
 };
 
 // Handle checkout failure
-const handleCheckoutFailure = async (data) => {
+const handleCheckoutFailure = async(data) => {
   try {
-    const checkoutId = data.checkoutId;
+    // const checkoutId = data.checkoutId;
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in checkout failure');
+      logger.error('No reference number found in checkout failure');
       return;
     }
 
     // Find and update the relevant record
     await updatePaymentStatus(requestReferenceNumber, 'failed');
-    
-    console.log(`Checkout failure for reference: ${requestReferenceNumber}`);
+
+    logger.info(`Checkout failure for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling checkout failure:', error);
+    logger.error('Error handling checkout failure:', error);
   }
 };
 
 // Handle payment success
-const handlePaymentSuccess = async (data) => {
+const handlePaymentSuccess = async(data) => {
   try {
     const paymentId = data.paymentId;
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in payment success');
+      logger.error('No reference number found in payment success');
       return;
     }
 
     // Find and update the relevant record
     await updatePaymentStatus(requestReferenceNumber, 'completed', paymentId);
-    
-    console.log(`Payment success for reference: ${requestReferenceNumber}`);
+
+    logger.info(`Payment success for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling payment success:', error);
+    logger.error('Error handling payment success:', error);
   }
 };
 
 // Handle payment failure
-const handlePaymentFailure = async (data) => {
+const handlePaymentFailure = async(data) => {
   try {
-    const paymentId = data.paymentId;
+    // const paymentId = data.paymentId;
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in payment failure');
+      logger.error('No reference number found in payment failure');
       return;
     }
 
     // Find and update the relevant record
     await updatePaymentStatus(requestReferenceNumber, 'failed');
-    
-    console.log(`Payment failure for reference: ${requestReferenceNumber}`);
+
+    logger.info(`Payment failure for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling payment failure:', error);
+    logger.error('Error handling payment failure:', error);
   }
 };
 
 // Handle invoice paid
-const handleInvoicePaid = async (data) => {
+const handleInvoicePaid = async(data) => {
   try {
     const invoiceId = data.invoiceId;
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in invoice paid');
+      logger.error('No reference number found in invoice paid');
       return;
     }
 
     // Find and update the relevant record
     await updatePaymentStatus(requestReferenceNumber, 'completed', invoiceId);
-    
-    console.log(`Invoice paid for reference: ${requestReferenceNumber}`);
+
+    logger.info(`Invoice paid for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling invoice paid:', error);
+    logger.error('Error handling invoice paid:', error);
   }
 };
 
 // Handle invoice expired
-const handleInvoiceExpired = async (data) => {
+const handleInvoiceExpired = async(data) => {
   try {
-    const invoiceId = data.invoiceId;
+    // const invoiceId = data.invoiceId;
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in invoice expired');
+      logger.error('No reference number found in invoice expired');
       return;
     }
 
     // Find and update the relevant record
     await updatePaymentStatus(requestReferenceNumber, 'expired');
-    
-    console.log(`Invoice expired for reference: ${requestReferenceNumber}`);
+
+    logger.info(`Invoice expired for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling invoice expired:', error);
+    logger.error('Error handling invoice expired:', error);
   }
 };
 
 // Update payment status across different models
-const updatePaymentStatus = async (referenceNumber, status, transactionId = null) => {
+const updatePaymentStatus = async(referenceNumber, status, transactionId = null) => {
   try {
     // Check LocalPro Plus payments
     const localProPayment = await Payment.findOne({ paymayaReferenceNumber: referenceNumber });
@@ -584,16 +586,16 @@ const updatePaymentStatus = async (referenceNumber, status, transactionId = null
       return;
     }
 
-    console.log(`No record found for PayMaya reference: ${referenceNumber}`);
+    logger.info(`No record found for PayMaya reference: ${referenceNumber}`);
   } catch (error) {
-    console.error('Error updating payment status:', error);
+    logger.error('Error updating payment status:', error);
   }
 };
 
 // @desc    Get PayMaya webhook events (for debugging)
 // @route   GET /api/paymaya/webhook/events
 // @access  Private (Admin)
-const getWebhookEvents = async (req, res) => {
+const getWebhookEvents = async(req, res) => {
   try {
     // This would typically be stored in a database
     // For now, we'll return a simple response
@@ -603,7 +605,7 @@ const getWebhookEvents = async (req, res) => {
       data: []
     });
   } catch (error) {
-    console.error('Get webhook events error:', error);
+    logger.error('Get webhook events error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -614,10 +616,10 @@ const getWebhookEvents = async (req, res) => {
 // @desc    Validate PayMaya configuration
 // @route   GET /api/paymaya/config/validate
 // @access  Private (Admin)
-const validateConfig = async (req, res) => {
+const validateConfig = async(req, res) => {
   try {
     const isValid = PayMayaService.validateConfig();
-    
+
     res.status(200).json({
       success: true,
       data: {
@@ -629,7 +631,7 @@ const validateConfig = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Validate PayMaya config error:', error);
+    logger.error('Validate PayMaya config error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

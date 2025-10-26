@@ -22,7 +22,7 @@ router.use(auth);
 // @desc    Get all users with filtering and pagination
 // @route   GET /api/users
 // @access  Admin/Manager - [ADMIN/AGENCY ONLY]
-router.get('/', 
+router.get('/',
   authorize(['admin', 'agency_admin', 'agency_owner']),
   getAllUsers
 );

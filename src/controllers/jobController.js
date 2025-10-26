@@ -3,25 +3,27 @@ const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
-const { 
-  validatePagination, 
-  validateObjectId, 
+const logger = require('../utils/logger');
+
+const {
+  validatePagination,
+  validateObjectId,
   validateNumericRange
 } = require('../utils/controllerValidation');
-const { 
-  sendPaginated, 
-  sendSuccess, 
-  sendValidationError, 
-  sendNotFoundError, 
+const {
+  sendPaginated,
+  sendSuccess,
+  sendValidationError,
+  sendNotFoundError,
   sendServerError,
-  createPagination 
+  createPagination
 } = require('../utils/responseHelper');
 // const { searchLimiter, generalLimiter } = require('../middleware/rateLimiter'); // Rate limiting disabled
 
 // @desc    Get all jobs
 // @route   GET /api/jobs
 // @access  Public
-const getJobs = async (req, res) => {
+const getJobs = async(req, res) => {
   try {
     const {
       search,
@@ -34,8 +36,8 @@ const getJobs = async (req, res) => {
       minSalary,
       maxSalary,
       company,
-      page = 1,
-      limit = 10,
+      // page = 1,
+      // limit = 10,
       sortBy = 'createdAt',
       sortOrder = 'desc',
       featured
@@ -46,9 +48,9 @@ const getJobs = async (req, res) => {
     if (!paginationValidation.isValid) {
       return sendValidationError(res, paginationValidation.errors);
     }
-    
+
     const { page: pageNum, limit: limitNum } = paginationValidation.data;
-    
+
     // Validate salary range
     if (minSalary) {
       const minSalaryValidation = validateNumericRange(minSalary, 0, 1000000, 'minSalary');
@@ -56,14 +58,14 @@ const getJobs = async (req, res) => {
         return sendValidationError(res, [minSalaryValidation.error]);
       }
     }
-    
+
     if (maxSalary) {
       const maxSalaryValidation = validateNumericRange(maxSalary, 0, 1000000, 'maxSalary');
       if (!maxSalaryValidation.isValid) {
         return sendValidationError(res, [maxSalaryValidation.error]);
       }
     }
-    
+
     if (minSalary && maxSalary && parseFloat(minSalary) > parseFloat(maxSalary)) {
       return sendValidationError(res, [{
         field: 'salaryRange',
@@ -146,7 +148,7 @@ const getJobs = async (req, res) => {
 // @desc    Get single job
 // @route   GET /api/jobs/:id
 // @access  Public
-const getJob = async (req, res) => {
+const getJob = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!validateObjectId(req.params.id)) {
@@ -179,7 +181,7 @@ const getJob = async (req, res) => {
 // @desc    Create new job
 // @route   POST /api/jobs
 // @access  Private (Employer/Admin)
-const createJob = async (req, res) => {
+const createJob = async(req, res) => {
   try {
     const jobData = {
       ...req.body,
@@ -192,14 +194,14 @@ const createJob = async (req, res) => {
         const geocodeResult = await GoogleMapsService.geocodeAddress(
           jobData.company.location.address
         );
-        
+
         if (geocodeResult.success && geocodeResult.data.length > 0) {
           const location = geocodeResult.data[0];
           jobData.company.location.coordinates = {
             lat: location.geometry.location.lat,
             lng: location.geometry.location.lng
           };
-          
+
           // Extract city, state, country from geocoded result
           const addressComponents = location.address_components;
           addressComponents.forEach(component => {
@@ -215,7 +217,7 @@ const createJob = async (req, res) => {
           });
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', geocodeError);
         // Continue without geocoding if it fails
       }
     }
@@ -228,7 +230,7 @@ const createJob = async (req, res) => {
       data: job
     });
   } catch (error) {
-    console.error('Create job error:', error);
+    logger.error('Create job error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -239,7 +241,7 @@ const createJob = async (req, res) => {
 // @desc    Update job
 // @route   PUT /api/jobs/:id
 // @access  Private (Employer/Admin)
-const updateJob = async (req, res) => {
+const updateJob = async(req, res) => {
   try {
     let job = await Job.findById(req.params.id);
 
@@ -259,20 +261,20 @@ const updateJob = async (req, res) => {
     }
 
     // Geocode company location if address is provided and changed
-    if (req.body.company?.location?.address && 
+    if (req.body.company?.location?.address &&
         req.body.company.location.address !== job.company.location.address) {
       try {
         const geocodeResult = await GoogleMapsService.geocodeAddress(
           req.body.company.location.address
         );
-        
+
         if (geocodeResult.success && geocodeResult.data.length > 0) {
           const location = geocodeResult.data[0];
           req.body.company.location.coordinates = {
             lat: location.geometry.location.lat,
             lng: location.geometry.location.lng
           };
-          
+
           // Extract city, state, country from geocoded result
           const addressComponents = location.address_components;
           addressComponents.forEach(component => {
@@ -288,7 +290,7 @@ const updateJob = async (req, res) => {
           });
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', geocodeError);
         // Continue without geocoding if it fails
       }
     }
@@ -304,7 +306,7 @@ const updateJob = async (req, res) => {
       data: job
     });
   } catch (error) {
-    console.error('Update job error:', error);
+    logger.error('Update job error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -315,7 +317,7 @@ const updateJob = async (req, res) => {
 // @desc    Delete job
 // @route   DELETE /api/jobs/:id
 // @access  Private (Employer/Admin)
-const deleteJob = async (req, res) => {
+const deleteJob = async(req, res) => {
   try {
     const job = await Job.findById(req.params.id);
 
@@ -341,7 +343,7 @@ const deleteJob = async (req, res) => {
       message: 'Job deleted successfully'
     });
   } catch (error) {
-    console.error('Delete job error:', error);
+    logger.error('Delete job error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -352,7 +354,7 @@ const deleteJob = async (req, res) => {
 // @desc    Apply for job
 // @route   POST /api/jobs/:id/apply
 // @access  Private
-const applyForJob = async (req, res) => {
+const applyForJob = async(req, res) => {
   try {
     const { coverLetter, expectedSalary, availability, portfolio } = req.body;
     const jobId = req.params.id;
@@ -378,7 +380,7 @@ const applyForJob = async (req, res) => {
     const existingApplication = job.applications.find(
       app => app.applicant.toString() === userId
     );
-    
+
     if (existingApplication) {
       return res.status(400).json({
         success: false,
@@ -418,7 +420,7 @@ const applyForJob = async (req, res) => {
     try {
       const employer = await User.findById(job.employer);
       const applicant = await User.findById(userId);
-      
+
       if (employer.email) {
         await EmailService.sendJobApplicationNotification(
           employer.email,
@@ -432,7 +434,7 @@ const applyForJob = async (req, res) => {
         );
       }
     } catch (emailError) {
-      console.error('Failed to send application notification email:', emailError);
+      logger.error('Failed to send application notification email:', emailError);
       // Don't fail the application if email fails
     }
 
@@ -441,7 +443,7 @@ const applyForJob = async (req, res) => {
       message: 'Application submitted successfully'
     });
   } catch (error) {
-    console.error('Apply for job error:', error);
+    logger.error('Apply for job error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -452,7 +454,7 @@ const applyForJob = async (req, res) => {
 // @desc    Get job applications
 // @route   GET /api/jobs/:id/applications
 // @access  Private (Employer/Admin)
-const getJobApplications = async (req, res) => {
+const getJobApplications = async(req, res) => {
   try {
     const job = await Job.findById(req.params.id)
       .populate('applications.applicant', 'firstName lastName email phoneNumber profile.avatar profile.experience profile.skills');
@@ -473,9 +475,9 @@ const getJobApplications = async (req, res) => {
     }
 
     const { status, page = 1, limit = 10 } = req.query;
-    
+
     let applications = job.applications;
-    
+
     // Filter by status if provided
     if (status) {
       applications = applications.filter(app => app.status === status);
@@ -494,7 +496,7 @@ const getJobApplications = async (req, res) => {
       data: paginatedApplications
     });
   } catch (error) {
-    console.error('Get job applications error:', error);
+    logger.error('Get job applications error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -505,7 +507,7 @@ const getJobApplications = async (req, res) => {
 // @desc    Update application status
 // @route   PUT /api/jobs/:jobId/applications/:applicationId/status
 // @access  Private (Employer/Admin)
-const updateApplicationStatus = async (req, res) => {
+const updateApplicationStatus = async(req, res) => {
   try {
     const { status, feedback } = req.body;
     const { jobId, applicationId } = req.params;
@@ -556,7 +558,7 @@ const updateApplicationStatus = async (req, res) => {
         );
       }
     } catch (emailError) {
-      console.error('Failed to send status update email:', emailError);
+      logger.error('Failed to send status update email:', emailError);
     }
 
     res.status(200).json({
@@ -565,7 +567,7 @@ const updateApplicationStatus = async (req, res) => {
       data: application
     });
   } catch (error) {
-    console.error('Update application status error:', error);
+    logger.error('Update application status error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -576,7 +578,7 @@ const updateApplicationStatus = async (req, res) => {
 // @desc    Get user's job applications
 // @route   GET /api/jobs/my-applications
 // @access  Private
-const getMyApplications = async (req, res) => {
+const getMyApplications = async(req, res) => {
   try {
     const { status, page = 1, limit = 10 } = req.query;
     const userId = req.user.id;
@@ -633,7 +635,7 @@ const getMyApplications = async (req, res) => {
       data: paginatedApplications
     });
   } catch (error) {
-    console.error('Get my applications error:', error);
+    logger.error('Get my applications error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -644,7 +646,7 @@ const getMyApplications = async (req, res) => {
 // @desc    Get employer's jobs
 // @route   GET /api/jobs/my-jobs
 // @access  Private (Employer/Admin)
-const getMyJobs = async (req, res) => {
+const getMyJobs = async(req, res) => {
   try {
     const { status, page = 1, limit = 10 } = req.query;
     const userId = req.user.id;
@@ -671,7 +673,7 @@ const getMyJobs = async (req, res) => {
       data: jobs
     });
   } catch (error) {
-    console.error('Get my jobs error:', error);
+    logger.error('Get my jobs error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -682,7 +684,7 @@ const getMyJobs = async (req, res) => {
 // @desc    Upload company logo
 // @route   POST /api/jobs/:id/logo
 // @access  Private (Employer/Admin)
-const uploadCompanyLogo = async (req, res) => {
+const uploadCompanyLogo = async(req, res) => {
   try {
     if (!req.files || !req.files.logo) {
       return res.status(400).json({
@@ -735,7 +737,7 @@ const uploadCompanyLogo = async (req, res) => {
       data: job.company.logo
     });
   } catch (error) {
-    console.error('Upload company logo error:', error);
+    logger.error('Upload company logo error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -746,7 +748,7 @@ const uploadCompanyLogo = async (req, res) => {
 // @desc    Get job statistics
 // @route   GET /api/jobs/:id/stats
 // @access  Private (Employer/Admin)
-const getJobStats = async (req, res) => {
+const getJobStats = async(req, res) => {
   try {
     const job = await Job.findById(req.params.id);
 
@@ -777,7 +779,7 @@ const getJobStats = async (req, res) => {
         rejected: job.applications.filter(app => app.status === 'rejected').length,
         hired: job.applications.filter(app => app.status === 'hired').length
       },
-      averageApplicationTime: job.applications.length > 0 ? 
+      averageApplicationTime: job.applications.length > 0 ?
         job.applications.reduce((sum, app) => {
           const daysSincePosted = Math.ceil((app.appliedAt - job.createdAt) / (1000 * 60 * 60 * 24));
           return sum + daysSincePosted;
@@ -790,7 +792,7 @@ const getJobStats = async (req, res) => {
       data: stats
     });
   } catch (error) {
-    console.error('Get job stats error:', error);
+    logger.error('Get job stats error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -801,7 +803,7 @@ const getJobStats = async (req, res) => {
 // @desc    Search jobs with advanced filters
 // @route   GET /api/jobs/search
 // @access  Public
-const searchJobs = async (req, res) => {
+const searchJobs = async(req, res) => {
   try {
     const {
       q,
@@ -851,7 +853,7 @@ const searchJobs = async (req, res) => {
       data: jobs
     });
   } catch (error) {
-    console.error('Search jobs error:', error);
+    logger.error('Search jobs error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

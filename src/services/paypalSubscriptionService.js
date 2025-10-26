@@ -1,12 +1,14 @@
 const axios = require('axios');
 const crypto = require('crypto');
+const logger = require('../utils/logger');
+
 
 class PayPalSubscriptionService {
   constructor() {
-    this.baseURL = process.env.PAYPAL_MODE === 'production' 
+    this.baseURL = process.env.PAYPAL_MODE === 'production'
       ? 'https://api-m.paypal.com'
       : 'https://api-m.sandbox.paypal.com';
-    
+
     this.clientId = process.env.PAYPAL_CLIENT_ID;
     this.clientSecret = process.env.PAYPAL_CLIENT_SECRET;
     this.accessToken = null;
@@ -24,8 +26,8 @@ class PayPalSubscriptionService {
       }
 
       const auth = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
-      
-      const response = await axios.post(`${this.baseURL}/v1/oauth2/token`, 
+
+      const response = await axios.post(`${this.baseURL}/v1/oauth2/token`,
         'grant_type=client_credentials',
         {
           headers: {
@@ -37,10 +39,10 @@ class PayPalSubscriptionService {
 
       this.accessToken = response.data.access_token;
       this.tokenExpiry = Date.now() + (response.data.expires_in * 1000) - 60000; // 1 minute buffer
-      
+
       return this.accessToken;
     } catch (error) {
-      console.error('PayPal access token error:', error.response?.data || error.message);
+      logger.error('PayPal access token error:', error.response?.data || error.message);
       throw new Error('Failed to get PayPal access token');
     }
   }
@@ -72,7 +74,7 @@ class PayPalSubscriptionService {
         data: response.data
       };
     } catch (error) {
-      console.error('PayPal API request error:', error.response?.data || error.message);
+      logger.error('PayPal API request error:', error.response?.data || error.message);
       return {
         success: false,
         error: error.response?.data || error.message
@@ -108,7 +110,7 @@ class PayPalSubscriptionService {
           name: planData.name,
           description: planData.description
         });
-        
+
         if (!productResult.success) {
           return productResult;
         }
@@ -152,7 +154,7 @@ class PayPalSubscriptionService {
 
       return await this.makeRequest('POST', '/v1/billing/plans', billingPlan);
     } catch (error) {
-      console.error('Create billing plan error:', error);
+      logger.error('Create billing plan error:', error);
       return {
         success: false,
         error: error.message
@@ -191,7 +193,7 @@ class PayPalSubscriptionService {
 
       return await this.makeRequest('POST', '/v1/billing/subscriptions', subscription);
     } catch (error) {
-      console.error('Create subscription error:', error);
+      logger.error('Create subscription error:', error);
       return {
         success: false,
         error: error.message
@@ -251,7 +253,7 @@ class PayPalSubscriptionService {
    */
   async updateSubscription(subscriptionId, updateData) {
     const patches = [];
-    
+
     if (updateData.planId) {
       patches.push({
         op: 'replace',
@@ -278,10 +280,10 @@ class PayPalSubscriptionService {
     const params = new URLSearchParams();
     if (startTime) params.append('start_time', startTime);
     if (endTime) params.append('end_time', endTime);
-    
+
     const queryString = params.toString();
     const endpoint = `/v1/billing/subscriptions/${subscriptionId}/transactions${queryString ? `?${queryString}` : ''}`;
-    
+
     return await this.makeRequest('GET', endpoint);
   }
 
@@ -342,7 +344,7 @@ class PayPalSubscriptionService {
       const result = await this.makeRequest('POST', '/v1/notifications/verify-webhook-signature', verificationData);
       return result.success && result.data.verification_status === 'SUCCESS';
     } catch (error) {
-      console.error('Webhook verification error:', error);
+      logger.error('Webhook verification error:', error);
       return false;
     }
   }
@@ -355,27 +357,27 @@ class PayPalSubscriptionService {
       const eventType = event.event_type;
       const resource = event.resource;
 
-      console.log(`Processing PayPal webhook event: ${eventType}`);
+      logger.info(`Processing PayPal webhook event: ${eventType}`);
 
       switch (eventType) {
-        case 'BILLING.SUBSCRIPTION.ACTIVATED':
-          return await this.handleSubscriptionActivated(resource);
-        case 'BILLING.SUBSCRIPTION.CANCELLED':
-          return await this.handleSubscriptionCancelled(resource);
-        case 'BILLING.SUBSCRIPTION.SUSPENDED':
-          return await this.handleSubscriptionSuspended(resource);
-        case 'BILLING.SUBSCRIPTION.PAYMENT.COMPLETED':
-          return await this.handleSubscriptionPaymentCompleted(resource);
-        case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
-          return await this.handleSubscriptionPaymentFailed(resource);
-        case 'BILLING.SUBSCRIPTION.EXPIRED':
-          return await this.handleSubscriptionExpired(resource);
-        default:
-          console.log(`Unhandled PayPal webhook event: ${eventType}`);
-          return { success: true, message: 'Event not handled' };
+      case 'BILLING.SUBSCRIPTION.ACTIVATED':
+        return await this.handleSubscriptionActivated(resource);
+      case 'BILLING.SUBSCRIPTION.CANCELLED':
+        return await this.handleSubscriptionCancelled(resource);
+      case 'BILLING.SUBSCRIPTION.SUSPENDED':
+        return await this.handleSubscriptionSuspended(resource);
+      case 'BILLING.SUBSCRIPTION.PAYMENT.COMPLETED':
+        return await this.handleSubscriptionPaymentCompleted(resource);
+      case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
+        return await this.handleSubscriptionPaymentFailed(resource);
+      case 'BILLING.SUBSCRIPTION.EXPIRED':
+        return await this.handleSubscriptionExpired(resource);
+      default:
+        logger.info(`Unhandled PayPal webhook event: ${eventType}`);
+        return { success: true, message: 'Event not handled' };
       }
     } catch (error) {
-      console.error('PayPal webhook processing error:', error);
+      logger.error('PayPal webhook processing error:', error);
       return {
         success: false,
         error: error.message
@@ -387,7 +389,7 @@ class PayPalSubscriptionService {
    * Handle subscription activated webhook
    */
   async handleSubscriptionActivated(resource) {
-    console.log('Subscription activated:', resource.id);
+    logger.info('Subscription activated:', resource.id);
     return { success: true };
   }
 
@@ -395,7 +397,7 @@ class PayPalSubscriptionService {
    * Handle subscription cancelled webhook
    */
   async handleSubscriptionCancelled(resource) {
-    console.log('Subscription cancelled:', resource.id);
+    logger.info('Subscription cancelled:', resource.id);
     return { success: true };
   }
 
@@ -403,7 +405,7 @@ class PayPalSubscriptionService {
    * Handle subscription suspended webhook
    */
   async handleSubscriptionSuspended(resource) {
-    console.log('Subscription suspended:', resource.id);
+    logger.info('Subscription suspended:', resource.id);
     return { success: true };
   }
 
@@ -411,7 +413,7 @@ class PayPalSubscriptionService {
    * Handle subscription payment completed webhook
    */
   async handleSubscriptionPaymentCompleted(resource) {
-    console.log('Subscription payment completed:', resource.id);
+    logger.info('Subscription payment completed:', resource.id);
     return { success: true };
   }
 
@@ -419,7 +421,7 @@ class PayPalSubscriptionService {
    * Handle subscription payment failed webhook
    */
   async handleSubscriptionPaymentFailed(resource) {
-    console.log('Subscription payment failed:', resource.id);
+    logger.info('Subscription payment failed:', resource.id);
     return { success: true };
   }
 
@@ -427,7 +429,7 @@ class PayPalSubscriptionService {
    * Handle subscription expired webhook
    */
   async handleSubscriptionExpired(resource) {
-    console.log('Subscription expired:', resource.id);
+    logger.info('Subscription expired:', resource.id);
     return { success: true };
   }
 }

@@ -1,17 +1,19 @@
-const { Loan, SalaryAdvance, Transaction, Finance } = require('../models/Finance');
+const { Transaction, Finance } = require('../models/Finance');
 const User = require('../models/User');
-const { Service, Booking } = require('../models/Marketplace');
-const Job = require('../models/Job');
+const { Booking } = require('../models/Marketplace');
+// const Job = require('../models/Job');
 const Referral = require('../models/Referral');
-const Agency = require('../models/Agency');
-const PayPalService = require('../services/paypalService');
-const PayMayaService = require('../services/paymayaService');
+// const Agency = require('../models/Agency');
+// const PayPalService = require('../services/paypalService');
+// const PayMayaService = require('../services/paymayaService');
 const EmailService = require('../services/emailService');
+const logger = require('../utils/logger');
+
 
 // @desc    Get user's financial overview
 // @route   GET /api/finance/overview
 // @access  Private
-const getFinancialOverview = async (req, res) => {
+const getFinancialOverview = async(req, res) => {
   try {
     const userId = req.user.id;
 
@@ -101,7 +103,7 @@ const getFinancialOverview = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get financial overview error:', error);
+    logger.error('Get financial overview error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -112,7 +114,7 @@ const getFinancialOverview = async (req, res) => {
 // @desc    Get user's transactions
 // @route   GET /api/finance/transactions
 // @access  Private
-const getTransactions = async (req, res) => {
+const getTransactions = async(req, res) => {
   try {
     const { page = 1, limit = 20, type, status } = req.query;
     const skip = (page - 1) * limit;
@@ -155,7 +157,7 @@ const getTransactions = async (req, res) => {
       data: transactions
     });
   } catch (error) {
-    console.error('Get transactions error:', error);
+    logger.error('Get transactions error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -166,7 +168,7 @@ const getTransactions = async (req, res) => {
 // @desc    Get user's earnings
 // @route   GET /api/finance/earnings
 // @access  Private
-const getEarnings = async (req, res) => {
+const getEarnings = async(req, res) => {
   try {
     const { startDate, endDate, groupBy = 'month' } = req.query;
 
@@ -266,7 +268,7 @@ const getEarnings = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get earnings error:', error);
+    logger.error('Get earnings error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -277,7 +279,7 @@ const getEarnings = async (req, res) => {
 // @desc    Get user's expenses
 // @route   GET /api/finance/expenses
 // @access  Private
-const getExpenses = async (req, res) => {
+const getExpenses = async(req, res) => {
   try {
     const { startDate, endDate, category } = req.query;
 
@@ -299,7 +301,7 @@ const getExpenses = async (req, res) => {
     }
 
     // Filter expenses
-    let expenses = finance.transactions.filter(transaction => 
+    let expenses = finance.transactions.filter(transaction =>
       transaction.type === 'expense' && transaction.amount < 0
     );
 
@@ -349,7 +351,7 @@ const getExpenses = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get expenses error:', error);
+    logger.error('Get expenses error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -360,7 +362,7 @@ const getExpenses = async (req, res) => {
 // @desc    Add expense
 // @route   POST /api/finance/expenses
 // @access  Private
-const addExpense = async (req, res) => {
+const addExpense = async(req, res) => {
   try {
     const { amount, category, description, paymentMethod } = req.body;
 
@@ -401,7 +403,7 @@ const addExpense = async (req, res) => {
       data: expense
     });
   } catch (error) {
-    console.error('Add expense error:', error);
+    logger.error('Add expense error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -412,7 +414,7 @@ const addExpense = async (req, res) => {
 // @desc    Request withdrawal
 // @route   POST /api/finance/withdraw
 // @access  Private
-const requestWithdrawal = async (req, res) => {
+const requestWithdrawal = async(req, res) => {
   try {
     const { amount, paymentMethod, accountDetails } = req.body;
 
@@ -488,7 +490,7 @@ const requestWithdrawal = async (req, res) => {
       data: withdrawal
     });
   } catch (error) {
-    console.error('Request withdrawal error:', error);
+    logger.error('Request withdrawal error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -499,7 +501,7 @@ const requestWithdrawal = async (req, res) => {
 // @desc    Process withdrawal
 // @route   PUT /api/finance/withdrawals/:withdrawalId/process
 // @access  Private (Admin only)
-const processWithdrawal = async (req, res) => {
+const processWithdrawal = async(req, res) => {
   try {
     const { withdrawalId } = req.params;
     const { status, adminNotes } = req.body;
@@ -577,7 +579,7 @@ const processWithdrawal = async (req, res) => {
       data: withdrawal
     });
   } catch (error) {
-    console.error('Process withdrawal error:', error);
+    logger.error('Process withdrawal error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -588,7 +590,7 @@ const processWithdrawal = async (req, res) => {
 // @desc    Get tax documents
 // @route   GET /api/finance/tax-documents
 // @access  Private
-const getTaxDocuments = async (req, res) => {
+const getTaxDocuments = async(req, res) => {
   try {
     const { year } = req.query;
 
@@ -627,8 +629,8 @@ const getTaxDocuments = async (req, res) => {
     // Get expenses for the year
     const expenses = finance.transactions.filter(transaction => {
       const transactionDate = new Date(transaction.timestamp);
-      return transaction.type === 'expense' && 
-             transactionDate >= yearFilter && 
+      return transaction.type === 'expense' &&
+             transactionDate >= yearFilter &&
              transactionDate < nextYear;
     });
 
@@ -673,7 +675,7 @@ const getTaxDocuments = async (req, res) => {
       data: taxDocument
     });
   } catch (error) {
-    console.error('Get tax documents error:', error);
+    logger.error('Get tax documents error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -684,7 +686,7 @@ const getTaxDocuments = async (req, res) => {
 // @desc    Get financial reports
 // @route   GET /api/finance/reports
 // @access  Private
-const getFinancialReports = async (req, res) => {
+const getFinancialReports = async(req, res) => {
   try {
     const { startDate, endDate, reportType = 'summary' } = req.query;
 
@@ -708,98 +710,108 @@ const getFinancialReports = async (req, res) => {
     let report = {};
 
     switch (reportType) {
-      case 'summary':
-        // Get summary report
-        const summary = await Booking.aggregate([
-          {
-            $match: {
-              type: 'booking',
-              provider: req.user.id,
-              status: 'completed',
-              ...dateFilter
-            }
-          },
-          {
-            $group: {
-              _id: null,
-              totalEarnings: { $sum: '$pricing.total' },
-              totalBookings: { $sum: 1 },
-              averageEarning: { $avg: '$pricing.total' }
-            }
+    case 'summary': {
+      // Get summary report
+      const summary = await Booking.aggregate([
+        {
+          $match: {
+            type: 'booking',
+            provider: req.user.id,
+            status: 'completed',
+            ...dateFilter
           }
-        ]);
-
-        const expenses = finance.transactions.filter(transaction => {
-          const transactionDate = new Date(transaction.timestamp);
-          if (startDate && transactionDate < new Date(startDate)) return false;
-          if (endDate && transactionDate > new Date(endDate)) return false;
-          return transaction.type === 'expense';
-        });
-
-        const totalExpenses = expenses.reduce((sum, expense) => sum + Math.abs(expense.amount), 0);
-
-        report = {
-          totalEarnings: summary[0]?.totalEarnings || 0,
-          totalBookings: summary[0]?.totalBookings || 0,
-          averageEarning: summary[0]?.averageEarning || 0,
-          totalExpenses,
-          netIncome: (summary[0]?.totalEarnings || 0) - totalExpenses,
-          expenseCount: expenses.length
-        };
-        break;
-
-      case 'detailed':
-        // Get detailed report
-        const detailedEarnings = await Booking.aggregate([
-          {
-            $match: {
-              type: 'booking',
-              provider: req.user.id,
-              status: 'completed',
-              ...dateFilter
-            }
-          },
-          {
-            $lookup: {
-              from: 'marketplaces',
-              localField: 'service',
-              foreignField: '_id',
-              as: 'serviceData'
-            }
-          },
-          {
-            $unwind: '$serviceData'
-          },
-          {
-            $project: {
-              date: '$createdAt',
-              serviceTitle: '$serviceData.title',
-              category: '$serviceData.category',
-              amount: '$pricing.total',
-              client: '$client'
-            }
-          },
-          {
-            $sort: { date: -1 }
+        },
+        {
+          $group: {
+            _id: null,
+            totalEarnings: { $sum: '$pricing.total' },
+            totalBookings: { $sum: 1 },
+            averageEarning: { $avg: '$pricing.total' }
           }
-        ]);
+        }
+      ]);
 
-        report = {
-          earnings: detailedEarnings,
-          expenses: expenses.map(expense => ({
-            date: expense.timestamp,
-            category: expense.category,
-            description: expense.description,
-            amount: Math.abs(expense.amount)
-          }))
-        };
-        break;
+      const expenses = finance.transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.timestamp);
+        if (startDate && transactionDate < new Date(startDate)) return false;
+        if (endDate && transactionDate > new Date(endDate)) return false;
+        return transaction.type === 'expense';
+      });
 
-      default:
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid report type'
-        });
+      const totalExpenses = expenses.reduce((sum, expense) => sum + Math.abs(expense.amount), 0);
+
+      report = {
+        totalEarnings: summary[0]?.totalEarnings || 0,
+        totalBookings: summary[0]?.totalBookings || 0,
+        averageEarning: summary[0]?.averageEarning || 0,
+        totalExpenses,
+        netIncome: (summary[0]?.totalEarnings || 0) - totalExpenses,
+        expenseCount: expenses.length
+      };
+      break;
+    }
+
+    case 'detailed': {
+      // Get detailed report
+      const detailedEarnings = await Booking.aggregate([
+        {
+          $match: {
+            type: 'booking',
+            provider: req.user.id,
+            status: 'completed',
+            ...dateFilter
+          }
+        },
+        {
+          $lookup: {
+            from: 'marketplaces',
+            localField: 'service',
+            foreignField: '_id',
+            as: 'serviceData'
+          }
+        },
+        {
+          $unwind: '$serviceData'
+        },
+        {
+          $project: {
+            date: '$createdAt',
+            serviceTitle: '$serviceData.title',
+            category: '$serviceData.category',
+            amount: '$pricing.total',
+            client: '$client'
+          }
+        },
+        {
+          $sort: { date: -1 }
+        }
+      ]);
+
+      // Get expenses for detailed report
+      const expenses = finance.transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.timestamp);
+        if (startDate && transactionDate < new Date(startDate)) return false;
+        if (endDate && transactionDate > new Date(endDate)) return false;
+        return transaction.type === 'expense';
+      });
+
+      report = {
+        earnings: detailedEarnings,
+        expenses: expenses.map(expense => ({
+          date: expense.timestamp,
+          category: expense.category,
+          description: expense.description,
+          amount: Math.abs(expense.amount)
+        }))
+      };
+      break;
+    }
+
+    default:
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid report type'
+      });
     }
 
     res.status(200).json({
@@ -807,7 +819,7 @@ const getFinancialReports = async (req, res) => {
       data: report
     });
   } catch (error) {
-    console.error('Get financial reports error:', error);
+    logger.error('Get financial reports error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -818,7 +830,7 @@ const getFinancialReports = async (req, res) => {
 // @desc    Update wallet settings
 // @route   PUT /api/finance/wallet/settings
 // @access  Private
-const updateWalletSettings = async (req, res) => {
+const updateWalletSettings = async(req, res) => {
   try {
     const { autoWithdraw, minBalance, notificationSettings } = req.body;
 
@@ -842,7 +854,7 @@ const updateWalletSettings = async (req, res) => {
       data: finance.wallet
     });
   } catch (error) {
-    console.error('Update wallet settings error:', error);
+    logger.error('Update wallet settings error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

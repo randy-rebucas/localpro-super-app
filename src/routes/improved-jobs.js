@@ -1,11 +1,11 @@
 const express = require('express');
 const { auth, authorize } = require('../middleware/auth');
 // const { searchLimiter, generalLimiter } = require('../middleware/rateLimiter'); // Rate limiting disabled
-const { 
-  validateObjectIdParam, 
-  validatePaginationParams, 
+const {
+  validateObjectIdParam,
+  validatePaginationParams,
   validateSearchParams,
-  validateFileUpload 
+  validateFileUpload
 } = require('../middleware/routeValidation');
 const {
   getJobs,
@@ -27,18 +27,18 @@ const { uploaders } = require('../config/cloudinary');
 const router = express.Router();
 
 // Public routes - rate limiting disabled
-router.get('/', 
+router.get('/',
   validatePaginationParams,
   validateSearchParams,
   getJobs
 );
 
-router.get('/search', 
+router.get('/search',
   validateSearchParams,
   searchJobs
 );
 
-router.get('/:id', 
+router.get('/:id',
   validateObjectIdParam('id'),
   getJob
 );
@@ -47,24 +47,24 @@ router.get('/:id',
 router.use(auth); // Apply authentication to all routes below
 
 // Job management routes (Employer/Admin only)
-router.post('/', 
+router.post('/',
   authorize('provider', 'admin'),
   createJob
 );
 
-router.put('/:id', 
+router.put('/:id',
   authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   updateJob
 );
 
-router.delete('/:id', 
+router.delete('/:id',
   authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   deleteJob
 );
 
-router.post('/:id/logo', 
+router.post('/:id/logo',
   authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   uploaders.jobs.single('logo'),
@@ -72,40 +72,40 @@ router.post('/:id/logo',
   uploadCompanyLogo
 );
 
-router.get('/:id/stats', 
+router.get('/:id/stats',
   authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   getJobStats
 );
 
 // Application routes
-router.post('/:id/apply', 
+router.post('/:id/apply',
   validateObjectIdParam('id'),
   uploaders.jobs.single('resume'),
   validateFileUpload({ maxSize: 10 * 1024 * 1024, allowedTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'] }),
   applyForJob
 );
 
-router.get('/my-applications', 
+router.get('/my-applications',
   validatePaginationParams,
   getMyApplications
 );
 
-router.get('/my-jobs', 
+router.get('/my-jobs',
   authorize('provider', 'admin'),
   validatePaginationParams,
   getMyJobs
 );
 
 // Application management routes (Employer/Admin only)
-router.get('/:id/applications', 
+router.get('/:id/applications',
   authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   validatePaginationParams,
   getJobApplications
 );
 
-router.put('/:id/applications/:applicationId/status', 
+router.put('/:id/applications/:applicationId/status',
   authorize('provider', 'admin'),
   validateObjectIdParam('id'),
   validateObjectIdParam('applicationId'),

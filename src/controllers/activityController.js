@@ -1,9 +1,9 @@
 const Activity = require('../models/Activity');
-const User = require('../models/User');
+// const User = require('../models/User');
 const { logger } = require('../utils/logger');
 
 // Get activity feed for user
-const getActivityFeed = async (req, res) => {
+const getActivityFeed = async(req, res) => {
   try {
     const user = req.user;
     const {
@@ -62,7 +62,7 @@ const getActivityFeed = async (req, res) => {
       userId: req.user?.id,
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve activity feed'
@@ -71,7 +71,7 @@ const getActivityFeed = async (req, res) => {
 };
 
 // Get user's own activities
-const getUserActivities = async (req, res) => {
+const getUserActivities = async(req, res) => {
   try {
     const user = req.user;
     const {
@@ -122,7 +122,7 @@ const getUserActivities = async (req, res) => {
       userId: req.user?.id,
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve user activities'
@@ -131,7 +131,7 @@ const getUserActivities = async (req, res) => {
 };
 
 // Get specific user's activities (for admins or connections)
-const getSpecificUserActivities = async (req, res) => {
+const getSpecificUserActivities = async(req, res) => {
   try {
     const { userId } = req.params;
     const currentUser = req.user;
@@ -223,7 +223,7 @@ const getSpecificUserActivities = async (req, res) => {
       targetUserId: req.params.userId,
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve user activities'
@@ -232,7 +232,7 @@ const getSpecificUserActivities = async (req, res) => {
 };
 
 // Get single activity
-const getActivity = async (req, res) => {
+const getActivity = async(req, res) => {
   try {
     const { id } = req.params;
     const user = req.user;
@@ -282,7 +282,7 @@ const getActivity = async (req, res) => {
       userId: req.user?.id,
       activityId: req.params.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve activity'
@@ -291,7 +291,7 @@ const getActivity = async (req, res) => {
 };
 
 // Create activity
-const createActivity = async (req, res) => {
+const createActivity = async(req, res) => {
   try {
     const user = req.user;
     const activityData = {
@@ -331,7 +331,7 @@ const createActivity = async (req, res) => {
       userId: req.user?.id,
       activityData: req.body
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to create activity'
@@ -340,7 +340,7 @@ const createActivity = async (req, res) => {
 };
 
 // Update activity
-const updateActivity = async (req, res) => {
+const updateActivity = async(req, res) => {
   try {
     const { id } = req.params;
     const user = req.user;
@@ -393,7 +393,7 @@ const updateActivity = async (req, res) => {
       activityId: req.params.id,
       updateData: req.body
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to update activity'
@@ -402,7 +402,7 @@ const updateActivity = async (req, res) => {
 };
 
 // Delete activity (soft delete)
-const deleteActivity = async (req, res) => {
+const deleteActivity = async(req, res) => {
   try {
     const { id } = req.params;
     const user = req.user;
@@ -444,7 +444,7 @@ const deleteActivity = async (req, res) => {
       userId: req.user?.id,
       activityId: req.params.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to delete activity'
@@ -453,7 +453,7 @@ const deleteActivity = async (req, res) => {
 };
 
 // Add interaction to activity
-const addInteraction = async (req, res) => {
+const addInteraction = async(req, res) => {
   try {
     const { id } = req.params;
     const { type, metadata = {} } = req.body;
@@ -509,7 +509,7 @@ const addInteraction = async (req, res) => {
       activityId: req.params.id,
       interactionType: req.body.type
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to add interaction'
@@ -518,7 +518,7 @@ const addInteraction = async (req, res) => {
 };
 
 // Remove interaction from activity
-const removeInteraction = async (req, res) => {
+const removeInteraction = async(req, res) => {
   try {
     const { id } = req.params;
     const { type } = req.body;
@@ -565,7 +565,7 @@ const removeInteraction = async (req, res) => {
       activityId: req.params.id,
       interactionType: req.body.type
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to remove interaction'
@@ -574,7 +574,7 @@ const removeInteraction = async (req, res) => {
 };
 
 // Get activity statistics
-const getActivityStats = async (req, res) => {
+const getActivityStats = async(req, res) => {
   try {
     const user = req.user;
     const { timeframe = '30d' } = req.query;
@@ -603,7 +603,7 @@ const getActivityStats = async (req, res) => {
       userId: req.user?.id,
       timeframe: req.query.timeframe
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve activity statistics'
@@ -612,7 +612,7 @@ const getActivityStats = async (req, res) => {
 };
 
 // Get global activity statistics (admin only)
-const getGlobalActivityStats = async (req, res) => {
+const getGlobalActivityStats = async(req, res) => {
   try {
     const user = req.user;
 
@@ -717,7 +717,7 @@ const getGlobalActivityStats = async (req, res) => {
       userId: req.user?.id,
       timeframe: req.query.timeframe
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve global activity statistics'
@@ -726,7 +726,7 @@ const getGlobalActivityStats = async (req, res) => {
 };
 
 // Get activity types and categories
-const getActivityMetadata = async (req, res) => {
+const getActivityMetadata = async(req, res) => {
   try {
     const types = [
       'user_login', 'user_logout', 'user_register', 'profile_update', 'avatar_upload',
@@ -786,7 +786,7 @@ const getActivityMetadata = async (req, res) => {
     logger.error('Failed to get activity metadata', error, {
       userId: req.user?.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve activity metadata'

@@ -1,13 +1,14 @@
 const { FacilityCareService: FacilityCare } = require('../models/FacilityCare');
-const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
 const EmailService = require('../services/emailService');
+const logger = require('../utils/logger');
+
 
 // @desc    Get all facility care services
 // @route   GET /api/facility-care
 // @access  Public
-const getFacilityCareServices = async (req, res) => {
+const getFacilityCareServices = async(req, res) => {
   try {
     const {
       search,
@@ -71,7 +72,7 @@ const getFacilityCareServices = async (req, res) => {
       data: services
     });
   } catch (error) {
-    console.error('Get facility care services error:', error);
+    logger.error('Get facility care services error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -82,7 +83,7 @@ const getFacilityCareServices = async (req, res) => {
 // @desc    Get single facility care service
 // @route   GET /api/facility-care/:id
 // @access  Public
-const getFacilityCareService = async (req, res) => {
+const getFacilityCareService = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -114,7 +115,7 @@ const getFacilityCareService = async (req, res) => {
       data: service
     });
   } catch (error) {
-    console.error('Get facility care service error:', error);
+    logger.error('Get facility care service error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -125,7 +126,7 @@ const getFacilityCareService = async (req, res) => {
 // @desc    Create facility care service
 // @route   POST /api/facility-care
 // @access  Private
-const createFacilityCareService = async (req, res) => {
+const createFacilityCareService = async(req, res) => {
   try {
     const serviceData = {
       ...req.body,
@@ -137,7 +138,7 @@ const createFacilityCareService = async (req, res) => {
       try {
         const address = `${serviceData.facility.address.street}, ${serviceData.facility.address.city}, ${serviceData.facility.address.state}`;
         const geocodeResult = await GoogleMapsService.geocodeAddress(address);
-        
+
         if (geocodeResult.success && geocodeResult.data.length > 0) {
           const location = geocodeResult.data[0];
           serviceData.facility.address.coordinates = {
@@ -146,7 +147,7 @@ const createFacilityCareService = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', geocodeError);
         // Continue without geocoding if it fails
       }
     }
@@ -162,7 +163,7 @@ const createFacilityCareService = async (req, res) => {
       data: service
     });
   } catch (error) {
-    console.error('Create facility care service error:', error);
+    logger.error('Create facility care service error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -173,7 +174,7 @@ const createFacilityCareService = async (req, res) => {
 // @desc    Update facility care service
 // @route   PUT /api/facility-care/:id
 // @access  Private
-const updateFacilityCareService = async (req, res) => {
+const updateFacilityCareService = async(req, res) => {
   try {
     let service = await FacilityCare.findById(req.params.id);
 
@@ -193,12 +194,12 @@ const updateFacilityCareService = async (req, res) => {
     }
 
     // Geocode facility address if changed
-    if (req.body.facility?.address?.street && 
+    if (req.body.facility?.address?.street &&
         req.body.facility.address.street !== service.facility.address.street) {
       try {
         const address = `${req.body.facility.address.street}, ${req.body.facility.address.city}, ${req.body.facility.address.state}`;
         const geocodeResult = await GoogleMapsService.geocodeAddress(address);
-        
+
         if (geocodeResult.success && geocodeResult.data.length > 0) {
           const location = geocodeResult.data[0];
           req.body.facility.address.coordinates = {
@@ -207,7 +208,7 @@ const updateFacilityCareService = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', geocodeError);
         // Continue without geocoding if it fails
       }
     }
@@ -223,7 +224,7 @@ const updateFacilityCareService = async (req, res) => {
       data: service
     });
   } catch (error) {
-    console.error('Update facility care service error:', error);
+    logger.error('Update facility care service error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -234,7 +235,7 @@ const updateFacilityCareService = async (req, res) => {
 // @desc    Delete facility care service
 // @route   DELETE /api/facility-care/:id
 // @access  Private
-const deleteFacilityCareService = async (req, res) => {
+const deleteFacilityCareService = async(req, res) => {
   try {
     const service = await FacilityCare.findById(req.params.id);
 
@@ -262,7 +263,7 @@ const deleteFacilityCareService = async (req, res) => {
       message: 'Facility care service deleted successfully'
     });
   } catch (error) {
-    console.error('Delete facility care service error:', error);
+    logger.error('Delete facility care service error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -273,7 +274,7 @@ const deleteFacilityCareService = async (req, res) => {
 // @desc    Upload facility care service images
 // @route   POST /api/facility-care/:id/images
 // @access  Private
-const uploadFacilityCareImages = async (req, res) => {
+const uploadFacilityCareImages = async(req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
@@ -299,7 +300,7 @@ const uploadFacilityCareImages = async (req, res) => {
       });
     }
 
-    const uploadPromises = req.files.map(file => 
+    const uploadPromises = req.files.map(file =>
       CloudinaryService.uploadFile(file, 'localpro/facility-care')
     );
 
@@ -329,7 +330,7 @@ const uploadFacilityCareImages = async (req, res) => {
       data: successfulUploads
     });
   } catch (error) {
-    console.error('Upload facility care images error:', error);
+    logger.error('Upload facility care images error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -340,7 +341,7 @@ const uploadFacilityCareImages = async (req, res) => {
 // @desc    Delete facility care service image
 // @route   DELETE /api/facility-care/:id/images/:imageId
 // @access  Private
-const deleteFacilityCareImage = async (req, res) => {
+const deleteFacilityCareImage = async(req, res) => {
   try {
     const { imageId } = req.params;
 
@@ -382,7 +383,7 @@ const deleteFacilityCareImage = async (req, res) => {
       message: 'Image deleted successfully'
     });
   } catch (error) {
-    console.error('Delete facility care image error:', error);
+    logger.error('Delete facility care image error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -393,9 +394,9 @@ const deleteFacilityCareImage = async (req, res) => {
 // @desc    Book facility care service
 // @route   POST /api/facility-care/:id/book
 // @access  Private
-const bookFacilityCareService = async (req, res) => {
+const bookFacilityCareService = async(req, res) => {
   try {
-    const { 
+    const {
       facilityId,
       serviceDate,
       serviceTime,
@@ -473,7 +474,7 @@ const bookFacilityCareService = async (req, res) => {
       data: booking
     });
   } catch (error) {
-    console.error('Book facility care service error:', error);
+    logger.error('Book facility care service error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -484,7 +485,7 @@ const bookFacilityCareService = async (req, res) => {
 // @desc    Update booking status
 // @route   PUT /api/facility-care/:id/bookings/:bookingId/status
 // @access  Private
-const updateBookingStatus = async (req, res) => {
+const updateBookingStatus = async(req, res) => {
   try {
     const { bookingId } = req.params;
     const { status } = req.body;
@@ -546,7 +547,7 @@ const updateBookingStatus = async (req, res) => {
       data: booking
     });
   } catch (error) {
-    console.error('Update booking status error:', error);
+    logger.error('Update booking status error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -557,7 +558,7 @@ const updateBookingStatus = async (req, res) => {
 // @desc    Add review to facility care service
 // @route   POST /api/facility-care/:id/reviews
 // @access  Private
-const addFacilityCareReview = async (req, res) => {
+const addFacilityCareReview = async(req, res) => {
   try {
     const { rating, comment } = req.body;
 
@@ -578,8 +579,8 @@ const addFacilityCareReview = async (req, res) => {
     }
 
     // Check if user has booked this service
-    const hasBooked = service.bookings.some(booking => 
-      booking.client.toString() === req.user.id && 
+    const hasBooked = service.bookings.some(booking =>
+      booking.client.toString() === req.user.id &&
       booking.status === 'completed'
     );
 
@@ -591,7 +592,7 @@ const addFacilityCareReview = async (req, res) => {
     }
 
     // Check if user has already reviewed
-    const existingReview = service.reviews.find(review => 
+    const existingReview = service.reviews.find(review =>
       review.user.toString() === req.user.id
     );
 
@@ -623,7 +624,7 @@ const addFacilityCareReview = async (req, res) => {
       data: review
     });
   } catch (error) {
-    console.error('Add facility care review error:', error);
+    logger.error('Add facility care review error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -634,7 +635,7 @@ const addFacilityCareReview = async (req, res) => {
 // @desc    Get user's facility care services
 // @route   GET /api/facility-care/my/services
 // @access  Private
-const getMyFacilityCareServices = async (req, res) => {
+const getMyFacilityCareServices = async(req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
@@ -656,7 +657,7 @@ const getMyFacilityCareServices = async (req, res) => {
       data: services
     });
   } catch (error) {
-    console.error('Get my facility care services error:', error);
+    logger.error('Get my facility care services error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -667,7 +668,7 @@ const getMyFacilityCareServices = async (req, res) => {
 // @desc    Get user's facility care bookings
 // @route   GET /api/facility-care/my/bookings
 // @access  Private
-const getMyFacilityCareBookings = async (req, res) => {
+const getMyFacilityCareBookings = async(req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
@@ -675,11 +676,11 @@ const getMyFacilityCareBookings = async (req, res) => {
     const services = await FacilityCare.find({
       'bookings.client': req.user.id
     })
-    .populate('provider', 'firstName lastName profile.avatar')
-    .populate('facility.owner', 'firstName lastName profile.avatar')
-    .sort({ 'bookings.createdAt': -1 })
-    .skip(skip)
-    .limit(Number(limit));
+      .populate('provider', 'firstName lastName profile.avatar')
+      .populate('facility.owner', 'firstName lastName profile.avatar')
+      .sort({ 'bookings.createdAt': -1 })
+      .skip(skip)
+      .limit(Number(limit));
 
     // Extract bookings for the user
     const userBookings = [];
@@ -704,7 +705,7 @@ const getMyFacilityCareBookings = async (req, res) => {
       data: userBookings
     });
   } catch (error) {
-    console.error('Get my facility care bookings error:', error);
+    logger.error('Get my facility care bookings error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -715,7 +716,7 @@ const getMyFacilityCareBookings = async (req, res) => {
 // @desc    Get nearby facility care services
 // @route   GET /api/facility-care/nearby
 // @access  Public
-const getNearbyFacilityCareServices = async (req, res) => {
+const getNearbyFacilityCareServices = async(req, res) => {
   try {
     const { lat, lng, radius = 10, page = 1, limit = 10 } = req.query;
 
@@ -740,11 +741,11 @@ const getNearbyFacilityCareServices = async (req, res) => {
         }
       }
     })
-    .populate('provider', 'firstName lastName profile.avatar profile.rating')
-    .populate('facility.owner', 'firstName lastName profile.avatar')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(Number(limit));
+      .populate('provider', 'firstName lastName profile.avatar profile.rating')
+      .populate('facility.owner', 'firstName lastName profile.avatar')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
 
     const total = await FacilityCare.countDocuments({
       isActive: true,
@@ -768,7 +769,7 @@ const getNearbyFacilityCareServices = async (req, res) => {
       data: services
     });
   } catch (error) {
-    console.error('Get nearby facility care services error:', error);
+    logger.error('Get nearby facility care services error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

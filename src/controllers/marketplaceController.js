@@ -4,22 +4,25 @@ const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
 const PayPalService = require('../services/paypalService');
-const { uploaders } = require('../config/cloudinary');
-const { 
-  sendPaginated, 
-  sendSuccess, 
-  sendCreated, 
-  sendUpdated, 
-  sendDeleted,
-  sendNotFoundError,
+const logger = require('../utils/logger');
+
+// const { uploaders } = require('../config/cloudinary');
+const {
+  sendPaginated,
+  // sendSuccess,
+  // sendCreated,
+  // sendUpdated,
+  // sendDeleted,
+  // sendNotFoundError,
   sendServerError,
-  createPagination 
+  createPagination
 } = require('../utils/responseHelper');
+const QueryOptimizer = require('../utils/queryOptimizer');
 
 // @desc    Get all services
 // @route   GET /api/marketplace/services
 // @access  Public
-const getServices = async (req, res) => {
+const getServices = async(req, res) => {
   try {
     const {
       category,
@@ -34,6 +37,7 @@ const getServices = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
+
     // Build filter object
     const filter = { isActive: true };
 
@@ -43,9 +47,9 @@ const getServices = async (req, res) => {
       // Enhanced location filtering with Google Maps
       if (req.query.coordinates) {
         // If coordinates are provided, find services within radius
-        const coordinates = JSON.parse(req.query.coordinates);
-        const radius = parseInt(req.query.radius) || 50000; // Default 50km radius
-        
+        // const coordinates = JSON.parse(req.query.coordinates);
+        // const radius = parseInt(req.query.radius) || 50000; // Default 50km radius
+
         // For now, use text-based filtering, but this could be enhanced with geospatial queries
         filter.serviceArea = { $in: [new RegExp(location, 'i')] };
       } else {
@@ -63,18 +67,36 @@ const getServices = async (req, res) => {
     const sort = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    const skip = (page - 1) * limit;
+    // Use optimized query with caching
+    const cacheKey = QueryOptimizer.generateCacheKey('getServices', filter, {
+      page,
+      limit,
+      sortBy,
+      sortOrder
+    });
 
-    const services = await Service.find(filter)
-      .populate('provider', 'firstName lastName profile.avatar profile.rating profile.experience')
-      .select('-reviews -bookings -metadata -featured -promoted')
-      .sort(sort)
-      .skip(skip)
-      .limit(Number(limit))
-      .lean(); // Use lean() for better performance on read-only operations
+    const result = await QueryOptimizer.findPaginated(Service, filter, {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sort,
+      projection: {
+        reviews: 0,
+        bookings: 0,
+        metadata: 0,
+        featured: 0,
+        promoted: 0
+      },
+      populate: [{
+        path: 'provider',
+        select: 'firstName lastName profile.avatar profile.rating profile.experience'
+      }],
+      lean: true,
+      cache: true,
+      cacheKey,
+      cacheTTL: 300 // 5 minutes
+    });
 
-    const total = await Service.countDocuments(filter);
-    const pagination = createPagination(page, limit, total);
+    const { data: services, pagination } = result;
 
     return sendPaginated(res, services, pagination, 'Services retrieved successfully');
   } catch (error) {
@@ -85,7 +107,7 @@ const getServices = async (req, res) => {
 // @desc    Get single service
 // @route   GET /api/marketplace/services/:id
 // @access  Public
-const getService = async (req, res) => {
+const getService = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -95,8 +117,19 @@ const getService = async (req, res) => {
       });
     }
 
-    const service = await Service.findById(req.params.id)
-      .populate('provider', 'firstName lastName profile.avatar profile.rating profile.experience profile.skills');
+    // Use optimized query with caching
+    const cacheKey = QueryOptimizer.generateCacheKey('getService', { _id: req.params.id });
+    
+    const service = await QueryOptimizer.findOne(Service, { _id: req.params.id }, {
+      populate: [{
+        path: 'provider',
+        select: 'firstName lastName profile.avatar profile.rating profile.experience profile.skills'
+      }],
+      lean: true,
+      cache: true,
+      cacheKey,
+      cacheTTL: 600 // 10 minutes for single service
+    });
 
     if (!service) {
       return res.status(404).json({
@@ -110,7 +143,7 @@ const getService = async (req, res) => {
       data: service
     });
   } catch (error) {
-    console.error('Get service error:', error);
+    logger.error('Get service error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -121,7 +154,7 @@ const getService = async (req, res) => {
 // @desc    Create new service
 // @route   POST /api/marketplace/services
 // @access  Private (Provider)
-const createService = async (req, res) => {
+const createService = async(req, res) => {
   try {
     const serviceData = {
       ...req.body,
@@ -136,7 +169,7 @@ const createService = async (req, res) => {
       data: service
     });
   } catch (error) {
-    console.error('Create service error:', error);
+    logger.error('Create service error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -147,7 +180,7 @@ const createService = async (req, res) => {
 // @desc    Update service
 // @route   PUT /api/marketplace/services/:id
 // @access  Private (Provider)
-const updateService = async (req, res) => {
+const updateService = async(req, res) => {
   try {
     let service = await Service.findById(req.params.id);
 
@@ -177,7 +210,7 @@ const updateService = async (req, res) => {
       data: service
     });
   } catch (error) {
-    console.error('Update service error:', error);
+    logger.error('Update service error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -188,7 +221,7 @@ const updateService = async (req, res) => {
 // @desc    Delete service
 // @route   DELETE /api/marketplace/services/:id
 // @access  Private (Provider)
-const deleteService = async (req, res) => {
+const deleteService = async(req, res) => {
   try {
     const service = await Service.findById(req.params.id);
 
@@ -214,7 +247,7 @@ const deleteService = async (req, res) => {
       message: 'Service deleted successfully'
     });
   } catch (error) {
-    console.error('Delete service error:', error);
+    logger.error('Delete service error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -225,7 +258,7 @@ const deleteService = async (req, res) => {
 // @desc    Create booking
 // @route   POST /api/marketplace/bookings
 // @access  Private
-const createBooking = async (req, res) => {
+const createBooking = async(req, res) => {
   try {
     const { serviceId, bookingDate, duration, address, specialInstructions, paymentMethod } = req.body;
 
@@ -288,7 +321,7 @@ const createBooking = async (req, res) => {
       try {
         // Get user details for PayPal
         const user = await User.findById(req.user.id).select('firstName lastName email');
-        
+
         // Create PayPal order
         const orderData = {
           amount: totalAmount,
@@ -314,7 +347,7 @@ const createBooking = async (req, res) => {
         };
 
         const paypalOrderResult = await PayPalService.createOrder(orderData);
-        
+
         if (!paypalOrderResult.success) {
           throw new Error('Failed to create PayPal order');
         }
@@ -340,7 +373,7 @@ const createBooking = async (req, res) => {
         });
         return;
       } catch (paypalError) {
-        console.error('PayPal booking error:', paypalError);
+        logger.error('PayPal booking error:', paypalError);
         // Fall back to regular booking creation
         booking.payment.method = 'cash';
         await booking.save();
@@ -358,9 +391,9 @@ const createBooking = async (req, res) => {
     if (booking.client.email) {
       try {
         await EmailService.sendBookingConfirmation(booking.client.email, booking);
-        console.log(`Booking confirmation email sent to: ${booking.client.email}`);
+        logger.info(`Booking confirmation email sent to: ${booking.client.email}`);
       } catch (emailError) {
-        console.error('Failed to send booking confirmation email:', emailError);
+        logger.error('Failed to send booking confirmation email:', emailError);
         // Don't fail the booking if email fails
       }
     }
@@ -371,7 +404,7 @@ const createBooking = async (req, res) => {
       data: booking
     });
   } catch (error) {
-    console.error('Create booking error:', error);
+    logger.error('Create booking error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -382,7 +415,7 @@ const createBooking = async (req, res) => {
 // @desc    Get user bookings
 // @route   GET /api/marketplace/bookings
 // @access  Private
-const getBookings = async (req, res) => {
+const getBookings = async(req, res) => {
   try {
     const { status, type = 'all' } = req.query;
     const userId = req.user.id;
@@ -410,7 +443,7 @@ const getBookings = async (req, res) => {
       data: bookings
     });
   } catch (error) {
-    console.error('Get bookings error:', error);
+    logger.error('Get bookings error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -421,7 +454,7 @@ const getBookings = async (req, res) => {
 // @desc    Update booking status
 // @route   PUT /api/marketplace/bookings/:id/status
 // @access  Private
-const updateBookingStatus = async (req, res) => {
+const updateBookingStatus = async(req, res) => {
   try {
     const { status } = req.body;
     const bookingId = req.params.id;
@@ -455,7 +488,7 @@ const updateBookingStatus = async (req, res) => {
       data: booking
     });
   } catch (error) {
-    console.error('Update booking status error:', error);
+    logger.error('Update booking status error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -466,7 +499,7 @@ const updateBookingStatus = async (req, res) => {
 // @desc    Upload service images
 // @route   POST /api/marketplace/services/:id/images
 // @access  Private (Provider)
-const uploadServiceImages = async (req, res) => {
+const uploadServiceImages = async(req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
@@ -495,7 +528,7 @@ const uploadServiceImages = async (req, res) => {
 
     // Upload multiple files to Cloudinary
     const uploadResult = await CloudinaryService.uploadMultipleFiles(
-      req.files, 
+      req.files,
       'localpro/marketplace'
     );
 
@@ -524,7 +557,7 @@ const uploadServiceImages = async (req, res) => {
       data: newImages
     });
   } catch (error) {
-    console.error('Upload service images error:', error);
+    logger.error('Upload service images error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -535,7 +568,7 @@ const uploadServiceImages = async (req, res) => {
 // @desc    Upload booking photos
 // @route   POST /api/marketplace/bookings/:id/photos
 // @access  Private
-const uploadBookingPhotos = async (req, res) => {
+const uploadBookingPhotos = async(req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
@@ -572,7 +605,7 @@ const uploadBookingPhotos = async (req, res) => {
 
     // Upload multiple files to Cloudinary
     const uploadResult = await CloudinaryService.uploadMultipleFiles(
-      req.files, 
+      req.files,
       `localpro/marketplace/bookings/${bookingId}`
     );
 
@@ -605,7 +638,7 @@ const uploadBookingPhotos = async (req, res) => {
       data: newPhotos
     });
   } catch (error) {
-    console.error('Upload booking photos error:', error);
+    logger.error('Upload booking photos error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -616,7 +649,7 @@ const uploadBookingPhotos = async (req, res) => {
 // @desc    Add review to booking
 // @route   POST /api/marketplace/bookings/:id/review
 // @access  Private
-const addReview = async (req, res) => {
+const addReview = async(req, res) => {
   try {
     const { rating, comment, categories } = req.body;
     const bookingId = req.params.id;
@@ -655,7 +688,7 @@ const addReview = async (req, res) => {
     let reviewPhotos = [];
     if (req.files && req.files.length > 0) {
       const uploadResult = await CloudinaryService.uploadMultipleFiles(
-        req.files, 
+        req.files,
         `localpro/marketplace/reviews/${bookingId}`
       );
 
@@ -693,7 +726,7 @@ const addReview = async (req, res) => {
       data: booking
     });
   } catch (error) {
-    console.error('Add review error:', error);
+    logger.error('Add review error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -704,7 +737,7 @@ const addReview = async (req, res) => {
 // @desc    Get services with distance calculation
 // @route   GET /api/marketplace/services/nearby
 // @access  Public
-const getNearbyServices = async (req, res) => {
+const getNearbyServices = async(req, res) => {
   try {
     const {
       lat,
@@ -750,12 +783,12 @@ const getNearbyServices = async (req, res) => {
 
     // Calculate distances for each service
     const servicesWithDistance = await Promise.all(
-      services.map(async (service) => {
+      services.map(async(service) => {
         const serviceData = service.toObject();
-        
+
         // Get provider's location (assuming they have coordinates in their profile)
         const provider = await User.findById(service.provider._id).select('profile.address.coordinates');
-        
+
         if (provider?.profile?.address?.coordinates) {
           const distanceResult = await GoogleMapsService.calculateDistance(
             coordinates,
@@ -774,7 +807,7 @@ const getNearbyServices = async (req, res) => {
     );
 
     // Filter services within radius
-    const nearbyServices = servicesWithDistance.filter(service => 
+    const nearbyServices = servicesWithDistance.filter(service =>
       service.isWithinRange !== false
     );
 
@@ -791,7 +824,7 @@ const getNearbyServices = async (req, res) => {
       searchRadius: parseInt(radius)
     });
   } catch (error) {
-    console.error('Get nearby services error:', error);
+    logger.error('Get nearby services error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -802,14 +835,14 @@ const getNearbyServices = async (req, res) => {
 // @desc    Handle PayPal booking payment approval
 // @route   POST /api/marketplace/bookings/paypal/approve
 // @access  Private
-const approvePayPalBooking = async (req, res) => {
+const approvePayPalBooking = async(req, res) => {
   try {
     const { orderId } = req.body;
     const userId = req.user.id;
 
     // Capture the PayPal order
     const captureResult = await PayPalService.captureOrder(orderId);
-    
+
     if (!captureResult.success) {
       return res.status(400).json({
         success: false,
@@ -846,9 +879,9 @@ const approvePayPalBooking = async (req, res) => {
     if (booking.client.email) {
       try {
         await EmailService.sendBookingConfirmation(booking.client.email, booking);
-        console.log(`Booking confirmation email sent to: ${booking.client.email}`);
+        logger.info(`Booking confirmation email sent to: ${booking.client.email}`);
       } catch (emailError) {
-        console.error('Failed to send booking confirmation email:', emailError);
+        logger.error('Failed to send booking confirmation email:', emailError);
       }
     }
 
@@ -858,7 +891,7 @@ const approvePayPalBooking = async (req, res) => {
       data: booking
     });
   } catch (error) {
-    console.error('Approve PayPal booking error:', error);
+    logger.error('Approve PayPal booking error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -869,7 +902,7 @@ const approvePayPalBooking = async (req, res) => {
 // @desc    Get PayPal order details
 // @route   GET /api/marketplace/bookings/paypal/order/:orderId
 // @access  Private
-const getPayPalOrderDetails = async (req, res) => {
+const getPayPalOrderDetails = async(req, res) => {
   try {
     const { orderId } = req.params;
     const userId = req.user.id;
@@ -889,7 +922,7 @@ const getPayPalOrderDetails = async (req, res) => {
 
     // Get order details from PayPal
     const orderResult = await PayPalService.getOrder(orderId);
-    
+
     if (!orderResult.success) {
       return res.status(400).json({
         success: false,
@@ -905,7 +938,7 @@ const getPayPalOrderDetails = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get PayPal order details error:', error);
+    logger.error('Get PayPal order details error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -916,7 +949,7 @@ const getPayPalOrderDetails = async (req, res) => {
 // @desc    Get user's services (my-services)
 // @route   GET /api/marketplace/my-services
 // @access  Private
-const getMyServices = async (req, res) => {
+const getMyServices = async(req, res) => {
   try {
     const {
       category,
@@ -933,7 +966,7 @@ const getMyServices = async (req, res) => {
     const filter = { provider: userId };
 
     if (category) filter.category = category;
-    
+
     if (status === 'active') {
       filter.isActive = true;
     } else if (status === 'inactive') {
@@ -996,7 +1029,7 @@ const getMyServices = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get my services error:', error);
+    logger.error('Get my services error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1007,7 +1040,7 @@ const getMyServices = async (req, res) => {
 // @desc    Get user's bookings (my-bookings)
 // @route   GET /api/marketplace/my-bookings
 // @access  Private
-const getMyBookings = async (req, res) => {
+const getMyBookings = async(req, res) => {
   try {
     const {
       status,
@@ -1037,7 +1070,7 @@ const getMyBookings = async (req, res) => {
 
     if (status) filter.status = status;
     if (paymentStatus) filter['payment.status'] = paymentStatus;
-    
+
     if (dateFrom || dateTo) {
       filter.bookingDate = {};
       if (dateFrom) filter.bookingDate.$gte = new Date(dateFrom);
@@ -1142,7 +1175,7 @@ const getMyBookings = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get my bookings error:', error);
+    logger.error('Get my bookings error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

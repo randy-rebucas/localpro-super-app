@@ -13,9 +13,9 @@ const auditLogger = (options = {}) => {
     customActionMapper = null
   } = options;
 
-  return async (req, res, next) => {
+  return async(req, res, next) => {
     const startTime = Date.now();
-    
+
     // Skip audit logging for excluded paths
     if (excludePaths.some(path => req.path.includes(path))) {
       return next();
@@ -55,19 +55,19 @@ const auditLogger = (options = {}) => {
     };
 
     // Process after response is sent
-    res.on('finish', async () => {
+    res.on('finish', async() => {
       try {
         const duration = Date.now() - startTime;
-        
+
         // Determine if this request should be audited
         const shouldAudit = shouldAuditRequest(req, actions, categories, excludeActions);
-        
+
         if (!shouldAudit) {
           return;
         }
 
         // Map request to audit action
-        const auditAction = customActionMapper 
+        const auditAction = customActionMapper
           ? customActionMapper(req, res)
           : mapRequestToAction(req, res);
 
@@ -155,7 +155,7 @@ function shouldAuditRequest(req, actions, categories, excludeActions) {
 function mapRequestToAction(req, res) {
   const method = req.method;
   const path = req.path;
-  const statusCode = res?.statusCode;
+  // const statusCode = res?.statusCode;
 
   // Authentication actions
   if (path.includes('/auth/')) {

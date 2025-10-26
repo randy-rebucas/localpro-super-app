@@ -1,5 +1,7 @@
 // Location validation middleware for Google Maps integration
 const GoogleMapsService = require('../services/googleMapsService');
+const logger = require('../utils/logger');
+
 
 /**
  * Middleware to validate and geocode addresses
@@ -8,10 +10,10 @@ const GoogleMapsService = require('../services/googleMapsService');
  * @returns {Function} Express middleware function
  */
 const validateAndGeocodeAddress = (addressField = 'address', requireCoordinates = true) => {
-  return async (req, res, next) => {
+  return async(req, res, next) => {
     try {
       const address = req.body[addressField];
-      
+
       if (!address) {
         return res.status(400).json({
           success: false,
@@ -22,7 +24,7 @@ const validateAndGeocodeAddress = (addressField = 'address', requireCoordinates 
       // If address is a string, geocode it
       if (typeof address === 'string') {
         const geocodeResult = await GoogleMapsService.geocodeAddress(address);
-        
+
         if (!geocodeResult.success) {
           return res.status(400).json({
             success: false,
@@ -42,7 +44,7 @@ const validateAndGeocodeAddress = (addressField = 'address', requireCoordinates 
           formattedAddress: geocodeResult.formattedAddress,
           placeId: geocodeResult.placeId
         };
-      } 
+      }
       // If address is an object, validate and geocode if needed
       else if (typeof address === 'object') {
         // If coordinates are missing but address components exist, geocode
@@ -56,7 +58,7 @@ const validateAndGeocodeAddress = (addressField = 'address', requireCoordinates 
           ].filter(Boolean).join(', ');
 
           const geocodeResult = await GoogleMapsService.geocodeAddress(addressString);
-          
+
           if (geocodeResult.success) {
             req.body[addressField].coordinates = geocodeResult.coordinates;
             req.body[addressField].formattedAddress = geocodeResult.formattedAddress;
@@ -75,7 +77,7 @@ const validateAndGeocodeAddress = (addressField = 'address', requireCoordinates 
 
       next();
     } catch (error) {
-      console.error('Address validation error:', error);
+      logger.error('Address validation error:', error);
       res.status(500).json({
         success: false,
         message: 'Address validation failed'
@@ -91,7 +93,7 @@ const validateAndGeocodeAddress = (addressField = 'address', requireCoordinates 
  * @returns {Function} Express middleware function
  */
 const validateServiceArea = (serviceField = 'serviceId', addressField = 'address') => {
-  return async (req, res, next) => {
+  return async(req, res, next) => {
     try {
       const { Service } = require('../models/Marketplace');
       const serviceId = req.body[serviceField];
@@ -143,7 +145,7 @@ const validateServiceArea = (serviceField = 'serviceId', addressField = 'address
 
       next();
     } catch (error) {
-      console.error('Service area validation error:', error);
+      logger.error('Service area validation error:', error);
       res.status(500).json({
         success: false,
         message: 'Service area validation failed'
@@ -160,7 +162,7 @@ const validateServiceArea = (serviceField = 'serviceId', addressField = 'address
  * @returns {Function} Express middleware function
  */
 const calculateDistance = (originField, destinationField, options = {}) => {
-  return async (req, res, next) => {
+  return async(req, res, next) => {
     try {
       const origin = req.body[originField];
       const destination = req.body[destinationField];
@@ -202,7 +204,7 @@ const calculateDistance = (originField, destinationField, options = {}) => {
 
       next();
     } catch (error) {
-      console.error('Distance calculation error:', error);
+      logger.error('Distance calculation error:', error);
       res.status(500).json({
         success: false,
         message: 'Distance calculation failed'
@@ -229,8 +231,8 @@ const validateCoordinates = (coordinatesField = 'coordinates') => {
       }
 
       // Validate coordinate format
-      if (typeof coordinates !== 'object' || 
-          typeof coordinates.lat !== 'number' || 
+      if (typeof coordinates !== 'object' ||
+          typeof coordinates.lat !== 'number' ||
           typeof coordinates.lng !== 'number') {
         return res.status(400).json({
           success: false,
@@ -255,7 +257,7 @@ const validateCoordinates = (coordinatesField = 'coordinates') => {
 
       next();
     } catch (error) {
-      console.error('Coordinates validation error:', error);
+      logger.error('Coordinates validation error:', error);
       res.status(500).json({
         success: false,
         message: 'Coordinates validation failed'
@@ -270,7 +272,7 @@ const validateCoordinates = (coordinatesField = 'coordinates') => {
  * @returns {Function} Express middleware function
  */
 const enhanceLocationData = (locationField = 'location') => {
-  return async (req, res, next) => {
+  return async(req, res, next) => {
     try {
       const location = req.body[locationField];
 
@@ -297,9 +299,9 @@ const enhanceLocationData = (locationField = 'location') => {
 
       next();
     } catch (error) {
-      console.error('Location enhancement error:', error);
+      logger.error('Location enhancement error:', error);
       // Don't fail the request, just log the error
-      console.warn('Location enhancement failed, continuing without enhancement');
+      logger.warn('Location enhancement failed, continuing without enhancement');
       next();
     }
   };

@@ -244,12 +244,12 @@ conversationSchema.methods.addParticipant = function(userId, role) {
   if (existingParticipant) {
     throw new Error('User is already a participant in this conversation');
   }
-  
+
   this.participants.push({
     user: userId,
     role: role
   });
-  
+
   return this.save();
 };
 
@@ -319,11 +319,11 @@ conversationSchema.statics.getUserConversations = function(userId, limit = 20, s
     'participants.user': userId,
     isActive: true
   })
-  .populate('participants.user', 'firstName lastName profile.avatar')
-  .populate('lastMessage.sender', 'firstName lastName')
-  .sort({ updatedAt: -1 })
-  .limit(limit)
-  .skip(skip);
+    .populate('participants.user', 'firstName lastName profile.avatar')
+    .populate('lastMessage.sender', 'firstName lastName')
+    .sort({ updatedAt: -1 })
+    .limit(limit)
+    .skip(skip);
 };
 
 // Static method to get conversation messages
@@ -332,11 +332,11 @@ messageSchema.statics.getConversationMessages = function(conversationId, limit =
     conversation: conversationId,
     'metadata.isDeleted': false
   })
-  .populate('sender', 'firstName lastName profile.avatar')
-  .populate('metadata.replyTo')
-  .sort({ createdAt: -1 })
-  .limit(limit)
-  .skip(skip);
+    .populate('sender', 'firstName lastName profile.avatar')
+    .populate('metadata.replyTo')
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(skip);
 };
 
 // Static method to get user notifications
@@ -345,9 +345,9 @@ notificationSchema.statics.getUserNotifications = function(userId, limit = 20, s
     user: userId,
     expiresAt: { $gt: new Date() }
   })
-  .sort({ createdAt: -1 })
-  .limit(limit)
-  .skip(skip);
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(skip);
 };
 
 // Static method to mark notifications as read
@@ -356,7 +356,7 @@ notificationSchema.statics.markAsRead = function(userId, notificationIds = []) {
   if (notificationIds.length > 0) {
     query._id = { $in: notificationIds };
   }
-  
+
   return this.updateMany(query, {
     isRead: true,
     readAt: new Date()

@@ -5,7 +5,7 @@ const auditService = require('../services/auditService');
 const { logger } = require('../utils/logger');
 
 // Get audit logs with filtering and pagination - [ADMIN ONLY]
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, async(req, res) => {
   try {
     // Only allow admin users to view audit logs
     if (req.user.role !== 'admin') {
@@ -70,7 +70,7 @@ router.get('/', auth, async (req, res) => {
       userId: req.user.id,
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve audit logs'
@@ -79,7 +79,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Get audit statistics - [ADMIN ONLY]
-router.get('/stats', auth, async (req, res) => {
+router.get('/stats', auth, async(req, res) => {
   try {
     // Only allow admin users to view audit statistics
     if (req.user.role !== 'admin') {
@@ -111,7 +111,7 @@ router.get('/stats', auth, async (req, res) => {
       userId: req.user.id,
       timeframe: req.query.timeframe
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve audit statistics'
@@ -120,7 +120,7 @@ router.get('/stats', auth, async (req, res) => {
 });
 
 // Get user activity summary - [ADMIN ONLY]
-router.get('/user/:userId/activity', auth, async (req, res) => {
+router.get('/user/:userId/activity', auth, async(req, res) => {
   try {
     const { userId } = req.params;
     const { timeframe = '30d' } = req.query;
@@ -157,7 +157,7 @@ router.get('/user/:userId/activity', auth, async (req, res) => {
       targetUserId: req.params.userId,
       timeframe: req.query.timeframe
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve user activity summary'
@@ -166,7 +166,7 @@ router.get('/user/:userId/activity', auth, async (req, res) => {
 });
 
 // Get audit log details - [ADMIN ONLY]
-router.get('/:auditId', auth, async (req, res) => {
+router.get('/:auditId', auth, async(req, res) => {
   try {
     // Only allow admin users to view detailed audit logs
     if (req.user.role !== 'admin') {
@@ -177,7 +177,7 @@ router.get('/:auditId', auth, async (req, res) => {
     }
 
     const { auditId } = req.params;
-    
+
     // Get audit log details (this would need to be implemented in auditService)
     const AuditLog = require('mongoose').model('AuditLog');
     const auditLog = await AuditLog.findOne({ auditId });
@@ -203,7 +203,7 @@ router.get('/:auditId', auth, async (req, res) => {
       userId: req.user.id,
       auditId: req.params.auditId
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve audit log details'
@@ -212,7 +212,7 @@ router.get('/:auditId', auth, async (req, res) => {
 });
 
 // Export audit logs - [ADMIN ONLY]
-router.get('/export/data', auth, async (req, res) => {
+router.get('/export/data', auth, async(req, res) => {
   try {
     // Only allow admin users to export audit logs
     if (req.user.role !== 'admin') {
@@ -271,7 +271,7 @@ router.get('/export/data', auth, async (req, res) => {
       userId: req.user.id,
       query: req.query
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to export audit logs'
@@ -280,7 +280,7 @@ router.get('/export/data', auth, async (req, res) => {
 });
 
 // Get audit dashboard summary - [ADMIN ONLY]
-router.get('/dashboard/summary', auth, async (req, res) => {
+router.get('/dashboard/summary', auth, async(req, res) => {
   try {
     // Only allow admin users to view audit dashboard
     if (req.user.role !== 'admin') {
@@ -332,7 +332,7 @@ router.get('/dashboard/summary', auth, async (req, res) => {
     logger.error('Failed to get audit dashboard summary', error, {
       userId: req.user.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve audit dashboard summary'
@@ -341,7 +341,7 @@ router.get('/dashboard/summary', auth, async (req, res) => {
 });
 
 // Clean up expired audit logs (Admin only) - [ADMIN ONLY]
-router.post('/cleanup', auth, async (req, res) => {
+router.post('/cleanup', auth, async(req, res) => {
   try {
     // Only allow admin users to perform cleanup
     if (req.user.role !== 'admin') {
@@ -370,7 +370,7 @@ router.post('/cleanup', auth, async (req, res) => {
     logger.error('Failed to perform audit log cleanup', error, {
       userId: req.user.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to perform audit log cleanup'
@@ -379,7 +379,7 @@ router.post('/cleanup', auth, async (req, res) => {
 });
 
 // Get audit log categories and actions - [ADMIN ONLY]
-router.get('/metadata/categories', auth, async (req, res) => {
+router.get('/metadata/categories', auth, async(req, res) => {
   try {
     // Only allow admin users to view metadata
     if (req.user.role !== 'admin') {
@@ -401,65 +401,65 @@ router.get('/metadata/categories', auth, async (req, res) => {
       // Authentication
       'user_login', 'user_logout', 'user_register', 'user_verify', 'password_reset',
       'token_refresh', 'account_locked', 'account_unlocked',
-      
+
       // User management
       'user_create', 'user_update', 'user_delete', 'user_activate', 'user_deactivate',
       'profile_update', 'settings_update', 'preferences_update',
-      
+
       // Marketplace
       'service_create', 'service_update', 'service_delete', 'service_publish', 'service_unpublish',
       'booking_create', 'booking_update', 'booking_cancel', 'booking_complete',
       'review_create', 'review_update', 'review_delete',
-      
+
       // Job board
       'job_create', 'job_update', 'job_delete', 'job_publish', 'job_close',
       'application_create', 'application_update', 'application_withdraw',
       'application_approve', 'application_reject', 'application_shortlist',
-      
+
       // Financial
       'payment_create', 'payment_process', 'payment_refund', 'payment_failed',
       'withdrawal_request', 'withdrawal_approve', 'withdrawal_reject',
       'loan_apply', 'loan_approve', 'loan_reject', 'loan_repay',
       'salary_advance_request', 'salary_advance_approve', 'salary_advance_reject',
-      
+
       // Agency
       'agency_create', 'agency_update', 'agency_delete', 'agency_join', 'agency_leave',
       'provider_add', 'provider_remove', 'provider_update', 'provider_activate', 'provider_deactivate',
       'commission_update', 'payout_process',
-      
+
       // Referral
       'referral_create', 'referral_complete', 'referral_reward', 'referral_invite',
       'referral_validate', 'referral_track',
-      
+
       // Content
       'course_create', 'course_update', 'course_delete', 'course_enroll', 'course_complete',
       'supply_create', 'supply_update', 'supply_delete', 'supply_order',
       'rental_create', 'rental_update', 'rental_delete', 'rental_book',
       'ad_create', 'ad_update', 'ad_delete', 'ad_promote',
-      
+
       // Communication
       'message_send', 'message_delete', 'conversation_create', 'conversation_delete',
       'email_send', 'sms_send', 'notification_send',
-      
+
       // Trust & verification
       'verification_request', 'verification_approve', 'verification_reject',
       'document_upload', 'document_delete', 'document_verify',
-      
+
       // System
       'system_config_update', 'feature_toggle', 'maintenance_mode',
       'backup_create', 'backup_restore', 'data_export', 'data_import',
       'admin_action', 'bulk_operation', 'system_alert',
-      
+
       // Security
       'security_scan', 'vulnerability_detected', 'threat_blocked',
       'access_denied', 'permission_granted', 'permission_revoked',
       'role_assigned', 'role_removed', 'privilege_escalation',
-      
+
       // Data
       'data_create', 'data_read', 'data_update', 'data_delete',
       'data_export', 'data_import', 'data_backup', 'data_restore',
       'privacy_request', 'data_anonymize', 'gdpr_compliance',
-      
+
       // Other
       'other'
     ];
@@ -477,7 +477,7 @@ router.get('/metadata/categories', auth, async (req, res) => {
     logger.error('Failed to get audit metadata', error, {
       userId: req.user.id
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve audit metadata'

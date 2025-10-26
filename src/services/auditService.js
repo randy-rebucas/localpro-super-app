@@ -15,66 +15,66 @@ const auditLogSchema = new mongoose.Schema({
       // Authentication actions
       'user_login', 'user_logout', 'user_register', 'user_verify', 'password_reset',
       'token_refresh', 'account_locked', 'account_unlocked',
-      
+
       // User management actions
       'user_create', 'user_update', 'user_delete', 'user_activate', 'user_deactivate',
       'profile_update', 'settings_update', 'preferences_update', 'user_list', 'user_view',
       'document_upload',
-      
+
       // Marketplace actions
       'service_create', 'service_update', 'service_delete', 'service_publish', 'service_unpublish',
       'booking_create', 'booking_update', 'booking_cancel', 'booking_complete',
       'review_create', 'review_update', 'review_delete',
-      
+
       // Job board actions
       'job_create', 'job_update', 'job_delete', 'job_publish', 'job_close',
       'application_create', 'application_update', 'application_withdraw',
       'application_approve', 'application_reject', 'application_shortlist',
-      
+
       // Financial actions
       'payment_create', 'payment_process', 'payment_refund', 'payment_failed',
       'withdrawal_request', 'withdrawal_approve', 'withdrawal_reject',
       'loan_apply', 'loan_approve', 'loan_reject', 'loan_repay',
       'salary_advance_request', 'salary_advance_approve', 'salary_advance_reject',
-      
+
       // Agency actions
       'agency_create', 'agency_update', 'agency_delete', 'agency_join', 'agency_leave',
       'provider_add', 'provider_remove', 'provider_update', 'provider_activate', 'provider_deactivate',
       'commission_update', 'payout_process',
-      
+
       // Referral actions
       'referral_create', 'referral_complete', 'referral_reward', 'referral_invite',
       'referral_validate', 'referral_track',
-      
+
       // Content actions
       'course_create', 'course_update', 'course_delete', 'course_enroll', 'course_complete',
       'supply_create', 'supply_update', 'supply_delete', 'supply_order',
       'rental_create', 'rental_update', 'rental_delete', 'rental_book',
       'ad_create', 'ad_update', 'ad_delete', 'ad_promote',
-      
+
       // Communication actions
       'message_send', 'message_delete', 'conversation_create', 'conversation_delete',
       'email_send', 'sms_send', 'notification_send',
-      
+
       // Trust & verification actions
       'verification_request', 'verification_approve', 'verification_reject',
       'document_upload', 'document_delete', 'document_verify',
-      
+
       // System actions
       'system_config_update', 'feature_toggle', 'maintenance_mode',
       'backup_create', 'backup_restore', 'data_export', 'data_import',
       'admin_action', 'bulk_operation', 'system_alert',
-      
+
       // Security actions
       'security_scan', 'vulnerability_detected', 'threat_blocked',
       'access_denied', 'permission_granted', 'permission_revoked',
       'role_assigned', 'role_removed', 'privilege_escalation',
-      
+
       // Data actions
       'data_create', 'data_read', 'data_update', 'data_delete',
       'data_export', 'data_import', 'data_backup', 'data_restore',
       'privacy_request', 'data_anonymize', 'gdpr_compliance',
-      
+
       // Other actions
       'other'
     ]
@@ -156,7 +156,7 @@ const auditLogSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance and compliance
-auditLogSchema.index({ auditId: 1 });
+// auditId already has unique: true which creates an index
 auditLogSchema.index({ action: 1, timestamp: -1 });
 auditLogSchema.index({ category: 1, timestamp: -1 });
 auditLogSchema.index({ 'actor.userId': 1, timestamp: -1 });
@@ -186,22 +186,23 @@ class AuditService {
   }
 
   // Determine severity based on action and context
+  // eslint-disable-next-line no-unused-vars
   determineSeverity(action, category, metadata = {}) {
     // Critical actions
     if (['user_delete', 'system_config_update', 'data_delete', 'privilege_escalation'].includes(action)) {
       return 'critical';
     }
-    
+
     // High severity actions
     if (['user_create', 'payment_process', 'loan_approve', 'verification_approve', 'role_assigned'].includes(action)) {
       return 'high';
     }
-    
+
     // Medium severity actions
     if (['user_update', 'service_create', 'booking_create', 'application_create'].includes(action)) {
       return 'medium';
     }
-    
+
     // Low severity actions
     return 'low';
   }
@@ -209,13 +210,13 @@ class AuditService {
   // Sanitize sensitive data
   sanitizeData(data) {
     if (!data || typeof data !== 'object') return data;
-    
+
     const sanitized = { ...data };
     const sensitiveFields = [
       'password', 'token', 'secret', 'key', 'creditCard', 'ssn', 'pin',
       'bankAccount', 'routingNumber', 'cvv', 'expiryDate', 'cardNumber'
     ];
-    
+
     const sanitizeObject = (obj) => {
       for (const key in obj) {
         if (typeof obj[key] === 'object' && obj[key] !== null) {
@@ -225,7 +226,7 @@ class AuditService {
         }
       }
     };
-    
+
     sanitizeObject(sanitized);
     return sanitized;
   }
@@ -235,7 +236,7 @@ class AuditService {
     try {
       const auditId = this.generateAuditId();
       const severity = this.determineSeverity(auditData.action, auditData.category, auditData.metadata);
-      
+
       const auditLog = new AuditLog({
         auditId,
         action: auditData.action,
@@ -270,7 +271,7 @@ class AuditService {
       });
 
       await auditLog.save();
-      
+
       // Log to Winston for immediate visibility
       logger.info('Audit Event Logged', {
         auditId,
@@ -369,6 +370,7 @@ class AuditService {
       targetId,
       startDate,
       endDate,
+      // eslint-disable-next-line no-unused-vars
       search
     } = filters;
 
@@ -517,13 +519,13 @@ class AuditService {
   // Export audit logs for compliance
   async exportAuditLogs(filters = {}, format = 'json') {
     const logs = await this.getAuditLogs(filters, { limit: 10000 });
-    
+
     if (format === 'csv') {
       // Convert to CSV format
       const csv = this.convertToCSV(logs.logs);
       return csv;
     }
-    
+
     return logs.logs;
   }
 

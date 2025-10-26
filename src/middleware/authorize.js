@@ -1,10 +1,12 @@
 const User = require('../models/User');
+const logger = require('../utils/logger');
+
 
 // @desc    Authorization middleware to check user roles and permissions
 // @param   {Array} roles - Array of allowed roles
 // @param   {Object} options - Additional authorization options
 const authorize = (roles = [], options = {}) => {
-  return async (req, res, next) => {
+  return async(req, res, next) => {
     try {
       // Check if user is authenticated
       if (!req.user) {
@@ -54,7 +56,7 @@ const authorize = (roles = [], options = {}) => {
 
       next();
     } catch (error) {
-      console.error('Authorization error:', error);
+      logger.error('Authorization error:', error);
       res.status(500).json({
         success: false,
         message: 'Authorization error'
@@ -67,7 +69,7 @@ const authorize = (roles = [], options = {}) => {
 // @param   {String} targetUserId - ID of user to manage
 // @param   {String} currentUserId - ID of current user
 // @param   {String} currentUserRole - Role of current user
-const canManageUser = async (targetUserId, currentUserId, currentUserRole) => {
+const canManageUser = async(targetUserId, currentUserId, currentUserRole) => {
   try {
     // Admin can manage anyone
     if (currentUserRole === 'admin') {
@@ -83,7 +85,7 @@ const canManageUser = async (targetUserId, currentUserId, currentUserRole) => {
     if (currentUserRole === 'agency_admin' || currentUserRole === 'agency_owner') {
       const currentUser = await User.findById(currentUserId);
       const targetUser = await User.findById(targetUserId);
-      
+
       if (currentUser?.agency?.agencyId?.toString() === targetUser?.agency?.agencyId?.toString()) {
         return true;
       }
@@ -91,7 +93,7 @@ const canManageUser = async (targetUserId, currentUserId, currentUserRole) => {
 
     return false;
   } catch (error) {
-    console.error('Can manage user error:', error);
+    logger.error('Can manage user error:', error);
     return false;
   }
 };
@@ -100,7 +102,7 @@ const canManageUser = async (targetUserId, currentUserId, currentUserRole) => {
 // @param   {String} targetUserId - ID of user to view
 // @param   {String} currentUserId - ID of current user
 // @param   {String} currentUserRole - Role of current user
-const canViewUser = async (targetUserId, currentUserId, currentUserRole) => {
+const canViewUser = async(targetUserId, currentUserId, currentUserRole) => {
   try {
     // Admin can view anyone
     if (currentUserRole === 'admin') {
@@ -116,7 +118,7 @@ const canViewUser = async (targetUserId, currentUserId, currentUserRole) => {
     if (currentUserRole === 'agency_admin' || currentUserRole === 'agency_owner' || currentUserRole === 'provider') {
       const currentUser = await User.findById(currentUserId);
       const targetUser = await User.findById(targetUserId);
-      
+
       if (currentUser?.agency?.agencyId?.toString() === targetUser?.agency?.agencyId?.toString()) {
         return true;
       }
@@ -124,7 +126,7 @@ const canViewUser = async (targetUserId, currentUserId, currentUserRole) => {
 
     return false;
   } catch (error) {
-    console.error('Can view user error:', error);
+    logger.error('Can view user error:', error);
     return false;
   }
 };

@@ -1,14 +1,16 @@
 const User = require('../models/User');
 const Agency = require('../models/Agency');
 const EmailService = require('../services/emailService');
-const TwilioService = require('../services/twilioService');
-const CloudinaryService = require('../services/cloudinaryService');
+// const TwilioService = require('../services/twilioService');
+// const CloudinaryService = require('../services/cloudinaryService');
+const logger = require('../utils/logger');
+
 const { auditLogger } = require('../utils/auditLogger');
 
 // @desc    Get all users with filtering and pagination
 // @route   GET /api/users
 // @access  Admin/Manager
-const getAllUsers = async (req, res) => {
+const getAllUsers = async(req, res) => {
   try {
     const {
       page = 1,
@@ -23,11 +25,11 @@ const getAllUsers = async (req, res) => {
 
     // Build filter object
     const filter = {};
-    
+
     if (role) filter.role = role;
     if (isActive !== undefined) filter.isActive = isActive === 'true';
     if (isVerified !== undefined) filter.isVerified = isVerified === 'true';
-    
+
     if (search) {
       filter.$or = [
         { firstName: { $regex: search, $options: 'i' } },
@@ -72,7 +74,7 @@ const getAllUsers = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get all users error:', error);
+    logger.error('Get all users error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -83,10 +85,10 @@ const getAllUsers = async (req, res) => {
 // @desc    Get user by ID
 // @route   GET /api/users/:id
 // @access  Admin/Manager/Owner
-const getUserById = async (req, res) => {
+const getUserById = async(req, res) => {
   try {
     const { id } = req.params;
-    
+
     const user = await User.findById(id)
       .select('-verificationCode')
       .populate('agency.agencyId', 'name type address')
@@ -101,8 +103,8 @@ const getUserById = async (req, res) => {
     }
 
     // Check if user can access this profile
-    const canAccess = req.user.role === 'admin' || 
-                     req.user.role === 'agency_admin' || 
+    const canAccess = req.user.role === 'admin' ||
+                     req.user.role === 'agency_admin' ||
                      req.user.id === id ||
                      (req.user.role === 'agency_owner' && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
 
@@ -121,7 +123,7 @@ const getUserById = async (req, res) => {
       data: user
     });
   } catch (error) {
-    console.error('Get user by ID error:', error);
+    logger.error('Get user by ID error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -132,7 +134,7 @@ const getUserById = async (req, res) => {
 // @desc    Create new user (Admin only)
 // @route   POST /api/users
 // @access  Admin
-const createUser = async (req, res) => {
+const createUser = async(req, res) => {
   try {
     const {
       phoneNumber,
@@ -212,7 +214,7 @@ const createUser = async (req, res) => {
       try {
         await EmailService.sendWelcomeEmail(email, firstName);
       } catch (emailError) {
-        console.error('Failed to send welcome email:', emailError);
+        logger.error('Failed to send welcome email:', emailError);
       }
     }
 
@@ -225,7 +227,7 @@ const createUser = async (req, res) => {
       data: user
     });
   } catch (error) {
-    console.error('Create user error:', error);
+    logger.error('Create user error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -236,7 +238,7 @@ const createUser = async (req, res) => {
 // @desc    Update user
 // @route   PUT /api/users/:id
 // @access  Admin/Manager/Owner
-const updateUser = async (req, res) => {
+const updateUser = async(req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -250,7 +252,7 @@ const updateUser = async (req, res) => {
     }
 
     // Check permissions
-    const canUpdate = req.user.role === 'admin' || 
+    const canUpdate = req.user.role === 'admin' ||
                      req.user.id === id ||
                      (req.user.role === 'agency_admin' && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
 
@@ -298,7 +300,7 @@ const updateUser = async (req, res) => {
       data: updatedUser
     });
   } catch (error) {
-    console.error('Update user error:', error);
+    logger.error('Update user error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -309,7 +311,7 @@ const updateUser = async (req, res) => {
 // @desc    Deactivate/Activate user
 // @route   PATCH /api/users/:id/status
 // @access  Admin/Manager
-const updateUserStatus = async (req, res) => {
+const updateUserStatus = async(req, res) => {
   try {
     const { id } = req.params;
     const { isActive, reason } = req.body;
@@ -323,7 +325,7 @@ const updateUserStatus = async (req, res) => {
     }
 
     // Check permissions
-    const canUpdateStatus = req.user.role === 'admin' || 
+    const canUpdateStatus = req.user.role === 'admin' ||
                            (req.user.role === 'agency_admin' && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
 
     if (!canUpdateStatus) {
@@ -345,7 +347,7 @@ const updateUserStatus = async (req, res) => {
           await EmailService.sendAccountDeactivatedEmail(user.email, user.firstName, reason);
         }
       } catch (emailError) {
-        console.error('Failed to send status notification email:', emailError);
+        logger.error('Failed to send status notification email:', emailError);
       }
     }
 
@@ -358,7 +360,7 @@ const updateUserStatus = async (req, res) => {
       data: { isActive }
     });
   } catch (error) {
-    console.error('Update user status error:', error);
+    logger.error('Update user status error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -369,7 +371,7 @@ const updateUserStatus = async (req, res) => {
 // @desc    Update user verification status
 // @route   PATCH /api/users/:id/verification
 // @access  Admin/Manager
-const updateUserVerification = async (req, res) => {
+const updateUserVerification = async(req, res) => {
   try {
     const { id } = req.params;
     const { verification } = req.body;
@@ -383,7 +385,7 @@ const updateUserVerification = async (req, res) => {
     }
 
     // Check permissions
-    const canUpdateVerification = req.user.role === 'admin' || 
+    const canUpdateVerification = req.user.role === 'admin' ||
                                  (req.user.role === 'agency_admin' && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
 
     if (!canUpdateVerification) {
@@ -395,13 +397,13 @@ const updateUserVerification = async (req, res) => {
 
     // Update verification status
     user.verification = { ...user.verification, ...verification };
-    
+
     // Update overall verification status
     user.isVerified = Object.values(user.verification).some(status => status === true);
-    
+
     // Recalculate trust score
     user.calculateTrustScore();
-    
+
     await user.save();
 
     // Audit log
@@ -417,7 +419,7 @@ const updateUserVerification = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update user verification error:', error);
+    logger.error('Update user verification error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -428,7 +430,7 @@ const updateUserVerification = async (req, res) => {
 // @desc    Add badge to user
 // @route   POST /api/users/:id/badges
 // @access  Admin/Manager
-const addUserBadge = async (req, res) => {
+const addUserBadge = async(req, res) => {
   try {
     const { id } = req.params;
     const { type, description } = req.body;
@@ -442,7 +444,7 @@ const addUserBadge = async (req, res) => {
     }
 
     // Check permissions
-    const canAddBadge = req.user.role === 'admin' || 
+    const canAddBadge = req.user.role === 'admin' ||
                        (req.user.role === 'agency_admin' && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
 
     if (!canAddBadge) {
@@ -454,10 +456,10 @@ const addUserBadge = async (req, res) => {
 
     // Add badge
     user.addBadge(type, description);
-    
+
     // Recalculate trust score
     user.calculateTrustScore();
-    
+
     await user.save();
 
     // Audit log
@@ -472,7 +474,7 @@ const addUserBadge = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Add user badge error:', error);
+    logger.error('Add user badge error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -483,7 +485,7 @@ const addUserBadge = async (req, res) => {
 // @desc    Get user statistics
 // @route   GET /api/users/stats
 // @access  Admin/Manager
-const getUserStats = async (req, res) => {
+const getUserStats = async(req, res) => {
   try {
     const { agencyId } = req.query;
 
@@ -533,7 +535,7 @@ const getUserStats = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get user stats error:', error);
+    logger.error('Get user stats error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -544,7 +546,7 @@ const getUserStats = async (req, res) => {
 // @desc    Bulk update users
 // @route   PATCH /api/users/bulk
 // @access  Admin
-const bulkUpdateUsers = async (req, res) => {
+const bulkUpdateUsers = async(req, res) => {
   try {
     const { userIds, updateData } = req.body;
 
@@ -585,7 +587,7 @@ const bulkUpdateUsers = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Bulk update users error:', error);
+    logger.error('Bulk update users error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -596,7 +598,7 @@ const bulkUpdateUsers = async (req, res) => {
 // @desc    Delete user (soft delete)
 // @route   DELETE /api/users/:id
 // @access  Admin
-const deleteUser = async (req, res) => {
+const deleteUser = async(req, res) => {
   try {
     const { id } = req.params;
 
@@ -622,7 +624,7 @@ const deleteUser = async (req, res) => {
       message: 'User deleted successfully'
     });
   } catch (error) {
-    console.error('Delete user error:', error);
+    logger.error('Delete user error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

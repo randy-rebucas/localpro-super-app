@@ -72,7 +72,7 @@ const errorTrackingSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-errorTrackingSchema.index({ errorId: 1 });
+// errorId already has unique: true which creates an index
 errorTrackingSchema.index({ errorType: 1, severity: 1 });
 errorTrackingSchema.index({ resolved: 1, lastOccurred: -1 });
 errorTrackingSchema.index({ 'user.userId': 1 });
@@ -99,7 +99,7 @@ class ErrorMonitoringService {
       url: req ? req.originalUrl : '',
       method: req ? req.method : ''
     };
-    
+
     const crypto = require('crypto');
     return crypto.createHash('md5')
       .update(JSON.stringify(errorSignature))
@@ -114,15 +114,15 @@ class ErrorMonitoringService {
     if (error.statusCode >= 500) return 'critical';
     if (error.name === 'JsonWebTokenError') return 'high';
     if (error.name === 'TokenExpiredError') return 'medium';
-    
+
     // High severity
     if (error.statusCode >= 400 && error.statusCode < 500) return 'high';
     if (req && req.originalUrl.includes('/api/payment')) return 'high';
     if (req && req.originalUrl.includes('/api/auth')) return 'high';
-    
+
     // Medium severity
     if (error.statusCode >= 300 && error.statusCode < 400) return 'medium';
-    
+
     // Low severity
     return 'low';
   }
@@ -137,7 +137,7 @@ class ErrorMonitoringService {
     if (error.statusCode === 429) return 'rate_limit';
     if (req && req.originalUrl.includes('/api/payment')) return 'payment';
     if (req && req.originalUrl.includes('/api/paypal') || req.originalUrl.includes('/api/paymaya')) return 'external_api';
-    
+
     return 'application';
   }
 
@@ -215,23 +215,23 @@ class ErrorMonitoringService {
   sanitizeHeaders(headers) {
     const sanitized = { ...headers };
     const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key', 'x-auth-token'];
-    
+
     sensitiveHeaders.forEach(header => {
       if (sanitized[header]) {
         sanitized[header] = '[REDACTED]';
       }
     });
-    
+
     return sanitized;
   }
 
   // Sanitize request body to remove sensitive information
   sanitizeBody(body) {
     if (!body || typeof body !== 'object') return body;
-    
+
     const sanitized = { ...body };
     const sensitiveFields = ['password', 'token', 'secret', 'key', 'creditCard', 'ssn', 'pin'];
-    
+
     const sanitizeObject = (obj) => {
       for (const key in obj) {
         if (typeof obj[key] === 'object' && obj[key] !== null) {
@@ -241,7 +241,7 @@ class ErrorMonitoringService {
         }
       }
     };
-    
+
     sanitizeObject(sanitized);
     return sanitized;
   }

@@ -3,6 +3,8 @@
  * Standardized validation functions for controllers
  */
 
+const logger = require('./logger');
+
 /**
  * Validate pagination parameters
  * @param {Object} query - Query parameters
@@ -12,9 +14,9 @@ const validatePagination = (query) => {
   const { page = 1, limit = 10 } = query;
   const pageNum = parseInt(page);
   const limitNum = parseInt(limit);
-  
+
   const errors = [];
-  
+
   if (isNaN(pageNum) || pageNum < 1) {
     errors.push({
       field: 'page',
@@ -22,7 +24,7 @@ const validatePagination = (query) => {
       code: 'INVALID_PAGE_NUMBER'
     });
   }
-  
+
   if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
     errors.push({
       field: 'limit',
@@ -30,7 +32,7 @@ const validatePagination = (query) => {
       code: 'INVALID_LIMIT'
     });
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -55,7 +57,7 @@ const validateObjectId = (id) => {
  */
 const validateRequiredFields = (data, requiredFields) => {
   const errors = [];
-  
+
   requiredFields.forEach(field => {
     if (!data[field] || (typeof data[field] === 'string' && data[field].trim() === '')) {
       errors.push({
@@ -65,7 +67,7 @@ const validateRequiredFields = (data, requiredFields) => {
       });
     }
   });
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -82,7 +84,7 @@ const validateRequiredFields = (data, requiredFields) => {
  */
 const validateNumericRange = (value, min, max, fieldName) => {
   const numValue = parseFloat(value);
-  
+
   if (isNaN(numValue)) {
     return {
       isValid: false,
@@ -93,7 +95,7 @@ const validateNumericRange = (value, min, max, fieldName) => {
       }
     };
   }
-  
+
   if (numValue < min || numValue > max) {
     return {
       isValid: false,
@@ -104,7 +106,7 @@ const validateNumericRange = (value, min, max, fieldName) => {
       }
     };
   }
-  
+
   return { isValid: true };
 };
 
@@ -182,8 +184,8 @@ const sendNotFoundError = (res, message = 'Resource not found', code = 'NOT_FOUN
  * @returns {Object} - Response object
  */
 const sendServerError = (res, error, message = 'Internal server error', code = 'SERVER_ERROR') => {
-  console.error('Server error:', error);
-  
+  logger.error('Server error:', error);
+
   return res.status(500).json({
     success: false,
     message,

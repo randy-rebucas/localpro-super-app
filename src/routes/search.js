@@ -1,4 +1,6 @@
 const express = require('express');
+const logger = require('../utils/logger');
+
 const router = express.Router();
 const {
   globalSearch,
@@ -13,7 +15,7 @@ const { auditGeneralOperations } = require('../middleware/auditLogger');
  * @desc    Global search across all entities
  * @access  Public
  * @query   q, type, category, location, minPrice, maxPrice, rating, limit, page, sortBy, sortOrder
- * 
+ *
  * Query Parameters:
  * - q (required): Search query string (min 2 characters)
  * - type (optional): Filter by entity type (users, jobs, services, supplies, courses, rentals, agencies)
@@ -26,7 +28,7 @@ const { auditGeneralOperations } = require('../middleware/auditLogger');
  * - page (optional): Page number (default: 1)
  * - sortBy (optional): Sort field (relevance, rating, price_low, price_high, newest)
  * - sortOrder (optional): Sort order (asc, desc, default: desc)
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -52,11 +54,11 @@ router.get('/', globalSearch);
  * @desc    Get search suggestions/autocomplete
  * @access  Public
  * @query   q, limit
- * 
+ *
  * Query Parameters:
  * - q (required): Search query string (min 2 characters)
  * - limit (optional): Maximum number of suggestions (default: 10, max: 20)
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -79,10 +81,10 @@ router.get('/suggestions', getSearchSuggestions);
  * @desc    Get popular search terms
  * @access  Public
  * @query   limit
- * 
+ *
  * Query Parameters:
  * - limit (optional): Number of popular terms to return (default: 12, max: 50)
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -104,7 +106,7 @@ router.get('/popular', getPopularSearches);
  * @desc    Advanced search with more filters
  * @access  Public
  * @query   All global search params plus additional filters
- * 
+ *
  * Additional Query Parameters:
  * - dateFrom (optional): Filter results from this date
  * - dateTo (optional): Filter results to this date
@@ -116,7 +118,7 @@ router.get('/popular', getPopularSearches);
  * - isRemote (optional): Filter for remote work (true/false)
  * - certification (optional): Filter by certification requirements
  * - language (optional): Filter by language requirements
- * 
+ *
  * Response: Same as global search
  */
 router.get('/advanced', globalSearch);
@@ -127,7 +129,7 @@ router.get('/advanced', globalSearch);
  * @access  Public
  * @param   type: Entity type (users, jobs, services, supplies, courses, rentals, agencies)
  * @query   All global search params except 'type'
- * 
+ *
  * Response: Same as global search but filtered to specific entity type
  */
 router.get('/entities/:type', globalSearch);
@@ -136,7 +138,7 @@ router.get('/entities/:type', globalSearch);
  * @route   GET /api/search/categories
  * @desc    Get all available search categories
  * @access  Public
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -156,8 +158,8 @@ router.get('/categories', (req, res) => {
   try {
     const categories = {
       services: [
-        'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 
-        'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 
+        'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping',
+        'painting', 'carpentry', 'flooring', 'roofing', 'hvac',
         'appliance_repair', 'locksmith', 'handyman', 'home_security',
         'pool_maintenance', 'pest_control', 'carpet_cleaning', 'window_cleaning',
         'gutter_cleaning', 'power_washing', 'snow_removal', 'other'
@@ -178,8 +180,8 @@ router.get('/categories', (req, res) => {
         'tools', 'vehicles', 'equipment', 'machinery'
       ],
       agencies: [
-        'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 
-        'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 
+        'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping',
+        'painting', 'carpentry', 'flooring', 'roofing', 'hvac',
         'appliance_repair', 'locksmith', 'handyman', 'home_security',
         'pool_maintenance', 'pest_control', 'carpet_cleaning', 'window_cleaning',
         'gutter_cleaning', 'power_washing', 'snow_removal', 'other'
@@ -215,7 +217,7 @@ router.get('/categories', (req, res) => {
  * @desc    Get popular search locations
  * @access  Public
  * @query   q (optional): Filter locations by query
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -233,7 +235,7 @@ router.get('/categories', (req, res) => {
 router.get('/locations', (req, res) => {
   try {
     const { q: query } = req.query;
-    
+
     // In a real application, you might query the database for actual location data
     const popularLocations = [
       { name: 'Manila', country: 'Philippines', count: 1250 },
@@ -251,10 +253,10 @@ router.get('/locations', (req, res) => {
     ];
 
     let filteredLocations = popularLocations;
-    
+
     if (query) {
       const queryLower = query.toLowerCase();
-      filteredLocations = popularLocations.filter(location => 
+      filteredLocations = popularLocations.filter(location =>
         location.name.toLowerCase().includes(queryLower) ||
         location.country.toLowerCase().includes(queryLower)
       );
@@ -280,7 +282,7 @@ router.get('/locations', (req, res) => {
  * @desc    Get trending search terms
  * @access  Public
  * @query   period (optional): Time period (today, week, month, default: week)
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -299,7 +301,7 @@ router.get('/locations', (req, res) => {
 router.get('/trending', (req, res) => {
   try {
     const { period = 'week' } = req.query;
-    
+
     // In a real application, you might analyze search analytics
     const trendingSearches = [
       { term: 'holiday cleaning', count: 250, growth: 45.2, category: 'services' },
@@ -340,7 +342,7 @@ router.post('/analytics', authenticate, auditGeneralOperations, (req, res) => { 
 
     // In a real application, you would save this to an analytics collection
     // For now, we'll just log it
-    console.log('Search Analytics:', {
+    logger.info('Search Analytics:', {
       query,
       resultsCount: results?.length || 0,
       filters,

@@ -280,6 +280,16 @@ jobSchema.index({ 'promoted.isPromoted': 1, 'promoted.promotedUntil': 1 });
 jobSchema.index({ employer: 1, status: 1 });
 jobSchema.index({ 'applications.applicant': 1, 'applications.status': 1 });
 
+// Performance optimization indexes
+jobSchema.index({ category: 1, jobType: 1, status: 1, isActive: 1 }); // Common search pattern
+jobSchema.index({ 'company.location.isRemote': 1, status: 1, isActive: 1 }); // Remote jobs
+jobSchema.index({ 'salary.min': 1, 'salary.max': 1, status: 1 }); // Salary range queries
+jobSchema.index({ 'experienceLevel': 1, category: 1, status: 1 }); // Experience + category
+jobSchema.index({ 'company.location.city': 1, category: 1, status: 1 }); // Location + category
+jobSchema.index({ 'featured.isFeatured': 1, 'promoted.isPromoted': 1, status: 1 }); // Featured jobs
+jobSchema.index({ 'analytics.viewsCount': -1, status: 1 }); // Popular jobs
+jobSchema.index({ 'analytics.applicationsCount': -1, status: 1 }); // Most applied jobs
+
 // Text search index
 jobSchema.index({
   title: 'text',
@@ -308,11 +318,11 @@ jobSchema.methods.addApplication = function(applicationData) {
   const existingApplication = this.applications.find(
     app => app.applicant.toString() === applicationData.applicant.toString()
   );
-  
+
   if (existingApplication) {
     throw new Error('User has already applied for this job');
   }
-  
+
   this.applications.push(applicationData);
   this.analytics.applicationsCount += 1;
   return this.save();
@@ -324,12 +334,12 @@ jobSchema.methods.updateApplicationStatus = function(applicationId, status, feed
   if (!application) {
     throw new Error('Application not found');
   }
-  
+
   application.status = status;
   if (feedback) {
     application.feedback = feedback;
   }
-  
+
   return this.save();
 };
 
@@ -348,11 +358,11 @@ jobSchema.methods.isJobActive = function() {
   if (!this.isActive || this.status === 'closed' || this.status === 'filled') {
     return false;
   }
-  
+
   if (this.applicationProcess.deadline && new Date() > this.applicationProcess.deadline) {
     return false;
   }
-  
+
   return true;
 };
 
@@ -361,14 +371,14 @@ jobSchema.methods.getSalaryDisplay = function() {
   if (this.salary.isConfidential) {
     return 'Salary confidential';
   }
-  
+
   if (!this.salary.min && !this.salary.max) {
     return 'Salary not specified';
   }
-  
+
   const currency = this.salary.currency || 'USD';
   const period = this.salary.period || 'yearly';
-  
+
   if (this.salary.min && this.salary.max) {
     return `${this.salary.min.toLocaleString()} - ${this.salary.max.toLocaleString()} ${currency}/${period}`;
   } else if (this.salary.min) {
@@ -381,12 +391,12 @@ jobSchema.methods.getSalaryDisplay = function() {
 // Static method to search jobs
 jobSchema.statics.searchJobs = function(query, filters = {}) {
   const searchQuery = { isActive: true, status: { $in: ['active', 'featured'] } };
-  
+
   // Text search
   if (query) {
     searchQuery.$text = { $search: query };
   }
-  
+
   // Apply filters
   if (filters.category) searchQuery.category = filters.category;
   if (filters.subcategory) searchQuery.subcategory = filters.subcategory;
@@ -403,7 +413,7 @@ jobSchema.statics.searchJobs = function(query, filters = {}) {
     if (filters.minSalary) searchQuery['salary.min'].$gte = filters.minSalary;
     if (filters.maxSalary) searchQuery['salary.min'].$lte = filters.maxSalary;
   }
-  
+
   return this.find(searchQuery);
 };
 

@@ -1,14 +1,16 @@
-const { RentalItem, Rental } = require('../models/Rentals');
+const { RentalItem } = require('../models/Rentals');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
 const EmailService = require('../services/emailService');
+const logger = require('../utils/logger');
+
 const { validateObjectId } = require('../utils/controllerValidation');
 
 // @desc    Get all rental items
 // @route   GET /api/rentals
 // @access  Public
-const getRentalItem = async (req, res) => {
+const getRentalItem = async(req, res) => {
   try {
     const {
       search,
@@ -74,7 +76,7 @@ const getRentalItem = async (req, res) => {
       data: rentals
     });
   } catch (error) {
-    console.error('Get rentals error:', error);
+    logger.error('Get rentals error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -85,7 +87,7 @@ const getRentalItem = async (req, res) => {
 // @desc    Get single rental item
 // @route   GET /api/rentals/:id
 // @access  Public
-const getRental = async (req, res) => {
+const getRental = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!validateObjectId(req.params.id)) {
@@ -116,7 +118,7 @@ const getRental = async (req, res) => {
       data: rental
     });
   } catch (error) {
-    console.error('Get rental error:', error);
+    logger.error('Get rental error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -127,7 +129,7 @@ const getRental = async (req, res) => {
 // @desc    Create new rental item
 // @route   POST /api/rentals
 // @access  Private
-const createRental = async (req, res) => {
+const createRental = async(req, res) => {
   try {
     const rentalData = {
       ...req.body,
@@ -139,7 +141,7 @@ const createRental = async (req, res) => {
       try {
         const address = `${rentalData.location.street}, ${rentalData.location.city}, ${rentalData.location.state}`;
         const geocodeResult = await GoogleMapsService.geocodeAddress(address);
-        
+
         if (geocodeResult.success && geocodeResult.data.length > 0) {
           const location = geocodeResult.data[0];
           rentalData.location.coordinates = {
@@ -148,7 +150,7 @@ const createRental = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', geocodeError);
         // Continue without geocoding if it fails
       }
     }
@@ -163,7 +165,7 @@ const createRental = async (req, res) => {
       data: rental
     });
   } catch (error) {
-    console.error('Create rental error:', error);
+    logger.error('Create rental error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -174,7 +176,7 @@ const createRental = async (req, res) => {
 // @desc    Update rental item
 // @route   PUT /api/rentals/:id
 // @access  Private
-const updateRental = async (req, res) => {
+const updateRental = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!validateObjectId(req.params.id)) {
@@ -202,12 +204,12 @@ const updateRental = async (req, res) => {
     }
 
     // Geocode location if changed
-    if (req.body.location?.street && 
+    if (req.body.location?.street &&
         req.body.location.street !== rental.location.street) {
       try {
         const address = `${req.body.location.street}, ${req.body.location.city}, ${req.body.location.state}`;
         const geocodeResult = await GoogleMapsService.geocodeAddress(address);
-        
+
         if (geocodeResult.success && geocodeResult.data.length > 0) {
           const location = geocodeResult.data[0];
           req.body.location.coordinates = {
@@ -216,7 +218,7 @@ const updateRental = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', geocodeError);
         // Continue without geocoding if it fails
       }
     }
@@ -232,7 +234,7 @@ const updateRental = async (req, res) => {
       data: rental
     });
   } catch (error) {
-    console.error('Update rental error:', error);
+    logger.error('Update rental error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -243,7 +245,7 @@ const updateRental = async (req, res) => {
 // @desc    Delete rental item
 // @route   DELETE /api/rentals/:id
 // @access  Private
-const deleteRental = async (req, res) => {
+const deleteRental = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!validateObjectId(req.params.id)) {
@@ -279,7 +281,7 @@ const deleteRental = async (req, res) => {
       message: 'Rental item deleted successfully'
     });
   } catch (error) {
-    console.error('Delete rental error:', error);
+    logger.error('Delete rental error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -290,7 +292,7 @@ const deleteRental = async (req, res) => {
 // @desc    Upload rental images
 // @route   POST /api/rentals/:id/images
 // @access  Private
-const uploadRentalImages = async (req, res) => {
+const uploadRentalImages = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!validateObjectId(req.params.id)) {
@@ -324,7 +326,7 @@ const uploadRentalImages = async (req, res) => {
       });
     }
 
-    const uploadPromises = req.files.map(file => 
+    const uploadPromises = req.files.map(file =>
       CloudinaryService.uploadFile(file, 'localpro/rentals')
     );
 
@@ -354,7 +356,7 @@ const uploadRentalImages = async (req, res) => {
       data: successfulUploads
     });
   } catch (error) {
-    console.error('Upload rental images error:', error);
+    logger.error('Upload rental images error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -365,7 +367,7 @@ const uploadRentalImages = async (req, res) => {
 // @desc    Delete rental image
 // @route   DELETE /api/rentals/:id/images/:imageId
 // @access  Private
-const deleteRentalImage = async (req, res) => {
+const deleteRentalImage = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!validateObjectId(req.params.id)) {
@@ -415,7 +417,7 @@ const deleteRentalImage = async (req, res) => {
       message: 'Image deleted successfully'
     });
   } catch (error) {
-    console.error('Delete rental image error:', error);
+    logger.error('Delete rental image error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -426,7 +428,7 @@ const deleteRentalImage = async (req, res) => {
 // @desc    Book rental item
 // @route   POST /api/rentals/:id/book
 // @access  Private
-const bookRental = async (req, res) => {
+const bookRental = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!validateObjectId(req.params.id)) {
@@ -436,7 +438,7 @@ const bookRental = async (req, res) => {
       });
     }
 
-    const { 
+    const {
       startDate,
       endDate,
       quantity = 1,
@@ -537,7 +539,7 @@ const bookRental = async (req, res) => {
       data: booking
     });
   } catch (error) {
-    console.error('Book rental error:', error);
+    logger.error('Book rental error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -548,7 +550,7 @@ const bookRental = async (req, res) => {
 // @desc    Update booking status
 // @route   PUT /api/rentals/:id/bookings/:bookingId/status
 // @access  Private
-const updateBookingStatus = async (req, res) => {
+const updateBookingStatus = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!validateObjectId(req.params.id)) {
@@ -619,7 +621,7 @@ const updateBookingStatus = async (req, res) => {
       data: booking
     });
   } catch (error) {
-    console.error('Update booking status error:', error);
+    logger.error('Update booking status error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -630,7 +632,7 @@ const updateBookingStatus = async (req, res) => {
 // @desc    Add rental review
 // @route   POST /api/rentals/:id/reviews
 // @access  Private
-const addRentalReview = async (req, res) => {
+const addRentalReview = async(req, res) => {
   try {
     // Validate ObjectId format
     if (!validateObjectId(req.params.id)) {
@@ -659,8 +661,8 @@ const addRentalReview = async (req, res) => {
     }
 
     // Check if user has booked this rental
-    const hasBooked = rental.bookings.some(booking => 
-      booking.user.toString() === req.user.id && 
+    const hasBooked = rental.bookings.some(booking =>
+      booking.user.toString() === req.user.id &&
       booking.status === 'completed'
     );
 
@@ -672,7 +674,7 @@ const addRentalReview = async (req, res) => {
     }
 
     // Check if user has already reviewed
-    const existingReview = rental.reviews.find(review => 
+    const existingReview = rental.reviews.find(review =>
       review.user.toString() === req.user.id
     );
 
@@ -704,7 +706,7 @@ const addRentalReview = async (req, res) => {
       data: review
     });
   } catch (error) {
-    console.error('Add rental review error:', error);
+    logger.error('Add rental review error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -715,7 +717,7 @@ const addRentalReview = async (req, res) => {
 // @desc    Get user's rental items
 // @route   GET /api/rentals/my-rentals
 // @access  Private
-const getMyRentalItem = async (req, res) => {
+const getMyRentalItem = async(req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
@@ -736,7 +738,7 @@ const getMyRentalItem = async (req, res) => {
       data: rentals
     });
   } catch (error) {
-    console.error('Get my rentals error:', error);
+    logger.error('Get my rentals error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -747,7 +749,7 @@ const getMyRentalItem = async (req, res) => {
 // @desc    Get user's rental bookings
 // @route   GET /api/rentals/my-bookings
 // @access  Private
-const getMyRentalBookings = async (req, res) => {
+const getMyRentalBookings = async(req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
@@ -755,10 +757,10 @@ const getMyRentalBookings = async (req, res) => {
     const rentals = await RentalItem.find({
       'bookings.user': req.user.id
     })
-    .populate('owner', 'firstName lastName profile.avatar')
-    .sort({ 'bookings.createdAt': -1 })
-    .skip(skip)
-    .limit(Number(limit));
+      .populate('owner', 'firstName lastName profile.avatar')
+      .sort({ 'bookings.createdAt': -1 })
+      .skip(skip)
+      .limit(Number(limit));
 
     // Extract bookings for the user
     const userBookings = [];
@@ -783,7 +785,7 @@ const getMyRentalBookings = async (req, res) => {
       data: userBookings
     });
   } catch (error) {
-    console.error('Get my rental bookings error:', error);
+    logger.error('Get my rental bookings error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -794,7 +796,7 @@ const getMyRentalBookings = async (req, res) => {
 // @desc    Get nearby rental items
 // @route   GET /api/rentals/nearby
 // @access  Public
-const getNearbyRentalItem = async (req, res) => {
+const getNearbyRentalItem = async(req, res) => {
   try {
     const { lat, lng, radius = 10, page = 1, limit = 10 } = req.query;
 
@@ -819,10 +821,10 @@ const getNearbyRentalItem = async (req, res) => {
         }
       }
     })
-    .populate('owner', 'firstName lastName profile.avatar profile.rating')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(Number(limit));
+      .populate('owner', 'firstName lastName profile.avatar profile.rating')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
 
     const total = await RentalItem.countDocuments({
       isActive: true,
@@ -846,7 +848,7 @@ const getNearbyRentalItem = async (req, res) => {
       data: rentals
     });
   } catch (error) {
-    console.error('Get nearby rentals error:', error);
+    logger.error('Get nearby rentals error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -857,7 +859,7 @@ const getNearbyRentalItem = async (req, res) => {
 // @desc    Get rental categories
 // @route   GET /api/rentals/categories
 // @access  Public
-const getRentalCategories = async (req, res) => {
+const getRentalCategories = async(req, res) => {
   try {
     const categories = await RentalItem.aggregate([
       {
@@ -879,7 +881,7 @@ const getRentalCategories = async (req, res) => {
       data: categories
     });
   } catch (error) {
-    console.error('Get rental categories error:', error);
+    logger.error('Get rental categories error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -890,7 +892,7 @@ const getRentalCategories = async (req, res) => {
 // @desc    Get featured rental items
 // @route   GET /api/rentals/featured
 // @access  Public
-const getFeaturedRentalItem = async (req, res) => {
+const getFeaturedRentalItem = async(req, res) => {
   try {
     const { limit = 10 } = req.query;
 
@@ -898,9 +900,9 @@ const getFeaturedRentalItem = async (req, res) => {
       isActive: true,
       isFeatured: true
     })
-    .populate('owner', 'firstName lastName profile.avatar')
-    .sort({ createdAt: -1 })
-    .limit(Number(limit));
+      .populate('owner', 'firstName lastName profile.avatar')
+      .sort({ createdAt: -1 })
+      .limit(Number(limit));
 
     res.status(200).json({
       success: true,
@@ -908,7 +910,7 @@ const getFeaturedRentalItem = async (req, res) => {
       data: rentals
     });
   } catch (error) {
-    console.error('Get featured rentals error:', error);
+    logger.error('Get featured rentals error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -919,7 +921,7 @@ const getFeaturedRentalItem = async (req, res) => {
 // @desc    Get rental statistics
 // @route   GET /api/rentals/statistics
 // @access  Private (Admin only)
-const getRentalStatistics = async (req, res) => {
+const getRentalStatistics = async(req, res) => {
   try {
     // Get total rentals
     const totalRentalItem = await RentalItem.countDocuments();
@@ -973,7 +975,7 @@ const getRentalStatistics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get rental statistics error:', error);
+    logger.error('Get rental statistics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

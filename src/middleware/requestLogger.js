@@ -3,7 +3,7 @@ const logger = require('../config/logger');
 // Custom request logging middleware
 const requestLogger = (req, res, next) => {
   const startTime = Date.now();
-  
+
   // Log request start
   logger.info('Request Started', {
     method: req.method,
@@ -18,10 +18,10 @@ const requestLogger = (req, res, next) => {
   const originalEnd = res.end;
   res.end = function(chunk, encoding) {
     const responseTime = Date.now() - startTime;
-    
+
     // Log request completion
     logger.logRequest(req, res, responseTime);
-    
+
     // Log slow requests
     if (responseTime > 2000) {
       logger.warn('Slow Request Detected', {
@@ -32,7 +32,7 @@ const requestLogger = (req, res, next) => {
         userId: req.user ? req.user.id : null
       });
     }
-    
+
     // Call original end method
     originalEnd.call(this, chunk, encoding);
   };

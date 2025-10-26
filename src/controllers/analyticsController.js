@@ -4,11 +4,13 @@ const { Service, Booking } = require('../models/Marketplace');
 const Job = require('../models/Job');
 const Referral = require('../models/Referral');
 const Agency = require('../models/Agency');
+const logger = require('../utils/logger');
+
 
 // @desc    Get analytics overview
 // @route   GET /api/analytics/overview
 // @access  Private
-const getAnalyticsOverview = async (req, res) => {
+const getAnalyticsOverview = async(req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -175,7 +177,7 @@ const getAnalyticsOverview = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get analytics overview error:', error);
+    logger.error('Get analytics overview error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -186,7 +188,7 @@ const getAnalyticsOverview = async (req, res) => {
 // @desc    Get user analytics
 // @route   GET /api/analytics/users
 // @access  Private
-const getUserAnalytics = async (req, res) => {
+const getUserAnalytics = async(req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -283,7 +285,7 @@ const getUserAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get user analytics error:', error);
+    logger.error('Get user analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -294,7 +296,7 @@ const getUserAnalytics = async (req, res) => {
 // @desc    Get marketplace analytics
 // @route   GET /api/analytics/marketplace
 // @access  Private
-const getMarketplaceAnalytics = async (req, res) => {
+const getMarketplaceAnalytics = async(req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -418,9 +420,9 @@ const getMarketplaceAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get marketplace analytics error:', error);
+    logger.error('Get marketplace analytics error:', error);
     res.status(500).json({
-        success: false,
+      success: false,
       message: 'Server error'
     });
   }
@@ -429,7 +431,7 @@ const getMarketplaceAnalytics = async (req, res) => {
 // @desc    Get job board analytics
 // @route   GET /api/analytics/jobs
 // @access  Private
-const getJobAnalytics = async (req, res) => {
+const getJobAnalytics = async(req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -541,7 +543,7 @@ const getJobAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get job analytics error:', error);
+    logger.error('Get job analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -552,7 +554,7 @@ const getJobAnalytics = async (req, res) => {
 // @desc    Get referral analytics
 // @route   GET /api/analytics/referrals
 // @access  Private
-const getReferralAnalytics = async (req, res) => {
+const getReferralAnalytics = async(req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -670,7 +672,7 @@ const getReferralAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get referral analytics error:', error);
+    logger.error('Get referral analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -681,7 +683,7 @@ const getReferralAnalytics = async (req, res) => {
 // @desc    Get agency analytics
 // @route   GET /api/analytics/agencies
 // @access  Private
-const getAgencyAnalytics = async (req, res) => {
+const getAgencyAnalytics = async(req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -749,7 +751,7 @@ const getAgencyAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get agency analytics error:', error);
+    logger.error('Get agency analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -760,7 +762,7 @@ const getAgencyAnalytics = async (req, res) => {
 // @desc    Track analytics event
 // @route   POST /api/analytics/track
 // @access  Private
-const trackEvent = async (req, res) => {
+const trackEvent = async(req, res) => {
   try {
     const { eventType, module, data } = req.body;
 
@@ -784,7 +786,7 @@ const trackEvent = async (req, res) => {
       data: analytics
     });
   } catch (error) {
-    console.error('Track event error:', error);
+    logger.error('Track event error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -795,7 +797,7 @@ const trackEvent = async (req, res) => {
 // @desc    Get custom analytics
 // @route   GET /api/analytics/custom
 // @access  Private
-const getCustomAnalytics = async (req, res) => {
+const getCustomAnalytics = async(req, res) => {
   try {
     const { eventType, module, startDate, endDate } = req.query;
 
@@ -820,7 +822,7 @@ const getCustomAnalytics = async (req, res) => {
       data: analytics
     });
   } catch (error) {
-    console.error('Get custom analytics error:', error);
+    logger.error('Get custom analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

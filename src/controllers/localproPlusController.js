@@ -3,11 +3,13 @@ const User = require('../models/User');
 const PayPalService = require('../services/paypalService');
 const PayMayaService = require('../services/paymayaService');
 const EmailService = require('../services/emailService');
+const logger = require('../utils/logger');
+
 
 // @desc    Get all LocalPro Plus plans
 // @route   GET /api/localpro-plus/plans
 // @access  Public
-const getPlans = async (req, res) => {
+const getPlans = async(req, res) => {
   try {
     const plans = await SubscriptionPlan.find({ isActive: true })
       .sort({ price: 1 });
@@ -18,7 +20,7 @@ const getPlans = async (req, res) => {
       data: plans
     });
   } catch (error) {
-    console.error('Get plans error:', error);
+    logger.error('Get plans error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -29,7 +31,7 @@ const getPlans = async (req, res) => {
 // @desc    Get single LocalPro Plus plan
 // @route   GET /api/localpro-plus/plans/:id
 // @access  Public
-const getPlan = async (req, res) => {
+const getPlan = async(req, res) => {
   try {
     const plan = await SubscriptionPlan.findById(req.params.id);
 
@@ -45,7 +47,7 @@ const getPlan = async (req, res) => {
       data: plan
     });
   } catch (error) {
-    console.error('Get plan error:', error);
+    logger.error('Get plan error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -56,7 +58,7 @@ const getPlan = async (req, res) => {
 // @desc    Create LocalPro Plus plan
 // @route   POST /api/localpro-plus/plans
 // @access  Private (Admin only)
-const createPlan = async (req, res) => {
+const createPlan = async(req, res) => {
   try {
     const plan = await SubscriptionPlan.create(req.body);
 
@@ -66,7 +68,7 @@ const createPlan = async (req, res) => {
       data: plan
     });
   } catch (error) {
-    console.error('Create plan error:', error);
+    logger.error('Create plan error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -77,7 +79,7 @@ const createPlan = async (req, res) => {
 // @desc    Update LocalPro Plus plan
 // @route   PUT /api/localpro-plus/plans/:id
 // @access  Private (Admin only)
-const updatePlan = async (req, res) => {
+const updatePlan = async(req, res) => {
   try {
     const plan = await SubscriptionPlan.findByIdAndUpdate(
       req.params.id,
@@ -98,7 +100,7 @@ const updatePlan = async (req, res) => {
       data: plan
     });
   } catch (error) {
-    console.error('Update plan error:', error);
+    logger.error('Update plan error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -109,7 +111,7 @@ const updatePlan = async (req, res) => {
 // @desc    Delete LocalPro Plus plan
 // @route   DELETE /api/localpro-plus/plans/:id
 // @access  Private (Admin only)
-const deletePlan = async (req, res) => {
+const deletePlan = async(req, res) => {
   try {
     const plan = await SubscriptionPlan.findByIdAndDelete(req.params.id);
 
@@ -125,7 +127,7 @@ const deletePlan = async (req, res) => {
       message: 'Plan deleted successfully'
     });
   } catch (error) {
-    console.error('Delete plan error:', error);
+    logger.error('Delete plan error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -136,7 +138,7 @@ const deletePlan = async (req, res) => {
 // @desc    Subscribe to LocalPro Plus plan
 // @route   POST /api/localpro-plus/subscribe
 // @access  Private
-const subscribeToPlan = async (req, res) => {
+const subscribeToPlan = async(req, res) => {
   try {
     const { planId, paymentMethod, billingCycle = 'monthly' } = req.body;
 
@@ -253,7 +255,7 @@ const subscribeToPlan = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Subscribe to plan error:', error);
+    logger.error('Subscribe to plan error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -264,7 +266,7 @@ const subscribeToPlan = async (req, res) => {
 // @desc    Confirm subscription payment
 // @route   POST /api/localpro-plus/confirm-payment
 // @access  Private
-const confirmSubscriptionPayment = async (req, res) => {
+const confirmSubscriptionPayment = async(req, res) => {
   try {
     const { paymentId, paymentMethod } = req.body;
 
@@ -333,7 +335,7 @@ const confirmSubscriptionPayment = async (req, res) => {
         paymayaPaymentId: paymentId,
         transactionId: paymentResult.data?.id
       },
-      description: `LocalPro Plus subscription payment`,
+      description: 'LocalPro Plus subscription payment',
       processedAt: new Date()
     });
 
@@ -361,7 +363,7 @@ const confirmSubscriptionPayment = async (req, res) => {
       data: populatedSubscription
     });
   } catch (error) {
-    console.error('Confirm subscription payment error:', error);
+    logger.error('Confirm subscription payment error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -372,7 +374,7 @@ const confirmSubscriptionPayment = async (req, res) => {
 // @desc    Cancel subscription
 // @route   POST /api/localpro-plus/cancel
 // @access  Private
-const cancelSubscription = async (req, res) => {
+const cancelSubscription = async(req, res) => {
   try {
     const { reason } = req.body;
 
@@ -414,7 +416,7 @@ const cancelSubscription = async (req, res) => {
       data: subscription
     });
   } catch (error) {
-    console.error('Cancel subscription error:', error);
+    logger.error('Cancel subscription error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -425,7 +427,7 @@ const cancelSubscription = async (req, res) => {
 // @desc    Get user's subscription
 // @route   GET /api/localpro-plus/my-subscription
 // @access  Private
-const getMySubscription = async (req, res) => {
+const getMySubscription = async(req, res) => {
   try {
     const user = await User.findById(req.user.id).populate('localProPlusSubscription');
     const subscription = user.localProPlusSubscription;
@@ -444,7 +446,7 @@ const getMySubscription = async (req, res) => {
       data: populatedSubscription
     });
   } catch (error) {
-    console.error('Get my subscription error:', error);
+    logger.error('Get my subscription error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -455,7 +457,7 @@ const getMySubscription = async (req, res) => {
 // @desc    Update subscription settings
 // @route   PUT /api/localpro-plus/subscription/settings
 // @access  Private
-const updateSubscriptionSettings = async (req, res) => {
+const updateSubscriptionSettings = async(req, res) => {
   try {
     const { autoRenew, notificationSettings } = req.body;
 
@@ -485,7 +487,7 @@ const updateSubscriptionSettings = async (req, res) => {
       data: subscription
     });
   } catch (error) {
-    console.error('Update subscription settings error:', error);
+    logger.error('Update subscription settings error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -496,7 +498,7 @@ const updateSubscriptionSettings = async (req, res) => {
 // @desc    Get subscription usage
 // @route   GET /api/localpro-plus/usage
 // @access  Private
-const getSubscriptionUsage = async (req, res) => {
+const getSubscriptionUsage = async(req, res) => {
   try {
     const user = await User.findById(req.user.id).populate('localProPlusSubscription');
     const subscription = user.localProPlusSubscription;
@@ -510,7 +512,7 @@ const getSubscriptionUsage = async (req, res) => {
 
     const populatedSubscription = await subscription.populate('plan');
     const plan = populatedSubscription.plan;
-    
+
     if (!plan) {
       return res.status(404).json({
         success: false,
@@ -547,7 +549,7 @@ const getSubscriptionUsage = async (req, res) => {
       data: usage
     });
   } catch (error) {
-    console.error('Get subscription usage error:', error);
+    logger.error('Get subscription usage error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -558,9 +560,9 @@ const getSubscriptionUsage = async (req, res) => {
 // @desc    Renew subscription
 // @route   POST /api/localpro-plus/renew
 // @access  Private
-const renewSubscription = async (req, res) => {
+const renewSubscription = async(req, res) => {
   try {
-    const { paymentMethod, paymentDetails } = req.body;
+    const { paymentMethod } = req.body;
 
     if (!paymentMethod) {
       return res.status(400).json({
@@ -646,7 +648,7 @@ const renewSubscription = async (req, res) => {
         paymayaCheckoutId: paymentResult.data?.checkoutId,
         transactionId: paymentResult.data?.id
       },
-      description: `LocalPro Plus subscription renewal`,
+      description: 'LocalPro Plus subscription renewal',
       processedAt: new Date()
     });
 
@@ -661,7 +663,7 @@ const renewSubscription = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Renew subscription error:', error);
+    logger.error('Renew subscription error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -672,7 +674,7 @@ const renewSubscription = async (req, res) => {
 // @desc    Get subscription analytics
 // @route   GET /api/localpro-plus/analytics
 // @access  Private (Admin only)
-const getSubscriptionAnalytics = async (req, res) => {
+const getSubscriptionAnalytics = async(req, res) => {
   try {
     // Get subscription statistics
     const totalSubscriptions = await UserSubscription.countDocuments({
@@ -791,7 +793,7 @@ const getSubscriptionAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get subscription analytics error:', error);
+    logger.error('Get subscription analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

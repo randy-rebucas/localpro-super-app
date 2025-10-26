@@ -1,12 +1,15 @@
-const { UserSubscription } = require('../models/LocalProPlus');
+// const { UserSubscription } = require('../models/LocalProPlus');
+const User = require('../models/User');
+const logger = require('../utils/logger');
+
 
 /**
  * Middleware to check if user has active LocalPro Plus subscription
  */
-const requireActiveSubscription = async (req, res, next) => {
+const requireActiveSubscription = async(req, res, next) => {
   try {
     const user = await User.findById(req.user.id).populate('localProPlusSubscription');
-    
+
     if (!user.localProPlusSubscription) {
       return res.status(403).json({
         success: false,
@@ -16,7 +19,7 @@ const requireActiveSubscription = async (req, res, next) => {
     }
 
     const subscription = user.localProPlusSubscription;
-    
+
     if (!subscription.isActive()) {
       return res.status(403).json({
         success: false,
@@ -29,7 +32,7 @@ const requireActiveSubscription = async (req, res, next) => {
     req.subscription = subscription;
     next();
   } catch (error) {
-    console.error('Subscription access check error:', error);
+    logger.error('Subscription access check error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -41,10 +44,10 @@ const requireActiveSubscription = async (req, res, next) => {
  * Middleware to check if user has access to specific feature
  */
 const requireFeatureAccess = (featureName) => {
-  return async (req, res, next) => {
+  return async(req, res, next) => {
     try {
       const user = await User.findById(req.user.id).populate('localProPlusSubscription');
-      
+
       if (!user.localProPlusSubscription) {
         return res.status(403).json({
           success: false,
@@ -55,7 +58,7 @@ const requireFeatureAccess = (featureName) => {
       }
 
       const subscription = user.localProPlusSubscription;
-      
+
       if (!subscription.isActive()) {
         return res.status(403).json({
           success: false,
@@ -77,7 +80,7 @@ const requireFeatureAccess = (featureName) => {
       req.subscription = subscription;
       next();
     } catch (error) {
-      console.error('Feature access check error:', error);
+      logger.error('Feature access check error:', error);
       res.status(500).json({
         success: false,
         message: 'Server error'
@@ -90,10 +93,10 @@ const requireFeatureAccess = (featureName) => {
  * Middleware to check usage limits
  */
 const checkUsageLimit = (featureName) => {
-  return async (req, res, next) => {
+  return async(req, res, next) => {
     try {
       const user = await User.findById(req.user.id).populate('localProPlusSubscription');
-      
+
       if (!user.localProPlusSubscription) {
         return res.status(403).json({
           success: false,
@@ -103,7 +106,7 @@ const checkUsageLimit = (featureName) => {
       }
 
       const subscription = user.localProPlusSubscription;
-      
+
       if (!subscription.isActive()) {
         return res.status(403).json({
           success: false,
@@ -126,7 +129,7 @@ const checkUsageLimit = (featureName) => {
       req.subscription = subscription;
       next();
     } catch (error) {
-      console.error('Usage limit check error:', error);
+      logger.error('Usage limit check error:', error);
       res.status(500).json({
         success: false,
         message: 'Server error'
@@ -139,14 +142,14 @@ const checkUsageLimit = (featureName) => {
  * Middleware to increment usage after successful operation
  */
 const incrementUsage = (featureName, amount = 1) => {
-  return async (req, res, next) => {
+  return async(req, res, next) => {
     try {
       if (req.subscription) {
         await req.subscription.incrementUsage(featureName, amount);
       }
       next();
     } catch (error) {
-      console.error('Usage increment error:', error);
+      logger.error('Usage increment error:', error);
       // Don't fail the request if usage tracking fails
       next();
     }
@@ -157,10 +160,10 @@ const incrementUsage = (featureName, amount = 1) => {
  * Middleware to check subscription plan level
  */
 const requirePlanLevel = (requiredLevel) => {
-  return async (req, res, next) => {
+  return async(req, res, next) => {
     try {
       const user = await User.findById(req.user.id).populate('localProPlusSubscription');
-      
+
       if (!user.localProPlusSubscription) {
         return res.status(403).json({
           success: false,
@@ -170,7 +173,7 @@ const requirePlanLevel = (requiredLevel) => {
       }
 
       const subscription = user.localProPlusSubscription;
-      
+
       if (!subscription.isActive()) {
         return res.status(403).json({
           success: false,
@@ -181,7 +184,7 @@ const requirePlanLevel = (requiredLevel) => {
 
       const populatedSubscription = await subscription.populate('plan');
       const plan = populatedSubscription.plan;
-      
+
       if (!plan) {
         return res.status(403).json({
           success: false,
@@ -192,7 +195,7 @@ const requirePlanLevel = (requiredLevel) => {
 
       // Check plan level (assuming plans have a level field)
       const planLevel = plan.level || 0;
-      const requiredLevelNum = typeof requiredLevel === 'string' ? 
+      const requiredLevelNum = typeof requiredLevel === 'string' ?
         { 'basic': 1, 'standard': 2, 'premium': 3, 'enterprise': 4 }[requiredLevel] || 1 :
         requiredLevel;
 
@@ -209,7 +212,7 @@ const requirePlanLevel = (requiredLevel) => {
       req.subscription = subscription;
       next();
     } catch (error) {
-      console.error('Plan level check error:', error);
+      logger.error('Plan level check error:', error);
       res.status(500).json({
         success: false,
         message: 'Server error'
