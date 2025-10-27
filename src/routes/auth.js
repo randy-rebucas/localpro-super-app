@@ -6,6 +6,7 @@ const {
   sendVerificationCode,
   verifyCode,
   completeOnboarding,
+  getProfileCompletionStatus,
   getProfileCompleteness,
   getMe,
   updateProfile,
@@ -23,6 +24,7 @@ router.post('/verify-code', verifyCode);
 
 // Protected routes
 router.post('/complete-onboarding', auth, completeOnboarding);
+router.get('/profile-completion-status', auth, getProfileCompletionStatus);
 router.get('/profile-completeness', auth, getProfileCompleteness);
 router.get('/me', auth, getMe);
 router.put('/profile', auth, updateProfile);

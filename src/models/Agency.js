@@ -242,7 +242,7 @@ const agencySchema = new mongoose.Schema({
 // Indexes
 agencySchema.index({ owner: 1 });
 agencySchema.index({ 'providers.user': 1 });
-agencySchema.index({ 'serviceAreas.coordinates': '2dsphere' });
+// agencySchema.index({ 'serviceAreas.coordinates': '2dsphere' }); // Temporarily disabled due to coordinate format issues
 agencySchema.index({ isActive: 1 });
 
 // Virtual for provider count

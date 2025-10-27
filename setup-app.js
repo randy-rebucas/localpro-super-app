@@ -238,15 +238,16 @@ class AppSetup {
     }
   }
 
-  async createAdminUsers() {
-    this.logStep('ADMIN', 'Creating admin users...');
+  async createAllUsers() {
+    this.logStep('USERS', 'Creating all user roles...');
     
     try {
-      // Check if admin users already exist
-      const existingAdmin = await User.findOne({ role: 'admin' });
-      if (existingAdmin) {
-        this.logWarning('Admin users already exist, skipping...');
-        this.setupResults.adminUsers = true;
+      // Check if users already exist
+      const existingUsers = await User.find({});
+      if (existingUsers.length > 0) {
+        this.logWarning('Users already exist, using existing users...');
+        this.createdData.users.push(...existingUsers);
+        this.setupResults.allUsers = true;
         return true;
       }
 
@@ -329,37 +330,87 @@ class AppSetup {
       this.createdData.users.push(superAdmin);
       this.logSuccess(`Super admin created: ${superAdmin.email}`);
 
-      // Create sample agency owner
-      const agencyOwner = new User({
-        phoneNumber: '+639171234568',
-        email: 'agency@localpro.com',
-        firstName: 'Agency',
-        lastName: 'Owner',
-        role: 'agency_owner',
+      // Create client user
+      const client = new User({
+        phoneNumber: '+639171234569',
+        email: 'client@localpro.com',
+        firstName: 'John',
+        lastName: 'Client',
+        role: 'client',
+        isVerified: true,
+        verification: {
+          phoneVerified: true,
+          emailVerified: true,
+          verifiedAt: new Date()
+        },
+        profile: {
+          bio: 'Regular client looking for quality services',
+          address: {
+            street: '123 Client Street',
+            city: 'Manila',
+            state: 'Metro Manila',
+            zipCode: '1000',
+            country: 'Philippines',
+            coordinates: { lat: 14.5995, lng: 120.9842 }
+          }
+        },
+        wallet: {
+          balance: 5000,
+          currency: 'PHP'
+        },
+        lastLoginAt: new Date(),
+        loginCount: 1,
+        status: 'active',
+        activity: {
+          lastActiveAt: new Date(),
+          totalSessions: 1,
+          deviceInfo: [{
+            deviceType: 'mobile',
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)',
+            lastUsed: new Date()
+          }]
+        }
+      });
+
+      await client.save();
+      const clientSettings = new UserSettings({
+        userId: client._id,
+        preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: true, push: true } }
+      });
+      await clientSettings.save();
+      client.settings = clientSettings._id;
+      await client.save();
+      this.createdData.users.push(client);
+      this.logSuccess(`Client created: ${client.email}`);
+
+      // Create provider user
+      const provider = new User({
+        phoneNumber: '+639171234570',
+        email: 'provider@localpro.com',
+        firstName: 'Maria',
+        lastName: 'Provider',
+        role: 'provider',
         isVerified: true,
         verification: {
           phoneVerified: true,
           emailVerified: true,
           identityVerified: true,
-          businessVerified: true,
-          addressVerified: true,
-          bankAccountVerified: true,
           verifiedAt: new Date()
         },
         profile: {
-          bio: 'Professional cleaning services agency owner',
+          bio: 'Professional cleaning service provider with 5 years experience',
           address: {
-            street: '456 Business Avenue',
+            street: '456 Provider Avenue',
             city: 'Quezon City',
             state: 'Metro Manila',
             zipCode: '1100',
             country: 'Philippines',
             coordinates: { lat: 14.6760, lng: 121.0437 }
           },
-          businessName: 'CleanPro Services',
-          businessType: 'small_business',
-          yearsInBusiness: 3,
-          serviceAreas: ['Quezon City', 'Manila', 'Makati'],
+          businessName: 'Maria\'s Cleaning Services',
+          businessType: 'individual',
+          yearsInBusiness: 5,
+          serviceAreas: ['Quezon City', 'Manila'],
           specialties: ['Residential Cleaning', 'Office Cleaning', 'Deep Cleaning'],
           availability: {
             schedule: [
@@ -376,41 +427,350 @@ class AppSetup {
         },
         trustScore: 95,
         badges: [
-          { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Business Owner' },
-          { type: 'top_rated', earnedAt: new Date(), description: 'Top Rated Agency' }
+          { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Service Provider' },
+          { type: 'top_rated', earnedAt: new Date(), description: 'Top Rated Provider' }
         ],
-        subscription: {
-          type: 'premium',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-          isActive: true
+        responseTime: {
+          average: 10,
+          totalResponses: 150
         },
+        completionRate: 98,
+        cancellationRate: 2,
         wallet: {
-          balance: 0,
+          balance: 15000,
           currency: 'PHP'
+        },
+        lastLoginAt: new Date(),
+        loginCount: 1,
+        status: 'active',
+        activity: {
+          lastActiveAt: new Date(),
+          totalSessions: 1,
+          deviceInfo: [{
+            deviceType: 'mobile',
+            userAgent: 'Mozilla/5.0 (Android 11; Mobile; rv:68.0) Gecko/68.0 Firefox/88.0',
+            lastUsed: new Date()
+          }]
         }
       });
 
-      agencyOwner.generateReferralCode();
-      await agencyOwner.save();
+      await provider.save();
+      const providerSettings = new UserSettings({
+        userId: provider._id,
+        preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: true, push: true } }
+      });
+      await providerSettings.save();
+      provider.settings = providerSettings._id;
+      await provider.save();
+      this.createdData.users.push(provider);
+      this.logSuccess(`Provider created: ${provider.email}`);
 
-      // Create user settings for agency owner
+      // Create supplier user
+      const supplier = new User({
+        phoneNumber: '+639171234571',
+        email: 'supplier@localpro.com',
+        firstName: 'Carlos',
+        lastName: 'Supplier',
+        role: 'supplier',
+        isVerified: true,
+        verification: {
+          phoneVerified: true,
+          emailVerified: true,
+          businessVerified: true,
+          verifiedAt: new Date()
+        },
+        profile: {
+          bio: 'Wholesale supplier of cleaning supplies and equipment',
+          address: {
+            street: '789 Supplier Boulevard',
+            city: 'Makati',
+            state: 'Metro Manila',
+            zipCode: '1200',
+            country: 'Philippines',
+            coordinates: { lat: 14.5547, lng: 121.0244 }
+          },
+          businessName: 'Carlos Supply Co.',
+          businessType: 'enterprise',
+          yearsInBusiness: 10,
+          serviceAreas: ['Metro Manila', 'Philippines'],
+          specialties: ['Cleaning Supplies', 'Equipment', 'Wholesale Distribution']
+        },
+        wallet: {
+          balance: 50000,
+          currency: 'PHP'
+        },
+        lastLoginAt: new Date(),
+        loginCount: 1,
+        status: 'active',
+        activity: {
+          lastActiveAt: new Date(),
+          totalSessions: 1,
+          deviceInfo: [{
+            deviceType: 'desktop',
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            lastUsed: new Date()
+          }]
+        }
+      });
+
+      await supplier.save();
+      const supplierSettings = new UserSettings({
+        userId: supplier._id,
+        preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: false, push: true } }
+      });
+      await supplierSettings.save();
+      supplier.settings = supplierSettings._id;
+      await supplier.save();
+      this.createdData.users.push(supplier);
+      this.logSuccess(`Supplier created: ${supplier.email}`);
+
+      // Create instructor user
+      const instructor = new User({
+        phoneNumber: '+639171234572',
+        email: 'instructor@localpro.com',
+        firstName: 'Dr. Sarah',
+        lastName: 'Instructor',
+        role: 'instructor',
+        isVerified: true,
+        verification: {
+          phoneVerified: true,
+          emailVerified: true,
+          identityVerified: true,
+          verifiedAt: new Date()
+        },
+        profile: {
+          bio: 'Professional instructor specializing in cleaning techniques and safety protocols',
+          address: {
+            street: '321 Education Street',
+            city: 'Taguig',
+            state: 'Metro Manila',
+            zipCode: '1630',
+            country: 'Philippines',
+            coordinates: { lat: 14.5176, lng: 121.0509 }
+          },
+          businessName: 'Sarah\'s Training Academy',
+          businessType: 'small_business',
+          yearsInBusiness: 8,
+          serviceAreas: ['Metro Manila', 'Philippines'],
+          specialties: ['Cleaning Techniques', 'Safety Training', 'Professional Development'],
+          availability: {
+            schedule: [
+              { day: 'monday', startTime: '09:00', endTime: '18:00', isAvailable: true },
+              { day: 'tuesday', startTime: '09:00', endTime: '18:00', isAvailable: true },
+              { day: 'wednesday', startTime: '09:00', endTime: '18:00', isAvailable: true },
+              { day: 'thursday', startTime: '09:00', endTime: '18:00', isAvailable: true },
+              { day: 'friday', startTime: '09:00', endTime: '18:00', isAvailable: true },
+              { day: 'saturday', startTime: '10:00', endTime: '16:00', isAvailable: true }
+            ],
+            timezone: 'Asia/Manila',
+            emergencyService: false
+          }
+        },
+        trustScore: 98,
+        badges: [
+          { type: 'verified_provider', earnedAt: new Date(), description: 'Certified Instructor' },
+          { type: 'expert', earnedAt: new Date(), description: 'Training Expert' }
+        ],
+        wallet: {
+          balance: 25000,
+          currency: 'PHP'
+        },
+        lastLoginAt: new Date(),
+        loginCount: 1,
+        status: 'active',
+        activity: {
+          lastActiveAt: new Date(),
+          totalSessions: 1,
+          deviceInfo: [{
+            deviceType: 'desktop',
+            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+            lastUsed: new Date()
+          }]
+        }
+      });
+
+      await instructor.save();
+      const instructorSettings = new UserSettings({
+        userId: instructor._id,
+        preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: false, push: true } }
+      });
+      await instructorSettings.save();
+      instructor.settings = instructorSettings._id;
+      await instructor.save();
+      this.createdData.users.push(instructor);
+      this.logSuccess(`Instructor created: ${instructor.email}`);
+
+      // Create agency owner user
+      const agencyOwner = new User({
+        phoneNumber: '+639171234567',
+        email: 'owner@devcom.com',
+        firstName: 'John',
+        lastName: 'Smith',
+        role: 'agency_owner',
+        isVerified: true,
+        verification: {
+          phoneVerified: true,
+          emailVerified: true,
+          identityVerified: true,
+          businessVerified: true,
+          addressVerified: true,
+          bankAccountVerified: true,
+          verifiedAt: new Date()
+        },
+        profile: {
+          bio: 'Owner of Devcom Digital Marketing Services',
+          address: {
+            street: '456 Business Avenue',
+            city: 'Quezon City',
+            state: 'Metro Manila',
+            zipCode: '1100',
+            country: 'Philippines',
+            coordinates: { lat: 14.6760, lng: 121.0437 }
+          },
+          businessName: 'Devcom Digital Marketing Services',
+          businessType: 'enterprise',
+          yearsInBusiness: 5,
+          serviceAreas: ['Quezon City', 'Manila'],
+          specialties: ['Digital Marketing', 'SEO', 'Social Media Management'],
+          availability: {
+            schedule: [
+              { day: 'monday', startTime: '09:00', endTime: '18:00', isAvailable: true },
+              { day: 'tuesday', startTime: '09:00', endTime: '18:00', isAvailable: true },
+              { day: 'wednesday', startTime: '09:00', endTime: '18:00', isAvailable: true },
+              { day: 'thursday', startTime: '09:00', endTime: '18:00', isAvailable: true },
+              { day: 'friday', startTime: '09:00', endTime: '18:00', isAvailable: true },
+              { day: 'saturday', startTime: '10:00', endTime: '16:00', isAvailable: true },
+              { day: 'sunday', startTime: '10:00', endTime: '16:00', isAvailable: false }
+            ],
+            timezone: 'Asia/Manila',
+            emergencyService: true
+          }
+        },
+        wallet: {
+          balance: 50000,
+          currency: 'PHP'
+        },
+        trustScore: 95,
+        badges: [
+          { type: 'verified_provider', earnedAt: new Date(), description: 'Verified business owner' },
+          { type: 'expert', earnedAt: new Date(), description: 'Digital marketing expert' }
+        ],
+        responseTime: {
+          average: 15,
+          totalResponses: 150
+        },
+        completionRate: 98,
+        cancellationRate: 2,
+        referral: {
+          referralCode: 'DEVCOM001',
+          referralStats: {
+            totalReferrals: 25,
+            successfulReferrals: 20,
+            totalRewardsEarned: 5000,
+            totalRewardsPaid: 4500,
+            lastReferralAt: new Date(),
+            referralTier: 'gold'
+          },
+          referralPreferences: {
+            autoShare: true,
+            shareOnSocial: true,
+            emailNotifications: true,
+            smsNotifications: false
+          }
+        },
+        lastLoginAt: new Date(),
+        lastLoginIP: '127.0.0.1',
+        loginCount: 1,
+        status: 'active',
+        activity: {
+          lastActiveAt: new Date(),
+          totalSessions: 1,
+          deviceInfo: [{
+            deviceType: 'desktop',
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            lastUsed: new Date()
+          }]
+        }
+      });
+
+      await agencyOwner.save();
       const agencyOwnerSettings = new UserSettings({
         userId: agencyOwner._id,
-        ...UserSettings.getDefaultSettings()
+        preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: false, push: true } }
       });
       await agencyOwnerSettings.save();
-
       agencyOwner.settings = agencyOwnerSettings._id;
       await agencyOwner.save();
-
       this.createdData.users.push(agencyOwner);
       this.logSuccess(`Agency owner created: ${agencyOwner.email}`);
 
-      this.setupResults.adminUsers = true;
+      // Create agency admin user
+      const agencyAdmin = new User({
+        phoneNumber: '+639171234573',
+        email: 'admin@devcom.com',
+        firstName: 'Lisa',
+        lastName: 'Admin',
+        role: 'agency_admin',
+        isVerified: true,
+        verification: {
+          phoneVerified: true,
+          emailVerified: true,
+          identityVerified: true,
+          verifiedAt: new Date()
+        },
+        profile: {
+          bio: 'Agency administrator managing daily operations',
+          address: {
+            street: '456 Business Avenue',
+            city: 'Quezon City',
+            state: 'Metro Manila',
+            zipCode: '1100',
+            country: 'Philippines',
+            coordinates: { lat: 14.6760, lng: 121.0437 }
+          },
+          businessName: 'Devcom Digital Marketing Services',
+          businessType: 'enterprise',
+          yearsInBusiness: 5,
+          serviceAreas: ['Quezon City', 'Manila'],
+          specialties: ['Administration', 'Operations Management', 'Team Coordination']
+        },
+        wallet: {
+          balance: 20000,
+          currency: 'PHP'
+        },
+        trustScore: 90,
+        badges: [
+          { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Administrator' }
+        ],
+        lastLoginAt: new Date(),
+        loginCount: 1,
+        status: 'active',
+        activity: {
+          lastActiveAt: new Date(),
+          totalSessions: 1,
+          deviceInfo: [{
+            deviceType: 'desktop',
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            lastUsed: new Date()
+          }]
+        }
+      });
+
+      await agencyAdmin.save();
+      const agencyAdminSettings = new UserSettings({
+        userId: agencyAdmin._id,
+        preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: true, push: true } }
+      });
+      await agencyAdminSettings.save();
+      agencyAdmin.settings = agencyAdminSettings._id;
+      await agencyAdmin.save();
+      this.createdData.users.push(agencyAdmin);
+      this.logSuccess(`Agency admin created: ${agencyAdmin.email}`);
+
+      this.setupResults.allUsers = true;
       return true;
     } catch (error) {
-      this.logError(`Failed to create admin users: ${error.message}`);
+      this.logError(`Failed to create all users: ${error.message}`);
       return false;
     }
   }
@@ -419,7 +779,9 @@ class AppSetup {
     this.logStep('AGENCIES', 'Creating sample agencies...');
     
     try {
+      // Get agency owner from created users
       const agencyOwner = this.createdData.users.find(u => u.role === 'agency_owner');
+      
       if (!agencyOwner) {
         this.logWarning('No agency owner found, skipping agency creation');
         return true;
@@ -457,13 +819,11 @@ class AppSetup {
         serviceAreas: [
           {
             name: 'Quezon City',
-            coordinates: { lat: 14.6760, lng: 121.0437 },
             radius: 25,
             zipCodes: ['1100', '1101', '1102', '1103', '1104']
           },
           {
             name: 'Manila',
-            coordinates: { lat: 14.5995, lng: 120.9842 },
             radius: 20,
             zipCodes: ['1000', '1001', '1002', '1003', '1004']
           }
@@ -536,6 +896,11 @@ class AppSetup {
       const admin = this.createdData.users.find(u => u.role === 'admin');
       const agencyOwner = this.createdData.users.find(u => u.role === 'agency_owner');
       const agency = this.createdData.agencies[0];
+
+      console.log('Debug - createdData.users:', this.createdData.users.map(u => ({ role: u.role, email: u.email })));
+      console.log('Debug - admin:', admin ? 'found' : 'not found');
+      console.log('Debug - agencyOwner:', agencyOwner ? 'found' : 'not found');
+      console.log('Debug - agency:', agency ? 'found' : 'not found');
 
       // Create sample services
       const services = [
@@ -778,6 +1143,14 @@ class AppSetup {
       ];
 
       for (const productData of products) {
+        // Check if product already exists
+        const existingProduct = await Product.findOne({ sku: productData.sku });
+        if (existingProduct) {
+          this.logWarning(`Product with SKU ${productData.sku} already exists, skipping...`);
+          this.createdData.products.push(existingProduct);
+          continue;
+        }
+        
         const product = new Product(productData);
         await product.save();
         this.createdData.products.push(product);
@@ -795,12 +1168,13 @@ class AppSetup {
           pricing: { hourly: 100, daily: 800, weekly: 5000, monthly: 15000, currency: 'PHP' },
           availability: { isAvailable: true, schedule: [] },
           location: {
-            address: '456 Business Avenue, Quezon City',
+            address: {
+              street: '456 Business Avenue',
             city: 'Quezon City',
             state: 'Metro Manila',
             zipCode: '1100',
-            country: 'Philippines',
-            coordinates: { lat: 14.6760, lng: 121.0437 },
+              country: 'Philippines'
+            },
             pickupRequired: true,
             deliveryAvailable: true,
             deliveryFee: 200
@@ -836,8 +1210,29 @@ class AppSetup {
       ];
 
       for (const rentalItemData of rentalItems) {
-        const rentalItem = new RentalItem(rentalItemData);
+        // Check if rental item already exists
+        const existingRentalItem = await RentalItem.findOne({ name: rentalItemData.name });
+        if (existingRentalItem) {
+          this.logWarning(`Rental item "${rentalItemData.name}" already exists, skipping...`);
+          this.createdData.rentalItems.push(existingRentalItem);
+          continue;
+        }
+        
+        // Create rental item without maintenance field first
+        const rentalItemDataCopy = { ...rentalItemData };
+        const maintenanceData = rentalItemDataCopy.maintenance;
+        
+        // Remove maintenance field completely
+        delete rentalItemDataCopy.maintenance;
+        
+        const rentalItem = new RentalItem(rentalItemDataCopy);
         await rentalItem.save();
+        
+        // Add maintenance data after saving
+        if (maintenanceData) {
+          rentalItem.maintenance = maintenanceData;
+          await rentalItem.save();
+        }
         this.createdData.rentalItems.push(rentalItem);
       }
       this.logSuccess(`${rentalItems.length} sample rental items created`);
@@ -922,13 +1317,30 @@ class AppSetup {
         this.logError('App settings not found');
       }
 
-      // Check admin users
-      const adminUsers = await User.find({ role: 'admin' });
-      if (adminUsers.length > 0) {
-        validationResults.adminUsers = true;
-        this.logSuccess(`${adminUsers.length} admin user(s) found`);
+      // Check all user roles
+      const allUsers = await User.find({});
+      const userRoles = {};
+      allUsers.forEach(user => {
+        userRoles[user.role] = (userRoles[user.role] || 0) + 1;
+      });
+      
+      const requiredRoles = ['admin', 'client', 'provider', 'supplier', 'instructor', 'agency_owner', 'agency_admin'];
+      let allRolesPresent = true;
+      
+      requiredRoles.forEach(role => {
+        if (userRoles[role] && userRoles[role] > 0) {
+          this.logSuccess(`${userRoles[role]} ${role} user(s) found`);
       } else {
-        this.logError('No admin users found');
+          this.logError(`No ${role} users found`);
+          allRolesPresent = false;
+        }
+      });
+      
+      if (allRolesPresent) {
+        validationResults.allUsers = true;
+        this.logSuccess('All required user roles are present');
+      } else {
+        this.logError('Some required user roles are missing');
       }
 
       // Check seed data
@@ -1035,10 +1447,10 @@ class AppSetup {
         throw new Error('Failed to create app settings');
       }
 
-      // Step 3: Create admin users
-      const adminCreated = await this.createAdminUsers();
-      if (!adminCreated) {
-        throw new Error('Failed to create admin users');
+      // Step 3: Create all users
+      const usersCreated = await this.createAllUsers();
+      if (!usersCreated) {
+        throw new Error('Failed to create all users');
       }
 
       // Step 4: Create agencies
@@ -1063,9 +1475,14 @@ class AppSetup {
       this.log(`\n${colors.bright}${colors.green}🎉 Setup Completed Successfully!${colors.reset}`, 'green');
       this.log(`${colors.green}================================${colors.reset}`, 'green');
       
-      this.log(`\n${colors.bright}Admin Credentials:${colors.reset}`, 'yellow');
-      this.log(`Super Admin: admin@localpro.com`, 'cyan');
-      this.log(`Agency Owner: agency@localpro.com`, 'cyan');
+      this.log(`\n${colors.bright}User Credentials:${colors.reset}`, 'yellow');
+      this.log(`Super Admin: admin@localpro.asia`, 'cyan');
+      this.log(`Client: client@localpro.com`, 'cyan');
+      this.log(`Provider: provider@localpro.com`, 'cyan');
+      this.log(`Supplier: supplier@localpro.com`, 'cyan');
+      this.log(`Instructor: instructor@localpro.com`, 'cyan');
+      this.log(`Agency Owner: owner@devcom.com`, 'cyan');
+      this.log(`Agency Admin: admin@devcom.com`, 'cyan');
       
       this.log(`\n${colors.bright}Created Data:${colors.reset}`, 'yellow');
       this.log(`Users: ${report.createdData.users}`, 'cyan');

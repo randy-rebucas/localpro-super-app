@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-10-21T06:21:23.101Z",
+  "timestamp": "2025-10-27T04:44:04.882Z",
   "environment": "development",
   "database": {
     "uri": "mongodb+srv://admin_db_user:yVpOf6aRwMFMkwsI@master.e2kwbyc.mongodb.net/localpro-super-app?retryWrites=true&w=majority&appName=Master",
@@ -15,7 +15,14 @@
   },
   "createdData": {
     "users": 7,
-    "agencies": 0
+    "agencies": 1,
+    "services": 2,
+    "jobs": 1,
+    "courses": 1,
+    "products": 2,
+    "rentalItems": 1,
+    "subscriptions": 3,
+    "referrals": 0
   },
   "adminCredentials": [
     {

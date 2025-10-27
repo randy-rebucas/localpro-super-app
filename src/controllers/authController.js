@@ -13,8 +13,7 @@ const generateToken = (user) => {
     id: user._id,
     phoneNumber: user.phoneNumber,
     role: user.role,
-    isVerified: user.isVerified,
-    onboardingComplete: isOnboardingComplete(user)
+    isVerified: user.isVerified
   };
   
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -256,16 +255,12 @@ const verifyCode = async (req, res) => {
       
       await user.save();
 
-      // Check if user has completed onboarding
-      const onboardingComplete = isOnboardingComplete(user);
-      
       // Generate token
       const token = generateToken(user);
 
       logger.info('Existing user login successful', {
         userId: user._id,
         phoneNumber: phoneNumber.substring(0, 5) + '***',
-        onboardingComplete,
         clientInfo,
         duration: Date.now() - startTime
       });
@@ -277,8 +272,8 @@ const verifyCode = async (req, res) => {
         user: {
           id: user._id,
           phoneNumber: user.phoneNumber,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: user.firstName ? user.firstName : 'User',
+          lastName: user.lastName ? user.lastName : 'User',
           email: user.email,
           role: user.role,
           isVerified: user.isVerified,
@@ -288,18 +283,14 @@ const verifyCode = async (req, res) => {
             avatar: user.profile.avatar,
             bio: user.profile.bio
           }
-        },
-        redirect: {
-          destination: onboardingComplete ? 'dashboard' : 'onboarding',
-          reason: onboardingComplete 
-            ? 'User has complete profile information' 
-            : 'User needs to complete profile setup'
         }
       });
     } else {
-      // New user - create minimal user record
+      // New user - create minimal user record with required fields
       user = await User.create({
         phoneNumber,
+        firstName: 'User', // Temporary placeholder - will be updated during onboarding
+        lastName: 'User', // Temporary placeholder - will be updated during onboarding
         isVerified: true,
         verification: {
           phoneVerified: true
@@ -331,7 +322,7 @@ const verifyCode = async (req, res) => {
 
       res.status(201).json({
         success: true,
-        message: 'Registration successful. Please complete your profile.',
+        message: 'Registration successful',
         token,
         user: {
           id: user._id,
@@ -343,10 +334,6 @@ const verifyCode = async (req, res) => {
           isVerified: user.isVerified,
           subscription: user.subscription,
           trustScore: user.trustScore
-        },
-        redirect: {
-          destination: 'onboarding',
-          reason: 'New user needs to provide personal information'
         }
       });
     }
@@ -538,6 +525,67 @@ const completeOnboarding = async (req, res) => {
     });
   } catch (error) {
     logger.error('Complete onboarding error', {
+      userId: req.user?.id,
+      error: error.message,
+      stack: error.stack,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again.',
+      code: 'INTERNAL_SERVER_ERROR'
+    });
+  }
+};
+
+// @desc    Check if user needs to complete profile
+// @route   GET /api/auth/profile-completion-status
+// @access  Private
+const getProfileCompletionStatus = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+  
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // Check if user has completed basic profile information
+    const isProfileComplete = isOnboardingComplete(user);
+    
+    logger.info('Profile completion status checked', {
+      userId: user._id,
+      isProfileComplete,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        isProfileComplete,
+        needsOnboarding: !isProfileComplete,
+        user: {
+          id: user._id,
+          phoneNumber: user.phoneNumber,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          isVerified: user.isVerified
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Profile completion status check error', {
       userId: req.user?.id,
       error: error.message,
       stack: error.stack,
@@ -955,6 +1003,7 @@ module.exports = {
   sendVerificationCode,
   verifyCode,
   completeOnboarding,
+  getProfileCompletionStatus,
   getProfileCompleteness,
   getMe,
   updateProfile,

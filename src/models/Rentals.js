@@ -260,7 +260,7 @@ const rentalSchema = new mongoose.Schema({
 // Indexes
 rentalItemSchema.index({ category: 1, subcategory: 1 });
 rentalItemSchema.index({ owner: 1 });
-rentalItemSchema.index({ 'location.coordinates': '2dsphere' });
+// rentalItemSchema.index({ 'location.coordinates': '2dsphere' }); // Temporarily disabled due to coordinate format issues
 rentalItemSchema.index({ isActive: 1 });
 
 rentalSchema.index({ renter: 1 });
