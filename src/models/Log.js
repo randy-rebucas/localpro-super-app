@@ -81,7 +81,7 @@ const logSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance and querying
-logSchema.index({ logId: 1 });
+// logId already has unique: true which creates an index
 logSchema.index({ level: 1, timestamp: -1 });
 logSchema.index({ category: 1, timestamp: -1 });
 logSchema.index({ source: 1, timestamp: -1 });
@@ -91,9 +91,8 @@ logSchema.index({ 'request.method': 1, timestamp: -1 });
 logSchema.index({ 'response.statusCode': 1, timestamp: -1 });
 logSchema.index({ 'error.name': 1, timestamp: -1 });
 logSchema.index({ timestamp: -1 });
-logSchema.index({ retentionDate: 1 });
 
-// TTL index for automatic cleanup
+// TTL index for automatic cleanup (this also serves as retentionDate index)
 logSchema.index({ retentionDate: 1 }, { expireAfterSeconds: 0 });
 
 // Virtual for formatted timestamp

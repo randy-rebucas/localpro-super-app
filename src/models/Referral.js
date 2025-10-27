@@ -4,32 +4,27 @@ const referralSchema = new mongoose.Schema({
   referrer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   referee: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   referralCode: {
     type: String,
     required: true,
-    unique: true,
-    index: true
+    unique: true
   },
   status: {
     type: String,
     enum: ['pending', 'completed', 'expired', 'cancelled'],
-    default: 'pending',
-    index: true
+    default: 'pending'
   },
   referralType: {
     type: String,
     enum: ['signup', 'service_booking', 'supplies_purchase', 'course_enrollment', 'loan_application', 'rental_booking', 'subscription_upgrade'],
-    required: true,
-    index: true
+    required: true
   },
   // The specific action that triggered the referral reward
   triggerAction: {

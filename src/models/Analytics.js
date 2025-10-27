@@ -53,7 +53,7 @@ const analyticsEventSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-analyticsEventSchema.index({ userId: 1, eventType: 1 });
+// userId already has unique: true which creates an index
 analyticsEventSchema.index({ eventType: 1, timestamp: -1 });
 analyticsEventSchema.index({ timestamp: -1 });
 

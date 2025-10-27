@@ -156,7 +156,7 @@ const auditLogSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance and compliance
-auditLogSchema.index({ auditId: 1 });
+// auditId already has unique: true which creates an index
 auditLogSchema.index({ action: 1, timestamp: -1 });
 auditLogSchema.index({ category: 1, timestamp: -1 });
 auditLogSchema.index({ 'actor.userId': 1, timestamp: -1 });

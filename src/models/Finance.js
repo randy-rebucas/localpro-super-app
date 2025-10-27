@@ -324,7 +324,7 @@ const financeSchema = new mongoose.Schema({
 });
 
 // Indexes
-financeSchema.index({ user: 1 });
+// user already has unique: true which creates an index
 financeSchema.index({ 'transactions.timestamp': -1 });
 financeSchema.index({ 'transactions.type': 1 });
 

@@ -384,3 +384,32 @@
 {"context":"App","level":"info","message":"Announcements retrieved","query":{"limit":"10","page":"1"},"resultCount":0,"timestamp":"2025-10-27T05:19:25.152Z","totalCount":0}
 {"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"127ms","statusCode":200,"timestamp":"2025-10-27T05:19:25.153Z","url":"/api/announcements?page=1&limit=10","userAgent":"node","userId":null}
 {"level":"http","message":"::1 - - [27/Oct/2025:05:19:25 +0000] \"GET /api/announcements?page=1&limit=10 HTTP/1.1\" 200 155 \"-\" \"node\"","timestamp":"2025-10-27T05:19:25.155Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T08:37:38.823Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T08:40:44.779Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T08:40:48.408Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T08:40:59.803Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T08:41:28.808Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T08:41:45.074Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T08:41:57.978Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T08:59:33.249Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T08:59:44.485Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-27T09:00:20.346Z","url":"/","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"4ms","statusCode":200,"timestamp":"2025-10-27T09:00:20.351Z","url":"/","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"level":"http","message":"::1 - - [27/Oct/2025:09:00:20 +0000] \"GET / HTTP/1.1\" 200 1454 \"-\" \"PostmanRuntime/7.49.0\"","timestamp":"2025-10-27T09:00:20.356Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-27T09:00:22.215Z","url":"/","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":200,"timestamp":"2025-10-27T09:00:22.216Z","url":"/","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"level":"http","message":"::1 - - [27/Oct/2025:09:00:22 +0000] \"GET / HTTP/1.1\" 200 1454 \"-\" \"PostmanRuntime/7.49.0\"","timestamp":"2025-10-27T09:00:22.218Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-27T09:00:25.834Z","url":"/health","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":200,"timestamp":"2025-10-27T09:00:25.836Z","url":"/health","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"level":"http","message":"::1 - - [27/Oct/2025:09:00:25 +0000] \"GET /health HTTP/1.1\" 200 576 \"-\" \"PostmanRuntime/7.49.0\"","timestamp":"2025-10-27T09:00:25.837Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T09:01:01.372Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T09:01:22.130Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-27T09:01:33.666Z","url":"/api/auth/send-code","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"clientInfo":{"ip":"::1","timestamp":"2025-10-27T09:01:33.668Z","userAgent":"PostmanRuntime/7.49.0"},"duration":2725,"error":"Authenticate","level":"error","message":"Twilio verification code send failed","phoneNumber":"+6391***","timestamp":"2025-10-27T09:01:36.393Z"}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"2729ms","statusCode":500,"timestamp":"2025-10-27T09:01:36.395Z","url":"/api/auth/send-code","userAgent":"PostmanRuntime/7.49.0","userId":null}
+{"level":"warn","message":"Slow Request Detected","method":"POST","responseTime":"2729ms","statusCode":500,"timestamp":"2025-10-27T09:01:36.395Z","url":"/api/auth/send-code","userId":null}
+{"level":"http","message":"::1 - - [27/Oct/2025:09:01:36 +0000] \"POST /api/auth/send-code HTTP/1.1\" 500 106 \"-\" \"PostmanRuntime/7.49.0\"","timestamp":"2025-10-27T09:01:36.397Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T09:20:24.702Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T09:20:37.803Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T09:21:09.528Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T09:21:21.370Z"}

@@ -72,7 +72,7 @@ const errorTrackingSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-errorTrackingSchema.index({ errorId: 1 });
+// errorId already has unique: true which creates an index
 errorTrackingSchema.index({ errorType: 1, severity: 1 });
 errorTrackingSchema.index({ resolved: 1, lastOccurred: -1 });
 errorTrackingSchema.index({ 'user.userId': 1 });

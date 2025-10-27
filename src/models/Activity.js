@@ -4,8 +4,7 @@ const activitySchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   type: {
     type: String,
@@ -70,8 +69,7 @@ const activitySchema = new mongoose.Schema({
       
       // Other
       'search_performed', 'filter_applied', 'export_requested', 'report_generated'
-    ],
-    index: true
+    ]
   },
   category: {
     type: String,
@@ -80,8 +78,7 @@ const activitySchema = new mongoose.Schema({
       'authentication', 'profile', 'marketplace', 'job_board', 'academy',
       'financial', 'communication', 'agency', 'referral', 'verification',
       'supplies', 'rentals', 'advertising', 'system', 'social', 'other'
-    ],
-    index: true
+    ]
   },
   action: {
     type: String,

@@ -261,7 +261,7 @@ const providerSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-providerSchema.index({ userId: 1 });
+// userId already has unique: true which creates an index
 providerSchema.index({ status: 1 });
 providerSchema.index({ providerType: 1 });
 providerSchema.index({ 'professionalInfo.specialties.category': 1 });
