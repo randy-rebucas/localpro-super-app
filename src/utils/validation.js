@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 // User validation schemas
 const phoneNumberSchema = Joi.string()
-  .pattern(/^\+[1-9]\d{1,14}$/)
+  .pattern(/^\+[1-9]\d{4,14}$/)
   .required()
   .messages({
     'string.pattern.base': 'Phone number must be in international format (+1234567890)'
@@ -22,7 +22,7 @@ const sendCodeSchema = Joi.object({
 
 const verifyCodeSchema = Joi.object({
   phoneNumber: phoneNumberSchema,
-  code: Joi.string().length(6).required(),
+  code: Joi.string().length(6).pattern(/^\d{6}$/).required(),
   firstName: Joi.string().min(2).max(50).when('$isNewUser', {
     is: true,
     then: Joi.required(),
@@ -116,7 +116,7 @@ const loanApplicationSchema = Joi.object({
 
 // Validate MongoDB ObjectId format
 const validateObjectId = (id) => {
-  return id && id.match(/^[0-9a-fA-F]{24}$/);
+  return !!(id && id.match(/^[0-9a-fA-F]{24}$/));
 };
 
 // Middleware to validate ObjectId in params

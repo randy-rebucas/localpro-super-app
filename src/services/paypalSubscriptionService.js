@@ -1,5 +1,6 @@
 const axios = require('axios');
 const crypto = require('crypto');
+const logger = require('../config/logger');
 
 class PayPalSubscriptionService {
   constructor() {
@@ -355,7 +356,7 @@ class PayPalSubscriptionService {
       const eventType = event.event_type;
       const resource = event.resource;
 
-      console.log(`Processing PayPal webhook event: ${eventType}`);
+      logger.info(`Processing PayPal webhook event: ${eventType}`);
 
       switch (eventType) {
         case 'BILLING.SUBSCRIPTION.ACTIVATED':
@@ -371,7 +372,7 @@ class PayPalSubscriptionService {
         case 'BILLING.SUBSCRIPTION.EXPIRED':
           return await this.handleSubscriptionExpired(resource);
         default:
-          console.log(`Unhandled PayPal webhook event: ${eventType}`);
+          logger.info(`Unhandled PayPal webhook event: ${eventType}`);
           return { success: true, message: 'Event not handled' };
       }
     } catch (error) {
@@ -387,7 +388,7 @@ class PayPalSubscriptionService {
    * Handle subscription activated webhook
    */
   async handleSubscriptionActivated(resource) {
-    console.log('Subscription activated:', resource.id);
+    logger.info('Subscription activated:', resource.id);
     return { success: true };
   }
 
@@ -395,7 +396,7 @@ class PayPalSubscriptionService {
    * Handle subscription cancelled webhook
    */
   async handleSubscriptionCancelled(resource) {
-    console.log('Subscription cancelled:', resource.id);
+    logger.info('Subscription cancelled:', resource.id);
     return { success: true };
   }
 
@@ -403,7 +404,7 @@ class PayPalSubscriptionService {
    * Handle subscription suspended webhook
    */
   async handleSubscriptionSuspended(resource) {
-    console.log('Subscription suspended:', resource.id);
+    logger.info('Subscription suspended:', resource.id);
     return { success: true };
   }
 
@@ -411,7 +412,7 @@ class PayPalSubscriptionService {
    * Handle subscription payment completed webhook
    */
   async handleSubscriptionPaymentCompleted(resource) {
-    console.log('Subscription payment completed:', resource.id);
+    logger.info('Subscription payment completed:', resource.id);
     return { success: true };
   }
 
@@ -419,7 +420,7 @@ class PayPalSubscriptionService {
    * Handle subscription payment failed webhook
    */
   async handleSubscriptionPaymentFailed(resource) {
-    console.log('Subscription payment failed:', resource.id);
+    logger.info('Subscription payment failed:', resource.id);
     return { success: true };
   }
 
@@ -427,7 +428,7 @@ class PayPalSubscriptionService {
    * Handle subscription expired webhook
    */
   async handleSubscriptionExpired(resource) {
-    console.log('Subscription expired:', resource.id);
+    logger.info('Subscription expired:', resource.id);
     return { success: true };
   }
 }

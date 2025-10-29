@@ -1,0 +1,1134 @@
+{
+  "info": {
+    "name": "LocalPro Super App API - Public Endpoints Only",
+    "description": "Complete collection of all public endpoints that don't require authentication for the LocalPro Super App API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Root & Health",
+      "item": [
+        {
+          "name": "API Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Get API information and status"
+          },
+          "response": []
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check API health status"
+          },
+          "response": []
+        },
+        {
+          "name": "Download Postman Collection",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/LocalPro-Super-App-API.postman_collection.json",
+              "host": ["{{baseUrl}}"],
+              "path": ["LocalPro-Super-App-API.postman_collection.json"]
+            },
+            "description": "Download the complete Postman collection"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Send Verification Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+639123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/send-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "send-code"]
+            },
+            "description": "Send verification code to phone number"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+639123456789\",\n  \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "verify-code"]
+            },
+            "description": "Verify phone number with code"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Marketplace",
+      "item": [
+        {
+          "name": "Get All Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/services?page=1&limit=20&category=cleaning&location=Manila",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketplace", "services"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "category",
+                  "value": "cleaning"
+                },
+                {
+                  "key": "location",
+                  "value": "Manila"
+                }
+              ]
+            },
+            "description": "Get all marketplace services with pagination and filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Nearby Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/services/nearby?lat=14.5995&lng=120.9842&radius=10&category=cleaning",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketplace", "services", "nearby"],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "14.5995"
+                },
+                {
+                  "key": "lng",
+                  "value": "120.9842"
+                },
+                {
+                  "key": "radius",
+                  "value": "10"
+                },
+                {
+                  "key": "category",
+                  "value": "cleaning"
+                }
+              ]
+            },
+            "description": "Get services near a specific location"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Service Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketplace", "services", "{{serviceId}}"]
+            },
+            "description": "Get detailed information about a specific service"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Job Board",
+      "item": [
+        {
+          "name": "Get All Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs?page=1&limit=20&category=technology&location=Manila&jobType=full_time",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "category",
+                  "value": "technology"
+                },
+                {
+                  "key": "location",
+                  "value": "Manila"
+                },
+                {
+                  "key": "jobType",
+                  "value": "full_time"
+                }
+              ]
+            },
+            "description": "Get all job listings with pagination and filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/search?q=developer&location=Manila&category=technology",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "developer"
+                },
+                {
+                  "key": "location",
+                  "value": "Manila"
+                },
+                {
+                  "key": "category",
+                  "value": "technology"
+                }
+              ]
+            },
+            "description": "Search jobs with specific criteria"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Job Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs", "{{jobId}}"]
+            },
+            "description": "Get detailed information about a specific job"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Supplies",
+      "item": [
+        {
+          "name": "Get All Supplies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies?page=1&limit=20&category=cleaning_supplies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "category",
+                  "value": "cleaning_supplies"
+                }
+              ]
+            },
+            "description": "Get all supplies/products"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Supplies (Products Alias)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies/products?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies", "products"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get supplies using products alias"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Supply Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies", "categories"]
+            },
+            "description": "Get all supply categories"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Featured Supplies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies", "featured"]
+            },
+            "description": "Get featured supplies"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Nearby Supplies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies/nearby?lat=14.5995&lng=120.9842&radius=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies", "nearby"],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "14.5995"
+                },
+                {
+                  "key": "lng",
+                  "value": "120.9842"
+                },
+                {
+                  "key": "radius",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get supplies near a specific location"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Supply Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/supplies/{{supplyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "supplies", "{{supplyId}}"]
+            },
+            "description": "Get detailed information about a specific supply"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Rentals",
+      "item": [
+        {
+          "name": "Get All Rental Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals?page=1&limit=20&category=tools",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "category",
+                  "value": "tools"
+                }
+              ]
+            },
+            "description": "Get all rental items"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rental Items (Alias)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/items?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "items"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get rental items using items alias"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rental Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "categories"]
+            },
+            "description": "Get all rental categories"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Featured Rentals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "featured"]
+            },
+            "description": "Get featured rental items"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Nearby Rentals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/nearby?lat=14.5995&lng=120.9842&radius=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "nearby"],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "14.5995"
+                },
+                {
+                  "key": "lng",
+                  "value": "120.9842"
+                },
+                {
+                  "key": "radius",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get rental items near a specific location"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rental Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rentals/{{rentalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rentals", "{{rentalId}}"]
+            },
+            "description": "Get detailed information about a specific rental item"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Academy",
+      "item": [
+        {
+          "name": "Get All Courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/academy/courses?page=1&limit=20&category=cleaning",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "academy", "courses"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "category",
+                  "value": "cleaning"
+                }
+              ]
+            },
+            "description": "Get all academy courses"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/academy/courses/{{courseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "academy", "courses", "{{courseId}}"]
+            },
+            "description": "Get detailed information about a specific course"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/academy/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "academy", "categories"]
+            },
+            "description": "Get all course categories"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Featured Courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/academy/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "academy", "featured"]
+            },
+            "description": "Get featured courses"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Agencies",
+      "item": [
+        {
+          "name": "Get All Agencies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies?page=1&limit=20&industry=cleaning",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "industry",
+                  "value": "cleaning"
+                }
+              ]
+            },
+            "description": "Get all service agencies"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Agency Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/agencies/{{agencyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agencies", "{{agencyId}}"]
+            },
+            "description": "Get detailed information about a specific agency"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Announcements",
+      "item": [
+        {
+          "name": "Get All Announcements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/announcements?page=1&limit=20&type=general&priority=medium",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "announcements"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "type",
+                  "value": "general"
+                },
+                {
+                  "key": "priority",
+                  "value": "medium"
+                }
+              ]
+            },
+            "description": "Get all announcements with filtering and pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Announcement Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/announcements/{{announcementId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "announcements", "{{announcementId}}"]
+            },
+            "description": "Get detailed information about a specific announcement"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Maps & Location",
+      "item": [
+        {
+          "name": "Get Maps Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/maps",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps"]
+            },
+            "description": "Get maps service information"
+          },
+          "response": []
+        },
+        {
+          "name": "Geocode Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"Makati City, Philippines\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/geocode",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "geocode"]
+            },
+            "description": "Convert address to coordinates"
+          },
+          "response": []
+        },
+        {
+          "name": "Reverse Geocode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat\": 14.5995,\n  \"lng\": 120.9842\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/reverse-geocode",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "reverse-geocode"]
+            },
+            "description": "Convert coordinates to address"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Places",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"restaurants in Makati\",\n  \"location\": {\n    \"lat\": 14.5995,\n    \"lng\": 120.9842\n  },\n  \"radius\": 5000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/places/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "places", "search"]
+            },
+            "description": "Search for places"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Place Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/places/{{placeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "places", "{{placeId}}"]
+            },
+            "description": "Get detailed information about a specific place"
+          },
+          "response": []
+        },
+        {
+          "name": "Calculate Distance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": {\n    \"lat\": 14.5995,\n    \"lng\": 120.9842\n  },\n  \"destination\": {\n    \"lat\": 14.6042,\n    \"lng\": 120.9822\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/distance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "distance"]
+            },
+            "description": "Calculate distance between two points"
+          },
+          "response": []
+        },
+        {
+          "name": "Find Nearby Places",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": {\n    \"lat\": 14.5995,\n    \"lng\": 120.9842\n  },\n  \"radius\": 1000,\n  \"type\": \"restaurant\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/nearby",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "nearby"]
+            },
+            "description": "Find places near a specific location"
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Service Area",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": {\n    \"lat\": 14.5995,\n    \"lng\": 120.9842\n  },\n  \"serviceAreas\": [\n    {\n      \"name\": \"Makati\",\n      \"coordinates\": [\n        {\"lat\": 14.5900, \"lng\": 120.9800},\n        {\"lat\": 14.6100, \"lng\": 120.9800},\n        {\"lat\": 14.6100, \"lng\": 120.9900},\n        {\"lat\": 14.5900, \"lng\": 120.9900}\n      ]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maps/validate-service-area",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maps", "validate-service-area"]
+            },
+            "description": "Validate if a location is within service areas"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Global Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search?q=cleaning&type=services&location=Manila&limit=20&page=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cleaning"
+                },
+                {
+                  "key": "type",
+                  "value": "services"
+                },
+                {
+                  "key": "location",
+                  "value": "Manila"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Global search across all entities"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Search Suggestions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/suggestions?q=clean&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "suggestions"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "clean"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get search suggestions/autocomplete"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Popular Searches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/popular?limit=12",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "popular"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "12"
+                }
+              ]
+            },
+            "description": "Get popular search terms"
+          },
+          "response": []
+        },
+        {
+          "name": "Advanced Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/advanced?q=cleaning&type=services&verified=true&availability=available&minPrice=100&maxPrice=500",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "advanced"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cleaning"
+                },
+                {
+                  "key": "type",
+                  "value": "services"
+                },
+                {
+                  "key": "verified",
+                  "value": "true"
+                },
+                {
+                  "key": "availability",
+                  "value": "available"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "100"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "500"
+                }
+              ]
+            },
+            "description": "Advanced search with more filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Search by Entity Type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/entities/services?q=cleaning&location=Manila&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "entities", "services"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cleaning"
+                },
+                {
+                  "key": "location",
+                  "value": "Manila"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Search within a specific entity type"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Search Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "categories"]
+            },
+            "description": "Get all available search categories"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Search Locations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/locations?q=Manila&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "locations"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Manila"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get popular search locations"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trending Searches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/trending?period=week&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "trending"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "week"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get trending search terms"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "description": "Base URL for the LocalPro Super App API"
+    },
+    {
+      "key": "serviceId",
+      "value": "60f7b3b3b3b3b3b3b3b3b3b3",
+      "description": "Sample service ID for testing"
+    },
+    {
+      "key": "jobId",
+      "value": "60f7b3b3b3b3b3b3b3b3b3b3",
+      "description": "Sample job ID for testing"
+    },
+    {
+      "key": "supplyId",
+      "value": "60f7b3b3b3b3b3b3b3b3b3b3",
+      "description": "Sample supply ID for testing"
+    },
+    {
+      "key": "rentalId",
+      "value": "60f7b3b3b3b3b3b3b3b3b3b3",
+      "description": "Sample rental ID for testing"
+    },
+    {
+      "key": "courseId",
+      "value": "60f7b3b3b3b3b3b3b3b3b3b3",
+      "description": "Sample course ID for testing"
+    },
+    {
+      "key": "agencyId",
+      "value": "60f7b3b3b3b3b3b3b3b3b3b3",
+      "description": "Sample agency ID for testing"
+    },
+    {
+      "key": "announcementId",
+      "value": "60f7b3b3b3b3b3b3b3b3b3b3",
+      "description": "Sample announcement ID for testing"
+    },
+    {
+      "key": "placeId",
+      "value": "ChIJd8BlQ2BZwokRAFQEcDlJRAI",
+      "description": "Sample Google Places ID for testing"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 const twilio = require('twilio');
+const logger = require('../config/logger');
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -8,16 +9,16 @@ const serviceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
 let client = null;
 let isTwilioConfigured = false;
 
-if (accountSid && authToken && serviceSid) {
+if (accountSid && authToken && serviceSid && process.env.NODE_ENV !== 'development') {
   try {
     client = twilio(accountSid, authToken);
     isTwilioConfigured = true;
-    console.log('✅ Twilio client initialized successfully');
+    logger.info('✅ Twilio client initialized successfully');
   } catch (error) {
     console.warn('⚠️ Twilio client initialization failed:', error.message);
   }
 } else {
-  console.warn('⚠️ Twilio credentials not provided, using mock mode');
+  console.warn('⚠️ Twilio credentials not provided or in development mode, using mock mode');
 }
 
 class TwilioService {
@@ -41,7 +42,7 @@ class TwilioService {
           channel: 'sms'
         });
 
-      console.log(`✅ Verification code sent to ${phoneNumber.substring(0, 5)}***`);
+      logger.info(`✅ Verification code sent to ${phoneNumber.substring(0, 5)}***`);
       
       return {
         success: true,
@@ -86,7 +87,7 @@ class TwilioService {
         });
 
       const isApproved = verificationCheck.status === 'approved';
-      console.log(`✅ Verification ${isApproved ? 'approved' : 'denied'} for ${phoneNumber.substring(0, 5)}***`);
+      logger.info(`✅ Verification ${isApproved ? 'approved' : 'denied'} for ${phoneNumber.substring(0, 5)}***`);
 
       return {
         success: isApproved,
@@ -113,7 +114,7 @@ class TwilioService {
     try {
       if (!client || !process.env.TWILIO_PHONE_NUMBER) {
         console.warn('Twilio not configured, logging SMS for development');
-        console.log(`Mock SMS to ${to}: ${message}`);
+        logger.info(`Mock SMS to ${to}: ${message}`);
         
         return {
           success: true,
@@ -148,7 +149,7 @@ class TwilioService {
     
     if (action === 'send') {
       const mockCode = Math.floor(100000 + Math.random() * 900000).toString();
-      console.log(`📱 Mock verification code for ${phoneNumber}: ${mockCode}`);
+      logger.info(`📱 Mock verification code for ${phoneNumber}: ${mockCode}`);
       
       return {
         success: true,
@@ -160,14 +161,14 @@ class TwilioService {
     } else if (action === 'verify') {
       // Accept any 6-digit code in mock mode
       if (code && code.length === 6 && /^\d{6}$/.test(code)) {
-        console.log(`✅ Mock verification approved for ${phoneNumber}`);
+        logger.info(`✅ Mock verification approved for ${phoneNumber}`);
         return {
           success: true,
           status: 'approved',
           isMock: true
         };
       } else {
-        console.log(`❌ Mock verification denied for ${phoneNumber}`);
+        logger.info(`❌ Mock verification denied for ${phoneNumber}`);
         return {
           success: false,
           status: 'denied',

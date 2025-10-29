@@ -1,5 +1,6 @@
 const axios = require('axios');
 const crypto = require('crypto');
+const logger = require('../config/logger');
 
 // PayMaya API Configuration
 const PAYMAYA_CONFIG = {
@@ -385,7 +386,7 @@ class PayMayaService {
         case 'INVOICE_EXPIRED':
           return await this.handleInvoiceExpired(data);
         default:
-          console.log(`Unhandled PayMaya webhook event: ${eventType}`);
+          logger.info(`Unhandled PayMaya webhook event: ${eventType}`);
           return { success: true, message: 'Event not handled' };
       }
     } catch (error) {
@@ -401,7 +402,7 @@ class PayMayaService {
    * Handle checkout success webhook
    */
   static async handleCheckoutSuccess(data) {
-    console.log('Checkout success:', data.checkoutId);
+    logger.info('Checkout success:', data.checkoutId);
     return { success: true };
   }
 
@@ -409,7 +410,7 @@ class PayMayaService {
    * Handle checkout failure webhook
    */
   static async handleCheckoutFailure(data) {
-    console.log('Checkout failure:', data.checkoutId);
+    logger.info('Checkout failure:', data.checkoutId);
     return { success: true };
   }
 
@@ -417,7 +418,7 @@ class PayMayaService {
    * Handle payment success webhook
    */
   static async handlePaymentSuccess(data) {
-    console.log('Payment success:', data.paymentId);
+    logger.info('Payment success:', data.paymentId);
     return { success: true };
   }
 
@@ -425,7 +426,7 @@ class PayMayaService {
    * Handle payment failure webhook
    */
   static async handlePaymentFailure(data) {
-    console.log('Payment failure:', data.paymentId);
+    logger.info('Payment failure:', data.paymentId);
     return { success: true };
   }
 
@@ -433,7 +434,7 @@ class PayMayaService {
    * Handle invoice paid webhook
    */
   static async handleInvoicePaid(data) {
-    console.log('Invoice paid:', data.invoiceId);
+    logger.info('Invoice paid:', data.invoiceId);
     return { success: true };
   }
 
@@ -441,7 +442,7 @@ class PayMayaService {
    * Handle invoice expired webhook
    */
   static async handleInvoiceExpired(data) {
-    console.log('Invoice expired:', data.invoiceId);
+    logger.info('Invoice expired:', data.invoiceId);
     return { success: true };
   }
 

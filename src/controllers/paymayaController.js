@@ -4,6 +4,7 @@ const { Transaction } = require('../models/Finance');
 const { Booking } = require('../models/Marketplace');
 const { Order } = require('../models/Supplies');
 const { validationResult } = require('express-validator');
+const logger = require('../config/logger');
 
 // @desc    Create PayMaya checkout session
 // @route   POST /api/paymaya/checkout
@@ -403,7 +404,7 @@ const handleSpecificWebhookEvent = async (event) => {
         await handleInvoiceExpired(data);
         break;
       default:
-        console.log(`Unhandled PayMaya webhook event: ${eventType}`);
+        logger.info(`Unhandled PayMaya webhook event: ${eventType}`);
     }
   } catch (error) {
     console.error(`Error handling PayMaya webhook event ${eventType}:`, error);
@@ -424,7 +425,7 @@ const handleCheckoutSuccess = async (data) => {
     // Find and update the relevant record based on reference number
     await updatePaymentStatus(requestReferenceNumber, 'completed', checkoutId);
     
-    console.log(`Checkout success for reference: ${requestReferenceNumber}`);
+    logger.info(`Checkout success for reference: ${requestReferenceNumber}`);
   } catch (error) {
     console.error('Error handling checkout success:', error);
   }
@@ -444,7 +445,7 @@ const handleCheckoutFailure = async (data) => {
     // Find and update the relevant record
     await updatePaymentStatus(requestReferenceNumber, 'failed');
     
-    console.log(`Checkout failure for reference: ${requestReferenceNumber}`);
+    logger.info(`Checkout failure for reference: ${requestReferenceNumber}`);
   } catch (error) {
     console.error('Error handling checkout failure:', error);
   }
@@ -464,7 +465,7 @@ const handlePaymentSuccess = async (data) => {
     // Find and update the relevant record
     await updatePaymentStatus(requestReferenceNumber, 'completed', paymentId);
     
-    console.log(`Payment success for reference: ${requestReferenceNumber}`);
+    logger.info(`Payment success for reference: ${requestReferenceNumber}`);
   } catch (error) {
     console.error('Error handling payment success:', error);
   }
@@ -484,7 +485,7 @@ const handlePaymentFailure = async (data) => {
     // Find and update the relevant record
     await updatePaymentStatus(requestReferenceNumber, 'failed');
     
-    console.log(`Payment failure for reference: ${requestReferenceNumber}`);
+    logger.info(`Payment failure for reference: ${requestReferenceNumber}`);
   } catch (error) {
     console.error('Error handling payment failure:', error);
   }
@@ -504,7 +505,7 @@ const handleInvoicePaid = async (data) => {
     // Find and update the relevant record
     await updatePaymentStatus(requestReferenceNumber, 'completed', invoiceId);
     
-    console.log(`Invoice paid for reference: ${requestReferenceNumber}`);
+    logger.info(`Invoice paid for reference: ${requestReferenceNumber}`);
   } catch (error) {
     console.error('Error handling invoice paid:', error);
   }
@@ -524,7 +525,7 @@ const handleInvoiceExpired = async (data) => {
     // Find and update the relevant record
     await updatePaymentStatus(requestReferenceNumber, 'expired');
     
-    console.log(`Invoice expired for reference: ${requestReferenceNumber}`);
+    logger.info(`Invoice expired for reference: ${requestReferenceNumber}`);
   } catch (error) {
     console.error('Error handling invoice expired:', error);
   }
@@ -584,7 +585,7 @@ const updatePaymentStatus = async (referenceNumber, status, transactionId = null
       return;
     }
 
-    console.log(`No record found for PayMaya reference: ${referenceNumber}`);
+    logger.info(`No record found for PayMaya reference: ${referenceNumber}`);
   } catch (error) {
     console.error('Error updating payment status:', error);
   }

@@ -5,6 +5,7 @@ const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
 const PayPalService = require('../services/paypalService');
 const { uploaders } = require('../config/cloudinary');
+const logger = require('../config/logger');
 const { 
   sendPaginated, 
   sendSuccess, 
@@ -358,7 +359,7 @@ const createBooking = async (req, res) => {
     if (booking.client.email) {
       try {
         await EmailService.sendBookingConfirmation(booking.client.email, booking);
-        console.log(`Booking confirmation email sent to: ${booking.client.email}`);
+        logger.info(`Booking confirmation email sent to: ${booking.client.email}`);
       } catch (emailError) {
         console.error('Failed to send booking confirmation email:', emailError);
         // Don't fail the booking if email fails
@@ -846,7 +847,7 @@ const approvePayPalBooking = async (req, res) => {
     if (booking.client.email) {
       try {
         await EmailService.sendBookingConfirmation(booking.client.email, booking);
-        console.log(`Booking confirmation email sent to: ${booking.client.email}`);
+        logger.info(`Booking confirmation email sent to: ${booking.client.email}`);
       } catch (emailError) {
         console.error('Failed to send booking confirmation email:', emailError);
       }

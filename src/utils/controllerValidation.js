@@ -15,7 +15,7 @@ const validatePagination = (query) => {
   
   const errors = [];
   
-  if (isNaN(pageNum) || pageNum < 1) {
+  if (isNaN(pageNum) || pageNum < 1 || !Number.isInteger(parseFloat(page))) {
     errors.push({
       field: 'page',
       message: 'Page number must be a positive integer',
@@ -23,7 +23,7 @@ const validatePagination = (query) => {
     });
   }
   
-  if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+  if (isNaN(limitNum) || limitNum < 1 || limitNum > 100 || !Number.isInteger(parseFloat(limit))) {
     errors.push({
       field: 'limit',
       message: 'Limit must be between 1 and 100',
@@ -44,7 +44,7 @@ const validatePagination = (query) => {
  * @returns {boolean} - Whether the ID is valid
  */
 const validateObjectId = (id) => {
-  return id && /^[0-9a-fA-F]{24}$/.test(id);
+  return !!(id && /^[0-9a-fA-F]{24}$/.test(id));
 };
 
 /**
@@ -114,8 +114,9 @@ const validateNumericRange = (value, min, max, fieldName) => {
  * @returns {boolean} - Whether the email is valid
  */
 const validateEmail = (email) => {
+  if (!email || typeof email !== 'string') return false;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  return emailRegex.test(email) && !email.includes('..');
 };
 
 /**
@@ -124,7 +125,8 @@ const validateEmail = (email) => {
  * @returns {boolean} - Whether the phone number is valid
  */
 const validatePhoneNumber = (phoneNumber) => {
-  const phoneRegex = /^\+[1-9]\d{1,14}$/;
+  if (!phoneNumber || typeof phoneNumber !== 'string') return false;
+  const phoneRegex = /^\+[1-9]\d{4,14}$/;
   return phoneRegex.test(phoneNumber);
 };
 
@@ -188,7 +190,7 @@ const sendServerError = (res, error, message = 'Internal server error', code = '
     success: false,
     message,
     code,
-    error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    error: (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === undefined) ? error.message : undefined
   });
 };
 

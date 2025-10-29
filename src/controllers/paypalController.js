@@ -4,6 +4,7 @@ const { Payment, UserSubscription } = require('../models/LocalProPlus');
 const { Transaction } = require('../models/Finance');
 const { Booking } = require('../models/Marketplace');
 const { Order } = require('../models/Supplies');
+const logger = require('../config/logger');
 
 // @desc    Handle PayPal webhook events
 // @route   POST /api/paypal/webhook
@@ -83,7 +84,7 @@ const handleSpecificWebhookEvent = async (event) => {
         await handleSubscriptionExpired(resource);
         break;
       default:
-        console.log(`Unhandled PayPal webhook event: ${eventType}`);
+        logger.info(`Unhandled PayPal webhook event: ${eventType}`);
     }
   } catch (error) {
     console.error(`Error handling PayPal webhook event ${eventType}:`, error);
@@ -104,7 +105,7 @@ const handlePaymentCompleted = async (resource) => {
     // Find and update the relevant record based on order ID
     await updatePaymentStatus(orderId, 'completed', captureId);
     
-    console.log(`Payment completed for order: ${orderId}`);
+    logger.info(`Payment completed for order: ${orderId}`);
   } catch (error) {
     console.error('Error handling payment completed:', error);
   }
@@ -123,7 +124,7 @@ const handlePaymentDenied = async (resource) => {
     // Find and update the relevant record
     await updatePaymentStatus(orderId, 'failed');
     
-    console.log(`Payment denied for order: ${orderId}`);
+    logger.info(`Payment denied for order: ${orderId}`);
   } catch (error) {
     console.error('Error handling payment denied:', error);
   }
@@ -168,7 +169,7 @@ const handleSubscriptionActivated = async (resource) => {
       }
     }
     
-    console.log(`Subscription activated: ${subscriptionId}`);
+    logger.info(`Subscription activated: ${subscriptionId}`);
   } catch (error) {
     console.error('Error handling subscription activated:', error);
   }
@@ -197,7 +198,7 @@ const handleSubscriptionCancelled = async (resource) => {
       await subscription.save();
     }
     
-    console.log(`Subscription cancelled: ${subscriptionId}`);
+    logger.info(`Subscription cancelled: ${subscriptionId}`);
   } catch (error) {
     console.error('Error handling subscription cancelled:', error);
   }
@@ -247,7 +248,7 @@ const handleSubscriptionPaymentCompleted = async (resource) => {
       await subscription.save();
     }
     
-    console.log(`Subscription payment completed: ${subscriptionId}`);
+    logger.info(`Subscription payment completed: ${subscriptionId}`);
   } catch (error) {
     console.error('Error handling subscription payment completed:', error);
   }
@@ -285,7 +286,7 @@ const handleSubscriptionPaymentFailed = async (resource) => {
       await subscription.save();
     }
     
-    console.log(`Subscription payment failed: ${subscriptionId}`);
+    logger.info(`Subscription payment failed: ${subscriptionId}`);
   } catch (error) {
     console.error('Error handling subscription payment failed:', error);
   }
@@ -345,7 +346,7 @@ const updatePaymentStatus = async (orderId, status, transactionId = null) => {
       return;
     }
 
-    console.log(`No record found for PayPal order: ${orderId}`);
+    logger.info(`No record found for PayPal order: ${orderId}`);
   } catch (error) {
     console.error('Error updating payment status:', error);
   }
@@ -377,7 +378,7 @@ const handleSubscriptionSuspended = async (resource) => {
   try {
     const subscriptionId = resource.id;
     const customId = resource.custom_id;
-    console.log('Subscription suspended:', subscriptionId);
+    logger.info('Subscription suspended:', subscriptionId);
     
     // Update subscription status
     const subscription = await UserSubscription.findById(customId);
@@ -395,7 +396,7 @@ const handleSubscriptionExpired = async (resource) => {
   try {
     const subscriptionId = resource.id;
     const customId = resource.custom_id;
-    console.log('Subscription expired:', subscriptionId);
+    logger.info('Subscription expired:', subscriptionId);
     
     // Update subscription status
     const subscription = await UserSubscription.findById(customId);

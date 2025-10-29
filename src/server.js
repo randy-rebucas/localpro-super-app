@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const connectDB = require('./config/database');
 const logger = require('./config/logger');
+const StartupValidator = require('./utils/startupValidation');
 const { errorHandler } = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
 const { auditGeneralOperations } = require('./middleware/auditLogger');
@@ -37,43 +38,106 @@ const userManagementRoutes = require('./routes/userManagement');
 const searchRoutes = require('./routes/search');
 const announcementsRoutes = require('./routes/announcements');
 const activitiesRoutes = require('./routes/activities');
+const monitoringRoutes = require('./routes/monitoring');
+const alertsRoutes = require('./routes/alerts');
+const databaseMonitoringRoutes = require('./routes/databaseMonitoring');
+const metricsStreamRoutes = require('./routes/metricsStream');
+const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 
 const app = express();
 
 // Trust proxy - necessary when behind reverse proxy/load balancer (e.g., Render, nginx)
 app.set('trust proxy', 1);
 
-// Connect to MongoDB
-connectDB();
+// Initialize startup validator
+const startupValidator = new StartupValidator();
 
-// Security middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
+// Add custom startup checks
+startupValidator.addCheck('JWT Secret Strength', () => {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) return false;
+  
+  // Check minimum length for production
+  if (process.env.NODE_ENV === 'production' && jwtSecret.length < 64) {
+    logger.warn('⚠️  JWT_SECRET should be at least 64 characters long in production');
+    return false;
+  }
+  
+  return jwtSecret.length >= 32;
+}, true);
 
-// Rate limiting - DISABLED
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 100, // limit each IP to 100 requests per windowMs
-//   message: 'Too many requests from this IP, please try again later.'
-// });
-// app.use('/api/', limiter);
+startupValidator.addCheck('Frontend URL Format', () => {
+  const frontendUrl = process.env.FRONTEND_URL;
+  if (!frontendUrl) return false;
+  
+  try {
+    new URL(frontendUrl);
+    return true;
+  } catch {
+    return false;
+  }
+}, true);
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+// Run startup validation
+async function initializeApplication() {
+  try {
+    logger.info('🚀 Initializing LocalPro Super App...');
+    
+    // Run all startup checks
+    const validationResults = await startupValidator.runAllChecks();
+    
+    if (!validationResults.overall) {
+      logger.error('❌ Application startup validation failed');
+      process.exit(1);
+    }
+    
+    logger.info('✅ Application startup validation completed successfully');
+    
+    // Connect to MongoDB after validation
+    connectDB();
+    
+    // Start the server
+    startServer();
+    
+  } catch (error) {
+    logger.error('❌ Application initialization failed:', error);
+    process.exit(1);
+  }
+}
 
-// Logging middleware
-app.use(morgan('combined', { stream: logger.stream }));
-app.use(requestLogger);
+// Start the server
+function startServer() {
+  // Security middleware
+  app.use(helmet());
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true
+  }));
 
-// Audit logging middleware
-app.use(auditGeneralOperations);
+  // Rate limiting - DISABLED
+  // const limiter = rateLimit({
+  //   windowMs: 15 * 60 * 1000, // 15 minutes
+  //   max: 100, // limit each IP to 100 requests per windowMs
+  //   message: 'Too many requests from this IP, please try again later.'
+  // });
+  // app.use('/api/', limiter);
 
-// Index API info endpoint
-app.get('/', (req, res) => {
+  // Body parsing middleware
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true }));
+
+  // Logging middleware
+  app.use(morgan('combined', { stream: logger.stream }));
+  app.use(requestLogger);
+
+  // Metrics collection middleware
+  app.use(metricsMiddleware);
+
+  // Audit logging middleware
+  app.use(auditGeneralOperations);
+
+  // Index API info endpoint
+  app.get('/', (req, res) => {
   res.status(200).json({
     status: 'OK',
     message: 'LocalPro Super App API is running',
@@ -132,111 +196,121 @@ app.get('/', (req, res) => {
       openInNewTab: true
     }
   });
-});
+  });
 
-// Health check functions
-const checkDatabaseHealth = async () => {
-  try {
-    const mongoose = require('mongoose');
-    const state = mongoose.connection.readyState;
-    const states = {
-      0: 'disconnected',
-      1: 'connected',
-      2: 'connecting',
-      3: 'disconnecting'
+  // Health check functions
+  const checkDatabaseHealth = async () => {
+    try {
+      const mongoose = require('mongoose');
+      const state = mongoose.connection.readyState;
+      const states = {
+        0: 'disconnected',
+        1: 'connected',
+        2: 'connecting',
+        3: 'disconnecting'
+      };
+      
+      return {
+        status: state === 1 ? 'healthy' : 'unhealthy',
+        state: states[state] || 'unknown',
+        host: mongoose.connection.host,
+        port: mongoose.connection.port,
+        name: mongoose.connection.name
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        error: error.message
+      };
+    }
+  };
+
+  const checkExternalAPIs = async () => {
+    const apis = {
+      twilio: { status: 'unknown', response_time: null },
+      paypal: { status: 'unknown', response_time: null },
+      paymaya: { status: 'unknown', response_time: null },
+      cloudinary: { status: 'unknown', response_time: null }
     };
     
-    return {
-      status: state === 1 ? 'healthy' : 'unhealthy',
-      state: states[state] || 'unknown',
-      host: mongoose.connection.host,
-      port: mongoose.connection.port,
-      name: mongoose.connection.name
-    };
-  } catch (error) {
-    return {
-      status: 'unhealthy',
-      error: error.message
-    };
-  }
-};
-
-const checkExternalAPIs = async () => {
-  const apis = {
-    twilio: { status: 'unknown', response_time: null },
-    paypal: { status: 'unknown', response_time: null },
-    paymaya: { status: 'unknown', response_time: null },
-    cloudinary: { status: 'unknown', response_time: null }
+    // For now, just return basic status
+    // In production, you might want to actually ping these services
+    return apis;
   };
-  
-  // For now, just return basic status
-  // In production, you might want to actually ping these services
-  return apis;
-};
 
-// Health check endpoint
-app.get('/health', async (req, res) => {
-  const health = {
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database: await checkDatabaseHealth(),
-    external_apis: await checkExternalAPIs(),
-    memory: process.memoryUsage(),
-    version: process.env.npm_package_version
-  };
-  res.status(200).json(health);
-});
-
-// Serve Postman collection
-app.get('/LocalPro-Super-App-API.postman_collection.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Content-Disposition', 'attachment; filename="LocalPro-Super-App-API.postman_collection.json"');
-  res.sendFile('LocalPro-Super-App-API.postman_collection.json', { root: '.' });
-});
-
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/marketplace', marketplaceRoutes);
-app.use('/api/supplies', suppliesRoutes);
-app.use('/api/academy', academyRoutes);
-app.use('/api/finance', financeRoutes);
-app.use('/api/rentals', rentalsRoutes);
-app.use('/api/ads', adsRoutes);
-app.use('/api/facility-care', facilityCareRoutes);
-app.use('/api/localpro-plus', localproPlusRoutes);
-app.use('/api/trust-verification', trustVerificationRoutes);
-app.use('/api/communication', communicationRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/maps', mapsRoutes);
-app.use('/api/paypal', paypalRoutes);
-app.use('/api/paymaya', paymayaRoutes);
-app.use('/api/jobs', jobsRoutes);
-app.use('/api/referrals', referralsRoutes);
-app.use('/api/agencies', agenciesRoutes);
-app.use('/api/settings', settingsRoutes);
-app.use('/api/error-monitoring', errorMonitoringRoutes);
-app.use('/api/audit-logs', auditLogsRoutes);
-app.use('/api/providers', providersRoutes);
-app.use('/api/logs', logsRoutes);
-app.use('/api/users', userManagementRoutes);
-app.use('/api/search', searchRoutes);
-app.use('/api/announcements', announcementsRoutes);
-app.use('/api/activities', activitiesRoutes);
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'API endpoint not found'
+  // Health check endpoint
+  app.get('/health', async (req, res) => {
+    const health = {
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: await checkDatabaseHealth(),
+      external_apis: await checkExternalAPIs(),
+      memory: process.memoryUsage(),
+      version: process.env.npm_package_version
+    };
+    res.status(200).json(health);
   });
-});
 
-// Error handling middleware
-app.use(errorHandler);
+  // Serve Postman collection
+  app.get('/LocalPro-Super-App-API.postman_collection.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename="LocalPro-Super-App-API.postman_collection.json"');
+    res.sendFile('LocalPro-Super-App-API.postman_collection.json', { root: '.' });
+  });
 
-// Only start the server if this file is run directly (not imported for testing)
-if (require.main === module) {
+  // Serve monitoring dashboard
+  app.get('/monitoring', (req, res) => {
+    res.sendFile('monitoring-dashboard.html', { root: './src/templates' });
+  });
+
+  // API Routes
+  app.use('/api/auth', authRoutes);
+  app.use('/api/marketplace', marketplaceRoutes);
+  app.use('/api/supplies', suppliesRoutes);
+  app.use('/api/academy', academyRoutes);
+  app.use('/api/finance', financeRoutes);
+  app.use('/api/rentals', rentalsRoutes);
+  app.use('/api/ads', adsRoutes);
+  app.use('/api/facility-care', facilityCareRoutes);
+  app.use('/api/localpro-plus', localproPlusRoutes);
+  app.use('/api/trust-verification', trustVerificationRoutes);
+  app.use('/api/communication', communicationRoutes);
+  app.use('/api/analytics', analyticsRoutes);
+  app.use('/api/maps', mapsRoutes);
+  app.use('/api/paypal', paypalRoutes);
+  app.use('/api/paymaya', paymayaRoutes);
+  app.use('/api/jobs', jobsRoutes);
+  app.use('/api/referrals', referralsRoutes);
+  app.use('/api/agencies', agenciesRoutes);
+  app.use('/api/settings', settingsRoutes);
+  app.use('/api/error-monitoring', errorMonitoringRoutes);
+  app.use('/api/audit-logs', auditLogsRoutes);
+  app.use('/api/providers', providersRoutes);
+  app.use('/api/logs', logsRoutes);
+  app.use('/api/users', userManagementRoutes);
+  app.use('/api/search', searchRoutes);
+  app.use('/api/announcements', announcementsRoutes);
+  app.use('/api/activities', activitiesRoutes);
+  
+  // Monitoring and Performance Routes
+  app.use('/api/monitoring', monitoringRoutes);
+  app.use('/api/monitoring/alerts', alertsRoutes.router);
+  app.use('/api/monitoring/database', databaseMonitoringRoutes);
+  app.use('/api/monitoring/stream', metricsStreamRoutes.router);
+
+  // 404 handler
+  app.use('*', (req, res) => {
+    res.status(404).json({
+      success: false,
+      message: 'API endpoint not found'
+    });
+  });
+
+  // Error handling middleware
+  app.use(errorHandler);
+
+  // Start the server
   const PORT = process.env.PORT || 5000;
 
   app.listen(PORT, () => {
@@ -246,11 +320,16 @@ if (require.main === module) {
       timestamp: new Date().toISOString()
     });
     
-    console.log(`🚀 LocalPro Super App API running on port ${PORT}`);
-    console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`📊 Logging enabled with Winston`);
-    console.log(`🔍 Error monitoring active`);
+    logger.info(`🚀 LocalPro Super App API running on port ${PORT}`);
+    logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`📊 Logging enabled with Winston`);
+    logger.info(`🔍 Error monitoring active`);
   });
+}
+
+// Only initialize if this file is run directly (not imported for testing)
+if (require.main === module) {
+  initializeApplication();
 }
 
 module.exports = app;

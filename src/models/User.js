@@ -36,6 +36,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     expires: '5m'
   },
+  lastVerificationSent: {
+    type: Date,
+    default: null
+  },
   profile: {
     avatar: {
       url: String,

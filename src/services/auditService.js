@@ -271,15 +271,26 @@ class AuditService {
 
       await auditLog.save();
       
-      // Log to Winston for immediate visibility
-      logger.info('Audit Event Logged', {
-        auditId,
-        action: auditData.action,
-        category: auditData.category,
-        severity,
-        actor: auditData.actor?.userId,
-        target: auditData.target?.type
-      });
+      // Log to Winston for immediate visibility (only for important events)
+      if (severity === 'high' || severity === 'critical' || auditData.category === 'security') {
+        logger.info('Audit Event Logged', {
+          auditId,
+          action: auditData.action,
+          category: auditData.category,
+          severity,
+          actor: auditData.actor?.userId,
+          target: auditData.target?.type
+        });
+      } else {
+        logger.debug('Audit Event Logged', {
+          auditId,
+          action: auditData.action,
+          category: auditData.category,
+          severity,
+          actor: auditData.actor?.userId,
+          target: auditData.target?.type
+        });
+      }
 
       return auditLog;
     } catch (error) {

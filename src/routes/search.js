@@ -7,6 +7,7 @@ const {
 } = require('../controllers/searchController');
 const { auth: authenticate } = require('../middleware/auth');
 const { auditGeneralOperations } = require('../middleware/auditLogger');
+const logger = require('../config/logger');
 
 /**
  * @route   GET /api/search
@@ -340,7 +341,7 @@ router.post('/analytics', authenticate, auditGeneralOperations, (req, res) => { 
 
     // In a real application, you would save this to an analytics collection
     // For now, we'll just log it
-    console.log('Search Analytics:', {
+    logger.info('Search Analytics:', {
       query,
       resultsCount: results?.length || 0,
       filters,

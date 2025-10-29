@@ -1,6 +1,7 @@
 const paypal = require('@paypal/paypal-server-sdk');
 const crypto = require('crypto');
 const PayPalSubscriptionService = require('./paypalSubscriptionService');
+const logger = require('../config/logger');
 
 // Configure PayPal SDK
 const environment = process.env.PAYPAL_MODE === 'production' 
@@ -263,7 +264,7 @@ class PayPalService {
         case 'BILLING.SUBSCRIPTION.EXPIRED':
           return await PayPalSubscriptionService.processWebhookEvent(event);
         default:
-          console.log(`Unhandled PayPal webhook event: ${eventType}`);
+          logger.info(`Unhandled PayPal webhook event: ${eventType}`);
           return { success: true, message: 'Event not handled' };
       }
     } catch (error) {
@@ -280,7 +281,7 @@ class PayPalService {
    */
   static async handlePaymentCompleted(resource) {
     // This will be implemented in the webhook controller
-    console.log('Payment completed:', resource.id);
+    logger.info('Payment completed:', resource.id);
     return { success: true };
   }
 
@@ -289,7 +290,7 @@ class PayPalService {
    */
   static async handlePaymentDenied(resource) {
     // This will be implemented in the webhook controller
-    console.log('Payment denied:', resource.id);
+    logger.info('Payment denied:', resource.id);
     return { success: true };
   }
 
@@ -298,7 +299,7 @@ class PayPalService {
    */
   static async handleSubscriptionActivated(resource) {
     // This will be implemented in the webhook controller
-    console.log('Subscription activated:', resource.id);
+    logger.info('Subscription activated:', resource.id);
     return { success: true };
   }
 
@@ -307,7 +308,7 @@ class PayPalService {
    */
   static async handleSubscriptionCancelled(resource) {
     // This will be implemented in the webhook controller
-    console.log('Subscription cancelled:', resource.id);
+    logger.info('Subscription cancelled:', resource.id);
     return { success: true };
   }
 
@@ -316,7 +317,7 @@ class PayPalService {
    */
   static async handleSubscriptionPaymentCompleted(resource) {
     // This will be implemented in the webhook controller
-    console.log('Subscription payment completed:', resource.id);
+    logger.info('Subscription payment completed:', resource.id);
     return { success: true };
   }
 
@@ -325,7 +326,7 @@ class PayPalService {
    */
   static async handleSubscriptionPaymentFailed(resource) {
     // This will be implemented in the webhook controller
-    console.log('Subscription payment failed:', resource.id);
+    logger.info('Subscription payment failed:', resource.id);
     return { success: true };
   }
 }

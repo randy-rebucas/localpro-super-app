@@ -1,4 +1,5 @@
 const { SubscriptionPlan } = require('../models/LocalProPlus');
+const logger = require('../config/logger');
 
 const defaultPlans = [
   {
@@ -290,19 +291,19 @@ const defaultPlans = [
 
 const seedSubscriptionPlans = async () => {
   try {
-    console.log('🌱 Seeding subscription plans...');
+    logger.info('🌱 Seeding subscription plans...');
 
     // Clear existing plans
     await SubscriptionPlan.deleteMany({});
-    console.log('✅ Cleared existing subscription plans');
+    logger.info('✅ Cleared existing subscription plans');
 
     // Create default plans
     const createdPlans = await SubscriptionPlan.insertMany(defaultPlans);
-    console.log(`✅ Created ${createdPlans.length} subscription plans`);
+    logger.info(`✅ Created ${createdPlans.length} subscription plans`);
 
     // Log created plans
     createdPlans.forEach(plan => {
-      console.log(`   📋 ${plan.name}: $${plan.price.monthly}/month, $${plan.price.yearly}/year`);
+      logger.info(`   📋 ${plan.name}: $${plan.price.monthly}/month, $${plan.price.yearly}/year`);
     });
 
     return createdPlans;
@@ -314,9 +315,9 @@ const seedSubscriptionPlans = async () => {
 
 const clearSubscriptionPlans = async () => {
   try {
-    console.log('🧹 Clearing subscription plans...');
+    logger.info('🧹 Clearing subscription plans...');
     await SubscriptionPlan.deleteMany({});
-    console.log('✅ Cleared all subscription plans');
+    logger.info('✅ Cleared all subscription plans');
   } catch (error) {
     console.error('❌ Error clearing subscription plans:', error);
     throw error;

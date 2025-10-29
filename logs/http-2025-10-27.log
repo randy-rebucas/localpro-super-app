@@ -413,3 +413,545 @@
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T09:20:37.803Z"}
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T09:21:09.528Z"}
 {"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T09:21:21.370Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T10:22:16.649Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:52:24.835Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:52:31.754Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:52:38.786Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:52:39.527Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:52:50.680Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:52:51.426Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:53:07.657Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:53:08.872Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:53:32.029Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:53:32.723Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T11:53:32.724Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T11:53:32.725Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T11:53:32.725Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T11:53:32.726Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:54:59.870Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:55:00.496Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T11:55:00.497Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T11:55:00.498Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T11:55:00.498Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T11:55:00.499Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:55:15.728Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:55:16.469Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T11:55:16.472Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T11:55:16.472Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T11:55:16.473Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T11:55:16.473Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:55:27.231Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:55:28.124Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T11:55:28.125Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T11:55:28.126Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T11:55:28.127Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T11:55:28.127Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:55:39.648Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:55:40.447Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T11:55:40.448Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T11:55:40.449Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T11:55:40.450Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T11:55:40.450Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:56:02.321Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:56:03.080Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T11:56:03.082Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T11:56:03.083Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T11:56:03.084Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T11:56:03.085Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:56:10.571Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:56:11.268Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T11:56:11.271Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T11:56:11.271Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T11:56:11.272Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T11:56:11.272Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T11:56:14.806Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:57:53.456Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:57:54.179Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T11:57:54.180Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T11:57:54.180Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T11:57:54.181Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T11:57:54.181Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T11:57:55.129Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T11:59:03.672Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T11:59:04.287Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T11:59:04.288Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T11:59:04.288Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T11:59:04.289Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T11:59:04.289Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T11:59:08.701Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T12:23:48.160Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T12:23:51.095Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T12:23:51.097Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T12:23:51.097Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T12:23:51.098Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T12:23:51.098Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T12:23:52.447Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T12:52:21.497Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T12:52:22.503Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T12:52:22.504Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T12:52:22.505Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T12:52:22.506Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T12:52:22.506Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T12:52:23.818Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T12:53:21.703Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T12:53:22.555Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T12:53:22.556Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T12:53:22.556Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T12:53:22.558Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T12:53:22.559Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T12:53:23.273Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T12:53:54.388Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T12:53:55.261Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T12:53:55.263Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T12:53:55.264Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T12:53:55.264Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T12:53:55.265Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T12:53:56.370Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T12:54:44.152Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T12:54:45.038Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T12:54:45.039Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T12:54:45.040Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T12:54:45.040Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T12:54:45.041Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T12:54:46.146Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T12:55:08.403Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T12:55:09.277Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T12:55:09.281Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T12:55:09.281Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T12:55:09.282Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T12:55:09.282Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T12:55:09.942Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T12:56:02.503Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T12:56:03.320Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T12:56:03.321Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T12:56:03.321Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T12:56:03.322Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T12:56:03.322Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T12:56:04.104Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T12:57:14.665Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T12:57:15.583Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T12:57:15.584Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T12:57:15.585Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T12:57:15.585Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T12:57:15.586Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T12:57:16.347Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T12:57:57.645Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T12:57:58.545Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T12:57:58.547Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T12:57:58.547Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T12:57:58.548Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T12:57:58.548Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T12:57:59.528Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T12:58:33.208Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T12:58:33.937Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T12:58:33.939Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T12:58:33.940Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T12:58:33.940Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T12:58:33.941Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T12:58:35.207Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:00:01.404Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:00:02.221Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:00:02.222Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:00:02.223Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:00:02.223Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:00:02.223Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:00:03.112Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:00:49.070Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:00:49.869Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:00:49.870Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:00:49.871Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:00:49.871Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:00:49.872Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:00:50.794Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:01:01.214Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:01:02.047Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:01:02.049Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:01:02.049Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:01:02.050Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:01:02.050Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:01:05.641Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:01:06.332Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:01:06.334Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:01:06.335Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:01:06.335Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:01:06.336Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:01:32.586Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:01:46.776Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:01:47.487Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:01:47.488Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:01:47.489Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:01:47.489Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:01:47.489Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:01:50.319Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:01:58.774Z"}
+{"level":"info","message":"📊 MongoDB Connected: 127.0.0.1","timestamp":"2025-10-27T13:02:00.413Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:01:58.754Z"}
+{"level":"info","message":"📊 MongoDB Connected: 127.0.0.1","timestamp":"2025-10-27T13:02:00.423Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:01:58.799Z"}
+{"level":"info","message":"📊 MongoDB Connected: 127.0.0.1","timestamp":"2025-10-27T13:02:00.459Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-27T13:02:03.038Z","url":"/api/auth/register","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"3ms","statusCode":404,"timestamp":"2025-10-27T13:02:03.041Z","url":"/api/auth/register","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [27/Oct/2025:13:02:03 +0000] \"POST /api/auth/register HTTP/1.1\" 404 52 \"-\" \"-\"","timestamp":"2025-10-27T13:02:03.051Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-27T13:02:03.121Z","url":"/api/auth/register","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"1ms","statusCode":404,"timestamp":"2025-10-27T13:02:03.122Z","url":"/api/auth/register","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [27/Oct/2025:13:02:03 +0000] \"POST /api/auth/register HTTP/1.1\" 404 52 \"-\" \"-\"","timestamp":"2025-10-27T13:02:03.123Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-27T13:02:03.195Z","url":"/api/auth/register","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"2ms","statusCode":404,"timestamp":"2025-10-27T13:02:03.197Z","url":"/api/auth/register","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [27/Oct/2025:13:02:03 +0000] \"POST /api/auth/register HTTP/1.1\" 404 52 \"-\" \"-\"","timestamp":"2025-10-27T13:02:03.199Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-27T13:02:03.283Z","url":"/api/auth/register","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"1ms","statusCode":404,"timestamp":"2025-10-27T13:02:03.284Z","url":"/api/auth/register","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [27/Oct/2025:13:02:03 +0000] \"POST /api/auth/register HTTP/1.1\" 404 52 \"-\" \"-\"","timestamp":"2025-10-27T13:02:03.285Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"POST","timestamp":"2025-10-27T13:02:03.404Z","url":"/api/auth/register","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"1ms","statusCode":404,"timestamp":"2025-10-27T13:02:03.405Z","url":"/api/auth/register","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [27/Oct/2025:13:02:03 +0000] \"POST /api/auth/register HTTP/1.1\" 404 52 \"-\" \"-\"","timestamp":"2025-10-27T13:02:03.406Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-27T13:02:03.577Z","url":"/api/non-existent-endpoint","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"3ms","statusCode":404,"timestamp":"2025-10-27T13:02:03.580Z","url":"/api/non-existent-endpoint","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [27/Oct/2025:13:02:03 +0000] \"GET /api/non-existent-endpoint HTTP/1.1\" 404 52 \"-\" \"-\"","timestamp":"2025-10-27T13:02:03.582Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-27T13:02:03.700Z","url":"/api/non-existent-endpoint","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"1ms","statusCode":404,"timestamp":"2025-10-27T13:02:03.701Z","url":"/api/non-existent-endpoint","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [27/Oct/2025:13:02:03 +0000] \"GET /api/non-existent-endpoint HTTP/1.1\" 404 52 \"-\" \"-\"","timestamp":"2025-10-27T13:02:03.702Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-27T13:02:03.868Z","url":"/api/marketplace/services","userId":null}
+{"ip":"::ffff:127.0.0.1","level":"http","message":"HTTP Request","method":"GET","responseTime":"55ms","statusCode":200,"timestamp":"2025-10-27T13:02:03.923Z","url":"/api/marketplace/services","userId":null}
+{"level":"http","message":"::ffff:127.0.0.1 - - [27/Oct/2025:13:02:03 +0000] \"GET /api/marketplace/services HTTP/1.1\" 200 138 \"-\" \"-\"","timestamp":"2025-10-27T13:02:03.923Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:02:22.984Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:02:23.788Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:02:23.789Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:02:23.789Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:02:23.790Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:02:23.790Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:02:25.911Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:02:29.175Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:02:29.926Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:02:29.929Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:02:29.931Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:02:29.931Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:02:29.932Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:02:30.479Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:02:38.328Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:02:39.053Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:02:39.055Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:02:39.055Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:02:39.055Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:02:39.056Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:02:39.670Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:02:47.381Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:02:48.231Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:02:48.233Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:02:48.234Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:02:48.234Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:02:48.235Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:02:48.776Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:02:52.238Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:02:53.060Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:02:53.061Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:02:53.062Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:02:53.063Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:02:53.064Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:02:53.653Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:02:57.712Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:02:58.422Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:02:58.424Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:02:58.424Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:02:58.425Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:02:58.425Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:02:59.152Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:03:00.783Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:03:01.483Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:03:01.486Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:03:01.487Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:03:01.487Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:03:01.487Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:03:03.922Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:03:04.627Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:03:04.630Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:03:04.630Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:03:04.631Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:03:04.631Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:03:05.224Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:03:06.300Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:03:07.037Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:03:07.038Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:03:07.039Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:03:07.039Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:03:07.039Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:03:07.974Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:03:32.610Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:03:33.434Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:03:33.435Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:03:33.436Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:03:33.436Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:03:33.436Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:03:34.189Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:03:53.873Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:03:54.655Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:03:54.657Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:03:54.657Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:03:54.658Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:03:54.658Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:03:56.134Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:03:56.789Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:03:56.790Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:03:56.791Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:03:56.791Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:03:56.791Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:03:57.799Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:03:58.431Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:03:58.434Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:03:58.435Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:03:58.436Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:03:58.436Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:03:59.563Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:04:00.304Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:04:00.305Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:04:00.306Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:04:00.306Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:04:00.307Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:04:01.652Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:04:02.368Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:04:02.370Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:04:02.370Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:04:02.371Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:04:02.371Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:04:08.125Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:04:14.884Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:04:15.668Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:04:15.669Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:04:15.670Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:04:15.671Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:04:15.671Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:04:20.638Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:04:44.825Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:04:45.637Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:04:45.639Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:04:45.639Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:04:45.640Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:04:45.640Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:04:47.720Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:05:11.916Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:05:12.718Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:05:12.720Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:05:12.720Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:05:12.721Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:05:12.721Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:05:13.297Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:06:06.600Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:06:07.348Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:06:07.349Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:06:07.350Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:06:07.350Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:06:07.351Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:06:09.054Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:06:09.749Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:06:09.750Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:06:09.750Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:06:09.751Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:06:09.751Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:06:13.172Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-27T13:07:41.431Z","url":"/api/users/68f7265e60f48a4fd66ef03d","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"105ms","statusCode":401,"timestamp":"2025-10-27T13:07:41.536Z","url":"/api/users/68f7265e60f48a4fd66ef03d","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [27/Oct/2025:13:07:41 +0000] \"GET /api/users/68f7265e60f48a4fd66ef03d HTTP/1.1\" 401 48 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"","timestamp":"2025-10-27T13:07:41.538Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-27T13:11:58.087Z","url":"/api/users/68f7265e60f48a4fd66ef03d","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"GET","responseTime":"100ms","statusCode":401,"timestamp":"2025-10-27T13:11:58.187Z","url":"/api/users/68f7265e60f48a4fd66ef03d","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [27/Oct/2025:13:11:58 +0000] \"GET /api/users/68f7265e60f48a4fd66ef03d HTTP/1.1\" 401 48 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"","timestamp":"2025-10-27T13:11:58.188Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:11:59.613Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:12:00.289Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:12:00.291Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:12:00.291Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:12:00.292Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:12:00.292Z"}
+{"ip":"::1","level":"info","message":"Request Started","method":"GET","timestamp":"2025-10-27T13:12:01.624Z","url":"/api/users/68f7265e60f48a4fd66ef03d","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36","userId":null}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:12:09.997Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:12:13.767Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:12:14.644Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:12:14.647Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:12:14.648Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:12:14.649Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:12:14.649Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:12:39.397Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:13:15.675Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:13:16.431Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:13:16.432Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:13:16.433Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:13:16.433Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:13:16.434Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:13:17.695Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:13:44.033Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:13:44.798Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:13:44.800Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:13:44.800Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:13:44.801Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:13:44.801Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:13:45.890Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:15:09.390Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:15:10.121Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:15:10.122Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:15:10.123Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:15:10.123Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:15:10.123Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:15:11.850Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:15:15.657Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:15:16.410Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:15:16.412Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:15:16.413Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:15:16.413Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:15:16.413Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:15:17.009Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:16:45.650Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-10-27T13:16:46.392Z"}
+{"level":"info","message":"🚀 Starting application startup validation...","timestamp":"2025-10-27T13:16:46.392Z"}
+{"level":"info","message":"🔍 Validating environment variables...","timestamp":"2025-10-27T13:16:46.393Z"}
+{"level":"info","message":"🔍 Starting environment variable validation...","timestamp":"2025-10-27T13:16:46.394Z"}
+{"level":"info","message":"✅ All environment variables validated successfully","timestamp":"2025-10-27T13:16:46.396Z"}
+{"level":"info","message":"✅ Environment variables validated successfully","timestamp":"2025-10-27T13:16:46.397Z"}
+{"level":"info","message":"🔍 Testing database connection...","timestamp":"2025-10-27T13:16:46.400Z"}
+{"level":"info","message":"✅ Database connected successfully: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:16:47.126Z"}
+{"level":"info","message":"ℹ️  Redis not configured, skipping Redis connectivity test","timestamp":"2025-10-27T13:16:47.127Z"}
+{"level":"info","message":"🔍 Testing external service configurations...","timestamp":"2025-10-27T13:16:47.128Z"}
+{"level":"warn","message":"⚠️  Email service configuration test failed:","timestamp":"2025-10-27T13:16:47.129Z"}
+{"level":"info","message":"✅ Cloudinary configured","timestamp":"2025-10-27T13:16:47.129Z"}
+{"level":"info","message":"✅ Google Maps API configured","timestamp":"2025-10-27T13:16:47.130Z"}
+{"level":"info","message":"✅ Twilio configured","timestamp":"2025-10-27T13:16:47.130Z"}
+{"level":"info","message":"✅ PayPal configured","timestamp":"2025-10-27T13:16:47.130Z"}
+{"level":"info","message":"✅ PayMaya configured","timestamp":"2025-10-27T13:16:47.131Z"}
+{"level":"info","message":"🔍 Running custom check: JWT Secret Strength","timestamp":"2025-10-27T13:16:47.131Z"}
+{"level":"info","message":"✅ Custom check passed: JWT Secret Strength","timestamp":"2025-10-27T13:16:47.132Z"}
+{"level":"info","message":"🔍 Running custom check: Frontend URL Format","timestamp":"2025-10-27T13:16:47.132Z"}
+{"level":"info","message":"✅ Custom check passed: Frontend URL Format","timestamp":"2025-10-27T13:16:47.132Z"}
+{"level":"info","message":"✅ All startup checks completed successfully in 739ms","timestamp":"2025-10-27T13:16:47.133Z"}
+{"level":"info","message":"📊 Startup Validation Summary:","timestamp":"2025-10-27T13:16:47.133Z"}
+{"level":"info","message":"  Environment Variables: ✅","timestamp":"2025-10-27T13:16:47.134Z"}
+{"level":"info","message":"  Database Connection: ✅","timestamp":"2025-10-27T13:16:47.134Z"}
+{"level":"info","message":"  Redis Connection: ✅","timestamp":"2025-10-27T13:16:47.134Z"}
+{"level":"info","message":"  External Services:","timestamp":"2025-10-27T13:16:47.135Z"}
+{"level":"info","message":"    email: ⚠️","timestamp":"2025-10-27T13:16:47.135Z"}
+{"level":"info","message":"    cloudinary: ✅","timestamp":"2025-10-27T13:16:47.135Z"}
+{"level":"info","message":"    googleMaps: ✅","timestamp":"2025-10-27T13:16:47.136Z"}
+{"level":"info","message":"    twilio: ✅","timestamp":"2025-10-27T13:16:47.136Z"}
+{"level":"info","message":"    paypal: ✅","timestamp":"2025-10-27T13:16:47.136Z"}
+{"level":"info","message":"    paymaya: ✅","timestamp":"2025-10-27T13:16:47.137Z"}
+{"level":"info","message":"  Custom Checks:","timestamp":"2025-10-27T13:16:47.137Z"}
+{"level":"info","message":"    JWT Secret Strength: ✅ (Critical)","timestamp":"2025-10-27T13:16:47.137Z"}
+{"level":"info","message":"    Frontend URL Format: ✅ (Critical)","timestamp":"2025-10-27T13:16:47.138Z"}
+{"level":"info","message":"📋 Environment Configuration:","timestamp":"2025-10-27T13:16:47.138Z"}
+{"level":"info","message":"  Environment: development","timestamp":"2025-10-27T13:16:47.139Z"}
+{"level":"info","message":"  Port: 5000","timestamp":"2025-10-27T13:16:47.139Z"}
+{"level":"info","message":"  Database: Configured","timestamp":"2025-10-27T13:16:47.139Z"}
+{"level":"info","message":"  Email Service: resend (Configured)","timestamp":"2025-10-27T13:16:47.140Z"}
+{"level":"info","message":"  File Upload: Configured","timestamp":"2025-10-27T13:16:47.140Z"}
+{"level":"info","message":"  Maps Service: Configured","timestamp":"2025-10-27T13:16:47.140Z"}
+{"level":"info","message":"  Payment Services: PayPal(Yes), PayMaya(Yes)","timestamp":"2025-10-27T13:16:47.141Z"}
+{"level":"info","message":"  SMS Service: Configured","timestamp":"2025-10-27T13:16:47.141Z"}
+{"level":"info","message":"  Cache Service: Not configured","timestamp":"2025-10-27T13:16:47.142Z"}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-10-27T13:16:47.142Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:16:47.151Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:16:47.156Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:16:47.160Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:16:47.162Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:16:47.165Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:16:47.166Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:17:11.707Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-10-27T13:17:12.370Z"}
+{"level":"info","message":"🚀 Starting application startup validation...","timestamp":"2025-10-27T13:17:12.370Z"}
+{"level":"info","message":"🔍 Validating environment variables...","timestamp":"2025-10-27T13:17:12.371Z"}
+{"level":"info","message":"🔍 Starting environment variable validation...","timestamp":"2025-10-27T13:17:12.371Z"}
+{"level":"info","message":"✅ All environment variables validated successfully","timestamp":"2025-10-27T13:17:12.372Z"}
+{"level":"info","message":"✅ Environment variables validated successfully","timestamp":"2025-10-27T13:17:12.372Z"}
+{"level":"info","message":"🔍 Testing database connection...","timestamp":"2025-10-27T13:17:12.374Z"}
+{"level":"info","message":"✅ Database connected successfully: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:17:14.441Z"}
+{"level":"info","message":"ℹ️  Redis not configured, skipping Redis connectivity test","timestamp":"2025-10-27T13:17:14.442Z"}
+{"level":"info","message":"🔍 Testing external service configurations...","timestamp":"2025-10-27T13:17:14.442Z"}
+{"level":"warn","message":"⚠️  Email service configuration test failed:","timestamp":"2025-10-27T13:17:14.443Z"}
+{"level":"info","message":"✅ Cloudinary configured","timestamp":"2025-10-27T13:17:14.443Z"}
+{"level":"info","message":"✅ Google Maps API configured","timestamp":"2025-10-27T13:17:14.443Z"}
+{"level":"info","message":"✅ Twilio configured","timestamp":"2025-10-27T13:17:14.444Z"}
+{"level":"info","message":"✅ PayPal configured","timestamp":"2025-10-27T13:17:14.444Z"}
+{"level":"info","message":"✅ PayMaya configured","timestamp":"2025-10-27T13:17:14.444Z"}
+{"level":"info","message":"🔍 Running custom check: JWT Secret Strength","timestamp":"2025-10-27T13:17:14.446Z"}
+{"level":"info","message":"✅ Custom check passed: JWT Secret Strength","timestamp":"2025-10-27T13:17:14.446Z"}
+{"level":"info","message":"🔍 Running custom check: Frontend URL Format","timestamp":"2025-10-27T13:17:14.447Z"}
+{"level":"info","message":"✅ Custom check passed: Frontend URL Format","timestamp":"2025-10-27T13:17:14.447Z"}
+{"level":"info","message":"✅ All startup checks completed successfully in 2077ms","timestamp":"2025-10-27T13:17:14.448Z"}
+{"level":"info","message":"📊 Startup Validation Summary:","timestamp":"2025-10-27T13:17:14.448Z"}
+{"level":"info","message":"  Environment Variables: ✅","timestamp":"2025-10-27T13:17:14.448Z"}
+{"level":"info","message":"  Database Connection: ✅","timestamp":"2025-10-27T13:17:14.449Z"}
+{"level":"info","message":"  Redis Connection: ✅","timestamp":"2025-10-27T13:17:14.449Z"}
+{"level":"info","message":"  External Services:","timestamp":"2025-10-27T13:17:14.449Z"}
+{"level":"info","message":"    email: ⚠️","timestamp":"2025-10-27T13:17:14.449Z"}
+{"level":"info","message":"    cloudinary: ✅","timestamp":"2025-10-27T13:17:14.450Z"}
+{"level":"info","message":"    googleMaps: ✅","timestamp":"2025-10-27T13:17:14.450Z"}
+{"level":"info","message":"    twilio: ✅","timestamp":"2025-10-27T13:17:14.451Z"}
+{"level":"info","message":"    paypal: ✅","timestamp":"2025-10-27T13:17:14.451Z"}
+{"level":"info","message":"    paymaya: ✅","timestamp":"2025-10-27T13:17:14.451Z"}
+{"level":"info","message":"  Custom Checks:","timestamp":"2025-10-27T13:17:14.452Z"}
+{"level":"info","message":"    JWT Secret Strength: ✅ (Critical)","timestamp":"2025-10-27T13:17:14.452Z"}
+{"level":"info","message":"    Frontend URL Format: ✅ (Critical)","timestamp":"2025-10-27T13:17:14.452Z"}
+{"level":"info","message":"📋 Environment Configuration:","timestamp":"2025-10-27T13:17:14.453Z"}
+{"level":"info","message":"  Environment: development","timestamp":"2025-10-27T13:17:14.453Z"}
+{"level":"info","message":"  Port: 5000","timestamp":"2025-10-27T13:17:14.454Z"}
+{"level":"info","message":"  Database: Configured","timestamp":"2025-10-27T13:17:14.454Z"}
+{"level":"info","message":"  Email Service: resend (Configured)","timestamp":"2025-10-27T13:17:14.454Z"}
+{"level":"info","message":"  File Upload: Configured","timestamp":"2025-10-27T13:17:14.455Z"}
+{"level":"info","message":"  Maps Service: Configured","timestamp":"2025-10-27T13:17:14.455Z"}
+{"level":"info","message":"  Payment Services: PayPal(Yes), PayMaya(Yes)","timestamp":"2025-10-27T13:17:14.455Z"}
+{"level":"info","message":"  SMS Service: Configured","timestamp":"2025-10-27T13:17:14.455Z"}
+{"level":"info","message":"  Cache Service: Not configured","timestamp":"2025-10-27T13:17:14.456Z"}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-10-27T13:17:14.456Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:17:14.462Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:17:14.468Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:17:14.469Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:17:14.469Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:17:14.470Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:17:14.470Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-27T13:17:38.619Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-10-27T13:17:39.173Z"}
+{"level":"info","message":"🚀 Starting application startup validation...","timestamp":"2025-10-27T13:17:39.174Z"}
+{"level":"info","message":"🔍 Validating environment variables...","timestamp":"2025-10-27T13:17:39.174Z"}
+{"level":"info","message":"🔍 Starting environment variable validation...","timestamp":"2025-10-27T13:17:39.175Z"}
+{"level":"info","message":"✅ All environment variables validated successfully","timestamp":"2025-10-27T13:17:39.176Z"}
+{"level":"info","message":"✅ Environment variables validated successfully","timestamp":"2025-10-27T13:17:39.176Z"}
+{"level":"info","message":"🔍 Testing database connection...","timestamp":"2025-10-27T13:17:39.178Z"}
+{"level":"info","message":"✅ Database connected successfully: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:17:46.210Z"}
+{"level":"info","message":"ℹ️  Redis not configured, skipping Redis connectivity test","timestamp":"2025-10-27T13:17:46.211Z"}
+{"level":"info","message":"🔍 Testing external service configurations...","timestamp":"2025-10-27T13:17:46.211Z"}
+{"level":"warn","message":"⚠️  Email service configuration test failed:","timestamp":"2025-10-27T13:17:46.212Z"}
+{"level":"info","message":"✅ Cloudinary configured","timestamp":"2025-10-27T13:17:46.212Z"}
+{"level":"info","message":"✅ Google Maps API configured","timestamp":"2025-10-27T13:17:46.213Z"}
+{"level":"info","message":"✅ Twilio configured","timestamp":"2025-10-27T13:17:46.213Z"}
+{"level":"info","message":"✅ PayPal configured","timestamp":"2025-10-27T13:17:46.213Z"}
+{"level":"info","message":"✅ PayMaya configured","timestamp":"2025-10-27T13:17:46.214Z"}
+{"level":"info","message":"🔍 Running custom check: JWT Secret Strength","timestamp":"2025-10-27T13:17:46.214Z"}
+{"level":"info","message":"✅ Custom check passed: JWT Secret Strength","timestamp":"2025-10-27T13:17:46.214Z"}
+{"level":"info","message":"🔍 Running custom check: Frontend URL Format","timestamp":"2025-10-27T13:17:46.215Z"}
+{"level":"info","message":"✅ Custom check passed: Frontend URL Format","timestamp":"2025-10-27T13:17:46.215Z"}
+{"level":"info","message":"✅ All startup checks completed successfully in 7041ms","timestamp":"2025-10-27T13:17:46.215Z"}
+{"level":"info","message":"📊 Startup Validation Summary:","timestamp":"2025-10-27T13:17:46.216Z"}
+{"level":"info","message":"  Environment Variables: ✅","timestamp":"2025-10-27T13:17:46.216Z"}
+{"level":"info","message":"  Database Connection: ✅","timestamp":"2025-10-27T13:17:46.216Z"}
+{"level":"info","message":"  Redis Connection: ✅","timestamp":"2025-10-27T13:17:46.217Z"}
+{"level":"info","message":"  External Services:","timestamp":"2025-10-27T13:17:46.217Z"}
+{"level":"info","message":"    email: ⚠️","timestamp":"2025-10-27T13:17:46.218Z"}
+{"level":"info","message":"    cloudinary: ✅","timestamp":"2025-10-27T13:17:46.218Z"}
+{"level":"info","message":"    googleMaps: ✅","timestamp":"2025-10-27T13:17:46.218Z"}
+{"level":"info","message":"    twilio: ✅","timestamp":"2025-10-27T13:17:46.218Z"}
+{"level":"info","message":"    paypal: ✅","timestamp":"2025-10-27T13:17:46.219Z"}
+{"level":"info","message":"    paymaya: ✅","timestamp":"2025-10-27T13:17:46.219Z"}
+{"level":"info","message":"  Custom Checks:","timestamp":"2025-10-27T13:17:46.219Z"}
+{"level":"info","message":"    JWT Secret Strength: ✅ (Critical)","timestamp":"2025-10-27T13:17:46.220Z"}
+{"level":"info","message":"    Frontend URL Format: ✅ (Critical)","timestamp":"2025-10-27T13:17:46.220Z"}
+{"level":"info","message":"📋 Environment Configuration:","timestamp":"2025-10-27T13:17:46.221Z"}
+{"level":"info","message":"  Environment: development","timestamp":"2025-10-27T13:17:46.222Z"}
+{"level":"info","message":"  Port: 5000","timestamp":"2025-10-27T13:17:46.223Z"}
+{"level":"info","message":"  Database: Configured","timestamp":"2025-10-27T13:17:46.223Z"}
+{"level":"info","message":"  Email Service: resend (Configured)","timestamp":"2025-10-27T13:17:46.224Z"}
+{"level":"info","message":"  File Upload: Configured","timestamp":"2025-10-27T13:17:46.224Z"}
+{"level":"info","message":"  Maps Service: Configured","timestamp":"2025-10-27T13:17:46.224Z"}
+{"level":"info","message":"  Payment Services: PayPal(Yes), PayMaya(Yes)","timestamp":"2025-10-27T13:17:46.224Z"}
+{"level":"info","message":"  SMS Service: Configured","timestamp":"2025-10-27T13:17:46.225Z"}
+{"level":"info","message":"  Cache Service: Not configured","timestamp":"2025-10-27T13:17:46.225Z"}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-10-27T13:17:46.225Z"}
+{"level":"info","message":"📊 MongoDB Connected: ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net","timestamp":"2025-10-27T13:17:46.231Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-27T13:17:46.236Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-27T13:17:46.236Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-27T13:17:46.237Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-27T13:17:46.237Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-27T13:17:46.237Z"}

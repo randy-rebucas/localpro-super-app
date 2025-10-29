@@ -41,6 +41,11 @@ const authorize = (...roles) => {
       });
     }
 
+    // If no roles specified, allow access
+    if (roles.length === 0) {
+      return next();
+    }
+
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
