@@ -2,7 +2,7 @@
   "timestamp": "2025-10-21T06:08:16.143Z",
   "environment": "development",
   "database": {
-    "uri": "mongodb+srv://admin_db_user:yVpOf6aRwMFMkwsI@master.e2kwbyc.mongodb.net/localpro-super-app?retryWrites=true&w=majority&appName=Master",
+    "uri": "mongodb+srv://admin_db_user:[password]@master.e2kwbyc.mongodb.net/localpro-super-app?retryWrites=true&w=majority&appName=Master",
     "connected": true,
     "host": "ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net",
     "name": "localpro-super-app"
