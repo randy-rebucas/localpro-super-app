@@ -75,7 +75,7 @@ const testScenarios = [
       CLOUDINARY_API_KEY: 'test-api-key',
       CLOUDINARY_API_SECRET: 'test-api-secret',
       GOOGLE_MAPS_API_KEY: 'test-maps-key',
-      TWILIO_ACCOUNT_SID: 'AC12345678901234567890123456789012',
+      TWILIO_ACCOUNT_SID: 'xxx',
       TWILIO_AUTH_TOKEN: 'test-twilio-auth-token-long-enough',
       PAYPAL_CLIENT_ID: 'test-paypal-client-id',
       PAYPAL_CLIENT_SECRET: 'test-paypal-secret'
