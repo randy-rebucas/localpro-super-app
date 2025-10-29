@@ -340,6 +340,38 @@ userSchema.index({ status: 1, isActive: 1 });
 userSchema.index({ 'referral.referredBy': 1, 'referral.referralStats.referralTier': 1 });
 userSchema.index({ trustScore: -1, 'profile.rating': -1 });
 
+// Additional performance indexes
+userSchema.index({ role: 1, isActive: 1, status: 1 }); // Compound index for common queries
+userSchema.index({ 'profile.address.city': 1, 'profile.address.state': 1, role: 1 }); // Location-based queries
+userSchema.index({ 'profile.rating': -1, 'profile.totalReviews': -1, isActive: 1 }); // Rating-based sorting
+userSchema.index({ 'profile.businessName': 1, role: 1 }); // Business name search
+userSchema.index({ 'profile.skills': 1, role: 1, isActive: 1 }); // Skills-based filtering
+userSchema.index({ 'profile.specialties': 1, role: 1, isActive: 1 }); // Specialties filtering
+userSchema.index({ 'profile.serviceAreas': 1, role: 1, isActive: 1 }); // Service areas filtering
+userSchema.index({ 'profile.certifications.name': 1, role: 1 }); // Certification filtering
+userSchema.index({ 'profile.insurance.hasInsurance': 1, role: 1 }); // Insurance status
+userSchema.index({ 'profile.backgroundCheck.status': 1, role: 1 }); // Background check status
+userSchema.index({ 'activity.lastActiveAt': -1, isActive: 1 }); // Recent activity
+userSchema.index({ createdAt: -1, role: 1 }); // Registration date with role
+userSchema.index({ updatedAt: -1, isActive: 1 }); // Last updated
+userSchema.index({ 'profile.experience': -1, role: 1, isActive: 1 }); // Experience-based sorting
+userSchema.index({ 'profile.availability.isAvailable': 1, role: 1, isActive: 1 }); // Availability status
+
+// Text search index for comprehensive search
+userSchema.index({
+  firstName: 'text',
+  lastName: 'text',
+  'profile.businessName': 'text',
+  'profile.skills': 'text',
+  'profile.specialties': 'text',
+  'profile.bio': 'text'
+});
+
+// Sparse indexes for optional fields
+userSchema.index({ email: 1 }, { sparse: true });
+userSchema.index({ 'profile.businessName': 1 }, { sparse: true });
+userSchema.index({ 'profile.website': 1 }, { sparse: true });
+
 // Virtual for full name
 userSchema.virtual('fullName').get(function() {
   return `${this.firstName} ${this.lastName}`;

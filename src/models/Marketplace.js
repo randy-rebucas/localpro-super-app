@@ -303,6 +303,33 @@ serviceSchema.index({ isActive: 1 });
 serviceSchema.index({ provider: 1, isActive: 1 });
 serviceSchema.index({ 'rating.average': -1, 'rating.count': -1 });
 
+// Additional performance indexes for services
+serviceSchema.index({ category: 1, subcategory: 1, isActive: 1 }); // Category filtering with status
+serviceSchema.index({ provider: 1, isActive: 1, category: 1 }); // Provider services by category
+serviceSchema.index({ serviceArea: 1, isActive: 1, category: 1 }); // Service area with category
+serviceSchema.index({ 'rating.average': -1, 'rating.count': -1, isActive: 1 }); // Rating with status
+serviceSchema.index({ 'pricing.basePrice': 1, category: 1, isActive: 1 }); // Price range filtering
+serviceSchema.index({ 'pricing.type': 1, category: 1, isActive: 1 }); // Pricing type filtering
+serviceSchema.index({ serviceType: 1, category: 1, isActive: 1 }); // Service type filtering
+serviceSchema.index({ 'estimatedDuration.min': 1, 'estimatedDuration.max': 1, isActive: 1 }); // Duration filtering
+serviceSchema.index({ teamSize: 1, category: 1, isActive: 1 }); // Team size filtering
+serviceSchema.index({ equipmentProvided: 1, materialsIncluded: 1, isActive: 1 }); // Equipment/materials filtering
+serviceSchema.index({ 'warranty.hasWarranty': 1, category: 1, isActive: 1 }); // Warranty filtering
+serviceSchema.index({ 'insurance.covered': 1, category: 1, isActive: 1 }); // Insurance filtering
+serviceSchema.index({ 'emergencyService.available': 1, category: 1, isActive: 1 }); // Emergency service filtering
+serviceSchema.index({ features: 1, isActive: 1 }); // Features filtering
+serviceSchema.index({ requirements: 1, isActive: 1 }); // Requirements filtering
+serviceSchema.index({ createdAt: -1, isActive: 1 }); // Recently added services
+serviceSchema.index({ updatedAt: -1, isActive: 1 }); // Recently updated services
+
+// Text search index for services
+serviceSchema.index({
+  title: 'text',
+  description: 'text',
+  features: 'text',
+  requirements: 'text'
+});
+
 bookingSchema.index({ client: 1 });
 bookingSchema.index({ provider: 1 });
 bookingSchema.index({ status: 1 });
@@ -310,6 +337,19 @@ bookingSchema.index({ bookingDate: 1 });
 bookingSchema.index({ client: 1, status: 1 });
 bookingSchema.index({ provider: 1, status: 1 });
 bookingSchema.index({ service: 1, status: 1 });
+
+// Additional performance indexes for bookings
+bookingSchema.index({ client: 1, status: 1, bookingDate: 1 }); // Client bookings with date
+bookingSchema.index({ provider: 1, status: 1, bookingDate: 1 }); // Provider bookings with date
+bookingSchema.index({ service: 1, status: 1, bookingDate: 1 }); // Service bookings with date
+bookingSchema.index({ status: 1, bookingDate: 1, createdAt: -1 }); // Status with date range
+bookingSchema.index({ 'payment.status': 1, status: 1 }); // Payment status filtering
+bookingSchema.index({ 'payment.method': 1, status: 1 }); // Payment method filtering
+bookingSchema.index({ 'address.city': 1, 'address.state': 1, status: 1 }); // Location-based filtering
+bookingSchema.index({ 'review.rating': 1, status: 1 }); // Review rating filtering
+bookingSchema.index({ 'review.wouldRecommend': 1, status: 1 }); // Recommendation filtering
+bookingSchema.index({ createdAt: -1, status: 1 }); // Recently created bookings
+bookingSchema.index({ updatedAt: -1, status: 1 }); // Recently updated bookings
 
 module.exports = {
   Service: mongoose.model('Service', serviceSchema),

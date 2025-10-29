@@ -41,6 +41,7 @@ const activitiesRoutes = require('./routes/activities');
 const monitoringRoutes = require('./routes/monitoring');
 const alertsRoutes = require('./routes/alerts');
 const databaseMonitoringRoutes = require('./routes/databaseMonitoring');
+const databaseOptimizationRoutes = require('./routes/databaseOptimization');
 const metricsStreamRoutes = require('./routes/metricsStream');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 
@@ -298,6 +299,9 @@ function startServer() {
   app.use('/api/monitoring/alerts', alertsRoutes.router);
   app.use('/api/monitoring/database', databaseMonitoringRoutes);
   app.use('/api/monitoring/stream', metricsStreamRoutes.router);
+  
+  // Database Optimization Routes
+  app.use('/api/database/optimization', databaseOptimizationRoutes);
 
   // 404 handler
   app.use('*', (req, res) => {

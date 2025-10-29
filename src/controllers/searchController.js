@@ -6,6 +6,7 @@ const { Course } = require('../models/Academy');
 const { RentalItem } = require('../models/Rentals');
 const Agency = require('../models/Agency');
 const logger = require('../config/logger');
+const queryOptimizationService = require('../services/queryOptimizationService');
 
 /**
  * Global Search Controller
@@ -158,42 +159,32 @@ const globalSearch = async (req, res) => {
  */
 const searchUsers = async (query, filters = {}) => {
   try {
-    const searchQuery = {
+    // Create optimized search query using query optimization service
+    const searchQuery = queryOptimizationService.createCompoundQuery({
       role: { $in: ['provider', 'supplier', 'instructor'] },
-      isVerified: true
-    };
+      isVerified: true,
+      search: query,
+      textFields: ['firstName', 'lastName', 'profile.bio', 'profile.businessName', 'profile.skills', 'profile.specialties'],
+      category: filters.category,
+      categoryField: 'profile.specialties',
+      location: filters.location,
+      locationField: 'profile.address.city',
+      minRating: filters.rating,
+      ratingField: 'profile.rating'
+    });
 
-    // Text search
-    searchQuery.$or = [
-      { firstName: { $regex: query, $options: 'i' } },
-      { lastName: { $regex: query, $options: 'i' } },
-      { 'profile.bio': { $regex: query, $options: 'i' } },
-      { 'profile.businessName': { $regex: query, $options: 'i' } },
-      { 'profile.skills': { $in: [new RegExp(query, 'i')] } },
-      { 'profile.specialties': { $in: [new RegExp(query, 'i')] } }
-    ];
-
-    // Apply filters
-    if (filters.category) {
-      searchQuery['profile.specialties'] = { $in: [new RegExp(filters.category, 'i')] };
-    }
-
-    if (filters.location) {
-      searchQuery.$or.push(
-        { 'profile.address.city': { $regex: filters.location, $options: 'i' } },
-        { 'profile.serviceAreas': { $in: [new RegExp(filters.location, 'i')] } }
-      );
-    }
-
-    if (filters.rating) {
-      searchQuery['profile.rating'] = { $gte: parseFloat(filters.rating) };
-    }
-
-    const users = await User.find(searchQuery)
-      .select('firstName lastName profile role isVerified')
-      .limit(filters.limit || 20)
-      .skip(filters.skip || 0)
-      .lean();
+    // Use optimized query execution with caching
+    const users = await queryOptimizationService.executeOptimizedQuery(
+      User,
+      searchQuery,
+      {
+        select: 'firstName lastName profile role isVerified',
+        limit: filters.limit || 20,
+        skip: filters.skip || 0,
+        collection: 'users',
+        useCache: true
+      }
+    );
 
     return {
       type: 'users',

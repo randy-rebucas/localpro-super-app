@@ -83,6 +83,37 @@ const productSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Indexes for better performance
+productSchema.index({ category: 1, subcategory: 1 });
+productSchema.index({ supplier: 1 });
+productSchema.index({ isActive: 1 });
+productSchema.index({ sku: 1 });
+productSchema.index({ brand: 1, category: 1 });
+productSchema.index({ 'pricing.retailPrice': 1, category: 1 });
+productSchema.index({ 'inventory.quantity': 1, isActive: 1 });
+productSchema.index({ createdAt: -1, isActive: 1 });
+productSchema.index({ updatedAt: -1, isActive: 1 });
+
+// Additional performance indexes
+productSchema.index({ category: 1, subcategory: 1, isActive: 1 }); // Category filtering with status
+productSchema.index({ supplier: 1, isActive: 1, category: 1 }); // Supplier products by category
+productSchema.index({ 'pricing.retailPrice': 1, 'pricing.wholesalePrice': 1, isActive: 1 }); // Price range filtering
+productSchema.index({ 'inventory.quantity': 1, 'inventory.minStock': 1, isActive: 1 }); // Stock level filtering
+productSchema.index({ 'inventory.location': 1, isActive: 1 }); // Location-based filtering
+productSchema.index({ 'specifications.brand': 1, 'specifications.model': 1, isActive: 1 }); // Brand/model filtering
+productSchema.index({ 'specifications.material': 1, category: 1, isActive: 1 }); // Material filtering
+productSchema.index({ 'specifications.color': 1, category: 1, isActive: 1 }); // Color filtering
+productSchema.index({ isSubscriptionEligible: 1, isActive: 1 }); // Subscription eligibility
+productSchema.index({ tags: 1, isActive: 1 }); // Tags filtering
+
+// Text search index for products
+productSchema.index({
+  name: 'text',
+  description: 'text',
+  brand: 'text',
+  tags: 'text'
+});
+
 const subscriptionKitSchema = new mongoose.Schema({
   name: {
     type: String,

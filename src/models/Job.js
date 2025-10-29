@@ -280,6 +280,30 @@ jobSchema.index({ 'promoted.isPromoted': 1, 'promoted.promotedUntil': 1 });
 jobSchema.index({ employer: 1, status: 1 });
 jobSchema.index({ 'applications.applicant': 1, 'applications.status': 1 });
 
+// Additional performance indexes
+jobSchema.index({ status: 1, isActive: 1, category: 1 }); // Compound index for common queries
+jobSchema.index({ category: 1, subcategory: 1, jobType: 1 }); // Category filtering with job type
+jobSchema.index({ 'company.location.city': 1, 'company.location.state': 1, status: 1 }); // Location with status
+jobSchema.index({ jobType: 1, experienceLevel: 1, status: 1 }); // Job type with experience and status
+jobSchema.index({ 'salary.min': 1, 'salary.max': 1, status: 1 }); // Salary range with status
+jobSchema.index({ 'featured.isFeatured': 1, 'featured.featuredUntil': 1, status: 1 }); // Featured jobs
+jobSchema.index({ 'promoted.isPromoted': 1, 'promoted.promotedUntil': 1, status: 1 }); // Promoted jobs
+jobSchema.index({ employer: 1, status: 1, createdAt: -1 }); // Employer jobs with date
+jobSchema.index({ 'applications.applicant': 1, 'applications.status': 1, 'applications.appliedAt': -1 }); // Application tracking
+jobSchema.index({ 'company.name': 1, status: 1 }); // Company name search
+jobSchema.index({ 'company.location.isRemote': 1, status: 1 }); // Remote job filtering
+jobSchema.index({ 'company.location.country': 1, 'company.location.state': 1, status: 1 }); // Country/state filtering
+jobSchema.index({ 'requirements.skills': 1, status: 1 }); // Skills-based filtering
+jobSchema.index({ 'requirements.education.level': 1, status: 1 }); // Education level filtering
+jobSchema.index({ 'requirements.experience.years': 1, status: 1 }); // Experience years filtering
+jobSchema.index({ 'applicationProcess.deadline': 1, status: 1 }); // Application deadline filtering
+jobSchema.index({ 'applicationProcess.startDate': 1, status: 1 }); // Start date filtering
+jobSchema.index({ visibility: 1, status: 1, isActive: 1 }); // Visibility filtering
+jobSchema.index({ tags: 1, status: 1, isActive: 1 }); // Tags filtering
+jobSchema.index({ 'analytics.applicationsCount': -1, status: 1 }); // Popular jobs
+jobSchema.index({ 'analytics.viewsCount': -1, status: 1 }); // Most viewed jobs
+jobSchema.index({ updatedAt: -1, status: 1 }); // Recently updated jobs
+
 // Text search index
 jobSchema.index({
   title: 'text',

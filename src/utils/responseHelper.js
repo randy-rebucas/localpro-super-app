@@ -174,7 +174,7 @@ const sendRateLimitError = (res, message = 'Too many requests', code = 'RATE_LIM
 };
 
 /**
- * Create pagination metadata
+ * Create pagination metadata (legacy - use paginationMiddleware for new implementations)
  * @param {number} page - Current page
  * @param {number} limit - Items per page
  * @param {number} total - Total items
@@ -186,6 +186,90 @@ const createPagination = (page, limit, total) => {
     limit: parseInt(limit),
     total: parseInt(total),
     pages: Math.ceil(total / limit)
+  };
+};
+
+/**
+ * Create comprehensive pagination metadata
+ * @param {Object} paginationParams - Parsed pagination parameters
+ * @param {number} total - Total number of items
+ * @param {number} count - Number of items in current page
+ * @param {Object} performance - Performance metrics
+ * @returns {Object} - Comprehensive pagination metadata
+ */
+const createComprehensivePagination = (paginationParams, total, count, performance = {}) => {
+  const { page, limit } = paginationParams;
+  const totalPages = Math.ceil(total / limit);
+  
+  return {
+    // Basic pagination info
+    page: parseInt(page),
+    limit: parseInt(limit),
+    total: parseInt(total),
+    totalPages: parseInt(totalPages),
+    count: parseInt(count),
+    
+    // Navigation flags
+    hasNext: page < totalPages,
+    hasPrev: page > 1,
+    nextPage: page < totalPages ? page + 1 : null,
+    prevPage: page > 1 ? page - 1 : null,
+    
+    // Performance metrics
+    queryTime: performance.queryTime || 0,
+    indexUsed: performance.indexUsed || null,
+    executionStats: performance.executionStats || null,
+    
+    // Additional metadata
+    itemsPerPage: parseInt(limit),
+    startItem: total > 0 ? (page - 1) * limit + 1 : 0,
+    endItem: Math.min(page * limit, total),
+    isEmpty: count === 0,
+    isFirstPage: page === 1,
+    isLastPage: page === totalPages
+  };
+};
+
+/**
+ * Create cursor-based pagination metadata
+ * @param {Object} paginationParams - Parsed pagination parameters
+ * @param {Array} results - Query results
+ * @param {string} cursorField - Field used for cursor
+ * @param {Object} performance - Performance metrics
+ * @returns {Object} - Cursor pagination metadata
+ */
+const createCursorPagination = (paginationParams, results, cursorField, performance = {}) => {
+  const { limit, cursor } = paginationParams;
+  const hasMore = results.length > limit;
+  
+  // Remove extra item if we got one more than requested
+  const actualResults = hasMore ? results.slice(0, limit) : results;
+  
+  // Get cursors
+  const firstItem = actualResults[0];
+  const lastItem = actualResults[actualResults.length - 1];
+  
+  return {
+    // Basic info
+    limit: parseInt(limit),
+    count: actualResults.length,
+    hasMore,
+    
+    // Cursor navigation
+    cursor: cursor,
+    nextCursor: hasMore && lastItem ? lastItem[cursorField] : null,
+    prevCursor: firstItem ? firstItem[cursorField] : null,
+    
+    // Performance metrics
+    queryTime: performance.queryTime || 0,
+    indexUsed: performance.indexUsed || null,
+    executionStats: performance.executionStats || null,
+    
+    // Additional metadata
+    isEmpty: actualResults.length === 0,
+    isFirstPage: !cursor,
+    hasNext: hasMore,
+    hasPrev: !!cursor
   };
 };
 
@@ -238,5 +322,7 @@ module.exports = {
   sendServerError,
   sendRateLimitError,
   createPagination,
+  createComprehensivePagination,
+  createCursorPagination,
   formatResponseData
 };

@@ -238,8 +238,51 @@ enrollmentSchema.index({ student: 1 });
 enrollmentSchema.index({ course: 1 });
 enrollmentSchema.index({ status: 1 });
 
+// Indexes for better performance
+courseSchema.index({ category: 1, level: 1 });
+courseSchema.index({ instructor: 1 });
+courseSchema.index({ isActive: 1 });
+courseSchema.index({ 'enrollment.isOpen': 1, isActive: 1 });
+courseSchema.index({ 'pricing.regularPrice': 1, category: 1 });
+courseSchema.index({ 'certification.isAvailable': 1, category: 1 });
+courseSchema.index({ createdAt: -1, isActive: 1 });
+courseSchema.index({ updatedAt: -1, isActive: 1 });
+
+// Additional performance indexes
+courseSchema.index({ category: 1, level: 1, isActive: 1 }); // Category and level filtering
+courseSchema.index({ instructor: 1, isActive: 1, category: 1 }); // Instructor courses by category
+courseSchema.index({ 'enrollment.isOpen': 1, 'enrollment.maxCapacity': 1, isActive: 1 }); // Enrollment status
+courseSchema.index({ 'pricing.regularPrice': 1, 'pricing.discountedPrice': 1, isActive: 1 }); // Price filtering
+courseSchema.index({ 'certification.isAvailable': 1, 'certification.issuer': 1, isActive: 1 }); // Certification filtering
+courseSchema.index({ 'partner.name': 1, isActive: 1 }); // Partner filtering
+courseSchema.index({ prerequisites: 1, isActive: 1 }); // Prerequisites filtering
+courseSchema.index({ 'schedule.startDate': 1, 'schedule.endDate': 1, isActive: 1 }); // Schedule filtering
+courseSchema.index({ tags: 1, isActive: 1 }); // Tags filtering
+
+// Text search index for courses
+courseSchema.index({
+  title: 'text',
+  description: 'text',
+  'learningOutcomes': 'text',
+  tags: 'text'
+});
+
+enrollmentSchema.index({ student: 1 });
+enrollmentSchema.index({ course: 1 });
+enrollmentSchema.index({ status: 1 });
+enrollmentSchema.index({ enrolledAt: -1 });
+enrollmentSchema.index({ student: 1, status: 1 });
+enrollmentSchema.index({ course: 1, status: 1 });
+enrollmentSchema.index({ student: 1, course: 1, status: 1 }); // Unique enrollment check
+enrollmentSchema.index({ 'progress.completedModules': 1, status: 1 }); // Progress tracking
+enrollmentSchema.index({ 'certificate.issuedAt': -1, status: 1 }); // Certificate tracking
+
 certificationSchema.index({ category: 1 });
 certificationSchema.index({ issuer: 1 });
+certificationSchema.index({ isActive: 1 });
+certificationSchema.index({ category: 1, isActive: 1 });
+certificationSchema.index({ 'requirements.courses': 1, isActive: 1 });
+certificationSchema.index({ 'validity.months': 1, isActive: 1 });
 
 module.exports = {
   Course: mongoose.model('Course', courseSchema),
