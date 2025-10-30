@@ -1,0 +1,68 @@
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-10-30T22:34:57.887Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-10-30T22:34:57.888Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-10-30T22:34:57.896Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-10-30T22:34:57.896Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-10-30T22:34:57.898Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-10-30T22:34:57.899Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-10-30T22:34:57.899Z"}
+{"level":"warn","message":"⚠️  Cloudinary Configuration: Cloudinary configuration not found - File upload features will be limited","timestamp":"2025-10-30T22:34:57.900Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-10-30T22:34:57.900Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-10-30T22:34:57.902Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-10-30T22:34:57.902Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":7,"timestamp":"2025-10-30T22:34:57.903Z","warnings":2}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-10-30T22:34:57.904Z","totalChecks":9,"warnings":["Cloudinary Configuration: Cloudinary configuration not found - File upload features will be limited","Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-10-30T22:34:57.904Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-10-30T22:34:58.595Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-10-30T22:34:58.599Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-30T22:34:58.609Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-30T22:34:58.610Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-30T22:34:58.610Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-30T22:34:58.611Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-30T22:34:58.611Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 93.04%","severity":"warning","threshold":0.9,"timestamp":"2025-10-30T22:35:57.891Z","type":"memory_usage","value":0.9303587878603823}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-30T22:36:53.000Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-10-30T22:36:54.011Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-10-30T22:36:54.012Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-10-30T22:36:54.015Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-10-30T22:36:54.016Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-10-30T22:36:54.017Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-10-30T22:36:54.018Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-10-30T22:36:54.019Z"}
+{"level":"warn","message":"⚠️  Cloudinary Configuration: Cloudinary configuration not found - File upload features will be limited","timestamp":"2025-10-30T22:36:54.019Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-10-30T22:36:54.019Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-10-30T22:36:54.020Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-10-30T22:36:54.021Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":7,"timestamp":"2025-10-30T22:36:54.021Z","warnings":2}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-10-30T22:36:54.021Z","totalChecks":9,"warnings":["Cloudinary Configuration: Cloudinary configuration not found - File upload features will be limited","Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-10-30T22:36:54.022Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-10-30T22:36:54.687Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-10-30T22:36:54.693Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-30T22:36:54.706Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-30T22:36:54.707Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-30T22:36:54.708Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-30T22:36:54.708Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-30T22:36:54.708Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.71%","severity":"warning","threshold":0.9,"timestamp":"2025-10-30T22:37:54.012Z","type":"memory_usage","value":0.9471435143069799}
+{"level":"warn","message":"Performance Alert High memory usage: 96.26%","severity":"warning","threshold":0.9,"timestamp":"2025-10-30T22:38:54.019Z","type":"memory_usage","value":0.9626079581470608}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-10-30T22:38:58.234Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-10-30T22:38:59.154Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-10-30T22:38:59.155Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-10-30T22:38:59.158Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-10-30T22:38:59.159Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-10-30T22:38:59.160Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-10-30T22:38:59.160Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-10-30T22:38:59.161Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-10-30T22:38:59.161Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-10-30T22:38:59.161Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-10-30T22:38:59.162Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-10-30T22:38:59.162Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-10-30T22:38:59.163Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-10-30T22:38:59.163Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-10-30T22:38:59.164Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-10-30T22:38:59.845Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-10-30T22:38:59.849Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-10-30T22:38:59.856Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-10-30T22:38:59.857Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-10-30T22:38:59.857Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-10-30T22:38:59.857Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-10-30T22:38:59.857Z"}

@@ -9,7 +9,7 @@ const serviceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
 let client = null;
 let isTwilioConfigured = false;
 
-if (accountSid && authToken && serviceSid && process.env.NODE_ENV !== 'development') {
+if (accountSid && authToken && serviceSid) {
   try {
     client = twilio(accountSid, authToken);
     isTwilioConfigured = true;

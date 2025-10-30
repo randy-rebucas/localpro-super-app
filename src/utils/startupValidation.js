@@ -183,7 +183,7 @@ const createDefaultChecks = (validator) => {
   }, false);
 
   validator.addCheck('Cloudinary Configuration', () => {
-    const cloudinaryUrl = process.env.CLOUDINARY_URL;
+    const cloudinaryUrl = process.env.CLOUDINARY_CLOUD_NAME;
     
     if (!cloudinaryUrl) {
       return 'Cloudinary configuration not found - File upload features will be limited';
