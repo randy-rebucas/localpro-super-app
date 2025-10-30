@@ -1,6 +1,5 @@
 const express = require('express');
 const { auth } = require('../middleware/auth');
-// const { authLimiter, verificationLimiter } = require('../middleware/rateLimiter'); // Rate limiting disabled
 const { validateObjectIdParam, validateFileUpload } = require('../middleware/routeValidation');
 const {
   sendVerificationCode,
@@ -17,7 +16,7 @@ const { uploaders } = require('../config/cloudinary');
 
 const router = express.Router();
 
-// Public routes - rate limiting disabled
+// Public routes
 router.post('/send-code', sendVerificationCode);
 router.post('/verify-code', verifyCode);
 

@@ -104,6 +104,20 @@ const adCampaignSchema = new mongoose.Schema({
       activityLevel: String // 'active', 'moderate', 'new'
     }
   },
+  location: {
+    city: String,
+    state: String,
+    country: String,
+    coordinates: {
+      latitude: Number,
+      longitude: Number
+    }
+  },
+  images: [{
+    url: String,
+    publicId: String,
+    thumbnail: String
+  }],
   content: {
     headline: String,
     body: String,
@@ -188,6 +202,37 @@ const adCampaignSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  isFeatured: {
+    type: Boolean,
+    default: false
+  },
+  views: {
+    type: Number,
+    default: 0
+  },
+  clicks: {
+    type: Number,
+    default: 0
+  },
+  impressions: {
+    type: Number,
+    default: 0
+  },
+  promotion: {
+    type: {
+      type: String,
+      enum: ['featured', 'sponsored', 'boosted']
+    },
+    duration: Number, // in days
+    budget: Number,
+    startDate: Date,
+    endDate: Date,
+    status: {
+      type: String,
+      enum: ['active', 'expired', 'cancelled'],
+      default: 'active'
+    }
   }
 }, {
   timestamps: true

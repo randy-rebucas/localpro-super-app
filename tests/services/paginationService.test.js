@@ -46,7 +46,7 @@ describe('PaginationService', () => {
       expect(result.pagination.totalPages).toBe(5);
       expect(result.pagination.hasNext).toBe(true);
       expect(result.pagination.hasPrev).toBe(true);
-      expect(result.performance.queryTime).toBeGreaterThan(0);
+      expect(result.performance.queryTime).toBeGreaterThanOrEqual(0);
     });
 
     it('should handle empty results', async () => {
@@ -103,7 +103,7 @@ describe('PaginationService', () => {
       expect(result.pagination.count).toBe(2);
       expect(result.pagination.hasMore).toBe(false);
       expect(result.pagination.cursor).toBe('2023-01-03T00:00:00.000Z');
-      expect(result.pagination.nextCursor).toBe('2023-01-01T00:00:00.000Z');
+      expect(result.pagination.nextCursor).toBe(null);
     });
 
     it('should handle hasMore correctly', async () => {

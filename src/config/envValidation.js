@@ -82,13 +82,6 @@ const ENV_SCHEMA = {
     description: 'Google Maps API key'
   },
 
-  // Optional but recommended configurations
-  REDIS_URL: {
-    required: false,
-    type: 'string',
-    pattern: /^redis:\/\//,
-    description: 'Redis connection URL for caching and rate limiting'
-  },
 
   // Twilio Configuration (Optional - for SMS/verification)
   TWILIO_ACCOUNT_SID: {
@@ -412,10 +405,6 @@ function getEnvironmentSummary() {
       service: 'Twilio',
       configured: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN)
     },
-    cache: {
-      service: 'Redis',
-      configured: !!process.env.REDIS_URL
-    }
   };
 
   return summary;

@@ -1,6 +1,27 @@
+// Mock services before importing controller
+jest.mock('../../src/services/paypalService');
+jest.mock('../../src/services/paypalSubscriptionService');
+
 const paypalController = require('../../src/controllers/paypalController');
 const PayPalService = require('../../src/services/paypalService');
 const PayPalSubscriptionService = require('../../src/services/paypalSubscriptionService');
+
+// Mock request and response helpers
+const createMockRequest = () => ({
+  body: {},
+  params: {},
+  query: {},
+  headers: {},
+  user: null
+});
+
+const createMockResponse = () => {
+  const res = {};
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
+  res.send = jest.fn().mockReturnValue(res);
+  return res;
+};
 
 describe('PayPal Controller', () => {
   let req, res;
@@ -11,6 +32,12 @@ describe('PayPal Controller', () => {
     
     // Reset all mocks
     jest.clearAllMocks();
+    
+    // Setup default mocks
+    PayPalService.verifyWebhookSignature = jest.fn();
+    PayPalService.processWebhookEvent = jest.fn();
+    PayPalService.getWebhookEvents = jest.fn();
+    PayPalSubscriptionService.processSubscriptionWebhook = jest.fn();
   });
 
   describe('Webhook Handling', () => {

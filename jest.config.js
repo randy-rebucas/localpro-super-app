@@ -2,39 +2,40 @@ module.exports = {
   // Test environment
   testEnvironment: 'node',
   
-  // Setup files
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
-  
   // Test file patterns
   testMatch: [
-    '<rootDir>/tests/**/*.test.js',
-    '<rootDir>/src/**/*.test.js'
+    '**/tests/**/*.test.js',
+    '**/tests/**/*.spec.js',
+    '**/__tests__/**/*.js'
   ],
   
   // Coverage configuration
   collectCoverage: true,
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+  coverageReporters: ['text', 'lcov', 'html', 'json'],
+  
+  // Coverage thresholds
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70
+    }
+  },
+  
+  // Files to collect coverage from
   collectCoverageFrom: [
     'src/**/*.js',
-    '!src/server.js',
-    '!src/config/database.js',
-    '!**/node_modules/**',
-    '!**/coverage/**'
+    '!src/**/*.test.js',
+    '!src/**/*.spec.js',
+    '!src/tests/**',
+    '!src/seeders/**',
+    '!src/templates/**'
   ],
   
-  // Coverage thresholds (disabled for initial setup)
-  // coverageThreshold: {
-  //   global: {
-  //     branches: 70,
-  //     functions: 70,
-  //     lines: 70,
-  //     statements: 70
-  //   }
-  // },
-  
-  // Module paths
-  moduleDirectories: ['node_modules', 'src'],
+  // Setup files
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   
   // Test timeout
   testTimeout: 30000,
@@ -48,13 +49,31 @@ module.exports = {
   // Verbose output
   verbose: true,
   
-  // Global variables
-  globals: {
-    'process.env.NODE_ENV': 'test'
+  // Module name mapping for absolute imports
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^src/config/databaseTransport$': '<rootDir>/tests/__mocks__/databaseTransport.js',
+    '^\.\/databaseTransport$': '<rootDir>/tests/__mocks__/databaseTransport.js',
+    '^src/services/auditService$': '<rootDir>/tests/__mocks__/auditService.js',
+    '^\.\/services\/auditService$': '<rootDir>/tests/__mocks__/auditService.js',
+    '^\.\.\/services\/auditService$': '<rootDir>/tests/__mocks__/auditService.js',
+    '^src/middleware/auditLogger$': '<rootDir>/tests/__mocks__/auditLogger.js',
+    '^\.\/middleware\/auditLogger$': '<rootDir>/tests/__mocks__/auditLogger.js',
+    '^src/config/logger$': '<rootDir>/tests/__mocks__/logger.js',
+    '^\.\/config\/logger$': '<rootDir>/tests/__mocks__/logger.js',
+    '^\.\.\/config\/logger$': '<rootDir>/tests/__mocks__/logger.js',
+    '^src/services/databasePerformanceMonitor$': '<rootDir>/tests/__mocks__/noop.js',
+    '^\.\/services\/databasePerformanceMonitor$': '<rootDir>/tests/__mocks__/noop.js',
+    '^\.\.\/services\/databasePerformanceMonitor$': '<rootDir>/tests/__mocks__/noop.js',
+    '^src/routes/metricsStream$': '<rootDir>/tests/__mocks__/noop.js',
+    '^\.\/routes\/metricsStream$': '<rootDir>/tests/__mocks__/noop.js',
+    '^\.\.\/routes\/metricsStream$': '<rootDir>/tests/__mocks__/noop.js'
   },
   
-  // Transform files (if needed for ES modules)
-  transform: {},
+  // Transform files
+  transform: {
+    '^.+\\.js$': 'babel-jest'
+  },
   
   // Ignore patterns
   testPathIgnorePatterns: [
@@ -64,8 +83,14 @@ module.exports = {
     '/template-output/'
   ],
   
-  // Module name mapping for absolute imports
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1'
-  }
+  // Global variables
+  globals: {
+    NODE_ENV: 'test'
+  },
+  
+  // Force exit after tests complete
+  forceExit: true,
+  
+  // Detect open handles
+  detectOpenHandles: true
 };

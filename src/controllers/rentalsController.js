@@ -46,9 +46,9 @@ const getRentalItem = async (req, res) => {
 
     // Price filter
     if (minPrice || maxPrice) {
-      filter['pricing.dailyRate'] = {};
-      if (minPrice) filter['pricing.dailyRate'].$gte = Number(minPrice);
-      if (maxPrice) filter['pricing.dailyRate'].$lte = Number(maxPrice);
+      filter['pricing.daily'] = {};
+      if (minPrice) filter['pricing.daily'].$gte = Number(minPrice);
+      if (maxPrice) filter['pricing.daily'].$lte = Number(maxPrice);
     }
 
     // Build sort object
@@ -498,7 +498,7 @@ const bookRental = async (req, res) => {
 
     // Calculate total cost
     const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-    const totalCost = rental.pricing.dailyRate * days * quantity;
+    const totalCost = rental.pricing.daily * days * quantity;
 
     const booking = {
       user: req.user.id,

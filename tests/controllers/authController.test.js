@@ -122,10 +122,10 @@ describe('Authentication Controller', () => {
       const validCodes = ['123456', '000000', '999999'];
 
       for (const code of validCodes) {
-        req.body = {
-          phoneNumber: '+1234567890',
-          code: code
-        };
+        // Reset mocks for each iteration
+        jest.clearAllMocks();
+        req = { body: { phoneNumber: '+1234567890', code: code } };
+        res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
         
         User.findOne.mockResolvedValue({
           _id: 'user-id',

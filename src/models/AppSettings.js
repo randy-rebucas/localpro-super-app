@@ -297,51 +297,6 @@ const appSettingsSchema = new mongoose.Schema({
     }
   },
 
-  // Rate Limiting Settings
-  rateLimiting: {
-    api: {
-      windowMs: {
-        type: Number,
-        default: 900000, // 15 minutes
-        min: 60000,
-        max: 3600000
-      },
-      maxRequests: {
-        type: Number,
-        default: 100,
-        min: 10,
-        max: 1000
-      }
-    },
-    auth: {
-      windowMs: {
-        type: Number,
-        default: 900000, // 15 minutes
-        min: 60000,
-        max: 3600000
-      },
-      maxRequests: {
-        type: Number,
-        default: 5,
-        min: 3,
-        max: 20
-      }
-    },
-    upload: {
-      windowMs: {
-        type: Number,
-        default: 3600000, // 1 hour
-        min: 300000,
-        max: 86400000
-      },
-      maxRequests: {
-        type: Number,
-        default: 10,
-        min: 1,
-        max: 100
-      }
-    }
-  },
 
   // File Upload Settings
   uploads: {

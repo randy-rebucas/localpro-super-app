@@ -39,12 +39,30 @@ const mockSchema = {
   }
 };
 
+// Ensure Schema.Types is properly accessible
+mockSchema.Types = {
+  ObjectId: 'ObjectId',
+  Mixed: 'Mixed',
+  String: 'String',
+  Number: 'Number',
+  Date: 'Date',
+  Boolean: 'Boolean',
+  Array: 'Array'
+};
+
 // Mock connection
 const mockConnection = {
   readyState: 1,
   host: 'localhost',
   port: 27017,
-  name: 'test-db'
+  name: 'test-db',
+  on: jest.fn(),
+  once: jest.fn(),
+  emit: jest.fn(),
+  removeListener: jest.fn(),
+  db: {
+    stats: jest.fn().mockResolvedValue({ connections: { current: 0 } })
+  }
 };
 
 module.exports = {
@@ -54,9 +72,14 @@ module.exports = {
   Schema: jest.fn().mockImplementation(() => mockSchema),
   model: jest.fn().mockImplementation(() => mockModel),
   Types: {
-    ObjectId: jest.fn().mockImplementation((id) => ({ toString: () => id || 'mock-id' }))
+    ObjectId: jest.fn().mockImplementation((id) => ({ toString: () => id || 'mock-id' })),
+    Mixed: 'Mixed'
   }
 };
 
+// Ensure Schema.Types is accessible
+module.exports.Schema.Types = mockSchema.Types;
+
 // Add Schema.Types to the main export
 module.exports.Schema.Types = mockSchema.Types;
+module.exports.Schema.Types.Mixed = 'Mixed';

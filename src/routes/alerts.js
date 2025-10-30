@@ -16,7 +16,7 @@ const alertThresholds = {
   activeConnections: 1000 // 1000 active connections
 };
 
-// Alert history storage (in production, use Redis or database)
+// Alert history storage (in production, use database)
 let alertHistory = [];
 
 // Check for alerts based on current metrics
@@ -264,8 +264,10 @@ const stopAlertMonitoring = () => {
   }
 };
 
-// Start monitoring when module loads
-startAlertMonitoring();
+// Start monitoring when module loads (skip in test environment)
+if (process.env.NODE_ENV !== 'test') {
+  startAlertMonitoring();
+}
 
 module.exports = {
   router,

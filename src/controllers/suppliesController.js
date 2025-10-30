@@ -45,9 +45,9 @@ const getSupplies = async (req, res) => {
 
     // Price filter
     if (minPrice || maxPrice) {
-      filter['pricing.price'] = {};
-      if (minPrice) filter['pricing.price'].$gte = Number(minPrice);
-      if (maxPrice) filter['pricing.price'].$lte = Number(maxPrice);
+      filter['pricing.retailPrice'] = {};
+      if (minPrice) filter['pricing.retailPrice'].$gte = Number(minPrice);
+      if (maxPrice) filter['pricing.retailPrice'].$lte = Number(maxPrice);
     }
 
     // Build sort object
@@ -435,7 +435,7 @@ const orderSupply = async (req, res) => {
     }
 
     // Calculate total cost
-    const totalCost = supply.pricing.price * quantity;
+    const totalCost = supply.pricing.retailPrice * quantity;
 
     const order = {
       user: req.user.id,

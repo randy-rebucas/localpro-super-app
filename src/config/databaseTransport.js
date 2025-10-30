@@ -10,11 +10,15 @@ class DatabaseTransport extends winston.Transport {
     this.flushInterval = options.flushInterval || 5000; // 5 seconds
     this.logBuffer = [];
     this.isFlushing = false;
+    this.flushTimer = null;
     
-    // Start periodic flush
-    this.startFlushTimer();
+    // Start periodic flush (skip in test environment)
+    if (process.env.NODE_ENV !== 'test') {
+      this.startFlushTimer();
+    }
   }
 
+  // Required winston transport methods
   log(info, callback) {
     setImmediate(() => {
       this.emit('logged', info);
@@ -200,13 +204,24 @@ class DatabaseTransport extends winston.Transport {
   }
 
   startFlushTimer() {
-    setInterval(() => {
+    if (this.flushTimer) {
+      clearInterval(this.flushTimer);
+    }
+    this.flushTimer = setInterval(() => {
       this.flush();
     }, this.flushInterval);
   }
 
+  stopFlushTimer() {
+    if (this.flushTimer) {
+      clearInterval(this.flushTimer);
+      this.flushTimer = null;
+    }
+  }
+
   // Force flush all remaining logs
   async close() {
+    this.stopFlushTimer();
     await this.flush();
   }
 }

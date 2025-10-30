@@ -1,10 +1,15 @@
-const PayPalService = require('../../src/services/paypalService');
-const PayMayaService = require('../../src/services/paymayaService');
-
 // Mock dependencies
 jest.mock('@paypal/paypal-server-sdk');
 jest.mock('axios');
 jest.mock('crypto');
+jest.mock('winston-daily-rotate-file', () => {
+  return jest.fn().mockImplementation(() => ({
+    log: jest.fn()
+  }));
+});
+
+const PayPalService = require('../../src/services/paypalService');
+const PayMayaService = require('../../src/services/paymayaService');
 
 describe('Payment Processing Services', () => {
   beforeEach(() => {

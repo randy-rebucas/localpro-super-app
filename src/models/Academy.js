@@ -238,10 +238,7 @@ enrollmentSchema.index({ student: 1 });
 enrollmentSchema.index({ course: 1 });
 enrollmentSchema.index({ status: 1 });
 
-// Indexes for better performance
-courseSchema.index({ category: 1, level: 1 });
-courseSchema.index({ instructor: 1 });
-courseSchema.index({ isActive: 1 });
+// Note: category/level, instructor, and isActive indexes are defined above
 courseSchema.index({ 'enrollment.isOpen': 1, isActive: 1 });
 courseSchema.index({ 'pricing.regularPrice': 1, category: 1 });
 courseSchema.index({ 'certification.isAvailable': 1, category: 1 });
@@ -267,9 +264,7 @@ courseSchema.index({
   tags: 'text'
 });
 
-enrollmentSchema.index({ student: 1 });
-enrollmentSchema.index({ course: 1 });
-enrollmentSchema.index({ status: 1 });
+// Note: student, course, and status indexes are defined above
 enrollmentSchema.index({ enrolledAt: -1 });
 enrollmentSchema.index({ student: 1, status: 1 });
 enrollmentSchema.index({ course: 1, status: 1 });

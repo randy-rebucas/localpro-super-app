@@ -129,6 +129,85 @@ const rentalItemSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  isFeatured: {
+    type: Boolean,
+    default: false
+  },
+  views: {
+    type: Number,
+    default: 0
+  },
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  tags: [String],
+  bookings: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    startDate: {
+      type: Date,
+      required: true
+    },
+    endDate: {
+      type: Date,
+      required: true
+    },
+    quantity: {
+      type: Number,
+      default: 1
+    },
+    totalCost: {
+      type: Number,
+      required: true
+    },
+    specialRequests: String,
+    contactInfo: {
+      phone: String,
+      email: String
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+      default: 'pending'
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  reviews: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5
+    },
+    comment: String,
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  averageRating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5
   }
 }, {
   timestamps: true

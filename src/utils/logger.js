@@ -1,4 +1,11 @@
-const logger = require('../config/logger');
+// Defer requiring the base logger to ensure Jest mocks are respected
+const path = require('path');
+const getBaseLogger = () => {
+  const target = path.resolve(__dirname, '..', 'config', 'logger');
+  // Use absolute path to align with Jest module registry
+  // eslint-disable-next-line import/no-dynamic-require, global-require
+  return require(target);
+};
 
 /**
  * Enhanced logging utility for consistent logging across the application
@@ -15,7 +22,8 @@ class AppLogger {
 
   // Log info messages
   info(message, data = {}) {
-    logger.info(message, {
+    const base = getBaseLogger();
+    base.info(message, {
       context: this.context,
       timestamp: new Date().toISOString(),
       ...data
@@ -24,7 +32,8 @@ class AppLogger {
 
   // Log debug messages
   debug(message, data = {}) {
-    logger.debug(message, {
+    const base = getBaseLogger();
+    base.debug(message, {
       context: this.context,
       timestamp: new Date().toISOString(),
       ...data
@@ -33,7 +42,8 @@ class AppLogger {
 
   // Log warning messages
   warn(message, data = {}) {
-    logger.warn(message, {
+    const base = getBaseLogger();
+    base.warn(message, {
       context: this.context,
       timestamp: new Date().toISOString(),
       ...data
@@ -42,6 +52,7 @@ class AppLogger {
 
   // Log error messages
   error(message, error = null, data = {}) {
+    const base = getBaseLogger();
     const errorData = {
       context: this.context,
       timestamp: new Date().toISOString(),
@@ -56,12 +67,13 @@ class AppLogger {
       };
     }
 
-    logger.error(message, errorData);
+    base.error(message, errorData);
   }
 
   // Log HTTP requests
   http(message, data = {}) {
-    logger.http(message, {
+    const base = getBaseLogger();
+    base.http(message, {
       context: this.context,
       timestamp: new Date().toISOString(),
       ...data
@@ -70,7 +82,9 @@ class AppLogger {
 
   // Log business events
   businessEvent(event, data = {}) {
-    logger.logBusinessEvent(event, {
+    const base = getBaseLogger();
+    const fn = base.logBusinessEvent || base.info;
+    fn.call(base, event, {
       context: this.context,
       ...data
     });
@@ -78,7 +92,9 @@ class AppLogger {
 
   // Log security events
   securityEvent(event, data = {}) {
-    logger.logSecurityEvent(event, {
+    const base = getBaseLogger();
+    const fn = base.logSecurityEvent || base.warn;
+    fn.call(base, event, {
       context: this.context,
       ...data
     });
@@ -86,7 +102,9 @@ class AppLogger {
 
   // Log performance metrics
   performance(operation, duration, metadata = {}) {
-    logger.logPerformance(operation, duration, {
+    const base = getBaseLogger();
+    const fn = base.logPerformance || base.info;
+    fn.call(base, operation, duration, {
       context: this.context,
       ...metadata
     });

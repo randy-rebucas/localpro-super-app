@@ -2,12 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-// const rateLimit = require('express-rate-limit'); // Rate limiting disabled
+const compression = require('compression');
 require('dotenv').config();
 
 const connectDB = require('./config/database');
 const logger = require('./config/logger');
-const StartupValidator = require('./utils/startupValidation');
+const { StartupValidator, createDefaultChecks } = require('./utils/startupValidation');
 const { errorHandler } = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
 const { auditGeneralOperations } = require('./middleware/auditLogger');
@@ -38,6 +38,7 @@ const userManagementRoutes = require('./routes/userManagement');
 const searchRoutes = require('./routes/search');
 const announcementsRoutes = require('./routes/announcements');
 const activitiesRoutes = require('./routes/activities');
+const registrationRoutes = require('./routes/registration');
 const monitoringRoutes = require('./routes/monitoring');
 const alertsRoutes = require('./routes/alerts');
 const databaseMonitoringRoutes = require('./routes/databaseMonitoring');
@@ -50,34 +51,9 @@ const app = express();
 // Trust proxy - necessary when behind reverse proxy/load balancer (e.g., Render, nginx)
 app.set('trust proxy', 1);
 
-// Initialize startup validator
+// Initialize startup validator with comprehensive checks
 const startupValidator = new StartupValidator();
-
-// Add custom startup checks
-startupValidator.addCheck('JWT Secret Strength', () => {
-  const jwtSecret = process.env.JWT_SECRET;
-  if (!jwtSecret) return false;
-  
-  // Check minimum length for production
-  if (process.env.NODE_ENV === 'production' && jwtSecret.length < 64) {
-    logger.warn('⚠️  JWT_SECRET should be at least 64 characters long in production');
-    return false;
-  }
-  
-  return jwtSecret.length >= 32;
-}, true);
-
-startupValidator.addCheck('Frontend URL Format', () => {
-  const frontendUrl = process.env.FRONTEND_URL;
-  if (!frontendUrl) return false;
-  
-  try {
-    new URL(frontendUrl);
-    return true;
-  } catch {
-    return false;
-  }
-}, true);
+createDefaultChecks(startupValidator);
 
 // Run startup validation
 async function initializeApplication() {
@@ -85,17 +61,37 @@ async function initializeApplication() {
     logger.info('🚀 Initializing LocalPro Super App...');
     
     // Run all startup checks
-    const validationResults = await startupValidator.runAllChecks();
+    const validationResults = await startupValidator.runValidation();
+    const summary = startupValidator.getSummary();
     
-    if (!validationResults.overall) {
-      logger.error('❌ Application startup validation failed');
+    if (!summary.canProceed) {
+      logger.error('❌ Critical startup validation failures detected:', {
+        criticalFailures: summary.criticalFailures,
+        totalChecks: summary.totalChecks
+      });
       process.exit(1);
+    }
+    
+    if (summary.warnings.length > 0) {
+      logger.warn('⚠️  Startup validation warnings:', {
+        warnings: summary.warnings,
+        totalChecks: summary.totalChecks
+      });
     }
     
     logger.info('✅ Application startup validation completed successfully');
     
     // Connect to MongoDB after validation
-    connectDB();
+    await connectDB();
+    
+    // Verify database connection after connecting
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) {
+      logger.error('❌ Database connection failed after connection attempt');
+      process.exit(1);
+    }
+    
+    logger.info('✅ Database connection verified successfully');
     
     // Start the server
     startServer();
@@ -115,13 +111,23 @@ function startServer() {
     credentials: true
   }));
 
-  // Rate limiting - DISABLED
-  // const limiter = rateLimit({
-  //   windowMs: 15 * 60 * 1000, // 15 minutes
-  //   max: 100, // limit each IP to 100 requests per windowMs
-  //   message: 'Too many requests from this IP, please try again later.'
-  // });
-  // app.use('/api/', limiter);
+
+  // Response compression middleware
+  app.use(compression({
+    // Only compress responses larger than 1KB
+    threshold: 1024,
+    // Compression level (1-9, where 9 is best compression but slowest)
+    level: 6,
+    // Filter function to determine what to compress
+    filter: (req, res) => {
+      // Don't compress if the request includes a no-transform directive
+      if (req.headers['cache-control'] && req.headers['cache-control'].includes('no-transform')) {
+        return false;
+      }
+      // Use the default compression filter
+      return compression.filter(req, res);
+    }
+  }));
 
   // Body parsing middleware
   app.use(express.json({ limit: '10mb' }));
@@ -293,6 +299,7 @@ function startServer() {
   app.use('/api/search', searchRoutes);
   app.use('/api/announcements', announcementsRoutes);
   app.use('/api/activities', activitiesRoutes);
+  app.use('/api/registration', registrationRoutes);
   
   // Monitoring and Performance Routes
   app.use('/api/monitoring', monitoringRoutes);
@@ -314,25 +321,29 @@ function startServer() {
   // Error handling middleware
   app.use(errorHandler);
 
-  // Start the server
-  const PORT = process.env.PORT || 5000;
-
-  app.listen(PORT, () => {
-    logger.info('LocalPro Super App API Started', {
-      port: PORT,
-      environment: process.env.NODE_ENV || 'development',
-      timestamp: new Date().toISOString()
+  // Start the server unless running in tests
+  if (process.env.NODE_ENV !== 'test') {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      logger.info('LocalPro Super App API Started', {
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString()
+      });
+      
+      logger.info(`🚀 LocalPro Super App API running on port ${PORT}`);
+      logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info(`📊 Logging enabled with Winston`);
+      logger.info(`🔍 Error monitoring active`);
     });
-    
-    logger.info(`🚀 LocalPro Super App API running on port ${PORT}`);
-    logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
-    logger.info(`📊 Logging enabled with Winston`);
-    logger.info(`🔍 Error monitoring active`);
-  });
+  }
 }
 
 // Only initialize if this file is run directly (not imported for testing)
-if (require.main === module) {
+if (process.env.NODE_ENV === 'test') {
+  // In test, configure app without DB connection and without starting listener
+  startServer();
+} else if (require.main === module) {
   initializeApplication();
 }
 

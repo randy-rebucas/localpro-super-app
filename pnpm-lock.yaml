@@ -23,6 +23,9 @@ importers:
       cloudinary:
         specifier: ^1.41.3
         version: 1.41.3
+      compression:
+        specifier: ^1.8.1
+        version: 1.8.1
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -35,12 +38,6 @@ importers:
       express-prometheus-middleware:
         specifier: ^1.2.0
         version: 1.2.0(express@4.21.2)(prom-client@13.2.0)
-      express-rate-limit:
-        specifier: ^7.1.5
-        version: 7.5.1(express@4.21.2)
-      express-slow-down:
-        specifier: ^3.0.0
-        version: 3.0.0(express@4.21.2)
       express-validator:
         specifier: ^7.0.1
         version: 7.3.0
@@ -77,12 +74,6 @@ importers:
       prom-client:
         specifier: ^13.2.0
         version: 13.2.0
-      rate-limit-redis:
-        specifier: ^4.2.3
-        version: 4.2.3(express-rate-limit@7.5.1(express@4.21.2))
-      redis:
-        specifier: ^5.8.3
-        version: 5.9.0
       resend:
         specifier: ^6.1.2
         version: 6.3.0
@@ -123,6 +114,9 @@ importers:
       nodemon:
         specifier: ^3.0.2
         version: 3.1.10
+      redis:
+        specifier: ^5.9.0
+        version: 5.9.0
       supertest:
         specifier: ^7.1.4
         version: 7.1.4
@@ -1066,6 +1060,14 @@ packages:
   component-emitter@1.3.1:
     resolution: {integrity: sha512-T0+barUSQRTUQASh8bx02dl+DhF54GtIDY13Y3m9oWTklKbb3Wv974meRpeZ3lp1JpLVECWWNHC4vaG2XHXouQ==}
 
+  compressible@2.0.18:
+    resolution: {integrity: sha512-AF3r7P5dWxL8MxyITRMlORQNaOA2IkAFaTr4k7BUumjPtRpGDTZpl0Pb1XCO6JeDCBdp126Cgs9sMxqSjgYyRg==}
+    engines: {node: '>= 0.6'}
+
+  compression@1.8.1:
+    resolution: {integrity: sha512-9mAqGPHLakhCLeNyxPkK4xVo746zQ/czLH1Ky+vkitMnWfWZps8r0qXuwhwizagCRttsL4lfG4pIOvaWLpAP0w==}
+    engines: {node: '>= 0.8.0'}
+
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
@@ -1321,24 +1323,6 @@ packages:
     peerDependencies:
       express: 4.x
       prom-client: '>= 10.x <= 13.x'
-
-  express-rate-limit@7.5.1:
-    resolution: {integrity: sha512-7iN8iPMDzOMHPUYllBEsQdWVB6fPDMPqwjBaFrgr4Jgr/+okjvzAy+UHlYYL/Vs0OsOrMkwS6PJDkFlJwoxUnw==}
-    engines: {node: '>= 16'}
-    peerDependencies:
-      express: '>= 4.11'
-
-  express-rate-limit@8.1.0:
-    resolution: {integrity: sha512-4nLnATuKupnmwqiJc27b4dCFmB/T60ExgmtDD7waf4LdrbJ8CPZzZRHYErDYNhoz+ql8fUdYwM/opf90PoPAQA==}
-    engines: {node: '>= 16'}
-    peerDependencies:
-      express: '>= 4.11'
-
-  express-slow-down@3.0.0:
-    resolution: {integrity: sha512-G/EQSH3IV2zukLwQnsCKEveswk8L31vDqiPS6eNkXYeSRhjHB3YSuKNoVSGjOVSqPGW1p6Oeq+b8l1PyWeVEmw==}
-    engines: {node: '>= 16'}
-    peerDependencies:
-      express: 4 || 5 || ^5.0.0-beta.1
 
   express-validator@7.3.0:
     resolution: {integrity: sha512-ujK2BX5JUun5NR4JuBo83YSXoDDIpoGz3QxgHTzQcHFevkKnwV1in4K7YNuuXQ1W3a2ObXB/P4OTnTZpUyGWiw==}
@@ -1605,10 +1589,6 @@ packages:
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
-
-  ip-address@10.0.1:
-    resolution: {integrity: sha512-NWv9YLW4PoW2B7xtzaS3NCot75m6nK7Icdv0o3lfMceJVRfSoQwqD4wEH5rLwoKJwUiZ/rfpiVBhnaF0FK4HoA==}
-    engines: {node: '>= 12'}
 
   ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
@@ -2084,6 +2064,10 @@ packages:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
     engines: {node: '>= 0.6'}
 
+  negotiator@0.6.4:
+    resolution: {integrity: sha512-myRT3DiWPHqho5PrJaIRyaMv2kgYf0mUVgBNOYMuCH5Ki1yEiQaf/ZJuQ62nvpc44wL5WDbTX7yGJi1Neevw8w==}
+    engines: {node: '>= 0.6'}
+
   new-find-package-json@2.0.0:
     resolution: {integrity: sha512-lDcBsjBSMlj3LXH2v/FW3txlh2pYTjmbOXPYJD93HI5EwuLzI11tdHSIpUMmfq/IOsldj4Ps8M8flhm+pCK4Ew==}
     engines: {node: '>=12.22.0'}
@@ -2296,12 +2280,6 @@ packages:
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
-
-  rate-limit-redis@4.2.3:
-    resolution: {integrity: sha512-33Ai6fGBGSxctJxNZRyxzUrqMxcCcnj+EXMJ876c5UTth/wgyWCO7VjTfCEq9+Timjt5/uSFR+whc9/Et0hk/A==}
-    engines: {node: '>= 16'}
-    peerDependencies:
-      express-rate-limit: '>= 6'
 
   raw-body@2.5.2:
     resolution: {integrity: sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==}
@@ -3888,6 +3866,22 @@ snapshots:
 
   component-emitter@1.3.1: {}
 
+  compressible@2.0.18:
+    dependencies:
+      mime-db: 1.52.0
+
+  compression@1.8.1:
+    dependencies:
+      bytes: 3.1.2
+      compressible: 2.0.18
+      debug: 2.6.9
+      negotiator: 0.6.4
+      on-headers: 1.1.0
+      safe-buffer: 5.2.1
+      vary: 1.1.2
+    transitivePeerDependencies:
+      - supports-color
+
   concat-map@0.0.1: {}
 
   concat-stream@2.0.0:
@@ -4137,20 +4131,6 @@ snapshots:
       url-value-parser: 2.2.0
     optionalDependencies:
       prometheus-gc-stats: 0.6.5(prom-client@13.2.0)
-
-  express-rate-limit@7.5.1(express@4.21.2):
-    dependencies:
-      express: 4.21.2
-
-  express-rate-limit@8.1.0(express@4.21.2):
-    dependencies:
-      express: 4.21.2
-      ip-address: 10.0.1
-
-  express-slow-down@3.0.0(express@4.21.2):
-    dependencies:
-      express: 4.21.2
-      express-rate-limit: 8.1.0(express@4.21.2)
 
   express-validator@7.3.0:
     dependencies:
@@ -4456,8 +4436,6 @@ snapshots:
       wrappy: 1.0.2
 
   inherits@2.0.4: {}
-
-  ip-address@10.0.1: {}
 
   ipaddr.js@1.9.1: {}
 
@@ -5126,6 +5104,8 @@ snapshots:
 
   negotiator@0.6.3: {}
 
+  negotiator@0.6.4: {}
+
   new-find-package-json@2.0.0:
     dependencies:
       debug: 4.4.3(supports-color@5.5.0)
@@ -5315,10 +5295,6 @@ snapshots:
   queue-microtask@1.2.3: {}
 
   range-parser@1.2.1: {}
-
-  rate-limit-redis@4.2.3(express-rate-limit@7.5.1(express@4.21.2)):
-    dependencies:
-      express-rate-limit: 7.5.1(express@4.21.2)
 
   raw-body@2.5.2:
     dependencies:

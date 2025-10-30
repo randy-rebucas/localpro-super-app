@@ -1,373 +1,237 @@
-const logger = require('../config/logger');
-const { validateEnvironment, getEnvironmentSummary } = require('../config/envValidation');
-
 /**
  * Startup Validation Utility
- * Handles comprehensive application startup validation and graceful failure
+ * Validates critical environment variables and configurations on app startup
  */
+
+const logger = require('../config/logger');
 
 class StartupValidator {
   constructor() {
-    this.validationResults = null;
-    this.startupChecks = [];
+    this.checks = [];
+    this.criticalFailures = [];
+    this.warnings = [];
   }
 
   /**
-   * Add a custom startup check
+   * Add a validation check
+   * @param {string} name - Name of the check
+   * @param {Function} checkFn - Function that returns true/false or throws error
+   * @param {boolean} isCritical - Whether this is a critical check that should stop startup
+   * @param {string} message - Optional custom message
    */
-  addCheck(name, checkFunction, isCritical = true) {
-    this.startupChecks.push({
+  addCheck(name, checkFn, isCritical = false, message = null) {
+    this.checks.push({
       name,
-      checkFunction,
+      checkFn,
       isCritical,
-      result: null
+      message: message || `${name} validation`
     });
   }
 
   /**
-   * Validate environment variables
+   * Run all validation checks
+   * @returns {Object} Validation results
    */
-  async validateEnvironmentVariables() {
-    logger.info('🔍 Validating environment variables...');
-    
-    try {
-      this.validationResults = validateEnvironment();
-      
-      if (!this.validationResults.isValid) {
-        logger.error('❌ Environment validation failed');
-        this.validationResults.errors.forEach(error => {
-          logger.error(`  ${error}`);
-        });
-        
-        if (this.validationResults.warnings.length > 0) {
-          logger.warn('⚠️  Environment validation warnings:');
-          this.validationResults.warnings.forEach(warning => {
-            logger.warn(`  ${warning}`);
-          });
-        }
-        
-        return false;
-      }
-      
-      logger.info('✅ Environment variables validated successfully');
-      
-      if (this.validationResults.warnings.length > 0) {
-        logger.warn('⚠️  Environment validation warnings:');
-        this.validationResults.warnings.forEach(warning => {
-          logger.warn(`  ${warning}`);
-        });
-      }
-      
-      return true;
-    } catch (error) {
-      logger.error('❌ Environment validation error:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Test database connectivity
-   */
-  async testDatabaseConnection() {
-    logger.info('🔍 Testing database connection...');
-    
-    try {
-      const mongoose = require('mongoose');
-      
-      // Test connection with a short timeout
-      const testConnection = await mongoose.connect(
-        process.env.MONGODB_URI || 'mongodb://localhost:27017/localpro-super-app',
-        {
-          serverSelectionTimeoutMS: 5000, // 5 second timeout
-          connectTimeoutMS: 5000
-        }
-      );
-      
-      logger.info(`✅ Database connected successfully: ${testConnection.connection.host}`);
-      return true;
-    } catch (error) {
-      logger.error('❌ Database connection failed:', error.message);
-      return false;
-    }
-  }
-
-  /**
-   * Test Redis connectivity (if configured)
-   */
-  async testRedisConnection() {
-    if (!process.env.REDIS_URL) {
-      logger.info('ℹ️  Redis not configured, skipping Redis connectivity test');
-      return true;
-    }
-
-    logger.info('🔍 Testing Redis connection...');
-    
-    try {
-      const redis = require('redis');
-      const client = redis.createClient({
-        url: process.env.REDIS_URL
-      });
-
-      await client.connect();
-      await client.ping();
-      await client.disconnect();
-      
-      logger.info('✅ Redis connected successfully');
-      return true;
-    } catch (error) {
-      logger.warn('⚠️  Redis connection failed:', error.message);
-      logger.warn('  Application will continue without Redis caching');
-      return false; // Non-critical failure
-    }
-  }
-
-  /**
-   * Test external service configurations
-   */
-  async testExternalServices() {
-    logger.info('🔍 Testing external service configurations...');
+  async runValidation() {
+    logger.info('🔍 Running startup validation checks...');
     
     const results = {
-      email: false,
-      cloudinary: false,
-      googleMaps: false,
-      twilio: false,
-      paypal: false,
-      paymaya: false
+      passed: 0,
+      failed: 0,
+      warnings: 0,
+      criticalFailures: 0
     };
 
-    // Test Email Service
-    try {
-      const EmailService = require('../services/emailService');
-      const emailService = new EmailService();
-      
-      // Check if email service is properly configured
-      if (process.env.EMAIL_SERVICE === 'resend' && process.env.RESEND_API_KEY) {
-        results.email = true;
-        logger.info('✅ Email service (Resend) configured');
-      } else if (process.env.EMAIL_SERVICE === 'sendgrid' && process.env.SENDGRID_API_KEY) {
-        results.email = true;
-        logger.info('✅ Email service (SendGrid) configured');
-      } else if ((process.env.EMAIL_SERVICE === 'smtp' || process.env.EMAIL_SERVICE === 'hostinger') && 
-                 process.env.SMTP_HOST && process.env.SMTP_USER) {
-        results.email = true;
-        logger.info('✅ Email service (SMTP) configured');
-      } else {
-        logger.warn('⚠️  Email service not properly configured');
-      }
-    } catch (error) {
-      logger.warn('⚠️  Email service configuration test failed:', error.message);
-    }
-
-    // Test Cloudinary
-    try {
-      if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-        results.cloudinary = true;
-        logger.info('✅ Cloudinary configured');
-      } else {
-        logger.warn('⚠️  Cloudinary not properly configured');
-      }
-    } catch (error) {
-      logger.warn('⚠️  Cloudinary configuration test failed:', error.message);
-    }
-
-    // Test Google Maps
-    try {
-      if (process.env.GOOGLE_MAPS_API_KEY) {
-        results.googleMaps = true;
-        logger.info('✅ Google Maps API configured');
-      } else {
-        logger.warn('⚠️  Google Maps API not configured');
-      }
-    } catch (error) {
-      logger.warn('⚠️  Google Maps configuration test failed:', error.message);
-    }
-
-    // Test Twilio
-    try {
-      if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-        results.twilio = true;
-        logger.info('✅ Twilio configured');
-      } else {
-        logger.info('ℹ️  Twilio not configured (optional)');
-      }
-    } catch (error) {
-      logger.warn('⚠️  Twilio configuration test failed:', error.message);
-    }
-
-    // Test PayPal
-    try {
-      if (process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET) {
-        results.paypal = true;
-        logger.info('✅ PayPal configured');
-      } else {
-        logger.info('ℹ️  PayPal not configured (optional)');
-      }
-    } catch (error) {
-      logger.warn('⚠️  PayPal configuration test failed:', error.message);
-    }
-
-    // Test PayMaya
-    try {
-      if (process.env.PAYMAYA_PUBLIC_KEY && process.env.PAYMAYA_SECRET_KEY) {
-        results.paymaya = true;
-        logger.info('✅ PayMaya configured');
-      } else {
-        logger.info('ℹ️  PayMaya not configured (optional)');
-      }
-    } catch (error) {
-      logger.warn('⚠️  PayMaya configuration test failed:', error.message);
-    }
-
-    return results;
-  }
-
-  /**
-   * Run all startup checks
-   */
-  async runAllChecks() {
-    logger.info('🚀 Starting application startup validation...');
-    
-    const startTime = Date.now();
-    const results = {
-      environment: false,
-      database: false,
-      redis: false,
-      externalServices: {},
-      customChecks: {},
-      overall: false
-    };
-
-    // 1. Environment Variables Validation
-    results.environment = await this.validateEnvironmentVariables();
-    if (!results.environment) {
-      logger.error('❌ Critical: Environment validation failed');
-      this.handleStartupFailure('Environment validation failed', results);
-      return results;
-    }
-
-    // 2. Database Connection Test
-    results.database = await this.testDatabaseConnection();
-    if (!results.database) {
-      logger.error('❌ Critical: Database connection failed');
-      this.handleStartupFailure('Database connection failed', results);
-      return results;
-    }
-
-    // 3. Redis Connection Test (non-critical)
-    results.redis = await this.testRedisConnection();
-
-    // 4. External Services Test
-    results.externalServices = await this.testExternalServices();
-
-    // 5. Custom Checks
-    for (const check of this.startupChecks) {
+    for (const check of this.checks) {
       try {
-        logger.info(`🔍 Running custom check: ${check.name}`);
-        check.result = await check.checkFunction();
+        const result = await check.checkFn();
         
-        if (check.result) {
-          logger.info(`✅ Custom check passed: ${check.name}`);
-        } else {
-          logger.error(`❌ Custom check failed: ${check.name}`);
-        }
-        
-        results.customChecks[check.name] = {
-          passed: check.result,
-          critical: check.isCritical
-        };
-        
-        if (check.isCritical && !check.result) {
-          this.handleStartupFailure(`Critical custom check failed: ${check.name}`, results);
-          return results;
+        if (result === true) {
+          results.passed++;
+          logger.info(`✅ ${check.name}: PASSED`);
+        } else if (result === false) {
+          if (check.isCritical) {
+            results.criticalFailures++;
+            this.criticalFailures.push(check.name);
+            logger.error(`❌ ${check.name}: CRITICAL FAILURE`);
+          } else {
+            results.failed++;
+            this.warnings.push(check.name);
+            logger.warn(`⚠️  ${check.name}: FAILED (non-critical)`);
+          }
+        } else if (typeof result === 'string') {
+          // Custom warning message
+          results.warnings++;
+          this.warnings.push(`${check.name}: ${result}`);
+          logger.warn(`⚠️  ${check.name}: ${result}`);
         }
       } catch (error) {
-        logger.error(`❌ Custom check error: ${check.name}`, error);
-        results.customChecks[check.name] = {
-          passed: false,
-          critical: check.isCritical,
-          error: error.message
-        };
-        
         if (check.isCritical) {
-          this.handleStartupFailure(`Critical custom check error: ${check.name}`, results);
-          return results;
+          results.criticalFailures++;
+          this.criticalFailures.push(`${check.name}: ${error.message}`);
+          logger.error(`❌ ${check.name}: CRITICAL ERROR - ${error.message}`);
+        } else {
+          results.failed++;
+          this.warnings.push(`${check.name}: ${error.message}`);
+          logger.warn(`⚠️  ${check.name}: ERROR - ${error.message}`);
         }
       }
     }
 
-    const duration = Date.now() - startTime;
-    results.overall = true;
-    
-    logger.info(`✅ All startup checks completed successfully in ${duration}ms`);
-    this.logStartupSummary(results);
-    
+    // Log summary
+    logger.info('📊 Startup validation summary:', {
+      passed: results.passed,
+      failed: results.failed,
+      warnings: results.warnings,
+      criticalFailures: results.criticalFailures
+    });
+
     return results;
   }
 
   /**
-   * Handle startup failure gracefully
+   * Check if startup should proceed
+   * @returns {boolean} True if startup can proceed
    */
-  handleStartupFailure(reason, results) {
-    logger.error('💥 Application startup failed');
-    logger.error(`Reason: ${reason}`);
-    
-    // Log detailed results for debugging
-    logger.error('Startup validation results:', results);
-    
-    // Log environment summary for debugging
-    const envSummary = getEnvironmentSummary();
-    logger.error('Environment configuration:', envSummary);
-    
-    // Exit with error code
-    logger.error('Exiting application due to startup failure...');
-    process.exit(1);
+  canProceed() {
+    return this.criticalFailures.length === 0;
   }
 
   /**
-   * Log startup summary
+   * Get validation summary
+   * @returns {Object} Summary of validation results
    */
-  logStartupSummary(results) {
-    logger.info('📊 Startup Validation Summary:');
-    logger.info(`  Environment Variables: ${results.environment ? '✅' : '❌'}`);
-    logger.info(`  Database Connection: ${results.database ? '✅' : '❌'}`);
-    logger.info(`  Redis Connection: ${results.redis ? '✅' : '⚠️'}`);
-    
-    logger.info('  External Services:');
-    Object.entries(results.externalServices).forEach(([service, configured]) => {
-      logger.info(`    ${service}: ${configured ? '✅' : '⚠️'}`);
-    });
-    
-    if (Object.keys(results.customChecks).length > 0) {
-      logger.info('  Custom Checks:');
-      Object.entries(results.customChecks).forEach(([check, result]) => {
-        const status = result.passed ? '✅' : '❌';
-        const critical = result.critical ? ' (Critical)' : '';
-        logger.info(`    ${check}: ${status}${critical}`);
-      });
-    }
-    
-    // Log environment summary
-    const envSummary = getEnvironmentSummary();
-    logger.info('📋 Environment Configuration:');
-    logger.info(`  Environment: ${envSummary.environment}`);
-    logger.info(`  Port: ${envSummary.port}`);
-    logger.info(`  Database: ${envSummary.database.configured ? 'Configured' : 'Not configured'}`);
-    logger.info(`  Email Service: ${envSummary.email.service} (${envSummary.email.configured ? 'Configured' : 'Not configured'})`);
-    logger.info(`  File Upload: ${envSummary.fileUpload.configured ? 'Configured' : 'Not configured'}`);
-    logger.info(`  Maps Service: ${envSummary.maps.configured ? 'Configured' : 'Not configured'}`);
-    logger.info(`  Payment Services: PayPal(${envSummary.payments.paypal ? 'Yes' : 'No'}), PayMaya(${envSummary.payments.paymaya ? 'Yes' : 'No'})`);
-    logger.info(`  SMS Service: ${envSummary.sms.configured ? 'Configured' : 'Not configured'}`);
-    logger.info(`  Cache Service: ${envSummary.cache.configured ? 'Configured' : 'Not configured'}`);
-  }
-
-  /**
-   * Get validation results
-   */
-  getResults() {
-    return this.validationResults;
+  getSummary() {
+    return {
+      canProceed: this.canProceed(),
+      criticalFailures: this.criticalFailures,
+      warnings: this.warnings,
+      totalChecks: this.checks.length
+    };
   }
 }
 
-module.exports = StartupValidator;
+// Predefined validation checks
+const createDefaultChecks = (validator) => {
+  // Critical environment variables
+  validator.addCheck('JWT Secret', () => {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET is required');
+    }
+    
+    if (jwtSecret.length < 32) {
+      throw new Error('JWT_SECRET must be at least 32 characters long');
+    }
+    
+    if (process.env.NODE_ENV === 'production' && jwtSecret.length < 64) {
+      throw new Error('JWT_SECRET should be at least 64 characters long in production');
+    }
+    
+    return true;
+  }, true);
 
+  validator.addCheck('MongoDB URI', () => {
+    const mongoUri = process.env.MONGODB_URI;
+    if (!mongoUri) {
+      throw new Error('MONGODB_URI is required');
+    }
+    
+    if (!mongoUri.startsWith('mongodb://') && !mongoUri.startsWith('mongodb+srv://')) {
+      throw new Error('MONGODB_URI must be a valid MongoDB connection string');
+    }
+    
+    return true;
+  }, true);
+
+  validator.addCheck('Node Environment', () => {
+    const nodeEnv = process.env.NODE_ENV;
+    if (!nodeEnv) {
+      return 'NODE_ENV not set, defaulting to development';
+    }
+    
+    const validEnvs = ['development', 'production', 'test', 'staging'];
+    if (!validEnvs.includes(nodeEnv)) {
+      throw new Error(`NODE_ENV must be one of: ${validEnvs.join(', ')}`);
+    }
+    
+    return true;
+  }, false);
+
+  // Optional but recommended environment variables
+  validator.addCheck('Twilio Configuration', () => {
+    const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+    const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+    const twilioService = process.env.TWILIO_VERIFY_SERVICE_SID;
+    
+    if (!twilioSid || !twilioToken || !twilioService) {
+      return 'Twilio credentials not configured - SMS features will be disabled';
+    }
+    
+    return true;
+  }, false);
+
+  validator.addCheck('PayPal Configuration', () => {
+    const paypalClientId = process.env.PAYPAL_CLIENT_ID;
+    const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET;
+    
+    if (!paypalClientId || !paypalClientSecret) {
+      return 'PayPal credentials not configured - Payment features will be limited';
+    }
+    
+    return true;
+  }, false);
+
+  validator.addCheck('Cloudinary Configuration', () => {
+    const cloudinaryUrl = process.env.CLOUDINARY_URL;
+    
+    if (!cloudinaryUrl) {
+      return 'Cloudinary configuration not found - File upload features will be limited';
+    }
+    
+    return true;
+  }, false);
+
+
+  // Security checks
+  validator.addCheck('CORS Configuration', () => {
+    const frontendUrl = process.env.FRONTEND_URL;
+    
+    if (!frontendUrl) {
+      return 'FRONTEND_URL not set - CORS may be too permissive';
+    }
+    
+    return true;
+  }, false);
+
+
+  // Database connection check (non-critical - will be checked after connection)
+  validator.addCheck('Database Connection', async () => {
+    try {
+      const mongoose = require('mongoose');
+      const state = mongoose.connection.readyState;
+      
+      if (state !== 1) { // 1 = connected
+        return 'Database not yet connected - will be checked after connection';
+      }
+      
+      return true;
+    } catch (error) {
+      return `Database connection check failed: ${error.message}`;
+    }
+  }, false);
+
+  // Port validation
+  validator.addCheck('Port Configuration', () => {
+    const port = process.env.PORT || 5000;
+    const portNum = parseInt(port);
+    
+    if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
+      throw new Error(`Invalid port number: ${port}`);
+    }
+    
+    return true;
+  }, false);
+};
+
+module.exports = { StartupValidator, createDefaultChecks };

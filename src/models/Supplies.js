@@ -6,6 +6,11 @@ const productSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
   description: {
     type: String,
     required: true
@@ -59,6 +64,17 @@ const productSchema = new mongoose.Schema({
     color: String,
     warranty: String
   },
+  location: {
+    street: String,
+    city: String,
+    state: String,
+    zipCode: String,
+    country: String,
+    coordinates: {
+      lat: Number,
+      lng: Number
+    }
+  },
   images: [{
     url: String,
     publicId: String,
@@ -70,9 +86,82 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  isFeatured: {
+    type: Boolean,
+    default: false
+  },
+  views: {
+    type: Number,
+    default: 0
+  },
   isSubscriptionEligible: {
     type: Boolean,
     default: false
+  },
+  orders: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+    totalCost: {
+      type: Number,
+      required: true
+    },
+    deliveryAddress: {
+      street: String,
+      city: String,
+      state: String,
+      zipCode: String,
+      country: String
+    },
+    specialInstructions: String,
+    contactInfo: {
+      phone: String,
+      email: String
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
+      default: 'pending'
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  reviews: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5
+    },
+    comment: String,
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  averageRating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5
   },
   supplier: {
     type: mongoose.Schema.Types.ObjectId,
@@ -87,7 +176,7 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ category: 1, subcategory: 1 });
 productSchema.index({ supplier: 1 });
 productSchema.index({ isActive: 1 });
-productSchema.index({ sku: 1 });
+// Note: sku already has unique: true which creates an index
 productSchema.index({ brand: 1, category: 1 });
 productSchema.index({ 'pricing.retailPrice': 1, category: 1 });
 productSchema.index({ 'inventory.quantity': 1, isActive: 1 });
@@ -251,10 +340,8 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes (sku already has unique index)
-productSchema.index({ category: 1, subcategory: 1 });
-productSchema.index({ supplier: 1 });
-productSchema.index({ isActive: 1 });
+// Note: sku already has unique: true which creates an index
+// Note: category/subcategory, supplier, and isActive indexes are defined above
 
 subscriptionKitSchema.index({ category: 1 });
 subscriptionKitSchema.index({ isActive: 1 });

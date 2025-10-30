@@ -184,7 +184,7 @@ const validateCategory = [
   param('category').isIn([
     'privacy', 'notifications', 'communication', 'service', 'payment', 
     'security', 'app', 'analytics', 'general', 'business', 'features', 
-    'uploads', 'payments', 'rateLimiting', 'notifications', 'integrations'
+    'uploads', 'payments', 'notifications', 'integrations'
   ])
 ];
 

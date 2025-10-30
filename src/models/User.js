@@ -368,7 +368,7 @@ userSchema.index({
 });
 
 // Sparse indexes for optional fields
-userSchema.index({ email: 1 }, { sparse: true });
+// Note: email already has unique: true, sparse: true which creates an index
 userSchema.index({ 'profile.businessName': 1 }, { sparse: true });
 userSchema.index({ 'profile.website': 1 }, { sparse: true });
 
