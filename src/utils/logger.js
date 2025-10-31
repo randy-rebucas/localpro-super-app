@@ -1,9 +1,9 @@
-// Defer requiring the base logger to ensure Jest mocks are respected
+// Defer requiring the base logger to ensure proper module loading
 const path = require('path');
 const getBaseLogger = () => {
   const target = path.resolve(__dirname, '..', 'config', 'logger');
-  // Use absolute path to align with Jest module registry
-  // eslint-disable-next-line import/no-dynamic-require, global-require
+  // Use absolute path for proper module resolution
+  // eslint-disable-next-line global-require
   return require(target);
 };
 

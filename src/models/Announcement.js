@@ -321,27 +321,35 @@ announcementSchema.statics.getActiveAnnouncements = function(targetAudience = 'a
   const query = {
     status: 'published',
     isDeleted: false,
-    $or: [
-      { scheduledAt: { $lte: now } },
-      { scheduledAt: null }
-    ],
-    $or: [
-      { expiresAt: { $gt: now } },
-      { expiresAt: null }
+    $and: [
+      {
+        $or: [
+          { scheduledAt: { $lte: now } },
+          { scheduledAt: null }
+        ]
+      },
+      {
+        $or: [
+          { expiresAt: { $gt: now } },
+          { expiresAt: null }
+        ]
+      }
     ]
   };
 
   // Filter by target audience
   if (targetAudience !== 'all') {
-    query.$or = [
-      { targetAudience: targetAudience },
-      { targetAudience: 'all' }
-    ];
+    query.$and.push({
+      $or: [
+        { targetAudience: targetAudience },
+        { targetAudience: 'all' }
+      ]
+    });
   }
 
   // Filter by user roles if specific roles are targeted
   if (userRoles.length > 0) {
-    query.$or.push({ targetRoles: { $in: userRoles } });
+    query.$and.push({ targetRoles: { $in: userRoles } });
   }
 
   return this.find(query)
@@ -356,29 +364,37 @@ announcementSchema.statics.getAnnouncementsForUser = function(userId, userRole, 
   const query = {
     status: 'published',
     isDeleted: false,
-    $or: [
-      { scheduledAt: { $lte: now } },
-      { scheduledAt: null }
-    ],
-    $or: [
-      { expiresAt: { $gt: now } },
-      { expiresAt: null }
-    ],
-    $or: [
-      { targetAudience: 'all' },
-      { targetAudience: userRole },
-      { targetRoles: { $in: [userRole] } }
+    $and: [
+      {
+        $or: [
+          { scheduledAt: { $lte: now } },
+          { scheduledAt: null }
+        ]
+      },
+      {
+        $or: [
+          { expiresAt: { $gt: now } },
+          { expiresAt: null }
+        ]
+      },
+      {
+        $or: [
+          { targetAudience: 'all' },
+          { targetAudience: userRole },
+          { targetRoles: { $in: [userRole] } }
+        ]
+      }
     ]
   };
 
   // Add location-based filtering if user location is provided
   if (userLocation) {
-    query.$or.push({ targetLocations: { $in: [userLocation] } });
+    query.$and.push({ targetLocations: { $in: [userLocation] } });
   }
 
   // Add category-based filtering if user categories are provided
   if (userCategories && userCategories.length > 0) {
-    query.$or.push({ targetCategories: { $in: userCategories } });
+    query.$and.push({ targetCategories: { $in: userCategories } });
   }
 
   return this.find(query)

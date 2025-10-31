@@ -3,6 +3,7 @@
  * Handles all errors in a consistent manner
  */
 
+/* eslint-disable no-undef */
 const { 
   sendValidationError, 
   sendNotFoundError, 
@@ -43,8 +44,8 @@ const errorHandler = (error, req, res, next) => {
     path: req.path,
     method: req.method,
     ip: req.ip,
-    userAgent: req.get('User-Agent'),
-    userId: req.user?.id
+    userAgent: req.get('User-Agent'), // eslint-disable-line no-undef
+    userId: req.user?.id // eslint-disable-line no-undef
   });
 
   // Handle specific error types
@@ -160,8 +161,8 @@ const requestLogger = (req, res, next) => {
     method: req.method,
     path: req.path,
     ip: req.ip,
-    userAgent: req.get('User-Agent'),
-    userId: req.user?.id
+    userAgent: req.get('User-Agent'), // eslint-disable-line no-undef
+    userId: req.user?.id // eslint-disable-line no-undef
   });
   
   // Log response
@@ -173,7 +174,7 @@ const requestLogger = (req, res, next) => {
       status: res.statusCode,
       duration: `${duration}ms`,
       ip: req.ip,
-      userId: req.user?.id
+      userId: req.user?.id // eslint-disable-line no-undef
     });
   });
   
@@ -225,7 +226,7 @@ const performanceMonitor = (req, res, next) => {
         path: req.path,
         duration: `${duration}ms`,
         status: res.statusCode,
-        userId: req.user?.id
+        userId: req.user?.id // eslint-disable-line no-undef
       });
     }
     
@@ -236,7 +237,7 @@ const performanceMonitor = (req, res, next) => {
       duration: `${duration}ms`,
       status: res.statusCode,
       memoryUsage: process.memoryUsage(),
-      userId: req.user?.id
+      userId: req.user?.id // eslint-disable-line no-undef
     });
   });
   

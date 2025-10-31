@@ -17,8 +17,6 @@ if (accountSid && authToken && serviceSid) {
   } catch (error) {
     console.warn('⚠️ Twilio client initialization failed:', error.message);
   }
-} else {
-  console.warn('⚠️ Twilio credentials not provided or in development mode, using mock mode');
 }
 
 class TwilioService {
@@ -26,7 +24,7 @@ class TwilioService {
     try {
       // Check if Twilio is properly configured
       if (!isTwilioConfigured || !client || !serviceSid) {
-        return this._useMockVerification(phoneNumber, 'send');
+        throw new Error('Twilio service not configured. Please configure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_VERIFY_SERVICE_SID environment variables.');
       }
 
       // Validate phone number format
@@ -50,14 +48,7 @@ class TwilioService {
         status: verification.status
       };
     } catch (error) {
-      console.error('❌ Twilio verification error:', error.message);
-      
-      // Fallback to mock if Twilio fails
-      if (error.status === 404) {
-        console.warn('⚠️ Twilio service not found, falling back to mock mode');
-        return this._useMockVerification(phoneNumber, 'send');
-      }
-      
+      logger.error('❌ Twilio verification error:', error.message);
       return {
         success: false,
         error: error.message,
@@ -70,7 +61,7 @@ class TwilioService {
     try {
       // Check if Twilio is properly configured
       if (!isTwilioConfigured || !client || !serviceSid) {
-        return this._useMockVerification(phoneNumber, 'verify', code);
+        throw new Error('Twilio service not configured. Please configure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_VERIFY_SERVICE_SID environment variables.');
       }
 
       // Validate code format
@@ -94,14 +85,7 @@ class TwilioService {
         status: verificationCheck.status
       };
     } catch (error) {
-      console.error('❌ Twilio verification check error:', error.message);
-      
-      // Fallback to mock if Twilio fails
-      if (error.status === 404) {
-        console.warn('⚠️ Twilio service not found, falling back to mock mode');
-        return this._useMockVerification(phoneNumber, 'verify', code);
-      }
-      
+      logger.error('❌ Twilio verification check error:', error.message);
       return {
         success: false,
         error: error.message,
@@ -113,14 +97,7 @@ class TwilioService {
   static async sendSMS(to, message) {
     try {
       if (!client || !process.env.TWILIO_PHONE_NUMBER) {
-        console.warn('Twilio not configured, logging SMS for development');
-        logger.info(`Mock SMS to ${to}: ${message}`);
-        
-        return {
-          success: true,
-          sid: `mock_sms_${Date.now()}`,
-          status: 'sent'
-        };
+        throw new Error('Twilio SMS not configured. Please configure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER environment variables.');
       }
 
       const sms = await client.messages.create({
@@ -140,41 +117,6 @@ class TwilioService {
         success: false,
         error: error.message
       };
-    }
-  }
-
-  // Mock verification for development/testing
-  static _useMockVerification(phoneNumber, action, code = null) {
-    console.warn('🔧 Using mock verification mode');
-    
-    if (action === 'send') {
-      const mockCode = Math.floor(100000 + Math.random() * 900000).toString();
-      logger.info(`📱 Mock verification code for ${phoneNumber}: ${mockCode}`);
-      
-      return {
-        success: true,
-        sid: `mock_${Date.now()}`,
-        status: 'pending',
-        mockCode: mockCode,
-        isMock: true
-      };
-    } else if (action === 'verify') {
-      // Accept any 6-digit code in mock mode
-      if (code && code.length === 6 && /^\d{6}$/.test(code)) {
-        logger.info(`✅ Mock verification approved for ${phoneNumber}`);
-        return {
-          success: true,
-          status: 'approved',
-          isMock: true
-        };
-      } else {
-        logger.info(`❌ Mock verification denied for ${phoneNumber}`);
-        return {
-          success: false,
-          status: 'denied',
-          isMock: true
-        };
-      }
     }
   }
 

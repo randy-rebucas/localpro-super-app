@@ -117,7 +117,6 @@ const connectDB = async () => {
     if (error.message.includes('ECONNREFUSED')) {
       console.error('💡 MongoDB connection refused. Please ensure MongoDB is running:');
       console.error('   - Install MongoDB locally: https://docs.mongodb.com/manual/installation/');
-      console.error('   - Or use Docker: docker run -d -p 27017:27017 --name mongodb mongo:6.0');
       console.error('   - Or use MongoDB Atlas: https://www.mongodb.com/atlas');
     } else if (error.message.includes('Authentication failed')) {
       console.error('💡 MongoDB authentication failed. Please check credentials:');

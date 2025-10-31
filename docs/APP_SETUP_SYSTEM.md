@@ -255,8 +255,6 @@ CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
    ```bash
    # Ensure MongoDB is running
    mongod
-   # Or with Docker
-   docker run -d -p 27017:27017 mongo:latest
    ```
 
 2. **Environment Variables Missing**

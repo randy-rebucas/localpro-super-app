@@ -146,25 +146,32 @@ const getMyAnnouncements = async (req, res) => {
       includeAcknowledged = false
     } = req.query;
 
+    const now = new Date();
     let query = {
       isDeleted: false,
       status: 'published',
-      $or: [
-        { scheduledAt: { $lte: new Date() } },
-        { scheduledAt: null }
-      ],
-      $or: [
-        { expiresAt: { $gt: new Date() } },
-        { expiresAt: null }
+      $and: [
+        {
+          $or: [
+            { scheduledAt: { $lte: now } },
+            { scheduledAt: null }
+          ]
+        },
+        {
+          $or: [
+            { expiresAt: { $gt: now } },
+            { expiresAt: null }
+          ]
+        },
+        {
+          $or: [
+            { targetAudience: 'all' },
+            { targetAudience: user.role },
+            { targetRoles: { $in: [user.role] } }
+          ]
+        }
       ]
     };
-
-    // Filter by target audience and user role
-    query.$or = [
-      { targetAudience: 'all' },
-      { targetAudience: user.role },
-      { targetRoles: { $in: [user.role] } }
-    ];
 
     // If not including acknowledged announcements, filter them out
     if (!includeAcknowledged) {

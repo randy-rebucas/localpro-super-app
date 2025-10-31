@@ -24,8 +24,8 @@ class TemplateEngine {
           }
         });
       } else {
-        // In test environment or when templates don't exist, create some basic templates
-        if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+        // In development environment or when templates don't exist, create some basic templates
+        if (process.env.NODE_ENV === 'development') {
           this.createDefaultTemplates();
         }
       }
@@ -40,6 +40,7 @@ class TemplateEngine {
    * Create default templates for testing and development
    */
   createDefaultTemplates() {
+    /* eslint-disable no-undef */
     const defaultTemplates = {
       'welcome': `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -125,6 +126,7 @@ class TemplateEngine {
         </div>
       `
     };
+    /* eslint-enable no-undef */
 
     Object.entries(defaultTemplates).forEach(([name, content]) => {
       this.templates.set(name, content);

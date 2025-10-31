@@ -212,8 +212,6 @@ curl -X POST http://localhost:5000/api/auth/login \
 # Start MongoDB
 mongod
 
-# Or with Docker
-docker run -d -p 27017:27017 --name mongodb mongo:latest
 ```
 
 #### Environment Variables Missing

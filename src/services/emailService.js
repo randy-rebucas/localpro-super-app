@@ -323,14 +323,6 @@ class EmailService {
    */
   async sendViaResend(to, subject, html) {
     if (!this.resend) {
-      // In test environment or when API key is missing, return a mock response
-      if (process.env.NODE_ENV === 'test') {
-        return {
-          success: true,
-          messageId: `test_${Date.now()}`,
-          message: 'Email sent via Resend (test mode)'
-        };
-      }
       throw new Error('Resend client not initialized. Check your RESEND_API_KEY.');
     }
 
@@ -363,14 +355,8 @@ class EmailService {
    * @returns {Promise<object>} Send result
    */
   async sendViaSendGrid(to, subject, html) {
-    // SendGrid implementation would go here
-    // For now, return a placeholder
-    logger.info(`[SendGrid] Sending email to: ${to}`);
-    return {
-      success: true,
-      messageId: `sg_${Date.now()}`,
-      message: 'Email sent via SendGrid'
-    };
+    // TODO: Implement SendGrid integration
+    throw new Error('SendGrid integration not yet implemented. Please use Resend or SMTP.');
   }
 
   /**
@@ -382,14 +368,6 @@ class EmailService {
    */
   async sendViaSMTP(to, subject, html) {
     if (!this.transporter) {
-      // In test environment or when credentials are missing, return a mock response
-      if (process.env.NODE_ENV === 'test') {
-        return {
-          success: true,
-          messageId: `test_${Date.now()}`,
-          message: 'Email sent via SMTP (test mode)'
-        };
-      }
       throw new Error('SMTP transporter not initialized. Check your SMTP configuration.');
     }
 
@@ -566,9 +544,6 @@ class EmailService {
       switch (this.emailService) {
         case 'resend':
           if (!this.resend) {
-            if (process.env.NODE_ENV === 'test') {
-              return { success: true, message: 'Resend configuration ready (test mode)' };
-            }
             throw new Error('Resend client not initialized. Check your RESEND_API_KEY.');
           }
           return { success: true, message: 'Resend configuration ready' };
@@ -577,9 +552,6 @@ class EmailService {
         case 'hostinger':
         case 'smtp':
           if (!this.transporter) {
-            if (process.env.NODE_ENV === 'test') {
-              return { success: true, message: 'SMTP configuration ready (test mode)' };
-            }
             throw new Error('SMTP transporter not initialized. Check your SMTP configuration.');
           }
           await this.transporter.verify();

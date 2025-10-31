@@ -9,10 +9,8 @@ const {
 } = require('../middleware/metricsMiddleware');
 const logger = require('../config/logger');
 
-// Start metrics collection when the module is loaded (skip in test environment)
-if (process.env.NODE_ENV !== 'test') {
-  startSystemMetricsCollection();
-}
+// Start metrics collection when the module is loaded
+startSystemMetricsCollection();
 
 // Prometheus metrics endpoint
 router.get('/metrics', async (req, res) => {

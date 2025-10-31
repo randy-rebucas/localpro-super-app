@@ -708,7 +708,7 @@ const getFinancialReports = async (req, res) => {
     let report = {};
 
     switch (reportType) {
-      case 'summary':
+      case 'summary': {
         // Get summary report
         const summary = await Booking.aggregate([
           {
@@ -747,8 +747,9 @@ const getFinancialReports = async (req, res) => {
           expenseCount: expenses.length
         };
         break;
+      }
 
-      case 'detailed':
+      case 'detailed': {
         // Get detailed report
         const detailedEarnings = await Booking.aggregate([
           {
@@ -784,6 +785,13 @@ const getFinancialReports = async (req, res) => {
           }
         ]);
 
+        const expenses = finance.transactions.filter(transaction => {
+          const transactionDate = new Date(transaction.timestamp);
+          if (startDate && transactionDate < new Date(startDate)) return false;
+          if (endDate && transactionDate > new Date(endDate)) return false;
+          return transaction.type === 'expense';
+        });
+
         report = {
           earnings: detailedEarnings,
           expenses: expenses.map(expense => ({
@@ -794,6 +802,7 @@ const getFinancialReports = async (req, res) => {
           }))
         };
         break;
+      }
 
       default:
         return res.status(400).json({

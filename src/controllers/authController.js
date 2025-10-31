@@ -203,63 +203,21 @@ const verifyCode = async (req, res) => {
       });
     }
 
-    // Special-case expired scenario used by unit tests
-    if (phoneNumber === '+1987654321' && code === '123456') {
-      return res.status(400).json({
-        success: false,
-        message: 'Verification code expired',
-        code: 'VERIFICATION_CODE_EXPIRED'
-      });
-    }
-
-    // In test environment without a mocked Twilio service (integration tests),
-    // bypass external verification and database for predictable responses
-    const isTwilioMocked = !!(TwilioService && TwilioService.verifyCode && TwilioService.verifyCode._isMockFunction);
-    if (process.env.NODE_ENV === 'test' && !isTwilioMocked) {
-      if (code === '123456') {
-        return res.status(201).json({
-          success: true,
-          message: 'User registered and logged in successfully',
-          token: 'mock-token',
-          user: {
-            id: 'new-user-id',
-            phoneNumber,
-            firstName: 'User',
-            lastName: 'User',
-            isVerified: true
-          }
-        });
-      }
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid or expired verification code',
-        code: 'INVALID_VERIFICATION_CODE'
-      });
-    }
-
-    // Verify code with Twilio (gracefully handle missing test wiring)
+    // Verify code with Twilio
     let verificationResult;
     try {
       verificationResult = await TwilioService.verifyCode(phoneNumber, code);
-    } catch (_twilioError) {
-      if (code === '123456') {
-        return res.status(201).json({
-          success: true,
-          message: 'User registered and logged in successfully',
-          token: 'mock-token',
-          user: {
-            id: 'new-user-id',
-            phoneNumber,
-            firstName: 'User',
-            lastName: 'User',
-            isVerified: true
-          }
-        });
-      }
-      return res.status(400).json({
+    } catch (error) {
+      logger.error('Twilio verification error', {
+        error: error.message,
+        phoneNumber: phoneNumber.substring(0, 5) + '***',
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(500).json({
         success: false,
-        message: 'Invalid or expired verification code',
-        code: 'INVALID_VERIFICATION_CODE'
+        message: 'Verification service error',
+        code: 'VERIFICATION_SERVICE_ERROR'
       });
     }
 
@@ -278,36 +236,32 @@ const verifyCode = async (req, res) => {
       });
     }
 
-    // If no DB connection (integration tests without Mongo), short-circuit
+    // Verify database connection
     try {
       const mongoose = require('mongoose');
       if (!mongoose.connection || mongoose.connection.readyState !== 1) {
-        return res.status(201).json({
-          success: true,
-          message: 'User registered and logged in successfully',
-          token: 'mock-token',
-          user: {
-            id: 'new-user-id',
-            phoneNumber,
-            firstName: 'User',
-            lastName: 'User',
-            isVerified: true
-          }
+        logger.error('Database connection not available', {
+          phoneNumber: phoneNumber.substring(0, 5) + '***',
+          clientInfo,
+          duration: Date.now() - startTime
+        });
+        return res.status(500).json({
+          success: false,
+          message: 'Database service unavailable',
+          code: 'DATABASE_UNAVAILABLE'
         });
       }
-    } catch (_e) {
-      // If mongoose is unavailable, behave like no DB connection
-      return res.status(201).json({
-        success: true,
-        message: 'User registered and logged in successfully',
-        token: 'mock-token',
-        user: {
-          id: 'new-user-id',
-          phoneNumber,
-          firstName: 'User',
-          lastName: 'User',
-          isVerified: true
-        }
+    } catch (error) {
+      logger.error('Database connection check failed', {
+        error: error.message,
+        phoneNumber: phoneNumber.substring(0, 5) + '***',
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(500).json({
+        success: false,
+        message: 'Database service error',
+        code: 'DATABASE_ERROR'
       });
     }
 
@@ -315,7 +269,7 @@ const verifyCode = async (req, res) => {
     let user = await User.findOne({ phoneNumber });
 
     if (user) {
-      // Existing user - update verification status and login info (defensive for mocked objects)
+      // Existing user - update verification status and login info
       user.isVerified = true;
       if (user.verification) {
         user.verification.phoneVerified = true;
@@ -353,7 +307,7 @@ const verifyCode = async (req, res) => {
       }
 
       // Generate token
-      const token = 'mock-token';
+      const token = generateToken(user);
 
       logger.info('Existing user login successful', {
         userId: user._id,
@@ -387,8 +341,8 @@ const verifyCode = async (req, res) => {
       // New user - create minimal user record with required fields
       user = await User.create({
         phoneNumber,
-        firstName: 'User', // Temporary placeholder - will be updated during onboarding
-        lastName: 'User', // Temporary placeholder - will be updated during onboarding
+        firstName: null,
+        lastName: null,
         isVerified: true,
         verification: {
           phoneVerified: true
@@ -409,7 +363,7 @@ const verifyCode = async (req, res) => {
       });
 
       // Generate token
-      const token = 'mock-token';
+      const token = generateToken(user);
 
       logger.info('New user registration successful', {
         userId: user._id,

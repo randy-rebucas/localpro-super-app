@@ -15,18 +15,7 @@
     "verify": "node verify-setup.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "security:audit": "npm audit --audit-level=high",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --watchAll=false",
-    "test:unit": "jest --testPathPatterns tests/unit",
-    "test:integration": "jest --testPathPatterns tests/integration",
-    "test:e2e": "jest --testPathPatterns tests/e2e --passWithNoTests",
-    "docker:build": "docker build -t localpro-super-app .",
-    "docker:run": "docker run -p 5000:5000 --env-file .env localpro-super-app",
-    "docker:compose": "docker-compose up -d",
-    "docker:compose:down": "docker-compose down"
+    "security:audit": "npm audit --audit-level=high"
   },
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.4.2",
@@ -59,14 +48,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.38.0",
-    "@types/jest": "^30.0.0",
-    "@types/supertest": "^6.0.3",
     "eslint": "^8.57.1",
     "globals": "^16.4.0",
-    "jest": "^30.2.0",
-    "mongodb-memory-server": "^10.2.3",
     "nodemon": "^3.0.2",
-    "redis": "^5.9.0",
-    "supertest": "^7.1.4"
+    "redis": "^5.9.0"
   }
 }

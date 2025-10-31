@@ -12,10 +12,8 @@ class DatabaseTransport extends winston.Transport {
     this.isFlushing = false;
     this.flushTimer = null;
     
-    // Start periodic flush (skip in test environment)
-    if (process.env.NODE_ENV !== 'test') {
-      this.startFlushTimer();
-    }
+    // Start periodic flush
+    this.startFlushTimer();
   }
 
   // Required winston transport methods
@@ -169,15 +167,6 @@ class DatabaseTransport extends winston.Transport {
   async flush() {
     if (this.isFlushing || this.logBuffer.length === 0) {
       return;
-    }
-
-    // Skip database operations in test environment if connection is not ready
-    if (process.env.NODE_ENV === 'test') {
-      const mongoose = require('mongoose');
-      if (mongoose.connection.readyState !== 1) {
-        this.logBuffer = []; // Clear buffer to prevent memory leaks
-        return;
-      }
     }
 
     this.isFlushing = true;

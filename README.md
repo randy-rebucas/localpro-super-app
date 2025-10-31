@@ -1608,14 +1608,6 @@ TWILIO_AUTH_TOKEN=your-twilio-token
 # ... other production variables
 ```
 
-### Docker Deployment
-```bash
-# Build Docker image
-docker build -t localpro-super-app .
-
-# Run container
-docker run -p 5000:5000 --env-file .env localpro-super-app
-```
 
 ## 🤝 Contributing
 

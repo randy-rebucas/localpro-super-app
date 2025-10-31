@@ -85,7 +85,7 @@ This will:
 
 ### Option 2: Automated Setup
 
-For non-interactive setup (CI/CD, Docker, etc.):
+For non-interactive setup (CI/CD, etc.):
 
 ```bash
 # Basic automated setup
@@ -236,22 +236,6 @@ NODE_ENV=development npm run setup:install
 NODE_ENV=production npm run setup:auto admin@yourcompany.com +639171234567 SecurePass123! "Your Company"
 ```
 
-### Docker Setup
-
-For Docker deployments:
-
-```dockerfile
-# Dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run setup:auto admin@company.com +639171234567 AdminPass123! "Company Name"
-EXPOSE 5000
-CMD ["npm", "start"]
-```
-
 ### CI/CD Integration
 
 For automated deployments:
@@ -304,8 +288,6 @@ The setup enforces strong password policies:
 # Start MongoDB
 mongod
 
-# Or with Docker
-docker run -d -p 27017:27017 --name mongodb mongo:latest
 ```
 
 #### Environment Variables Missing

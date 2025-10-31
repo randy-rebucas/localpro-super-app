@@ -143,32 +143,10 @@ class DatabaseOptimizationService {
    * Get sample queries for a collection (simplified implementation)
    */
   async getSampleQueries(collectionName) {
-    // In a real implementation, you would query MongoDB's profiler collection
-    // For now, we'll return common query patterns based on the collection name
-    const commonQueries = {
-      'users': [
-        { filter: { role: 'provider' }, sort: { 'profile.rating': -1 } },
-        { filter: { 'profile.address.city': 'New York' } },
-        { filter: { isActive: true, status: 'active' } }
-      ],
-      'jobs': [
-        { filter: { status: 'active', isActive: true } },
-        { filter: { category: 'technology', jobType: 'full_time' } },
-        { filter: { 'company.location.city': 'San Francisco' } }
-      ],
-      'services': [
-        { filter: { isActive: true, category: 'cleaning' } },
-        { filter: { 'rating.average': { $gte: 4.0 } } },
-        { filter: { serviceArea: { $in: ['10001', '10002'] } } }
-      ],
-      'bookings': [
-        { filter: { status: 'pending' } },
-        { filter: { client: ObjectId(), status: 'confirmed' } },
-        { filter: { bookingDate: { $gte: new Date() } } }
-      ]
-    };
-
-    return commonQueries[collectionName] || [];
+    // TODO: Query MongoDB's profiler collection to get actual query patterns
+    // This should analyze the profiler data to identify common query patterns
+    // For now, return empty array - implement actual profiler querying
+    return [];
   }
 
   /**

@@ -367,7 +367,7 @@ const appSettingsSchema = new mongoose.Schema({
       },
       fromNumber: {
         type: String,
-        default: '+1234567890'
+        default: null
       }
     },
     push: {

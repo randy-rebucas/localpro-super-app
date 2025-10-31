@@ -460,12 +460,13 @@ trustScoreSchema.statics.updateFromActivity = async function(userId, activityTyp
     case 'booking_cancelled':
       trustScore.factors.activityMetrics.cancelledBookings += 1;
       break;
-    case 'review_received':
+    case 'review_received': {
       const { rating } = data;
       const currentTotal = trustScore.factors.activityMetrics.averageRating * trustScore.factors.activityMetrics.totalReviews;
       trustScore.factors.activityMetrics.totalReviews += 1;
       trustScore.factors.activityMetrics.averageRating = (currentTotal + rating) / trustScore.factors.activityMetrics.totalReviews;
       break;
+    }
     case 'payment_completed':
       trustScore.factors.financialMetrics.totalTransactions += 1;
       trustScore.factors.financialMetrics.totalAmount += data.amount || 0;

@@ -78,15 +78,14 @@ class ProviderDashboardService {
 
   // Get earnings data
   async getEarningsData(provider, since) {
-    // This would integrate with actual financial data
     return {
       total: provider.performance.earnings.total,
       thisMonth: provider.performance.earnings.thisMonth,
       lastMonth: provider.performance.earnings.lastMonth,
       pending: provider.performance.earnings.pending,
       period: {
-        total: provider.performance.earnings.thisMonth, // Placeholder
-        average: provider.performance.earnings.thisMonth / 30, // Placeholder
+        total: provider.performance.earnings.thisMonth,
+        average: provider.performance.earnings.thisMonth / 30,
         growth: this.calculateGrowth(provider.performance.earnings.thisMonth, provider.performance.earnings.lastMonth)
       },
       breakdown: {
@@ -121,7 +120,6 @@ class ProviderDashboardService {
 
   // Get recent activity
   async getRecentActivity(userId, since) {
-    // This would integrate with actual activity data
     return {
       bookings: await this.getRecentBookings(userId, since),
       reviews: await this.getRecentReviews(userId, since),
@@ -133,7 +131,6 @@ class ProviderDashboardService {
 
   // Get notifications
   async getNotifications(userId) {
-    // This would integrate with actual notification system
     return {
       pendingJobs: await this.getPendingJobs(userId),
       unreadMessages: await this.getUnreadMessages(userId),
@@ -158,259 +155,149 @@ class ProviderDashboardService {
 
   // Helper methods for data aggregation
   async getEarningsByCategory(providerId, since) {
-    // Placeholder - would integrate with actual financial data
-    return [
-      { category: 'cleaning', amount: 1500, percentage: 40 },
-      { category: 'plumbing', amount: 800, percentage: 25 },
-      { category: 'electrical', amount: 600, percentage: 20 },
-      { category: 'other', amount: 300, percentage: 15 }
-    ];
+    // TODO: Integrate with actual financial data from database
+    return [];
   }
 
   async getEarningsByPaymentMethod(providerId, since) {
-    // Placeholder - would integrate with actual financial data
-    return [
-      { method: 'bank_transfer', amount: 2000, percentage: 60 },
-      { method: 'paypal', amount: 800, percentage: 25 },
-      { method: 'paymaya', amount: 400, percentage: 15 }
-    ];
+    // TODO: Integrate with actual financial data from database
+    return [];
   }
 
   async getEarningsByTimeframe(providerId, since) {
-    // Placeholder - would integrate with actual financial data
-    const days = Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000));
-    const data = [];
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(Date.now() - (i * 24 * 60 * 60 * 1000));
-      data.push({
-        date: date.toISOString().split('T')[0],
-        amount: Math.floor(Math.random() * 200) + 50
-      });
-    }
-    
-    return data;
+    // TODO: Integrate with actual financial data from database
+    return [];
   }
 
   async getRatingTrend(providerId, since) {
-    // Placeholder - would integrate with actual review data
+    // TODO: Integrate with actual review data from database
     return {
-      current: 4.8,
-      previous: 4.6,
-      trend: 'up',
-      change: 0.2
+      current: 0,
+      previous: 0,
+      trend: 'neutral',
+      change: 0
     };
   }
 
   async getResponseTimeTrend(providerId, since) {
-    // Placeholder - would integrate with actual response data
+    // TODO: Integrate with actual response data from database
     return {
-      current: 15, // minutes
-      previous: 20,
-      trend: 'down',
-      change: -5
+      current: 0,
+      previous: 0,
+      trend: 'neutral',
+      change: 0
     };
   }
 
   async getCompletionRateTrend(providerId, since) {
-    // Placeholder - would integrate with actual job data
+    // TODO: Integrate with actual job data from database
     return {
-      current: 95, // percentage
-      previous: 92,
-      trend: 'up',
-      change: 3
+      current: 0,
+      previous: 0,
+      trend: 'neutral',
+      change: 0
     };
   }
 
   async getPerformanceComparisons(providerId) {
-    // Placeholder - would integrate with actual comparison data
+    // TODO: Integrate with actual comparison data from database
     return {
-      rating: { provider: 4.8, average: 4.2, percentile: 85 },
-      responseTime: { provider: 15, average: 45, percentile: 90 },
-      completionRate: { provider: 95, average: 88, percentile: 80 }
+      rating: { provider: 0, average: 0, percentile: 0 },
+      responseTime: { provider: 0, average: 0, percentile: 0 },
+      completionRate: { provider: 0, average: 0, percentile: 0 }
     };
   }
 
   async getTopPerformersComparison(providerId) {
-    // Placeholder - would integrate with actual comparison data
+    // TODO: Integrate with actual comparison data from database
     return {
-      rating: { provider: 4.8, topPerformers: 4.9, gap: -0.1 },
-      responseTime: { provider: 15, topPerformers: 10, gap: 5 },
-      completionRate: { provider: 95, topPerformers: 98, gap: -3 }
+      rating: { provider: 0, topPerformers: 0, gap: 0 },
+      responseTime: { provider: 0, topPerformers: 0, gap: 0 },
+      completionRate: { provider: 0, topPerformers: 0, gap: 0 }
     };
   }
 
   async getRecentBookings(userId, since) {
-    // Placeholder - would integrate with actual booking data
-    return [
-      {
-        id: '1',
-        service: 'House Cleaning',
-        customer: 'John Doe',
-        date: new Date(),
-        status: 'confirmed',
-        amount: 150
-      }
-    ];
+    // TODO: Integrate with actual booking data from database
+    return [];
   }
 
   async getRecentReviews(userId, since) {
-    // Placeholder - would integrate with actual review data
-    return [
-      {
-        id: '1',
-        customer: 'Jane Smith',
-        rating: 5,
-        comment: 'Excellent service!',
-        date: new Date(),
-        service: 'Plumbing Repair'
-      }
-    ];
+    // TODO: Integrate with actual review data from database
+    return [];
   }
 
   async getRecentMessages(userId, since) {
-    // Placeholder - would integrate with actual message data
-    return [
-      {
-        id: '1',
-        from: 'Customer',
-        subject: 'Service Inquiry',
-        date: new Date(),
-        unread: true
-      }
-    ];
+    // TODO: Integrate with actual message data from database
+    return [];
   }
 
   async getRecentPayments(userId, since) {
-    // Placeholder - would integrate with actual payment data
-    return [
-      {
-        id: '1',
-        amount: 200,
-        method: 'bank_transfer',
-        date: new Date(),
-        status: 'completed'
-      }
-    ];
+    // TODO: Integrate with actual payment data from database
+    return [];
   }
 
   async getRecentProfileViews(userId, since) {
-    // Placeholder - would integrate with actual view data
+    // TODO: Integrate with actual view data from database
     return {
-      total: 45,
-      unique: 38,
+      total: 0,
+      unique: 0,
       sources: {
-        search: 25,
-        direct: 10,
-        referral: 8
+        search: 0,
+        direct: 0,
+        referral: 0
       }
     };
   }
 
   async getPendingJobs(userId) {
-    // Placeholder - would integrate with actual job data
-    return 3;
+    // TODO: Integrate with actual job data from database
+    return 0;
   }
 
   async getUnreadMessages(userId) {
-    // Placeholder - would integrate with actual message data
-    return 5;
+    // TODO: Integrate with actual message data from database
+    return 0;
   }
 
   async getPendingReviews(userId) {
-    // Placeholder - would integrate with actual review data
-    return 2;
+    // TODO: Integrate with actual review data from database
+    return 0;
   }
 
   async getSystemAlerts(userId) {
-    // Placeholder - would integrate with actual alert data
-    return [
-      {
-        type: 'info',
-        message: 'Your profile is 90% complete',
-        date: new Date()
-      }
-    ];
+    // TODO: Integrate with actual alert data from database
+    return [];
   }
 
   async getPaymentNotifications(userId) {
-    // Placeholder - would integrate with actual payment data
-    return [
-      {
-        type: 'payment_received',
-        amount: 150,
-        date: new Date()
-      }
-    ];
+    // TODO: Integrate with actual payment data from database
+    return [];
   }
 
   async getJobTrends(providerId, since) {
-    // Placeholder - would integrate with actual job data
-    const days = Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000));
-    const data = [];
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(Date.now() - (i * 24 * 60 * 60 * 1000));
-      data.push({
-        date: date.toISOString().split('T')[0],
-        jobs: Math.floor(Math.random() * 5) + 1
-      });
-    }
-    
-    return data;
+    // TODO: Integrate with actual job data from database
+    return [];
   }
 
   async getEarningsTrends(providerId, since) {
-    // Placeholder - would integrate with actual earnings data
-    return this.getEarningsByTimeframe(providerId, since);
+    // TODO: Integrate with actual earnings data from database
+    return [];
   }
 
   async getRatingTrends(providerId, since) {
-    // Placeholder - would integrate with actual rating data
-    const days = Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000));
-    const data = [];
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(Date.now() - (i * 24 * 60 * 60 * 1000));
-      data.push({
-        date: date.toISOString().split('T')[0],
-        rating: 4.5 + (Math.random() * 0.5)
-      });
-    }
-    
-    return data;
+    // TODO: Integrate with actual rating data from database
+    return [];
   }
 
   async getProfileViewTrends(providerId, since) {
-    // Placeholder - would integrate with actual view data
-    const days = Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000));
-    const data = [];
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(Date.now() - (i * 24 * 60 * 60 * 1000));
-      data.push({
-        date: date.toISOString().split('T')[0],
-        views: Math.floor(Math.random() * 20) + 5
-      });
-    }
-    
-    return data;
+    // TODO: Integrate with actual view data from database
+    return [];
   }
 
   async getCustomerSatisfactionTrends(providerId, since) {
-    // Placeholder - would integrate with actual satisfaction data
-    const days = Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000));
-    const data = [];
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(Date.now() - (i * 24 * 60 * 60 * 1000));
-      data.push({
-        date: date.toISOString().split('T')[0],
-        satisfaction: 85 + (Math.random() * 15)
-      });
-    }
-    
-    return data;
+    // TODO: Integrate with actual satisfaction data from database
+    return [];
   }
 
   // Utility methods

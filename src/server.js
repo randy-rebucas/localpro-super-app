@@ -321,29 +321,24 @@ function startServer() {
   // Error handling middleware
   app.use(errorHandler);
 
-  // Start the server unless running in tests
-  if (process.env.NODE_ENV !== 'test') {
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      logger.info('LocalPro Super App API Started', {
-        port: PORT,
-        environment: process.env.NODE_ENV || 'development',
-        timestamp: new Date().toISOString()
-      });
-      
-      logger.info(`🚀 LocalPro Super App API running on port ${PORT}`);
-      logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
-      logger.info(`📊 Logging enabled with Winston`);
-      logger.info(`🔍 Error monitoring active`);
+  // Start the server
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    logger.info('LocalPro Super App API Started', {
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+      timestamp: new Date().toISOString()
     });
-  }
+    
+    logger.info(`🚀 LocalPro Super App API running on port ${PORT}`);
+    logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`📊 Logging enabled with Winston`);
+    logger.info(`🔍 Error monitoring active`);
+  });
 }
 
-// Only initialize if this file is run directly (not imported for testing)
-if (process.env.NODE_ENV === 'test') {
-  // In test, configure app without DB connection and without starting listener
-  startServer();
-} else if (require.main === module) {
+// Initialize application when run directly
+if (require.main === module) {
   initializeApplication();
 }
 

@@ -264,10 +264,8 @@ const stopAlertMonitoring = () => {
   }
 };
 
-// Start monitoring when module loads (skip in test environment)
-if (process.env.NODE_ENV !== 'test') {
-  startAlertMonitoring();
-}
+// Start monitoring when module loads
+startAlertMonitoring();
 
 module.exports = {
   router,
