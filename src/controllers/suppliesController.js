@@ -1,8 +1,11 @@
 const { Product: Supplies } = require('../models/Supplies');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
 const EmailService = require('../services/emailService');
+const logger = require('../config/logger');
+const { sendServerError } = require('../utils/responseHelper');
 
 // @desc    Get all supplies
 // @route   GET /api/supplies
@@ -81,23 +84,57 @@ const getSupplies = async (req, res) => {
   }
 };
 
-// @desc    Get single supply item
+// @desc    Get detailed information about a supply item
 // @route   GET /api/supplies/:id
 // @access  Public
 const getSupply = async (req, res) => {
   try {
-    // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    const { id } = req.params;
+    const {
+      includeOrders = 'false',
+      includeReviews = 'true',
+      includeRelated = 'true',
+      includeStatistics = 'true'
+    } = req.query;
+
+    // Validate and convert ObjectId
+    const trimmedId = id.trim();
+    
+    if (!trimmedId || trimmedId.length !== 24) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid supply ID format'
+        message: 'Invalid supply ID format',
+        error: 'ID must be exactly 24 characters (MongoDB ObjectId format)',
+        receivedId: trimmedId,
+        receivedLength: trimmedId?.length || 0,
+        expectedLength: 24
       });
     }
 
-    const supply = await Supplies.findById(req.params.id)
-      .populate('supplier', 'firstName lastName profile.avatar profile.bio profile.rating')
-      .populate('orders.user', 'firstName lastName profile.avatar')
-      .populate('reviews.user', 'firstName lastName profile.avatar');
+    let supplyId;
+    try {
+      if (!mongoose.isValidObjectId(trimmedId)) {
+        throw new Error('Invalid ObjectId format');
+      }
+      supplyId = mongoose.Types.ObjectId(trimmedId);
+    } catch (e) {
+      logger.warn('Invalid supply ID format', {
+        id: trimmedId,
+        error: e.message
+      });
+      
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid supply ID format',
+        error: e.message || 'ID must be a valid MongoDB ObjectId',
+        receivedId: trimmedId
+      });
+    }
+
+    // Find supply with basic population
+    const supply = await Supplies.findById(supplyId)
+      .populate('supplier', 'firstName lastName email phone profile.avatar profile.bio profile.rating')
+      .lean();
 
     if (!supply) {
       return res.status(404).json({
@@ -106,20 +143,168 @@ const getSupply = async (req, res) => {
       });
     }
 
-    // Increment view count
-    supply.views += 1;
-    await supply.save();
+    // Check if supply is active
+    if (!supply.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Supply item is not active',
+        hint: 'This supply item is currently inactive and cannot be viewed'
+      });
+    }
 
-    res.status(200).json({
+    // Initialize response data
+    const supplyDetails = {
+      supply: {
+        id: supply._id,
+        name: supply.name,
+        title: supply.title,
+        description: supply.description,
+        category: supply.category,
+        subcategory: supply.subcategory,
+        brand: supply.brand,
+        sku: supply.sku,
+        pricing: supply.pricing,
+        inventory: supply.inventory,
+        specifications: supply.specifications,
+        location: supply.location,
+        images: supply.images,
+        tags: supply.tags,
+        isFeatured: supply.isFeatured,
+        isSubscriptionEligible: supply.isSubscriptionEligible,
+        averageRating: supply.averageRating,
+        views: supply.views,
+        supplier: supply.supplier,
+        createdAt: supply.createdAt,
+        updatedAt: supply.updatedAt
+      }
+    };
+
+    // Get reviews if requested
+    if (includeReviews === 'true' || includeReviews === true) {
+      const reviews = await Supplies.findById(supplyId)
+        .select('reviews')
+        .populate('reviews.user', 'firstName lastName profile.avatar')
+        .lean();
+
+      supplyDetails.reviews = reviews?.reviews?.map(review => ({
+        id: review._id,
+        user: review.user,
+        rating: review.rating,
+        comment: review.comment,
+        createdAt: review.createdAt
+      })) || [];
+      
+      supplyDetails.reviewCount = supplyDetails.reviews.length;
+    }
+
+    // Get orders if requested (for supplier view)
+    if (includeOrders === 'true' || includeOrders === true) {
+      const orders = await Supplies.findById(supplyId)
+        .select('orders')
+        .populate('orders.user', 'firstName lastName profile.avatar email phone')
+        .lean();
+
+      supplyDetails.orders = orders?.orders?.map(order => ({
+        id: order._id,
+        user: order.user,
+        quantity: order.quantity,
+        totalCost: order.totalCost,
+        deliveryAddress: order.deliveryAddress,
+        specialInstructions: order.specialInstructions,
+        contactInfo: order.contactInfo,
+        status: order.status,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt
+      })) || [];
+      
+      supplyDetails.orderCount = supplyDetails.orders.length;
+    }
+
+    // Get statistics if requested
+    if (includeStatistics === 'true' || includeStatistics === true) {
+      // Get review count from supply directly if reviews not loaded
+      let reviewCount = supplyDetails.reviews?.length;
+      if (reviewCount === undefined) {
+        const reviewData = await Supplies.findById(supplyId).select('reviews').lean();
+        reviewCount = reviewData?.reviews?.length || 0;
+      }
+
+      const stats = {
+        views: supply.views || 0,
+        averageRating: supply.averageRating || 0,
+        reviewCount: reviewCount,
+        orderCount: supplyDetails.orders?.length || 0,
+        inventory: {
+          quantity: supply.inventory?.quantity || 0,
+          minStock: supply.inventory?.minStock || 0,
+          maxStock: supply.inventory?.maxStock || null,
+          inStock: (supply.inventory?.quantity || 0) > 0,
+          lowStock: (supply.inventory?.quantity || 0) <= (supply.inventory?.minStock || 10)
+        }
+      };
+
+      // Calculate order statistics if orders are included
+      if (supplyDetails.orders && supplyDetails.orders.length > 0) {
+        const orderStats = {
+          total: supplyDetails.orders.length,
+          pending: supplyDetails.orders.filter(o => o.status === 'pending').length,
+          confirmed: supplyDetails.orders.filter(o => o.status === 'confirmed').length,
+          processing: supplyDetails.orders.filter(o => o.status === 'processing').length,
+          shipped: supplyDetails.orders.filter(o => o.status === 'shipped').length,
+          delivered: supplyDetails.orders.filter(o => o.status === 'delivered').length,
+          cancelled: supplyDetails.orders.filter(o => o.status === 'cancelled').length,
+          totalRevenue: supplyDetails.orders
+            .filter(o => o.status !== 'cancelled')
+            .reduce((sum, o) => sum + (o.totalCost || 0), 0)
+        };
+        stats.orders = orderStats;
+      }
+
+      supplyDetails.statistics = stats;
+    }
+
+    // Get related supplies if requested
+    if (includeRelated === 'true' || includeRelated === true) {
+      const relatedSupplies = await Supplies.find({
+        category: supply.category,
+        subcategory: supply.subcategory,
+        isActive: true,
+        _id: { $ne: supplyId }
+      })
+        .populate('supplier', 'firstName lastName profile.avatar')
+        .select('name title description category subcategory pricing retailPrice images averageRating views')
+        .sort({ averageRating: -1, views: -1 })
+        .limit(6)
+        .lean();
+
+      supplyDetails.relatedSupplies = relatedSupplies;
+    }
+
+    // Increment view count
+    await Supplies.findByIdAndUpdate(supplyId, {
+      $inc: { views: 1 }
+    });
+
+    logger.info('Supply details retrieved', {
+      supplyId: id,
+      supplyName: supply.name,
+      category: supply.category,
+      includeOrders,
+      includeReviews,
+      includeRelated,
+      includeStatistics
+    });
+
+    return res.status(200).json({
       success: true,
-      data: supply
+      message: 'Supply details retrieved successfully',
+      data: supplyDetails
     });
   } catch (error) {
-    console.error('Get supply error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
+    logger.error('Failed to get supply details', error, {
+      supplyId: req.params.id
     });
+    return sendServerError(res, error, 'Failed to retrieve supply details', 'SUPPLY_DETAILS_ERROR');
   }
 };
 

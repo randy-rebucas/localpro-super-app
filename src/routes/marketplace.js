@@ -9,6 +9,8 @@ const {
   getServices,
   getService,
   getNearbyServices,
+  getServiceCategories,
+  getCategoryDetails,
   createService,
   updateService,
   deleteService,
@@ -22,7 +24,8 @@ const {
   getPayPalOrderDetails,
   getMyServices,
   getMyBookings,
-  getProvidersForService
+  getProvidersForService,
+  getProviderDetails
 } = require('../controllers/marketplaceController');
 const { uploaders } = require('../config/cloudinary');
 
@@ -34,6 +37,9 @@ router.get('/services',
   validateSearchParams,
   getServices
 );
+// Category routes - specific routes must come before parameterized routes
+router.get('/services/categories', getServiceCategories);
+router.get('/services/categories/:category', getCategoryDetails);
 router.get('/services/nearby', 
   validateSearchParams,
   getNearbyServices
@@ -46,6 +52,12 @@ router.get('/services/:id/providers',
   validateObjectIdParam('id'),
   validatePaginationParams,
   getProvidersForService
+);
+
+// Provider details route
+router.get('/providers/:id',
+  validateObjectIdParam('id'),
+  getProviderDetails
 );
 
 // Protected routes

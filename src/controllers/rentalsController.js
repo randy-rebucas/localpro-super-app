@@ -98,7 +98,8 @@ const getRental = async (req, res) => {
     const rental = await RentalItem.findById(req.params.id)
       .populate('owner', 'firstName lastName profile.avatar profile.bio profile.rating')
       .populate('bookings.user', 'firstName lastName profile.avatar')
-      .populate('reviews.user', 'firstName lastName profile.avatar');
+      .populate('reviews.user', 'firstName lastName profile.avatar')
+      .lean(); // Use lean() to get plain object and avoid validation issues
 
     if (!rental) {
       return res.status(404).json({
@@ -107,9 +108,10 @@ const getRental = async (req, res) => {
       });
     }
 
-    // Increment view count
-    rental.views += 1;
-    await rental.save();
+    // Increment view count using findByIdAndUpdate to avoid validation issues
+    await RentalItem.findByIdAndUpdate(req.params.id, {
+      $inc: { views: 1 }
+    }, { runValidators: false }); // Skip validators for view increment
 
     res.status(200).json({
       success: true,

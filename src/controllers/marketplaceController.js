@@ -1,6 +1,7 @@
 const { Service, Booking } = require('../models/Marketplace');
 const User = require('../models/User');
 const Provider = require('../models/Provider');
+const mongoose = require('mongoose');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
@@ -27,7 +28,8 @@ const getServices = async (req, res) => {
       page = 1,
       limit = 10,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      groupByCategory
     } = req.query;
 
     // Build filter object
@@ -51,6 +53,39 @@ const getServices = async (req, res) => {
       if (maxPrice) filter['pricing.basePrice'].$lte = Number(maxPrice);
     }
     if (rating) filter['rating.average'] = { $gte: Number(rating) };
+
+    // If groupByCategory is enabled, return services grouped by category
+    if (groupByCategory === 'true' || groupByCategory === true) {
+      const services = await Service.find(filter)
+        .populate('provider', 'firstName lastName profile.avatar profile.rating profile.experience')
+        .select('-reviews -bookings -metadata -featured -promoted')
+        .lean();
+
+      // Group services by category
+      const groupedServices = services.reduce((acc, service) => {
+        const cat = service.category || 'other';
+        if (!acc[cat]) {
+          acc[cat] = [];
+        }
+        acc[cat].push(service);
+        return acc;
+      }, {});
+
+      // Convert to array format with category names
+      const groupedArray = Object.keys(groupedServices).map(categoryName => ({
+        category: categoryName,
+        count: groupedServices[categoryName].length,
+        services: groupedServices[categoryName]
+      }));
+
+      return res.status(200).json({
+        success: true,
+        message: 'Services retrieved and grouped by category successfully',
+        data: groupedArray,
+        total: services.length,
+        totalCategories: groupedArray.length
+      });
+    }
 
     // Build sort object
     const sort = {};
@@ -1143,6 +1178,578 @@ const getMyBookings = async (req, res) => {
   }
 };
 
+// @desc    Get service categories with details and statistics
+// @route   GET /api/marketplace/services/categories
+// @access  Public
+const getServiceCategories = async (req, res) => {
+  try {
+    const { includeStats = 'true' } = req.query;
+
+    // Service category definitions
+    const categoryDefinitions = {
+      cleaning: {
+        name: 'Cleaning Services',
+        description: 'Professional cleaning services for homes and businesses',
+        icon: '🧹',
+        subcategories: ['residential_cleaning', 'commercial_cleaning', 'deep_cleaning', 'carpet_cleaning', 'window_cleaning', 'power_washing', 'post_construction_cleaning']
+      },
+      plumbing: {
+        name: 'Plumbing Services',
+        description: 'Plumbing repair, installation, and maintenance',
+        icon: '🔧',
+        subcategories: ['pipe_repair', 'installation', 'leak_repair', 'drain_cleaning', 'water_heater', 'sewer_services', 'emergency_plumbing']
+      },
+      electrical: {
+        name: 'Electrical Services',
+        description: 'Electrical work, repairs, and installations',
+        icon: '⚡',
+        subcategories: ['wiring', 'panel_upgrade', 'outlet_installation', 'lighting', 'electrical_repair', 'safety_inspection']
+      },
+      moving: {
+        name: 'Moving Services',
+        description: 'Residential and commercial moving services',
+        icon: '📦',
+        subcategories: ['local_moving', 'long_distance', 'packing', 'unpacking', 'storage', 'furniture_assembly']
+      },
+      landscaping: {
+        name: 'Landscaping Services',
+        description: 'Outdoor landscaping and yard maintenance',
+        icon: '🌳',
+        subcategories: ['lawn_care', 'garden_design', 'tree_services', 'irrigation', 'hardscaping', 'mulching']
+      },
+      painting: {
+        name: 'Painting Services',
+        description: 'Interior and exterior painting',
+        icon: '🎨',
+        subcategories: ['interior_painting', 'exterior_painting', 'cabinet_painting', 'deck_staining', 'wallpaper', 'texture_painting']
+      },
+      carpentry: {
+        name: 'Carpentry Services',
+        description: 'Woodwork and carpentry services',
+        icon: '🪵',
+        subcategories: ['furniture_repair', 'custom_build', 'cabinet_installation', 'trim_work', 'deck_building', 'shelving']
+      },
+      flooring: {
+        name: 'Flooring Services',
+        description: 'Floor installation and repair',
+        icon: '🏠',
+        subcategories: ['hardwood', 'tile', 'carpet', 'laminate', 'vinyl', 'floor_repair', 'refinishing']
+      },
+      roofing: {
+        name: 'Roofing Services',
+        description: 'Roof repair, installation, and maintenance',
+        icon: '🏡',
+        subcategories: ['roof_repair', 'roof_replacement', 'gutter_repair', 'roof_inspection', 'leak_repair', 'solar_installation']
+      },
+      hvac: {
+        name: 'HVAC Services',
+        description: 'Heating, ventilation, and air conditioning',
+        icon: '❄️',
+        subcategories: ['installation', 'repair', 'maintenance', 'duct_cleaning', 'thermostat_installation', 'air_quality']
+      },
+      appliance_repair: {
+        name: 'Appliance Repair',
+        description: 'Home appliance repair and maintenance',
+        icon: '🔌',
+        subcategories: ['refrigerator', 'washer_dryer', 'dishwasher', 'oven_range', 'microwave', 'garbage_disposal']
+      },
+      locksmith: {
+        name: 'Locksmith Services',
+        description: 'Lock installation, repair, and emergency services',
+        icon: '🔐',
+        subcategories: ['lock_installation', 'key_duplication', 'lockout_service', 'safe_services', 'access_control']
+      },
+      handyman: {
+        name: 'Handyman Services',
+        description: 'General repair and maintenance services',
+        icon: '🔨',
+        subcategories: ['general_repair', 'assembly', 'mounting', 'caulking', 'drywall_repair', 'fence_repair']
+      },
+      home_security: {
+        name: 'Home Security',
+        description: 'Security system installation and monitoring',
+        icon: '🚨',
+        subcategories: ['alarm_installation', 'camera_installation', 'smart_locks', 'motion_sensors', 'security_consultation']
+      },
+      pool_maintenance: {
+        name: 'Pool Maintenance',
+        description: 'Swimming pool cleaning and maintenance',
+        icon: '🏊',
+        subcategories: ['cleaning', 'chemical_balance', 'equipment_repair', 'winterization', 'pool_repair', 'opening_closing']
+      },
+      pest_control: {
+        name: 'Pest Control',
+        description: 'Pest elimination and prevention',
+        icon: '🐛',
+        subcategories: ['general_pest', 'termite_control', 'rodent_control', 'bed_bug', 'wildlife_removal', 'preventive_treatment']
+      },
+      carpet_cleaning: {
+        name: 'Carpet Cleaning',
+        description: 'Professional carpet and upholstery cleaning',
+        icon: '🧼',
+        subcategories: ['steam_cleaning', 'dry_cleaning', 'stain_removal', 'pet_odor', 'upholstery', 'area_rugs']
+      },
+      window_cleaning: {
+        name: 'Window Cleaning',
+        description: 'Window and glass cleaning services',
+        icon: '🪟',
+        subcategories: ['residential', 'commercial', 'interior_exterior', 'screen_cleaning', 'pressure_washing', 'storefront']
+      },
+      gutter_cleaning: {
+        name: 'Gutter Cleaning',
+        description: 'Gutter cleaning and maintenance',
+        icon: '🌧️',
+        subcategories: ['cleaning', 'repair', 'installation', 'leaf_removal', 'downspout_cleaning', 'gutter_guards']
+      },
+      power_washing: {
+        name: 'Power Washing',
+        description: 'Exterior surface pressure washing',
+        icon: '💦',
+        subcategories: ['driveway', 'siding', 'deck_patio', 'fence', 'roof', 'commercial']
+      },
+      snow_removal: {
+        name: 'Snow Removal',
+        description: 'Snow clearing and removal services',
+        icon: '❄️',
+        subcategories: ['driveway', 'sidewalk', 'commercial', 'roof', 'snow_plowing', 'ice_removal']
+      },
+      other: {
+        name: 'Other Services',
+        description: 'Other specialized services',
+        icon: '📋',
+        subcategories: []
+      }
+    };
+
+    // If stats are not needed, return just category definitions
+    if (includeStats !== 'true' && includeStats !== true) {
+      return res.status(200).json({
+        success: true,
+        message: 'Service categories retrieved successfully',
+        data: Object.keys(categoryDefinitions).map(key => ({
+          key,
+          ...categoryDefinitions[key]
+        }))
+      });
+    }
+
+    // Get statistics for each category
+    const categoriesWithStats = await Promise.all(
+      Object.keys(categoryDefinitions).map(async (categoryKey) => {
+        const categoryFilter = { category: categoryKey, isActive: true };
+        
+        // Get service count
+        const serviceCount = await Service.countDocuments(categoryFilter);
+
+        // Get average pricing using aggregation
+        const pricingStats = await Service.aggregate([
+          { $match: categoryFilter },
+          {
+            $group: {
+              _id: null,
+              avgPrice: { $avg: '$pricing.basePrice' },
+              minPrice: { $min: '$pricing.basePrice' },
+              maxPrice: { $max: '$pricing.basePrice' },
+              totalServices: { $sum: 1 }
+            }
+          }
+        ]);
+
+        // Get subcategory distribution
+        const subcategoryStats = await Service.aggregate([
+          { $match: categoryFilter },
+          {
+            $group: {
+              _id: '$subcategory',
+              count: { $sum: 1 }
+            }
+          },
+          { $sort: { count: -1 } },
+          { $limit: 10 }
+        ]);
+
+        // Get average rating
+        const ratingStats = await Service.aggregate([
+          { $match: { ...categoryFilter, 'rating.average': { $exists: true, $ne: null } } },
+          {
+            $group: {
+              _id: null,
+              avgRating: { $avg: '$rating.average' },
+              totalRatings: { $sum: '$rating.count' }
+            }
+          }
+        ]);
+
+        return {
+          key: categoryKey,
+          ...categoryDefinitions[categoryKey],
+          statistics: {
+            totalServices: serviceCount,
+            pricing: pricingStats[0] ? {
+              average: Math.round(pricingStats[0].avgPrice || 0),
+              min: pricingStats[0].minPrice || 0,
+              max: pricingStats[0].maxPrice || 0
+            } : null,
+            rating: ratingStats[0] ? {
+              average: parseFloat((ratingStats[0].avgRating || 0).toFixed(2)),
+              totalRatings: ratingStats[0].totalRatings || 0
+            } : null,
+            popularSubcategories: subcategoryStats.map(item => ({
+              subcategory: item._id,
+              count: item.count
+            }))
+          }
+        };
+      })
+    );
+
+    // Sort by total services (most popular first)
+    categoriesWithStats.sort((a, b) => 
+      (b.statistics.totalServices || 0) - (a.statistics.totalServices || 0)
+    );
+
+    // Calculate overall statistics
+    const totalServices = await Service.countDocuments({ isActive: true });
+    const totalProviders = await Provider.countDocuments({ status: 'active' });
+
+    logger.info('Service categories retrieved', {
+      totalCategories: categoriesWithStats.length,
+      totalServices
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Service categories retrieved successfully',
+      data: categoriesWithStats,
+      summary: {
+        totalCategories: categoriesWithStats.length,
+        totalServices,
+        totalProviders,
+        categoriesWithServices: categoriesWithStats.filter(cat => cat.statistics.totalServices > 0).length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get service categories', error);
+    return sendServerError(res, error, 'Failed to retrieve service categories', 'CATEGORIES_RETRIEVAL_ERROR');
+  }
+};
+
+// @desc    Get detailed information about a specific category
+// @route   GET /api/marketplace/services/categories/:category
+// @access  Public
+const getCategoryDetails = async (req, res) => {
+  try {
+    const { category } = req.params;
+    const {
+      page = 1,
+      limit = 20,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      includeServices = 'true'
+    } = req.query;
+
+    // Valid category enum values
+    const validCategories = [
+      'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 
+      'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 
+      'appliance_repair', 'locksmith', 'handyman', 'home_security',
+      'pool_maintenance', 'pest_control', 'carpet_cleaning', 'window_cleaning',
+      'gutter_cleaning', 'power_washing', 'snow_removal', 'other'
+    ];
+
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid category',
+        validCategories
+      });
+    }
+
+    // Category definitions (same as in getServiceCategories)
+    const categoryDefinitions = {
+      cleaning: {
+        name: 'Cleaning Services',
+        description: 'Professional cleaning services for homes and businesses',
+        icon: '🧹',
+        subcategories: ['residential_cleaning', 'commercial_cleaning', 'deep_cleaning', 'carpet_cleaning', 'window_cleaning', 'power_washing', 'post_construction_cleaning']
+      },
+      plumbing: {
+        name: 'Plumbing Services',
+        description: 'Plumbing repair, installation, and maintenance',
+        icon: '🔧',
+        subcategories: ['pipe_repair', 'installation', 'leak_repair', 'drain_cleaning', 'water_heater', 'sewer_services', 'emergency_plumbing']
+      },
+      electrical: {
+        name: 'Electrical Services',
+        description: 'Electrical work, repairs, and installations',
+        icon: '⚡',
+        subcategories: ['wiring', 'panel_upgrade', 'outlet_installation', 'lighting', 'electrical_repair', 'safety_inspection']
+      },
+      moving: {
+        name: 'Moving Services',
+        description: 'Residential and commercial moving services',
+        icon: '📦',
+        subcategories: ['local_moving', 'long_distance', 'packing', 'unpacking', 'storage', 'furniture_assembly']
+      },
+      landscaping: {
+        name: 'Landscaping Services',
+        description: 'Outdoor landscaping and yard maintenance',
+        icon: '🌳',
+        subcategories: ['lawn_care', 'garden_design', 'tree_services', 'irrigation', 'hardscaping', 'mulching']
+      },
+      painting: {
+        name: 'Painting Services',
+        description: 'Interior and exterior painting',
+        icon: '🎨',
+        subcategories: ['interior_painting', 'exterior_painting', 'cabinet_painting', 'deck_staining', 'wallpaper', 'texture_painting']
+      },
+      carpentry: {
+        name: 'Carpentry Services',
+        description: 'Woodwork and carpentry services',
+        icon: '🪵',
+        subcategories: ['furniture_repair', 'custom_build', 'cabinet_installation', 'trim_work', 'deck_building', 'shelving']
+      },
+      flooring: {
+        name: 'Flooring Services',
+        description: 'Floor installation and repair',
+        icon: '🏠',
+        subcategories: ['hardwood', 'tile', 'carpet', 'laminate', 'vinyl', 'floor_repair', 'refinishing']
+      },
+      roofing: {
+        name: 'Roofing Services',
+        description: 'Roof repair, installation, and maintenance',
+        icon: '🏡',
+        subcategories: ['roof_repair', 'roof_replacement', 'gutter_repair', 'roof_inspection', 'leak_repair', 'solar_installation']
+      },
+      hvac: {
+        name: 'HVAC Services',
+        description: 'Heating, ventilation, and air conditioning',
+        icon: '❄️',
+        subcategories: ['installation', 'repair', 'maintenance', 'duct_cleaning', 'thermostat_installation', 'air_quality']
+      },
+      appliance_repair: {
+        name: 'Appliance Repair',
+        description: 'Home appliance repair and maintenance',
+        icon: '🔌',
+        subcategories: ['refrigerator', 'washer_dryer', 'dishwasher', 'oven_range', 'microwave', 'garbage_disposal']
+      },
+      locksmith: {
+        name: 'Locksmith Services',
+        description: 'Lock installation, repair, and emergency services',
+        icon: '🔐',
+        subcategories: ['lock_installation', 'key_duplication', 'lockout_service', 'safe_services', 'access_control']
+      },
+      handyman: {
+        name: 'Handyman Services',
+        description: 'General repair and maintenance services',
+        icon: '🔨',
+        subcategories: ['general_repair', 'assembly', 'mounting', 'caulking', 'drywall_repair', 'fence_repair']
+      },
+      home_security: {
+        name: 'Home Security',
+        description: 'Security system installation and monitoring',
+        icon: '🚨',
+        subcategories: ['alarm_installation', 'camera_installation', 'smart_locks', 'motion_sensors', 'security_consultation']
+      },
+      pool_maintenance: {
+        name: 'Pool Maintenance',
+        description: 'Swimming pool cleaning and maintenance',
+        icon: '🏊',
+        subcategories: ['cleaning', 'chemical_balance', 'equipment_repair', 'winterization', 'pool_repair', 'opening_closing']
+      },
+      pest_control: {
+        name: 'Pest Control',
+        description: 'Pest elimination and prevention',
+        icon: '🐛',
+        subcategories: ['general_pest', 'termite_control', 'rodent_control', 'bed_bug', 'wildlife_removal', 'preventive_treatment']
+      },
+      carpet_cleaning: {
+        name: 'Carpet Cleaning',
+        description: 'Professional carpet and upholstery cleaning',
+        icon: '🧼',
+        subcategories: ['steam_cleaning', 'dry_cleaning', 'stain_removal', 'pet_odor', 'upholstery', 'area_rugs']
+      },
+      window_cleaning: {
+        name: 'Window Cleaning',
+        description: 'Window and glass cleaning services',
+        icon: '🪟',
+        subcategories: ['residential', 'commercial', 'interior_exterior', 'screen_cleaning', 'pressure_washing', 'storefront']
+      },
+      gutter_cleaning: {
+        name: 'Gutter Cleaning',
+        description: 'Gutter cleaning and maintenance',
+        icon: '🌧️',
+        subcategories: ['cleaning', 'repair', 'installation', 'leaf_removal', 'downspout_cleaning', 'gutter_guards']
+      },
+      power_washing: {
+        name: 'Power Washing',
+        description: 'Exterior surface pressure washing',
+        icon: '💦',
+        subcategories: ['driveway', 'siding', 'deck_patio', 'fence', 'roof', 'commercial']
+      },
+      snow_removal: {
+        name: 'Snow Removal',
+        description: 'Snow clearing and removal services',
+        icon: '❄️',
+        subcategories: ['driveway', 'sidewalk', 'commercial', 'roof', 'snow_plowing', 'ice_removal']
+      },
+      other: {
+        name: 'Other Services',
+        description: 'Other specialized services',
+        icon: '📋',
+        subcategories: []
+      }
+    };
+
+    const categoryFilter = { category, isActive: true };
+
+    // Get service count
+    const totalServices = await Service.countDocuments(categoryFilter);
+
+    // Get pricing statistics
+    const pricingStats = await Service.aggregate([
+      { $match: categoryFilter },
+      {
+        $group: {
+          _id: null,
+          avgPrice: { $avg: '$pricing.basePrice' },
+          minPrice: { $min: '$pricing.basePrice' },
+          maxPrice: { $max: '$pricing.basePrice' },
+          medianPrice: { $avg: '$pricing.basePrice' }
+        }
+      }
+    ]);
+
+    // Get rating statistics
+    const ratingStats = await Service.aggregate([
+      { $match: { ...categoryFilter, 'rating.average': { $exists: true, $ne: null } } },
+      {
+        $group: {
+          _id: null,
+          avgRating: { $avg: '$rating.average' },
+          totalRatings: { $sum: '$rating.count' },
+          totalReviews: { $sum: '$rating.count' }
+        }
+      }
+    ]);
+
+    // Get subcategory distribution
+    const subcategoryStats = await Service.aggregate([
+      { $match: categoryFilter },
+      {
+        $group: {
+          _id: '$subcategory',
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } }
+    ]);
+
+    // Get pricing type distribution
+    const pricingTypeStats = await Service.aggregate([
+      { $match: categoryFilter },
+      {
+        $group: {
+          _id: '$pricing.type',
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } }
+    ]);
+
+    // Get provider count for this category
+    const providerCount = await Provider.countDocuments({
+      status: 'active',
+      'professionalInfo.specialties': {
+        $elemMatch: { category }
+      }
+    });
+
+    // Get services if requested
+    let services = null;
+    let pagination = null;
+
+    if (includeServices === 'true' || includeServices === true) {
+      const sort = {};
+      sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+
+      services = await Service.find(categoryFilter)
+        .populate('provider', 'firstName lastName profile.avatar profile.rating profile.experience')
+        .select('-reviews -bookings -metadata -featured -promoted')
+        .sort(sort)
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean();
+
+      pagination = createPagination(parseInt(page), parseInt(limit), totalServices);
+    }
+
+    // Get featured/popular services (top rated)
+    const featuredServices = await Service.find(categoryFilter)
+      .populate('provider', 'firstName lastName profile.avatar')
+      .select('title description pricing rating images category subcategory')
+      .sort({ 'rating.average': -1, 'rating.count': -1 })
+      .limit(5)
+      .lean();
+
+    logger.info('Category details retrieved', {
+      category,
+      totalServices,
+      providerCount
+    });
+
+    const categoryInfo = categoryDefinitions[category] || {
+      name: category.charAt(0).toUpperCase() + category.slice(1),
+      description: `${category} services`,
+      icon: '📋',
+      subcategories: []
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: 'Category details retrieved successfully',
+      data: {
+        category: category,
+        ...categoryInfo,
+        statistics: {
+          totalServices,
+          providerCount,
+          pricing: pricingStats[0] ? {
+            average: Math.round(pricingStats[0].avgPrice || 0),
+            min: pricingStats[0].minPrice || 0,
+            max: pricingStats[0].maxPrice || 0,
+            currency: 'USD'
+          } : null,
+          rating: ratingStats[0] ? {
+            average: parseFloat((ratingStats[0].avgRating || 0).toFixed(2)),
+            totalRatings: ratingStats[0].totalRatings || 0,
+            totalReviews: ratingStats[0].totalReviews || 0
+          } : null,
+          subcategoryDistribution: subcategoryStats.map(item => ({
+            subcategory: item._id,
+            count: item.count,
+            percentage: totalServices > 0 ? ((item.count / totalServices) * 100).toFixed(2) : 0
+          })),
+          pricingTypeDistribution: pricingTypeStats.map(item => ({
+            type: item._id,
+            count: item.count,
+            percentage: totalServices > 0 ? ((item.count / totalServices) * 100).toFixed(2) : 0
+          }))
+        },
+        featuredServices: featuredServices.length > 0 ? featuredServices : null,
+        services: services,
+        pagination: pagination
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get category details', error, {
+      category: req.params.category
+    });
+    return sendServerError(res, error, 'Failed to retrieve category details', 'CATEGORY_DETAILS_ERROR');
+  }
+};
+
 // @desc    Get all providers for a particular service
 // @route   GET /api/marketplace/services/:id/providers
 // @access  Public
@@ -1276,10 +1883,332 @@ const getProvidersForService = async (req, res) => {
   }
 };
 
+// @desc    Get detailed information about a provider
+// @route   GET /api/marketplace/providers/:id
+// @access  Public
+const getProviderDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      includeServices = 'true',
+      includeReviews = 'true',
+      includeStatistics = 'true',
+      requireActive = 'true'
+    } = req.query;
+
+    // Try to find provider by ID first, then by userId if not found
+    // Convert string ID to ObjectId for more reliable lookup
+    let providerId;
+    let userIdForLookup;
+    
+    // Validate and convert ObjectId - be flexible with format
+    try {
+      // Trim whitespace
+      const trimmedId = id.trim();
+      
+      // Validate basic format (24 hex characters)
+      if (!trimmedId || trimmedId.length !== 24) {
+        logger.warn('Provider ID format check failed', {
+          id: trimmedId,
+          length: trimmedId?.length,
+          type: typeof trimmedId
+        });
+        
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid provider ID format',
+          error: 'ID must be exactly 24 characters (MongoDB ObjectId format)',
+          receivedId: trimmedId,
+          receivedLength: trimmedId?.length || 0,
+          expectedLength: 24,
+          hint: 'Ensure you are using the correct provider ID. Example format: 507f1f77bcf86cd799439011'
+        });
+      }
+      
+      // Try to convert to ObjectId - this will validate the format
+      // Use mongoose.isValidObjectId for validation, then create ObjectId
+      if (!mongoose.isValidObjectId(trimmedId)) {
+        throw new Error('Invalid ObjectId format');
+      }
+      providerId = mongoose.Types.ObjectId(trimmedId);
+      userIdForLookup = providerId;
+      
+      logger.info('Provider ID validated and converted', {
+        originalId: trimmedId,
+        providerId: providerId.toString()
+      });
+    } catch (e) {
+      // If ObjectId conversion fails, the format is invalid
+      logger.warn('Invalid provider ID format - conversion failed', {
+        id,
+        error: e.message,
+        idLength: id?.length,
+        idType: typeof id
+      });
+      
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid provider ID format',
+        error: e.message || 'ID must be a valid MongoDB ObjectId',
+        receivedId: id,
+        receivedLength: id?.length || 0,
+        expectedFormat: '24 hex characters (0-9, a-f, A-F)',
+        hint: 'Make sure you are using the correct provider ID or userId. Check for any extra characters, spaces, or encoding issues.'
+      });
+    }
+
+    let provider = await Provider.findById(providerId)
+      .populate('userId', 'firstName lastName email phone profile.avatar profile.bio')
+      .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+      .lean();
+
+    logger.info('Provider lookup attempt', {
+      requestedId: id,
+      foundById: !!provider,
+      providerId: provider?._id,
+      providerStatus: provider?.status
+    });
+
+    // If not found by ID, try finding by userId
+    if (!provider) {
+      logger.info('Provider not found by ID, trying userId lookup', { userId: id });
+      provider = await Provider.findOne({ userId: userIdForLookup })
+        .populate('userId', 'firstName lastName email phone profile.avatar profile.bio')
+        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+        .lean();
+      
+      if (provider) {
+        logger.info('Provider found by userId', {
+          userId: id,
+          providerId: provider._id,
+          providerStatus: provider.status
+        });
+      }
+    }
+
+    if (!provider) {
+      // Try to provide more helpful error message
+      const byUserId = await Provider.findOne({ userId: userIdForLookup }).select('_id status').lean();
+      if (byUserId) {
+        logger.warn('Provider found but query failed', {
+          requestedId: id,
+          foundProviderId: byUserId._id,
+          status: byUserId.status
+        });
+      }
+      
+      return res.status(404).json({
+        success: false,
+        message: 'Provider not found',
+        hint: 'Make sure you are using the provider ID or userId. If using userId, ensure a provider profile exists for that user.'
+      });
+    }
+
+    // Check if provider is active (optional check)
+    const isActiveRequired = requireActive === 'true' || requireActive === true;
+    if (isActiveRequired && provider.status !== 'active') {
+      return res.status(403).json({
+        success: false,
+        message: `Provider profile is not active. Current status: ${provider.status}`,
+        status: provider.status,
+        hint: 'Set requireActive=false in query params to view inactive providers'
+      });
+    }
+
+    // Initialize response data
+    const providerDetails = {
+      provider: {
+        id: provider._id,
+        userId: provider.userId,
+        providerType: provider.providerType,
+        status: provider.status,
+        businessInfo: provider.businessInfo,
+        professionalInfo: provider.professionalInfo,
+        verification: {
+          identityVerified: provider.verification?.identityVerified || false,
+          businessVerified: provider.verification?.businessVerified || false,
+          backgroundCheck: {
+            status: provider.verification?.backgroundCheck?.status || 'pending'
+          },
+          insurance: {
+            hasInsurance: provider.verification?.insurance?.hasInsurance || false,
+            coverageAmount: provider.verification?.insurance?.coverageAmount || null
+          },
+          licenses: provider.verification?.licenses?.map(license => ({
+            type: license.type,
+            number: license.number,
+            issuingAuthority: license.issuingAuthority,
+            expiryDate: license.expiryDate
+          })) || [],
+          portfolio: provider.verification?.portfolio || null
+        },
+        performance: provider.performance || {},
+        preferences: provider.preferences || {},
+        settings: provider.settings || {},
+        metadata: {
+          profileViews: provider.metadata?.profileViews || 0,
+          featured: provider.metadata?.featured || false,
+          promoted: provider.metadata?.promoted || false,
+          lastActive: provider.metadata?.lastActive || null
+        },
+        createdAt: provider.createdAt,
+        updatedAt: provider.updatedAt
+      }
+    };
+
+    // Get the actual userId (handle both populated and non-populated cases)
+    const actualUserId = provider.userId?._id || provider.userId;
+
+    // Get provider's services if requested
+    if (includeServices === 'true' || includeServices === true) {
+      const services = await Service.find({
+        provider: actualUserId,
+        isActive: true
+      })
+        .select('title description category subcategory pricing rating images serviceArea createdAt')
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .lean();
+
+      providerDetails.services = services;
+      providerDetails.serviceCount = services.length;
+    }
+
+    // Get statistics if requested
+    if (includeStatistics === 'true' || includeStatistics === true) {
+      // Total services count
+      const totalServices = await Service.countDocuments({
+        provider: actualUserId,
+        isActive: true
+      });
+
+      // Booking statistics
+      const bookingStats = await Booking.aggregate([
+        {
+          $match: {
+            provider: actualUserId
+          }
+        },
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+            totalAmount: { $sum: '$pricing.totalAmount' }
+          }
+        }
+      ]);
+
+      // Calculate booking statistics
+      const stats = {
+        totalServices,
+        bookings: {
+          total: 0,
+          completed: 0,
+          pending: 0,
+          cancelled: 0,
+          totalEarnings: 0
+        },
+        averageRating: provider.performance?.rating || 0,
+        totalReviews: provider.performance?.reviewsCount || 0,
+        responseRate: provider.performance?.responseRate || 0,
+        averageResponseTime: provider.performance?.averageResponseTime || null
+      };
+
+      bookingStats.forEach(stat => {
+        stats.bookings.total += stat.count;
+        if (stat._id === 'completed') {
+          stats.bookings.completed = stat.count;
+          stats.bookings.totalEarnings = stat.totalAmount || 0;
+        } else if (stat._id === 'pending' || stat._id === 'confirmed') {
+          stats.bookings.pending += stat.count;
+        } else if (stat._id === 'cancelled') {
+          stats.bookings.cancelled = stat.count;
+        }
+      });
+
+      // Get average service rating
+      const serviceRatings = await Service.aggregate([
+        {
+          $match: {
+            provider: actualUserId,
+            isActive: true,
+            'rating.average': { $exists: true, $ne: null }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            avgRating: { $avg: '$rating.average' },
+            totalRatings: { $sum: '$rating.count' }
+          }
+        }
+      ]);
+
+      if (serviceRatings.length > 0) {
+        stats.averageServiceRating = parseFloat((serviceRatings[0].avgRating || 0).toFixed(2));
+        stats.totalServiceRatings = serviceRatings[0].totalRatings || 0;
+      }
+
+      providerDetails.statistics = stats;
+    }
+
+    // Get recent reviews if requested
+    if (includeReviews === 'true' || includeReviews === true) {
+      const recentBookings = await Booking.find({
+        provider: actualUserId,
+        'review.rating': { $exists: true, $ne: null },
+        status: 'completed'
+      })
+        .populate('client', 'firstName lastName profile.avatar')
+        .select('review bookingDate service createdAt')
+        .sort({ 'review.createdAt': -1 })
+        .limit(10)
+        .lean();
+
+      providerDetails.reviews = recentBookings.map(booking => ({
+        id: booking._id,
+        client: booking.client,
+        rating: booking.review?.rating,
+        comment: booking.review?.comment,
+        categories: booking.review?.categories,
+        wouldRecommend: booking.review?.wouldRecommend,
+        photos: booking.review?.photos,
+        bookingDate: booking.bookingDate,
+        createdAt: booking.review?.createdAt || booking.createdAt
+      }));
+    }
+
+    // Increment profile views
+    await Provider.findByIdAndUpdate(id, {
+      $inc: { 'metadata.profileViews': 1 }
+    });
+
+    logger.info('Provider details retrieved', {
+      providerId: id,
+      includeServices,
+      includeReviews,
+      includeStatistics
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Provider details retrieved successfully',
+      data: providerDetails
+    });
+  } catch (error) {
+    logger.error('Failed to get provider details', error, {
+      providerId: req.params.id
+    });
+    return sendServerError(res, error, 'Failed to retrieve provider details', 'PROVIDER_DETAILS_ERROR');
+  }
+};
+
 module.exports = {
   getServices,
   getService,
   getNearbyServices,
+  getServiceCategories,
+  getCategoryDetails,
   createService,
   updateService,
   deleteService,
@@ -1293,5 +2222,6 @@ module.exports = {
   getPayPalOrderDetails,
   getMyServices,
   getMyBookings,
-  getProvidersForService
+  getProvidersForService,
+  getProviderDetails
 };

@@ -1,8 +1,11 @@
-const { Course } = require('../models/Academy');
+const { Course, Enrollment } = require('../models/Academy');
 const Academy = Course; // Alias for backward compatibility
 const User = require('../models/User');
+const mongoose = require('mongoose');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
+const logger = require('../config/logger');
+const { sendServerError } = require('../utils/responseHelper');
 
 // @desc    Get all academy courses
 // @route   GET /api/academy/courses
@@ -78,23 +81,57 @@ const getCourses = async (req, res) => {
   }
 };
 
-// @desc    Get single course
+// @desc    Get detailed information about a course
 // @route   GET /api/academy/courses/:id
 // @access  Public
 const getCourse = async (req, res) => {
   try {
-    // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    const { id } = req.params;
+    const {
+      includeEnrollments = 'false',
+      includeReviews = 'false',
+      includeStatistics = 'true',
+      includeRelated = 'true'
+    } = req.query;
+
+    // Validate and convert ObjectId
+    const trimmedId = id.trim();
+    
+    if (!trimmedId || trimmedId.length !== 24) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid course ID format'
+        message: 'Invalid course ID format',
+        error: 'ID must be exactly 24 characters (MongoDB ObjectId format)',
+        receivedId: trimmedId,
+        receivedLength: trimmedId?.length || 0,
+        expectedLength: 24
       });
     }
 
-    const course = await Course.findById(req.params.id)
-      .populate('instructor', 'firstName lastName profile.avatar profile.bio profile.rating')
-      .populate('enrollments.user', 'firstName lastName profile.avatar')
-      .populate('reviews.user', 'firstName lastName profile.avatar');
+    let courseId;
+    try {
+      if (!mongoose.isValidObjectId(trimmedId)) {
+        throw new Error('Invalid ObjectId format');
+      }
+      courseId = new mongoose.Types.ObjectId(trimmedId);
+    } catch (e) {
+      logger.warn('Invalid course ID format', {
+        id: trimmedId,
+        error: e.message
+      });
+      
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid course ID format',
+        error: e.message || 'ID must be a valid MongoDB ObjectId',
+        receivedId: trimmedId
+      });
+    }
+
+    // Find course with instructor population
+    const course = await Course.findById(courseId)
+      .populate('instructor', 'firstName lastName email phone profile.avatar profile.bio profile.rating profile.experience')
+      .lean();
 
     if (!course) {
       return res.status(404).json({
@@ -103,20 +140,173 @@ const getCourse = async (req, res) => {
       });
     }
 
-    // Increment view count
-    course.views += 1;
-    await course.save();
+    // Check if course is active
+    if (!course.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Course is not active',
+        hint: 'This course is currently inactive and cannot be viewed'
+      });
+    }
 
-    res.status(200).json({
+    // Initialize response data
+    const courseDetails = {
+      course: {
+        id: course._id,
+        title: course.title,
+        description: course.description,
+        category: course.category,
+        instructor: course.instructor,
+        partner: course.partner,
+        level: course.level,
+        duration: course.duration,
+        pricing: course.pricing,
+        curriculum: course.curriculum,
+        prerequisites: course.prerequisites,
+        learningOutcomes: course.learningOutcomes,
+        certification: course.certification,
+        enrollment: course.enrollment,
+        schedule: course.schedule,
+        rating: course.rating,
+        thumbnail: course.thumbnail,
+        tags: course.tags,
+        // views: course.views || 0, // Uncomment if views field exists in schema
+        createdAt: course.createdAt,
+        updatedAt: course.updatedAt
+      }
+    };
+
+    // Get enrollments if requested
+    if (includeEnrollments === 'true' || includeEnrollments === true) {
+      const enrollments = await Enrollment.find({ course: courseId })
+        .populate('student', 'firstName lastName profile.avatar')
+        .sort({ enrollmentDate: -1 })
+        .limit(50)
+        .lean();
+
+      courseDetails.enrollments = enrollments.map(enrollment => ({
+        id: enrollment._id,
+        student: enrollment.student,
+        enrollmentDate: enrollment.enrollmentDate,
+        status: enrollment.status,
+        progress: enrollment.progress,
+        payment: enrollment.payment,
+        certificate: enrollment.certificate,
+        createdAt: enrollment.createdAt,
+        updatedAt: enrollment.updatedAt
+      }));
+      
+      courseDetails.enrollmentCount = enrollments.length;
+    }
+
+    // Get statistics if requested
+    if (includeStatistics === 'true' || includeStatistics === true) {
+      // Get enrollment statistics
+      const enrollmentStats = await Enrollment.aggregate([
+        { $match: { course: courseId } },
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 }
+          }
+        }
+      ]);
+
+      const stats = {
+        // views: course.views || 0, // Uncomment if views field exists in schema
+        rating: course.rating || { average: 0, count: 0 },
+        enrollment: {
+          current: course.enrollment?.current || 0,
+          maxCapacity: course.enrollment?.maxCapacity || null,
+          isOpen: course.enrollment?.isOpen !== false
+        }
+      };
+
+      // Add enrollment breakdown by status
+      if (enrollmentStats.length > 0) {
+        stats.enrollmentBreakdown = {
+          total: 0,
+          enrolled: 0,
+          inProgress: 0,
+          completed: 0,
+          dropped: 0
+        };
+
+        enrollmentStats.forEach(stat => {
+          stats.enrollmentBreakdown.total += stat.count;
+          if (stat._id === 'enrolled') {
+            stats.enrollmentBreakdown.enrolled = stat.count;
+          } else if (stat._id === 'in_progress') {
+            stats.enrollmentBreakdown.inProgress = stat.count;
+          } else if (stat._id === 'completed') {
+            stats.enrollmentBreakdown.completed = stat.count;
+          } else if (stat._id === 'dropped') {
+            stats.enrollmentBreakdown.dropped = stat.count;
+          }
+        });
+      }
+
+      // Get total lessons count from curriculum
+      const totalLessons = course.curriculum?.reduce((total, module) => {
+        return total + (module.lessons?.length || 0);
+      }, 0) || 0;
+
+      stats.curriculum = {
+        modules: course.curriculum?.length || 0,
+        totalLessons: totalLessons,
+        estimatedHours: course.duration?.hours || 0,
+        estimatedWeeks: course.duration?.weeks || null
+      };
+
+      courseDetails.statistics = stats;
+    }
+
+    // Get related courses if requested
+    if (includeRelated === 'true' || includeRelated === true) {
+      const relatedCourses = await Course.find({
+        category: course.category,
+        isActive: true,
+        _id: { $ne: courseId }
+      })
+        .populate('instructor', 'firstName lastName profile.avatar')
+        .select('title description category level pricing rating thumbnail enrollment tags')
+        .sort({ 'rating.average': -1, createdAt: -1 })
+        .limit(6)
+        .lean();
+
+      courseDetails.relatedCourses = relatedCourses;
+    }
+
+    // Increment view count (if views field exists in schema)
+    try {
+      await Course.findByIdAndUpdate(courseId, {
+        $inc: { views: 1 }
+      });
+    } catch (e) {
+      // If views field doesn't exist, just log the view without incrementing
+      logger.debug('Course viewed', { courseId });
+    }
+
+    logger.info('Course details retrieved', {
+      courseId: id,
+      courseTitle: course.title,
+      category: course.category,
+      includeEnrollments,
+      includeReviews,
+      includeRelated,
+      includeStatistics
+    });
+
+    return res.status(200).json({
       success: true,
-      data: course
+      message: 'Course details retrieved successfully',
+      data: courseDetails
     });
   } catch (error) {
-    console.error('Get course error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
+    logger.error('Failed to get course details', error, {
+      courseId: req.params.id
     });
+    return sendServerError(res, error, 'Failed to retrieve course details', 'COURSE_DETAILS_ERROR');
   }
 };
 
