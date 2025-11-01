@@ -9,7 +9,7 @@ const {
   deleteAnnouncement
 } = require('../controllers/announcementControllerUpdated');
 
-const { paginationMiddleware, offsetPaginationMiddleware, cursorPaginationMiddleware } = require('../middleware/paginationMiddleware');
+const { offsetPaginationMiddleware, cursorPaginationMiddleware } = require('../middleware/paginationMiddleware');
 const { authenticateToken } = require('../middleware/authMiddleware');
 const { validateAnnouncement } = require('../middleware/validationMiddleware');
 

@@ -453,7 +453,7 @@ class ReferralService {
    * @param {Object} trackingData - Tracking data
    * @returns {Promise<void>}
    */
-  async trackReferralClick(referralCode, trackingData) {
+  async trackReferralClick(referralCode, _trackingData) {
     try {
       const referral = await Referral.findOne({ referralCode });
       if (referral) {

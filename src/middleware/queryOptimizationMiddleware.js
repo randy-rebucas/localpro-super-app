@@ -9,7 +9,7 @@ const logger = require('../config/logger');
 /**
  * Middleware to optimize find queries
  */
-const optimizeFindQueries = (Model, options = {}) => {
+const optimizeFindQueries = (Model, _options = {}) => {
   return async (req, res, next) => {
     try {
       // Store original query methods

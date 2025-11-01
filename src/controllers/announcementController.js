@@ -1,7 +1,5 @@
 const Announcement = require('../models/Announcement');
-const User = require('../models/User');
 const { logger } = require('../utils/logger');
-const { auditGeneralOperations } = require('../middleware/auditLogger');
 
 // Get all announcements (public and filtered)
 const getAnnouncements = async (req, res) => {

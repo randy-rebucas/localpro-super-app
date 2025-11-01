@@ -1,8 +1,5 @@
 const User = require('../models/User');
-const Agency = require('../models/Agency');
 const EmailService = require('../services/emailService');
-const TwilioService = require('../services/twilioService');
-const CloudinaryService = require('../services/cloudinaryService');
 const { auditLogger } = require('../utils/auditLogger');
 
 // @desc    Get all users with filtering and pagination

@@ -1,10 +1,9 @@
 const Announcement = require('../models/Announcement');
-const User = require('../models/User');
 const { logger } = require('../utils/logger');
-const { auditGeneralOperations } = require('../middleware/auditLogger');
-const { paginationMiddleware, sendPaginatedResponse } = require('../middleware/paginationMiddleware');
+const { sendPaginatedResponse } = require('../middleware/paginationMiddleware');
 const { paginationService } = require('../services/paginationService');
 const { sendServerError } = require('../utils/responseHelper');
+const auditService = require('../services/auditService');
 
 /**
  * Updated Announcement Controller with Standardized Pagination
@@ -317,7 +316,23 @@ const createAnnouncement = async (req, res) => {
     await announcement.populate('author', 'firstName lastName email avatar role');
 
     // Audit log
-    await auditGeneralOperations('announcement_created', req, announcement._id, announcement.title);
+    await auditService.logAuditEvent({
+      action: 'announcement_created',
+      category: 'content',
+      actor: {
+        userId: req.user?.id,
+        email: req.user?.email,
+        role: req.user?.role,
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.get('User-Agent')
+      },
+      target: {
+        type: 'announcement',
+        id: announcement._id,
+        name: announcement.title
+      },
+      metadata: {}
+    });
 
     res.status(201).json({
       success: true,
@@ -372,7 +387,23 @@ const updateAnnouncement = async (req, res) => {
      .populate('metadata.lastModifiedBy', 'firstName lastName email');
 
     // Audit log
-    await auditGeneralOperations('announcement_updated', req, announcement._id, announcement.title);
+    await auditService.logAuditEvent({
+      action: 'announcement_updated',
+      category: 'content',
+      actor: {
+        userId: req.user?.id,
+        email: req.user?.email,
+        role: req.user?.role,
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.get('User-Agent')
+      },
+      target: {
+        type: 'announcement',
+        id: announcement._id,
+        name: announcement.title
+      },
+      metadata: {}
+    });
 
     res.json({
       success: true,
@@ -421,7 +452,23 @@ const deleteAnnouncement = async (req, res) => {
     await announcement.save();
 
     // Audit log
-    await auditGeneralOperations('announcement_deleted', req, announcement._id, announcement.title);
+    await auditService.logAuditEvent({
+      action: 'announcement_deleted',
+      category: 'content',
+      actor: {
+        userId: req.user?.id,
+        email: req.user?.email,
+        role: req.user?.role,
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.get('User-Agent')
+      },
+      target: {
+        type: 'announcement',
+        id: announcement._id,
+        name: announcement.title
+      },
+      metadata: {}
+    });
 
     res.json({
       success: true,

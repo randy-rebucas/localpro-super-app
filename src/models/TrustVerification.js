@@ -405,7 +405,7 @@ trustScoreSchema.methods.calculateScore = function() {
 };
 
 // Method to update component score
-trustScoreSchema.methods.updateComponentScore = function(component, score, reason = 'Manual update') {
+trustScoreSchema.methods.updateComponentScore = function(component, score, _reason = 'Manual update') {
   if (this.components[component]) {
     this.components[component].score = score;
     this.components[component].lastUpdated = new Date();

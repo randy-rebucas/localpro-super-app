@@ -142,7 +142,7 @@ class DatabaseOptimizationService {
   /**
    * Get sample queries for a collection (simplified implementation)
    */
-  async getSampleQueries(collectionName) {
+  async getSampleQueries(_collectionName) {
     // TODO: Query MongoDB's profiler collection to get actual query patterns
     // This should analyze the profiler data to identify common query patterns
     // For now, return empty array - implement actual profiler querying

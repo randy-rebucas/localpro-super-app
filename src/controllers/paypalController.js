@@ -1,9 +1,9 @@
 const PayPalService = require('../services/paypalService');
-const PayPalSubscriptionService = require('../services/paypalSubscriptionService');
 const { Payment, UserSubscription } = require('../models/LocalProPlus');
 const { Transaction } = require('../models/Finance');
 const { Booking } = require('../models/Marketplace');
 const { Order } = require('../models/Supplies');
+const User = require('../models/User');
 const logger = require('../config/logger');
 
 // @desc    Handle PayPal webhook events
@@ -218,7 +218,7 @@ const handleSubscriptionPaymentCompleted = async (resource) => {
     // Find the subscription and create a new payment record
     const subscription = await UserSubscription.findById(customId);
     if (subscription) {
-      const payment = await Payment.create({
+      await Payment.create({
         user: subscription.user,
         subscription: subscription._id,
         amount: parseFloat(resource.amount.total),
@@ -268,7 +268,7 @@ const handleSubscriptionPaymentFailed = async (resource) => {
     // Find the subscription and create a failed payment record
     const subscription = await UserSubscription.findById(customId);
     if (subscription) {
-      const payment = await Payment.create({
+      await Payment.create({
         user: subscription.user,
         subscription: subscription._id,
         amount: parseFloat(resource.amount.total),

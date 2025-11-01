@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { 
   getMetricsAsJSON,
-  recordError,
   recordBusinessEvent 
 } = require('../middleware/metricsMiddleware');
 const logger = require('../config/logger');
@@ -57,7 +56,6 @@ const checkAlerts = async () => {
     // Check memory usage
     const memoryUsage = metrics.find(m => m.name === 'memory_usage_bytes');
     if (memoryUsage) {
-      const rssMemory = memoryUsage.values.find(v => v.labels.type === 'rss')?.value || 0;
       const heapUsed = memoryUsage.values.find(v => v.labels.type === 'heapUsed')?.value || 0;
       const heapTotal = memoryUsage.values.find(v => v.labels.type === 'heapTotal')?.value || 0;
       

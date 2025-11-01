@@ -4,7 +4,6 @@ const {
   getMetrics, 
   getMetricsAsJSON, 
   startSystemMetricsCollection,
-  stopSystemMetricsCollection,
   register 
 } = require('../middleware/metricsMiddleware');
 const logger = require('../config/logger');

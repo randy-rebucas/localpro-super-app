@@ -3,7 +3,6 @@ const User = require('../models/User');
 const TwilioService = require('../services/twilioService');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
-const { uploaders } = require('../config/cloudinary');
 const logger = require('../config/logger');
 
 // Generate JWT Token with enhanced payload for mobile

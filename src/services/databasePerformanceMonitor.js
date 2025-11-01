@@ -47,18 +47,30 @@ class DatabasePerformanceMonitor {
     
     // Override mongoose query methods to track performance
     const originalExec = mongoose.Query.prototype.exec;
-    const originalFind = mongoose.Query.prototype.find;
-    const originalFindOne = mongoose.Query.prototype.findOne;
-    const originalFindOneAndUpdate = mongoose.Query.prototype.findOneAndUpdate;
-    const originalFindOneAndDelete = mongoose.Query.prototype.findOneAndDelete;
-    const originalUpdate = mongoose.Query.prototype.update;
-    const originalUpdateOne = mongoose.Query.prototype.updateOne;
-    const originalUpdateMany = mongoose.Query.prototype.updateMany;
-    const originalDeleteOne = mongoose.Query.prototype.deleteOne;
-    const originalDeleteMany = mongoose.Query.prototype.deleteMany;
-    const originalCount = mongoose.Query.prototype.count;
-    const originalCountDocuments = mongoose.Query.prototype.countDocuments;
-    const originalDistinct = mongoose.Query.prototype.distinct;
+    // eslint-disable-next-line no-unused-vars
+    const _originalFind = mongoose.Query.prototype.find;
+    // eslint-disable-next-line no-unused-vars
+    const _originalFindOne = mongoose.Query.prototype.findOne;
+    // eslint-disable-next-line no-unused-vars
+    const _originalFindOneAndUpdate = mongoose.Query.prototype.findOneAndUpdate;
+    // eslint-disable-next-line no-unused-vars
+    const _originalFindOneAndDelete = mongoose.Query.prototype.findOneAndDelete;
+    // eslint-disable-next-line no-unused-vars
+    const _originalUpdate = mongoose.Query.prototype.update;
+    // eslint-disable-next-line no-unused-vars
+    const _originalUpdateOne = mongoose.Query.prototype.updateOne;
+    // eslint-disable-next-line no-unused-vars
+    const _originalUpdateMany = mongoose.Query.prototype.updateMany;
+    // eslint-disable-next-line no-unused-vars
+    const _originalDeleteOne = mongoose.Query.prototype.deleteOne;
+    // eslint-disable-next-line no-unused-vars
+    const _originalDeleteMany = mongoose.Query.prototype.deleteMany;
+    // eslint-disable-next-line no-unused-vars
+    const _originalCount = mongoose.Query.prototype.count;
+    // eslint-disable-next-line no-unused-vars
+    const _originalCountDocuments = mongoose.Query.prototype.countDocuments;
+    // eslint-disable-next-line no-unused-vars
+    const _originalDistinct = mongoose.Query.prototype.distinct;
     const originalAggregate = mongoose.Aggregate.prototype.exec;
 
     // Wrap exec method to measure query time

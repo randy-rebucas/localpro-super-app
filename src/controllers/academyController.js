@@ -1,4 +1,4 @@
-const { Course, Enrollment, Certification } = require('../models/Academy');
+const { Course } = require('../models/Academy');
 const Academy = Course; // Alias for backward compatibility
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');

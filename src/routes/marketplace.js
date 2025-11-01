@@ -3,8 +3,7 @@ const { auth, authorize } = require('../middleware/auth');
 const { 
   validateObjectIdParam, 
   validatePaginationParams, 
-  validateSearchParams,
-  validateFileUpload 
+  validateSearchParams
 } = require('../middleware/routeValidation');
 const {
   getServices,

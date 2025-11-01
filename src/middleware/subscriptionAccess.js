@@ -1,4 +1,4 @@
-const { UserSubscription } = require('../models/LocalProPlus');
+const User = require('../models/User');
 
 /**
  * Middleware to check if user has active LocalPro Plus subscription

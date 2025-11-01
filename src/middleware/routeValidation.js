@@ -94,7 +94,7 @@ const validatePaginationParams = (req, res, next) => {
  * @returns {Function} - Express middleware
  */
 const validateSearchParams = (req, res, next) => {
-  const { search, category, location } = req.query;
+  const { search, category } = req.query;
   
   // Validate search term length
   if (search && search.length < 2) {

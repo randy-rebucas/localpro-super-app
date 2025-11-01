@@ -555,7 +555,22 @@ userSettingsSchema.statics.getDefaultSettings = function() {
 // Method to update specific setting category
 userSettingsSchema.methods.updateCategory = function(category, updates) {
   if (this[category]) {
-    Object.assign(this[category], updates);
+    // Deep merge updates into the category
+    Object.keys(updates).forEach(key => {
+      const updateValue = updates[key];
+      
+      if (updateValue && typeof updateValue === 'object' && !Array.isArray(updateValue) && updateValue.constructor === Object) {
+        // For nested objects, merge deeply
+        if (!this[category][key] || typeof this[category][key] !== 'object' || Array.isArray(this[category][key])) {
+          this[category][key] = {};
+        }
+        Object.assign(this[category][key], updateValue);
+      } else {
+        this[category][key] = updateValue;
+      }
+    });
+    // Mark the category path as modified so Mongoose detects the change
+    this.markModified(category);
   }
   return this.save();
 };

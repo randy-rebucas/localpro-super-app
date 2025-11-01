@@ -1,6 +1,5 @@
 const UserSettings = require('../models/UserSettings');
 const AppSettings = require('../models/AppSettings');
-const User = require('../models/User');
 const { validationResult } = require('express-validator');
 
 // User Settings Controllers
@@ -59,13 +58,30 @@ const updateUserSettings = async (req, res) => {
       });
     }
     
-    // Update settings
+    // Helper function to recursively update nested objects
+    const deepUpdate = (obj, updates) => {
+      Object.keys(updates).forEach(key => {
+        const updateValue = updates[key];
+        
+        if (updateValue && typeof updateValue === 'object' && !Array.isArray(updateValue) && updateValue.constructor === Object) {
+          // If it's a nested object, recursively update
+          if (!obj[key] || typeof obj[key] !== 'object' || Array.isArray(obj[key])) {
+            obj[key] = {};
+          }
+          deepUpdate(obj[key], updateValue);
+        } else {
+          // For primitive values or arrays, set directly
+          obj[key] = updateValue;
+        }
+      });
+    };
+    
+    // Update settings with deep merge
+    deepUpdate(userSettings, updates);
+    
+    // Mark all updated paths as modified for Mongoose
     Object.keys(updates).forEach(key => {
-      if (userSettings[key] && typeof userSettings[key] === 'object') {
-        Object.assign(userSettings[key], updates[key]);
-      } else {
-        userSettings[key] = updates[key];
-      }
+      userSettings.markModified(key);
     });
     
     await userSettings.save();

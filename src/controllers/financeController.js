@@ -1,12 +1,8 @@
-const { Loan, SalaryAdvance, Transaction, Finance } = require('../models/Finance');
+const { Transaction, Finance } = require('../models/Finance');
 const User = require('../models/User');
-const { Service, Booking } = require('../models/Marketplace');
-const Job = require('../models/Job');
-const Referral = require('../models/Referral');
-const Agency = require('../models/Agency');
-const PayPalService = require('../services/paypalService');
-const PayMayaService = require('../services/paymayaService');
 const EmailService = require('../services/emailService');
+const { Booking } = require('../models/Marketplace');
+const Referral = require('../models/Referral');
 
 // @desc    Get user's financial overview
 // @route   GET /api/finance/overview

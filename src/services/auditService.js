@@ -186,7 +186,7 @@ class AuditService {
   }
 
   // Determine severity based on action and context
-  determineSeverity(action, category, metadata = {}) {
+  determineSeverity(action, category, _metadata = {}) {
     // Critical actions
     if (['user_delete', 'system_config_update', 'data_delete', 'privilege_escalation'].includes(action)) {
       return 'critical';
@@ -380,7 +380,6 @@ class AuditService {
       targetId,
       startDate,
       endDate,
-      search
     } = filters;
 
     const {

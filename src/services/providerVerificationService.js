@@ -1,5 +1,4 @@
 const Provider = require('../models/Provider');
-const User = require('../models/User');
 const { logger } = require('../utils/logger');
 const { auditLogger } = require('../utils/auditLogger');
 

@@ -1,5 +1,4 @@
 const { Conversation, Message, Notification } = require('../models/Communication');
-const User = require('../models/User');
 const EmailService = require('../services/emailService');
 const TwilioService = require('../services/twilioService');
 
@@ -110,7 +109,7 @@ const getConversation = async (req, res) => {
 // @access  Private
 const createConversation = async (req, res) => {
   try {
-    const { participants, type = 'direct', metadata = {} } = req.body;
+    const { participants, type = 'direct' } = req.body;
 
     if (!participants || !Array.isArray(participants) || participants.length === 0) {
       return res.status(400).json({
@@ -221,9 +220,6 @@ const sendMessage = async (req, res) => {
 
     // Populate sender info
     await message.populate('sender', 'firstName lastName profile.avatar');
-
-    // Send push notification to other participants
-    const otherParticipants = conversation.participants.filter(p => p.user.toString() !== req.user.id);
     
     // TODO: Implement push notification service
     // await PushNotificationService.sendNotification({

@@ -1,7 +1,5 @@
 const { AdCampaign: Ads } = require('../models/Ads');
-const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
-const EmailService = require('../services/emailService');
 
 // @desc    Get all ads
 // @route   GET /api/ads

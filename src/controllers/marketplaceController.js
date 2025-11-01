@@ -4,15 +4,9 @@ const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
 const PayPalService = require('../services/paypalService');
-const { uploaders } = require('../config/cloudinary');
 const logger = require('../config/logger');
 const { 
   sendPaginated, 
-  sendSuccess, 
-  sendCreated, 
-  sendUpdated, 
-  sendDeleted,
-  sendNotFoundError,
   sendServerError,
   createPagination 
 } = require('../utils/responseHelper');
@@ -44,9 +38,6 @@ const getServices = async (req, res) => {
       // Enhanced location filtering with Google Maps
       if (req.query.coordinates) {
         // If coordinates are provided, find services within radius
-        const coordinates = JSON.parse(req.query.coordinates);
-        const radius = parseInt(req.query.radius) || 50000; // Default 50km radius
-        
         // For now, use text-based filtering, but this could be enhanced with geospatial queries
         filter.serviceArea = { $in: [new RegExp(location, 'i')] };
       } else {

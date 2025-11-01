@@ -61,7 +61,7 @@ async function initializeApplication() {
     logger.info('🚀 Initializing LocalPro Super App...');
     
     // Run all startup checks
-    const validationResults = await startupValidator.runValidation();
+    await startupValidator.runValidation();
     const summary = startupValidator.getSummary();
     
     if (!summary.canProceed) {

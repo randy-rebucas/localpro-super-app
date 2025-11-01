@@ -1,5 +1,4 @@
 const { FacilityCareService: FacilityCare } = require('../models/FacilityCare');
-const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
 const EmailService = require('../services/emailService');

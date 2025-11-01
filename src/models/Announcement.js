@@ -404,7 +404,7 @@ announcementSchema.statics.getAnnouncementsForUser = function(userId, userRole, 
 };
 
 // Instance method to increment views
-announcementSchema.methods.incrementViews = function(userId) {
+announcementSchema.methods.incrementViews = function(_userId) {
   this.views += 1;
   this.analytics.totalViews += 1;
   

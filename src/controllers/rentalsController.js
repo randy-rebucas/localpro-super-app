@@ -1,4 +1,4 @@
-const { RentalItem, Rental } = require('../models/Rentals');
+const { RentalItem } = require('../models/Rentals');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');

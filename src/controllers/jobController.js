@@ -33,8 +33,6 @@ const getJobs = async (req, res) => {
       minSalary,
       maxSalary,
       company,
-      page = 1,
-      limit = 10,
       sortBy = 'createdAt',
       sortOrder = 'desc',
       featured

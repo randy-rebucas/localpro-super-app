@@ -1,5 +1,5 @@
 const PayMayaService = require('../services/paymayaService');
-const { Payment, UserSubscription } = require('../models/LocalProPlus');
+const { Payment } = require('../models/LocalProPlus');
 const { Transaction } = require('../models/Finance');
 const { Booking } = require('../models/Marketplace');
 const { Order } = require('../models/Supplies');
@@ -434,7 +434,6 @@ const handleCheckoutSuccess = async (data) => {
 // Handle checkout failure
 const handleCheckoutFailure = async (data) => {
   try {
-    const checkoutId = data.checkoutId;
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
@@ -474,7 +473,6 @@ const handlePaymentSuccess = async (data) => {
 // Handle payment failure
 const handlePaymentFailure = async (data) => {
   try {
-    const paymentId = data.paymentId;
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
@@ -514,7 +512,6 @@ const handleInvoicePaid = async (data) => {
 // Handle invoice expired
 const handleInvoiceExpired = async (data) => {
   try {
-    const invoiceId = data.invoiceId;
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {

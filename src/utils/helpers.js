@@ -181,7 +181,7 @@ const formatDate = (date, locale = 'en-US') => {
  * @param {string} timezone - Timezone (default: UTC)
  * @returns {boolean} True if within business hours
  */
-const isBusinessHours = (date, timezone = 'UTC') => {
+const isBusinessHours = (date, _timezone = 'UTC') => {
   const hour = new Date(date).getHours();
   return hour >= 9 && hour <= 17; // 9 AM to 5 PM
 };

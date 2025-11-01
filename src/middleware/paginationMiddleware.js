@@ -44,7 +44,6 @@ const parsePaginationParams = (req, options = {}) => {
     minLimit = 1,
     defaultPage = 1,
     minPage = 1,
-    enableCursor = false,
     cursorField = 'createdAt',
     sortField = 'createdAt',
     sortOrder = 'desc'

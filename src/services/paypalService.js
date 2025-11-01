@@ -1,5 +1,4 @@
 const paypal = require('@paypal/paypal-server-sdk');
-const crypto = require('crypto');
 const PayPalSubscriptionService = require('./paypalSubscriptionService');
 const logger = require('../config/logger');
 

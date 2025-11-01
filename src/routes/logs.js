@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
-const { body, param, query } = require('express-validator');
 const logManagementService = require('../services/logManagementService');
 const logger = require('../config/logger');
 

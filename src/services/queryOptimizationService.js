@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const logger = require('../config/logger');
 
 /**
@@ -154,7 +153,7 @@ class QueryOptimizationService {
   /**
    * Create geospatial query for location-based searches
    */
-  createGeospatialQuery(coordinates, maxDistance, options = {}) {
+  createGeospatialQuery(coordinates, maxDistance, _options = {}) {
     const { lat, lng } = coordinates;
     const radius = maxDistance || 50000; // Default 50km in meters
 

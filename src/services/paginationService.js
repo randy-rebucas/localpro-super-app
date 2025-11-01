@@ -22,7 +22,7 @@ class PaginationService {
    */
   async executeOffsetPagination(Model, query, paginationParams, options = {}) {
     const startTime = Date.now();
-    const { page, limit, skip, sortBy, sortOrder } = paginationParams;
+    const { limit, skip, sortBy, sortOrder } = paginationParams;
     
     try {
       // Build sort object
@@ -306,7 +306,7 @@ class PaginationService {
    * @param {string} collectionName - Collection name
    * @returns {number} Estimated size
    */
-  getCollectionSizeEstimate(collectionName) {
+  getCollectionSizeEstimate(_collectionName) {
     // This would typically come from a monitoring service
     // For now, return a default estimate
     return 1000;
@@ -341,7 +341,7 @@ class PaginationService {
     };
     
     let totalTime = 0;
-    this.performanceCache.forEach((data, key) => {
+    this.performanceCache.forEach((data) => {
       stats.totalQueries += data.count;
       totalTime += data.queryTime * data.count;
       

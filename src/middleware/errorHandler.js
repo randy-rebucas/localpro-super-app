@@ -6,9 +6,7 @@
 /* eslint-disable no-undef */
 const { 
   sendValidationError, 
-  sendNotFoundError, 
-  sendServerError,
-  sendAuthorizationError 
+  sendServerError
 } = require('../utils/responseHelper');
 const logger = require('../config/logger');
 
@@ -32,7 +30,7 @@ const handleAsyncErrors = (fn) => {
  * @param {Object} res - Express response object
  * @param {Function} next - Express next function
  */
-const errorHandler = (error, req, res, next) => {
+const errorHandler = (error, req, res, _next) => {
   let statusCode = 500;
   let message = 'Internal server error';
   let code = 'SERVER_ERROR';

@@ -560,7 +560,7 @@ const getSubscriptionUsage = async (req, res) => {
 // @access  Private
 const renewSubscription = async (req, res) => {
   try {
-    const { paymentMethod, paymentDetails } = req.body;
+    const { paymentMethod } = req.body;
 
     if (!paymentMethod) {
       return res.status(400).json({

@@ -155,7 +155,6 @@ function shouldAuditRequest(req, actions, categories, excludeActions) {
 function mapRequestToAction(req, res) {
   const method = req.method;
   const path = req.path;
-  const statusCode = res?.statusCode;
 
   // Authentication actions
   if (path.includes('/auth/')) {

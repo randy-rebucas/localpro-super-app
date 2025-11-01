@@ -1,6 +1,6 @@
 const express = require('express');
 const { auth } = require('../middleware/auth');
-const { validateObjectIdParam, validateFileUpload } = require('../middleware/routeValidation');
+const { validateFileUpload } = require('../middleware/routeValidation');
 const {
   sendVerificationCode,
   verifyCode,

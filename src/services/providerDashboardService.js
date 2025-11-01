@@ -119,13 +119,13 @@ class ProviderDashboardService {
   }
 
   // Get recent activity
-  async getRecentActivity(userId, since) {
+  async getRecentActivity(_userId, _since) {
     return {
-      bookings: await this.getRecentBookings(userId, since),
-      reviews: await this.getRecentReviews(userId, since),
-      messages: await this.getRecentMessages(userId, since),
-      payments: await this.getRecentPayments(userId, since),
-      profileViews: await this.getRecentProfileViews(userId, since)
+      bookings: await this.getRecentBookings(_userId, _since),
+      reviews: await this.getRecentReviews(_userId, _since),
+      messages: await this.getRecentMessages(_userId, _since),
+      payments: await this.getRecentPayments(_userId, _since),
+      profileViews: await this.getRecentProfileViews(_userId, _since)
     };
   }
 
@@ -154,22 +154,22 @@ class ProviderDashboardService {
   }
 
   // Helper methods for data aggregation
-  async getEarningsByCategory(providerId, since) {
+  async getEarningsByCategory(_providerId, _since) {
     // TODO: Integrate with actual financial data from database
     return [];
   }
 
-  async getEarningsByPaymentMethod(providerId, since) {
+  async getEarningsByPaymentMethod(_providerId, _since) {
     // TODO: Integrate with actual financial data from database
     return [];
   }
 
-  async getEarningsByTimeframe(providerId, since) {
+  async getEarningsByTimeframe(_providerId, _since) {
     // TODO: Integrate with actual financial data from database
     return [];
   }
 
-  async getRatingTrend(providerId, since) {
+  async getRatingTrend(_providerId, _since) {
     // TODO: Integrate with actual review data from database
     return {
       current: 0,
@@ -179,7 +179,7 @@ class ProviderDashboardService {
     };
   }
 
-  async getResponseTimeTrend(providerId, since) {
+  async getResponseTimeTrend(_providerId, _since) {
     // TODO: Integrate with actual response data from database
     return {
       current: 0,
@@ -189,7 +189,7 @@ class ProviderDashboardService {
     };
   }
 
-  async getCompletionRateTrend(providerId, since) {
+  async getCompletionRateTrend(_providerId, _since) {
     // TODO: Integrate with actual job data from database
     return {
       current: 0,
@@ -199,7 +199,7 @@ class ProviderDashboardService {
     };
   }
 
-  async getPerformanceComparisons(providerId) {
+  async getPerformanceComparisons(_providerId) {
     // TODO: Integrate with actual comparison data from database
     return {
       rating: { provider: 0, average: 0, percentile: 0 },
@@ -208,7 +208,7 @@ class ProviderDashboardService {
     };
   }
 
-  async getTopPerformersComparison(providerId) {
+  async getTopPerformersComparison(_providerId) {
     // TODO: Integrate with actual comparison data from database
     return {
       rating: { provider: 0, topPerformers: 0, gap: 0 },
@@ -217,27 +217,27 @@ class ProviderDashboardService {
     };
   }
 
-  async getRecentBookings(userId, since) {
+  async getRecentBookings(_userId, _since) {
     // TODO: Integrate with actual booking data from database
     return [];
   }
 
-  async getRecentReviews(userId, since) {
+  async getRecentReviews(_userId, _since) {
     // TODO: Integrate with actual review data from database
     return [];
   }
 
-  async getRecentMessages(userId, since) {
+  async getRecentMessages(_userId, _since) {
     // TODO: Integrate with actual message data from database
     return [];
   }
 
-  async getRecentPayments(userId, since) {
+  async getRecentPayments(_userId, _since) {
     // TODO: Integrate with actual payment data from database
     return [];
   }
 
-  async getRecentProfileViews(userId, since) {
+  async getRecentProfileViews(_userId, _since) {
     // TODO: Integrate with actual view data from database
     return {
       total: 0,
@@ -250,52 +250,52 @@ class ProviderDashboardService {
     };
   }
 
-  async getPendingJobs(userId) {
+  async getPendingJobs(_userId) {
     // TODO: Integrate with actual job data from database
     return 0;
   }
 
-  async getUnreadMessages(userId) {
+  async getUnreadMessages(_userId) {
     // TODO: Integrate with actual message data from database
     return 0;
   }
 
-  async getPendingReviews(userId) {
+  async getPendingReviews(_userId) {
     // TODO: Integrate with actual review data from database
     return 0;
   }
 
-  async getSystemAlerts(userId) {
+  async getSystemAlerts(_userId) {
     // TODO: Integrate with actual alert data from database
     return [];
   }
 
-  async getPaymentNotifications(userId) {
+  async getPaymentNotifications(_userId) {
     // TODO: Integrate with actual payment data from database
     return [];
   }
 
-  async getJobTrends(providerId, since) {
+  async getJobTrends(_providerId, _since) {
     // TODO: Integrate with actual job data from database
     return [];
   }
 
-  async getEarningsTrends(providerId, since) {
+  async getEarningsTrends(_providerId, _since) {
     // TODO: Integrate with actual earnings data from database
     return [];
   }
 
-  async getRatingTrends(providerId, since) {
+  async getRatingTrends(_providerId, _since) {
     // TODO: Integrate with actual rating data from database
     return [];
   }
 
-  async getProfileViewTrends(providerId, since) {
+  async getProfileViewTrends(_providerId, _since) {
     // TODO: Integrate with actual view data from database
     return [];
   }
 
-  async getCustomerSatisfactionTrends(providerId, since) {
+  async getCustomerSatisfactionTrends(_providerId, _since) {
     // TODO: Integrate with actual satisfaction data from database
     return [];
   }

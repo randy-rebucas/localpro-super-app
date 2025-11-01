@@ -1,6 +1,5 @@
 const ReferralService = require('../services/referralService');
 const Referral = require('../models/Referral');
-const User = require('../models/User');
 
 /**
  * Middleware to process referral completion for service bookings

@@ -354,7 +354,7 @@ class EmailService {
    * @param {string} html - Email HTML content
    * @returns {Promise<object>} Send result
    */
-  async sendViaSendGrid(to, subject, html) {
+  async sendViaSendGrid(_to, _subject, _html) {
     // TODO: Implement SendGrid integration
     throw new Error('SendGrid integration not yet implemented. Please use Resend or SMTP.');
   }
