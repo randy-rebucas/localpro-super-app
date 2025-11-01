@@ -21,7 +21,8 @@ const {
   approvePayPalBooking,
   getPayPalOrderDetails,
   getMyServices,
-  getMyBookings
+  getMyBookings,
+  getProvidersForService
 } = require('../controllers/marketplaceController');
 const { uploaders } = require('../config/cloudinary');
 
@@ -40,6 +41,11 @@ router.get('/services/nearby',
 router.get('/services/:id', 
   validateObjectIdParam('id'),
   getService
+);
+router.get('/services/:id/providers',
+  validateObjectIdParam('id'),
+  validatePaginationParams,
+  getProvidersForService
 );
 
 // Protected routes

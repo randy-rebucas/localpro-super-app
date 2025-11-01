@@ -1,5 +1,6 @@
 const { Service, Booking } = require('../models/Marketplace');
 const User = require('../models/User');
+const Provider = require('../models/Provider');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
@@ -1142,6 +1143,139 @@ const getMyBookings = async (req, res) => {
   }
 };
 
+// @desc    Get all providers for a particular service
+// @route   GET /api/marketplace/services/:id/providers
+// @access  Public
+const getProvidersForService = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      page = 1,
+      limit = 20,
+      minRating,
+      maxDistance,
+      lat,
+      lng,
+      sortBy = 'performance.rating',
+      sortOrder = 'desc'
+    } = req.query;
+
+    // Validate ObjectId format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid service ID format'
+      });
+    }
+
+    // Find the service to get its category and subcategory
+    const service = await Service.findById(id);
+    
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: 'Service not found'
+      });
+    }
+
+    // Build query to find providers who offer this service category/subcategory
+    const providerQuery = {
+      status: 'active',
+      'professionalInfo.specialties': {
+        $elemMatch: {
+          category: service.category,
+          ...(service.subcategory ? { subcategories: service.subcategory } : {})
+        }
+      }
+    };
+
+    // Add rating filter if provided
+    if (minRating) {
+      providerQuery['performance.rating'] = { $gte: parseFloat(minRating) };
+    }
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Find providers matching the service category
+    const providers = await Provider.find(providerQuery)
+      .populate('userId', 'firstName lastName email phone profile.avatar')
+      .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+
+    // Filter by location if coordinates provided (optional enhancement)
+    let filteredProviders = providers;
+    if (lat && lng && maxDistance) {
+      // You could add geospatial filtering here if needed
+      // For now, we'll rely on the serviceArea matching from the service
+    }
+
+    // Get total count
+    const total = await Provider.countDocuments(providerQuery);
+
+    // Enhance providers with service-specific information
+    const enhancedProviders = filteredProviders.map(provider => {
+      // Find the matching specialty for this service
+      const matchingSpecialty = provider.professionalInfo?.specialties?.find(
+        specialty => specialty.category === service.category
+      );
+
+      return {
+        ...provider,
+        matchingSpecialty: {
+          category: matchingSpecialty?.category,
+          subcategories: matchingSpecialty?.subcategories || [],
+          experience: matchingSpecialty?.experience || 0,
+          hourlyRate: matchingSpecialty?.hourlyRate || null,
+          certifications: matchingSpecialty?.certifications || [],
+          skills: matchingSpecialty?.skills || []
+        },
+        serviceInfo: {
+          serviceId: service._id,
+          serviceCategory: service.category,
+          serviceSubcategory: service.subcategory,
+          serviceTitle: service.title
+        }
+      };
+    });
+
+    const pagination = createPagination(parseInt(page), parseInt(limit), total);
+
+    logger.info('Providers retrieved for service', {
+      serviceId: id,
+      serviceCategory: service.category,
+      resultCount: enhancedProviders.length,
+      totalCount: total
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Providers retrieved successfully',
+      data: enhancedProviders,
+      pagination,
+      serviceInfo: {
+        id: service._id,
+        title: service.title,
+        category: service.category,
+        subcategory: service.subcategory
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get providers for service', error, {
+      serviceId: req.params.id,
+      query: req.query
+    });
+    
+    return sendServerError(res, error, 'Failed to retrieve providers for service', 'PROVIDERS_FOR_SERVICE_ERROR');
+  }
+};
+
 module.exports = {
   getServices,
   getService,
@@ -1158,5 +1292,6 @@ module.exports = {
   approvePayPalBooking,
   getPayPalOrderDetails,
   getMyServices,
-  getMyBookings
+  getMyBookings,
+  getProvidersForService
 };
