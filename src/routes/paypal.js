@@ -1,5 +1,6 @@
 const express = require('express');
 const { auth, authorize } = require('../middleware/auth');
+const { paymentLimiter } = require('../middleware/rateLimiter');
 const {
   handlePayPalWebhook,
   getWebhookEvents
@@ -8,7 +9,8 @@ const {
 const router = express.Router();
 
 // Webhook route (no auth required - PayPal calls this directly)
-router.post('/webhook', handlePayPalWebhook);
+// Note: Webhooks typically shouldn't be rate limited, but we apply it for extra security
+router.post('/webhook', paymentLimiter, handlePayPalWebhook);
 
 // Admin routes (require authentication)
 router.use(auth);

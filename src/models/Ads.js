@@ -70,7 +70,7 @@ const advertiserSchema = new mongoose.Schema({
 const adCampaignSchema = new mongoose.Schema({
   advertiser: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Advertiser',
+    ref: 'User',
     required: true
   },
   title: {

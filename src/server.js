@@ -10,6 +10,7 @@ const logger = require('./config/logger');
 const { StartupValidator, createDefaultChecks } = require('./utils/startupValidation');
 const { errorHandler } = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
+const requestIdMiddleware = require('./middleware/requestId');
 const { auditGeneralOperations } = require('./middleware/auditLogger');
 const authRoutes = require('./routes/auth');
 const marketplaceRoutes = require('./routes/marketplace');
@@ -45,6 +46,7 @@ const databaseMonitoringRoutes = require('./routes/databaseMonitoring');
 const databaseOptimizationRoutes = require('./routes/databaseOptimization');
 const metricsStreamRoutes = require('./routes/metricsStream');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
+const { generalLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
@@ -133,6 +135,15 @@ function startServer() {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true }));
 
+  // Request ID middleware (add unique ID to each request)
+  app.use(requestIdMiddleware);
+
+  // Rate limiting middleware (apply early to protect all routes)
+  // General rate limiting for all API routes (skip in test for faster test execution)
+  if (process.env.NODE_ENV !== 'test') {
+    app.use('/api', generalLimiter);
+  }
+
   // Logging middleware
   app.use(morgan('combined', { stream: logger.stream }));
   app.use(requestLogger);
@@ -175,7 +186,7 @@ function startServer() {
       ],
       totalEndpoints: 20,
       authentication: 'Bearer Token',
-      rateLimit: 'Disabled'
+      rateLimit: 'Enabled (100 req/15min)'
     },
 
     // Company Info
@@ -232,6 +243,52 @@ function startServer() {
     }
   };
 
+  const checkRedisHealth = async () => {
+    try {
+      const cacheService = require('./services/cacheService');
+      
+      if (!cacheService.enabled) {
+        return {
+          status: 'disabled',
+          enabled: false,
+          message: 'Redis caching is disabled'
+        };
+      }
+
+      // Try to get stats to verify connection
+      const stats = await cacheService.getStats();
+      const isConnected = stats.connected === true;
+
+      // Try a simple ping operation
+      try {
+        await cacheService.set('health_check_ping', 'pong', 1);
+        await cacheService.del('health_check_ping');
+      } catch (pingError) {
+        return {
+          status: 'unhealthy',
+          enabled: true,
+          connected: false,
+          error: pingError.message
+        };
+      }
+
+      return {
+        status: isConnected ? 'healthy' : 'unhealthy',
+        enabled: true,
+        connected: isConnected,
+        host: process.env.REDIS_HOST || 'localhost',
+        port: process.env.REDIS_PORT || 6379
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        enabled: true,
+        connected: false,
+        error: error.message
+      };
+    }
+  };
+
   const checkExternalAPIs = async () => {
     const apis = {
       twilio: { status: 'unknown', response_time: null },
@@ -247,17 +304,63 @@ function startServer() {
 
   // Health check endpoint
   app.get('/health', async (req, res) => {
+    const databaseHealth = await checkDatabaseHealth();
+    const redisHealth = await checkRedisHealth();
+    const externalApis = await checkExternalAPIs();
+
+    // Determine overall health status
+    const isHealthy = 
+      databaseHealth.status === 'healthy' &&
+      (redisHealth.status === 'healthy' || redisHealth.status === 'disabled') &&
+      process.uptime() > 0;
+
     const health = {
-      status: 'OK',
+      status: isHealthy ? 'OK' : 'DEGRADED',
       timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      database: await checkDatabaseHealth(),
-      external_apis: await checkExternalAPIs(),
-      memory: process.memoryUsage(),
-      version: process.env.npm_package_version
+      uptime: Math.floor(process.uptime()),
+      uptimeFormatted: formatUptime(process.uptime()),
+      version: process.env.npm_package_version || '1.0.0',
+      environment: process.env.NODE_ENV || 'development',
+      services: {
+        database: databaseHealth,
+        redis: redisHealth,
+        external_apis: externalApis
+      },
+      system: {
+        memory: {
+          used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+          total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+          unit: 'MB'
+        },
+        cpu: process.cpuUsage(),
+        platform: process.platform,
+        nodeVersion: process.version
+      },
+      requestId: req.id // Include request ID for tracking
     };
-    res.status(200).json(health);
+
+    // Return 503 if critical services are down
+    const statusCode = isHealthy ? 200 : 503;
+    res.status(statusCode).json(health);
   });
+
+  // Helper function to format uptime
+  const formatUptime = (seconds) => {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    
+    if (days > 0) {
+      return `${days}d ${hours}h ${minutes}m ${secs}s`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  };
 
   // Serve Postman collection
   app.get('/LocalPro-Super-App-API.postman_collection.json', (req, res) => {
@@ -321,25 +424,33 @@ function startServer() {
   // Error handling middleware
   app.use(errorHandler);
 
-  // Start the server
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    logger.info('LocalPro Super App API Started', {
-      port: PORT,
-      environment: process.env.NODE_ENV || 'development',
-      timestamp: new Date().toISOString()
+  // Start the server (skip in test environment)
+  if (process.env.NODE_ENV !== 'test') {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      logger.info('LocalPro Super App API Started', {
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString()
+      });
+      
+      logger.info(`🚀 LocalPro Super App API running on port ${PORT}`);
+      logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info(`📊 Logging enabled with Winston`);
+      logger.info(`🔍 Error monitoring active`);
     });
-    
-    logger.info(`🚀 LocalPro Super App API running on port ${PORT}`);
-    logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
-    logger.info(`📊 Logging enabled with Winston`);
-    logger.info(`🔍 Error monitoring active`);
-  });
+  }
 }
 
 // Initialize application when run directly
 if (require.main === module) {
   initializeApplication();
+} else {
+  // In test environment, register routes immediately without full initialization
+  // This allows tests to use the app without calling initializeApplication
+  if (process.env.NODE_ENV === 'test') {
+    startServer();
+  }
 }
 
 module.exports = app;

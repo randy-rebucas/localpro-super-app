@@ -152,6 +152,11 @@ const collectSystemMetrics = async () => {
 
 // Start system metrics collection
 const startSystemMetricsCollection = () => {
+  // Skip in test environment
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+  
   if (systemMetricsInterval) {
     clearInterval(systemMetricsInterval);
   }
@@ -161,6 +166,11 @@ const startSystemMetricsCollection = () => {
   
   // Then collect every 30 seconds
   systemMetricsInterval = setInterval(collectSystemMetrics, 30000);
+  
+  // Unref to allow Node.js to exit if only this timer is running
+  if (systemMetricsInterval.unref) {
+    systemMetricsInterval.unref();
+  }
 };
 
 // Stop system metrics collection

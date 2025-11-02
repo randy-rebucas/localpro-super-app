@@ -16,8 +16,11 @@ const getAds = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    // Build filter object
-    const filter = { isActive: true };
+    // Build filter object - only show approved and active ads
+    const filter = { 
+      isActive: true,
+      status: { $in: ['approved', 'active'] }
+    };
 
     // Text search
     if (search) {
@@ -201,7 +204,8 @@ const createAd = async (req, res) => {
       },
       targetAudience: targetAudience || {},
       content: content || {},
-      advertiser: req.user.id
+      advertiser: req.user.id,
+      status: 'pending' // Ads must be approved by admin before publishing
     };
 
     const ad = await Ads.create(adData);
@@ -210,7 +214,7 @@ const createAd = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Ad created successfully',
+      message: 'Ad created successfully and is pending admin approval',
       data: ad
     });
   } catch (error) {
@@ -253,6 +257,22 @@ const updateAd = async (req, res) => {
         success: false,
         message: 'Not authorized to update this ad'
       });
+    }
+
+    // Prevent users from manually changing status (only admins can approve/reject)
+    if (req.body.status && !['pending', 'draft'].includes(req.body.status)) {
+      delete req.body.status;
+    }
+
+    // If ad was rejected and user updates it, reset to pending for re-review
+    if (ad.status === 'rejected' && (req.body.description || req.body.title || req.body.content)) {
+      req.body.status = 'pending';
+      req.body.approval = {
+        reviewedBy: null,
+        reviewedAt: null,
+        notes: null,
+        rejectionReason: null
+      };
     }
 
     ad = await Ads.findByIdAndUpdate(req.params.id, req.body, {
@@ -550,7 +570,10 @@ const getAdCategories = async (req, res) => {
     
     const categories = await Ads.aggregate([
       {
-        $match: { isActive: true }
+        $match: { 
+          isActive: true,
+          status: { $in: ['approved', 'active'] }
+        }
       },
       {
         $group: {
@@ -596,7 +619,8 @@ const getFeaturedAds = async (req, res) => {
 
     const ads = await Ads.find({
       isActive: true,
-      isFeatured: true
+      isFeatured: true,
+      status: { $in: ['approved', 'active'] }
     })
     .populate('advertiser', 'firstName lastName profile.avatar')
     .sort({ createdAt: -1 })
@@ -776,6 +800,152 @@ const getAdStatistics = async (req, res) => {
   }
 };
 
+// @desc    Approve ad (Admin only)
+// @route   PUT /api/ads/:id/approve
+// @access  Private (Admin only)
+const approveAd = async (req, res) => {
+  try {
+    const ad = await Ads.findById(req.params.id);
+
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ad not found'
+      });
+    }
+
+    // Check if ad is already approved
+    if (ad.status === 'approved' || ad.status === 'active') {
+      return res.status(400).json({
+        success: false,
+        message: 'Ad is already approved'
+      });
+    }
+
+    // Update ad status and approval info
+    ad.status = 'approved';
+    ad.approval = {
+      reviewedBy: req.user.id,
+      reviewedAt: new Date(),
+      notes: req.body.notes || null,
+      rejectionReason: null
+    };
+
+    // If the ad's start date has passed or is current, set status to 'active'
+    const now = new Date();
+    if (ad.schedule.startDate <= now && ad.schedule.endDate >= now) {
+      ad.status = 'active';
+    }
+
+    await ad.save();
+
+    await ad.populate('advertiser', 'firstName lastName email');
+
+    res.status(200).json({
+      success: true,
+      message: 'Ad approved successfully',
+      data: ad
+    });
+  } catch (error) {
+    console.error('Approve ad error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Reject ad (Admin only)
+// @route   PUT /api/ads/:id/reject
+// @access  Private (Admin only)
+const rejectAd = async (req, res) => {
+  try {
+    const { rejectionReason } = req.body;
+
+    if (!rejectionReason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rejection reason is required'
+      });
+    }
+
+    const ad = await Ads.findById(req.params.id);
+
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ad not found'
+      });
+    }
+
+    // Check if ad is already rejected
+    if (ad.status === 'rejected') {
+      return res.status(400).json({
+        success: false,
+        message: 'Ad is already rejected'
+      });
+    }
+
+    // Update ad status and approval info
+    ad.status = 'rejected';
+    ad.approval = {
+      reviewedBy: req.user.id,
+      reviewedAt: new Date(),
+      notes: req.body.notes || null,
+      rejectionReason: rejectionReason
+    };
+
+    await ad.save();
+
+    await ad.populate('advertiser', 'firstName lastName email');
+
+    res.status(200).json({
+      success: true,
+      message: 'Ad rejected successfully',
+      data: ad
+    });
+  } catch (error) {
+    console.error('Reject ad error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get pending ads for admin review
+// @route   GET /api/ads/pending
+// @access  Private (Admin only)
+const getPendingAds = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const ads = await Ads.find({ status: 'pending' })
+      .populate('advertiser', 'firstName lastName email profile.avatar')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Ads.countDocuments({ status: 'pending' });
+
+    res.status(200).json({
+      success: true,
+      count: ads.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: ads
+    });
+  } catch (error) {
+    console.error('Get pending ads error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getAds,
   getAd,
@@ -791,5 +961,8 @@ module.exports = {
   getFeaturedAds,
   promoteAd,
   getAdStatistics,
-  getAdEnumValues
+  getAdEnumValues,
+  approveAd,
+  rejectAd,
+  getPendingAds
 };

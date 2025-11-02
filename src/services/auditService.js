@@ -210,17 +210,36 @@ class AuditService {
   sanitizeData(data) {
     if (!data || typeof data !== 'object') return data;
     
-    const sanitized = { ...data };
     const sensitiveFields = [
       'password', 'token', 'secret', 'key', 'creditCard', 'ssn', 'pin',
       'bankAccount', 'routingNumber', 'cvv', 'expiryDate', 'cardNumber'
     ];
     
+    // Deep copy the object to avoid mutating the original
+    const deepCopy = (obj) => {
+      if (obj === null || typeof obj !== 'object') return obj;
+      if (Array.isArray(obj)) return obj.map(item => deepCopy(item));
+      
+      const copy = {};
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          if (typeof obj[key] === 'object' && obj[key] !== null) {
+            copy[key] = deepCopy(obj[key]);
+          } else {
+            copy[key] = obj[key];
+          }
+        }
+      }
+      return copy;
+    };
+    
+    const sanitized = deepCopy(data);
+    
     const sanitizeObject = (obj) => {
       for (const key in obj) {
         if (typeof obj[key] === 'object' && obj[key] !== null) {
           sanitizeObject(obj[key]);
-        } else if (sensitiveFields.some(field => key.toLowerCase().includes(field))) {
+        } else if (sensitiveFields.some(field => key.toLowerCase().includes(field.toLowerCase()))) {
           obj[key] = '[REDACTED]';
         }
       }
@@ -300,6 +319,7 @@ class AuditService {
         category: auditData.category,
         actor: auditData.actor?.userId
       });
+      return null;
     }
   }
 

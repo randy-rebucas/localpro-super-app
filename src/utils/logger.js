@@ -95,7 +95,6 @@ class AppLogger {
     const base = getBaseLogger();
     const fn = base.logSecurityEvent || base.warn;
     fn.call(base, event, {
-      context: this.context,
       ...data
     });
   }

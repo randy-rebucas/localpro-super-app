@@ -41,8 +41,15 @@ const broadcastMetrics = async () => {
   }
 };
 
-// Start broadcasting metrics every 5 seconds
-let broadcastInterval = setInterval(broadcastMetrics, 5000);
+// Start broadcasting metrics every 5 seconds (skip in test environment)
+let broadcastInterval;
+if (process.env.NODE_ENV !== 'test') {
+  broadcastInterval = setInterval(broadcastMetrics, 5000);
+  // Unref to allow Node.js to exit if only this timer is running
+  if (broadcastInterval.unref) {
+    broadcastInterval.unref();
+  }
+}
 
 // Metrics streaming endpoint
 router.get('/stream', (req, res) => {

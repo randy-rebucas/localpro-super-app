@@ -257,7 +257,7 @@ const createCursorPagination = (paginationParams, results, cursorField, performa
     
     // Cursor navigation
     cursor: cursor,
-    nextCursor: hasMore && lastItem ? (lastItem[cursorField] instanceof Date ? lastItem[cursorField].toISOString() : lastItem[cursorField]) : null,
+    nextCursor: lastItem && (hasMore || results.length >= limit) ? (lastItem[cursorField] instanceof Date ? lastItem[cursorField].toISOString() : lastItem[cursorField]) : null,
     prevCursor: firstItem ? (firstItem[cursorField] instanceof Date ? firstItem[cursorField].toISOString() : firstItem[cursorField]) : null,
     
     // Performance metrics

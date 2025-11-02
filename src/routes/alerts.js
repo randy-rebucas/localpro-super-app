@@ -242,6 +242,11 @@ router.delete('/alerts/history', (req, res) => {
 let alertMonitoringInterval;
 
 const startAlertMonitoring = () => {
+  // Skip in test environment
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+  
   if (alertMonitoringInterval) {
     clearInterval(alertMonitoringInterval);
   }
@@ -253,6 +258,11 @@ const startAlertMonitoring = () => {
       logger.error('Error in alert monitoring:', error);
     }
   }, 60000); // Check every minute
+  
+  // Unref to allow Node.js to exit if only this timer is running
+  if (alertMonitoringInterval.unref) {
+    alertMonitoringInterval.unref();
+  }
 };
 
 const stopAlertMonitoring = () => {

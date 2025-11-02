@@ -61,7 +61,7 @@ class TemplateEngine {
             <p><strong>Date:</strong> {{bookingDate}}</p>
             <p><strong>Time:</strong> {{bookingTime}}</p>
             <p><strong>Duration:</strong> {{duration}} hours</p>
-            <p><strong>Total Amount:</strong> ${{totalAmount}}</p>
+            <p><strong>Total Amount:</strong> ${'$'}{{totalAmount}}</p>
           </div>
           <p>Best regards,<br>The LocalPro Team</p>
         </div>
@@ -74,7 +74,7 @@ class TemplateEngine {
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
             <h3>Order Details</h3>
             <p><strong>Order Number:</strong> {{orderNumber}}</p>
-            <p><strong>Total Amount:</strong> ${{totalAmount}}</p>
+            <p><strong>Total Amount:</strong> ${'$'}{{totalAmount}}</p>
             <p><strong>Status:</strong> {{status}}</p>
           </div>
           <p>Best regards,<br>The LocalPro Team</p>
@@ -88,7 +88,7 @@ class TemplateEngine {
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
             <h3>Loan Details</h3>
             <p><strong>Loan Type:</strong> {{loanType}}</p>
-            <p><strong>Approved Amount:</strong> ${{approvedAmount}}</p>
+            <p><strong>Approved Amount:</strong> ${'$'}{{approvedAmount}}</p>
             <p><strong>Interest Rate:</strong> {{interestRate}}% per annum</p>
             <p><strong>Term:</strong> {{loanDuration}} months</p>
           </div>
@@ -120,7 +120,7 @@ class TemplateEngine {
       `,
       'referral-reward-notification': `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #27ae60;">🎉 You earned ${{rewardAmount}} from your referral!</h1>
+          <h1 style="color: #27ae60;">🎉 You earned ${'$'}{{rewardAmount}} from your referral!</h1>
           <p>Congratulations! You've earned a reward for your referral.</p>
           <p>Best regards,<br>The LocalPro Team</p>
         </div>

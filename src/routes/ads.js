@@ -15,7 +15,10 @@ const {
   getFeaturedAds,
   promoteAd,
   getAdStatistics,
-  getAdEnumValues
+  getAdEnumValues,
+  approveAd,
+  rejectAd,
+  getPendingAds
 } = require('../controllers/adsController');
 
 const router = express.Router();
@@ -31,17 +34,22 @@ router.post('/:id/click', trackAdClick);
 // Protected routes
 router.use(auth);
 
-// Ad management routes
-router.post('/', authorize('advertiser', 'admin'), createAd);
-router.put('/:id', authorize('advertiser', 'admin'), updateAd);
-router.delete('/:id', authorize('advertiser', 'admin'), deleteAd);
+// Ad management routes - All authenticated users can create ads
+router.post('/', createAd);
+router.put('/:id', updateAd);
+router.delete('/:id', deleteAd);
 
-// Image management routes
-router.post('/:id/images', authorize('advertiser', 'admin'), uploadAdImages);
-router.delete('/:id/images/:imageId', authorize('advertiser', 'admin'), deleteAdImage);
+// Image management routes - All authenticated users can manage images for their own ads
+router.post('/:id/images', uploadAdImages);
+router.delete('/:id/images/:imageId', deleteAdImage);
 
-// Ad promotion routes
-router.post('/:id/promote', authorize('advertiser', 'admin'), promoteAd);
+// Ad promotion routes - All authenticated users can promote their own ads
+router.post('/:id/promote', promoteAd);
+
+// Admin moderation routes
+router.get('/pending', authorize('admin'), getPendingAds);
+router.put('/:id/approve', authorize('admin'), approveAd);
+router.put('/:id/reject', authorize('admin'), rejectAd);
 
 // Analytics routes
 router.get('/:id/analytics', getAdAnalytics);

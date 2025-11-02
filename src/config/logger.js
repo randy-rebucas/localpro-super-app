@@ -77,12 +77,14 @@ const transports = [
     maxFiles: '7d',
   }),
 
-  // Database transport for storing logs in MongoDB
-  new DatabaseTransport({
-    level: process.env.LOG_LEVEL || 'info',
-    batchSize: parseInt(process.env.LOG_BATCH_SIZE) || 100,
-    flushInterval: parseInt(process.env.LOG_FLUSH_INTERVAL) || 5000
-  }),
+  // Database transport for storing logs in MongoDB (only if enabled)
+  ...(process.env.LOG_DATABASE_ENABLED !== 'false' ? [
+    new DatabaseTransport({
+      level: process.env.LOG_LEVEL || 'info',
+      batchSize: parseInt(process.env.LOG_BATCH_SIZE) || 100,
+      flushInterval: parseInt(process.env.LOG_FLUSH_INTERVAL) || 5000
+    })
+  ] : []),
 ];
 
 // Create the logger instance

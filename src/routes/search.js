@@ -6,6 +6,7 @@ const {
   getPopularSearches
 } = require('../controllers/searchController');
 const { auth: authenticate } = require('../middleware/auth');
+const { searchLimiter } = require('../middleware/rateLimiter');
 const { auditGeneralOperations } = require('../middleware/auditLogger');
 const logger = require('../config/logger');
 
@@ -46,7 +47,7 @@ const logger = require('../config/logger');
  *   }
  * }
  */
-router.get('/', globalSearch);
+router.get('/', searchLimiter, globalSearch);
 
 /**
  * @route   GET /api/search/suggestions
@@ -73,7 +74,7 @@ router.get('/', globalSearch);
  *   }
  * }
  */
-router.get('/suggestions', getSearchSuggestions);
+router.get('/suggestions', searchLimiter, getSearchSuggestions);
 
 /**
  * @route   GET /api/search/popular
@@ -120,7 +121,7 @@ router.get('/popular', getPopularSearches);
  * 
  * Response: Same as global search
  */
-router.get('/advanced', globalSearch);
+router.get('/advanced', searchLimiter, globalSearch);
 
 /**
  * @route   GET /api/search/entities/:type

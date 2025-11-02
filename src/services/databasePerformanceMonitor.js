@@ -35,10 +35,16 @@ class DatabasePerformanceMonitor {
     // Monitor query performance
     this.setupQueryMonitoring();
     
-    // Update connection stats every 30 seconds
-    setInterval(() => {
-      this.updateConnectionStats();
-    }, 30000);
+    // Update connection stats every 30 seconds (skip in test environment)
+    if (process.env.NODE_ENV !== 'test') {
+      this.monitoringInterval = setInterval(() => {
+        this.updateConnectionStats();
+      }, 30000);
+      // Unref to allow Node.js to exit if only this timer is running
+      if (this.monitoringInterval.unref) {
+        this.monitoringInterval.unref();
+      }
+    }
   }
 
   setupQueryMonitoring() {

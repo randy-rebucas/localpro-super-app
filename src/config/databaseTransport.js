@@ -12,8 +12,11 @@ class DatabaseTransport extends winston.Transport {
     this.isFlushing = false;
     this.flushTimer = null;
     
-    // Start periodic flush
-    this.startFlushTimer();
+    // Only start flush timer if database logging is enabled
+    // and we're not in test environment
+    if (process.env.LOG_DATABASE_ENABLED !== 'false' && process.env.NODE_ENV !== 'test') {
+      this.startFlushTimer();
+    }
   }
 
   // Required winston transport methods
@@ -196,9 +199,15 @@ class DatabaseTransport extends winston.Transport {
     if (this.flushTimer) {
       clearInterval(this.flushTimer);
     }
+    // Use unref to allow Node.js to exit if only this timer is running
     this.flushTimer = setInterval(() => {
       this.flush();
     }, this.flushInterval);
+    
+    // Unref the timer so it doesn't prevent Node.js from exiting
+    if (this.flushTimer.unref) {
+      this.flushTimer.unref();
+    }
   }
 
   stopFlushTimer() {
@@ -206,6 +215,12 @@ class DatabaseTransport extends winston.Transport {
       clearInterval(this.flushTimer);
       this.flushTimer = null;
     }
+  }
+  
+  cleanup() {
+    this.stopFlushTimer();
+    this.logBuffer = [];
+    this.isFlushing = false;
   }
 
   // Force flush all remaining logs
