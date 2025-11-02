@@ -52,9 +52,20 @@ const connectDB = async () => {
     }
 
     // Add SSL/TLS options for production
+    // Note: For MongoDB 6.0+ and Mongoose 8.0+, use 'tls' instead of 'ssl'
     if (process.env.NODE_ENV === 'production') {
-      options.ssl = true;
-      options.sslValidate = true;
+      options.tls = true;
+      // tlsAllowInvalidCertificates: false is the default (secure)
+      // Set to true only if you need to bypass certificate validation (not recommended)
+      if (process.env.MONGODB_TLS_ALLOW_INVALID_CERTS === 'true') {
+        options.tlsAllowInvalidCertificates = true;
+      }
+    }
+    
+    // Support legacy SSL options from connection string or environment
+    // These will be handled by the MongoDB driver automatically
+    if (process.env.MONGODB_TLS === 'true' || process.env.MONGODB_SSL === 'true') {
+      options.tls = true;
     }
 
     const conn = await mongoose.connect(mongoUri, options);
