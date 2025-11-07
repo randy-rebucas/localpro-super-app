@@ -1,4 +1,4 @@
-const { Transaction, Finance } = require('../models/Finance');
+const { Finance } = require('../models/Finance');
 const User = require('../models/User');
 const EmailService = require('../services/emailService');
 const { Booking } = require('../models/Marketplace');
@@ -12,7 +12,7 @@ const getFinancialOverview = async (req, res) => {
     const userId = req.user.id;
 
     // Get user's financial data
-    const finance = await Transaction.findOne({ user: userId });
+    const finance = await Finance.findOne({ user: userId });
 
     if (!finance) {
       return res.status(404).json({
@@ -21,11 +21,10 @@ const getFinancialOverview = async (req, res) => {
       });
     }
 
-    // Get recent transactions
-    const recentTransactions = await Transaction.findOne({ user: userId })
-      .select('transactions')
-      .sort({ 'transactions.timestamp': -1 })
-      .limit(10);
+    // Get recent transactions (sort and limit in memory)
+    const recentTransactions = finance.transactions
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(0, 10);
 
     // Get monthly earnings
     const currentMonth = new Date();
@@ -93,7 +92,7 @@ const getFinancialOverview = async (req, res) => {
         monthlyEarnings: monthlyEarnings[0] || { totalEarnings: 0, bookingCount: 0 },
         pendingPayments: pendingPayments[0] || { totalPending: 0, count: 0 },
         referralEarnings: referralEarnings[0] || { totalEarnings: 0, count: 0 },
-        recentTransactions: recentTransactions?.transactions || []
+        recentTransactions: recentTransactions || []
       }
     });
   } catch (error) {
@@ -166,12 +165,46 @@ const getEarnings = async (req, res) => {
   try {
     const { startDate, endDate, groupBy = 'month' } = req.query;
 
+    // Validate groupBy parameter
+    const validGroupBy = ['day', 'month', 'year'];
+    if (groupBy && !validGroupBy.includes(groupBy)) {
+      return res.status(400).json({
+        success: false,
+        message: `groupBy must be one of: ${validGroupBy.join(', ')}`
+      });
+    }
+
     // Build date filter
     const dateFilter = {};
     if (startDate || endDate) {
       dateFilter.createdAt = {};
       if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
       if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
+    }
+
+    // Build group _id based on groupBy parameter
+    let groupId;
+    let sortFields;
+    
+    if (groupBy === 'day') {
+      groupId = {
+        year: { $year: '$createdAt' },
+        month: { $month: '$createdAt' },
+        day: { $dayOfMonth: '$createdAt' }
+      };
+      sortFields = { '_id.year': 1, '_id.month': 1, '_id.day': 1 };
+    } else if (groupBy === 'year') {
+      groupId = {
+        year: { $year: '$createdAt' }
+      };
+      sortFields = { '_id.year': 1 };
+    } else {
+      // Default to month
+      groupId = {
+        year: { $year: '$createdAt' },
+        month: { $month: '$createdAt' }
+      };
+      sortFields = { '_id.year': 1, '_id.month': 1 };
     }
 
     // Get earnings from completed bookings
@@ -186,18 +219,14 @@ const getEarnings = async (req, res) => {
       },
       {
         $group: {
-          _id: {
-            year: { $year: '$createdAt' },
-            month: { $month: '$createdAt' },
-            day: groupBy === 'day' ? { $dayOfMonth: '$createdAt' } : null
-          },
+          _id: groupId,
           totalEarnings: { $sum: '$pricing.total' },
           bookingCount: { $sum: 1 },
           averageEarning: { $avg: '$pricing.total' }
         }
       },
       {
-        $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 }
+        $sort: sortFields
       }
     ]);
 
@@ -367,6 +396,14 @@ const addExpense = async (req, res) => {
       });
     }
 
+    // Validate amount is a positive number
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be a positive number'
+      });
+    }
+
     let finance = await Finance.findOne({ user: req.user.id });
 
     if (!finance) {
@@ -416,6 +453,14 @@ const requestWithdrawal = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Amount, payment method, and account details are required'
+      });
+    }
+
+    // Validate amount is a positive number
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be a positive number'
       });
     }
 
@@ -507,6 +552,15 @@ const processWithdrawal = async (req, res) => {
       });
     }
 
+    // Validate status (accept 'approved'/'rejected' from API, map to enum values)
+    const validStatuses = ['approved', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status must be either "approved" or "rejected"'
+      });
+    }
+
     // Find the user with this withdrawal
     const finance = await Finance.findOne({
       'transactions._id': withdrawalId,
@@ -536,7 +590,9 @@ const processWithdrawal = async (req, res) => {
       });
     }
 
-    withdrawal.status = status;
+    // Map API status to transaction enum status
+    // 'approved' -> 'completed', 'rejected' -> 'cancelled'
+    withdrawal.status = status === 'approved' ? 'completed' : 'cancelled';
     withdrawal.adminNotes = adminNotes;
     withdrawal.processedAt = new Date();
     withdrawal.processedBy = req.user.id;

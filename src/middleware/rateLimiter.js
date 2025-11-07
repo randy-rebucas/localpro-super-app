@@ -9,6 +9,9 @@ const rateLimit = require('express-rate-limit');
 const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000; // 15 minutes default
 const RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100; // 100 requests per window
 
+// Check if rate limiting should be disabled (development mode)
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 /**
  * General API rate limiter
  * Applied to all API routes for basic protection
@@ -23,9 +26,9 @@ const generalLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  // Skip rate limiting for health checks
+  // Skip rate limiting in development mode and for health checks
   skip: (req) => {
-    return req.path === '/health' || req.path === '/';
+    return isDevelopment || req.path === '/health' || req.path === '/';
   }
 });
 
@@ -44,23 +47,47 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Don't count successful requests
-  skipFailedRequests: false // Count failed requests
+  skipFailedRequests: false, // Count failed requests
+  // Skip rate limiting in development mode
+  skip: () => isDevelopment
 });
 
 /**
- * SMS/Verification code rate limiter (very strict)
+ * SMS/Verification code rate limiter (strict but reasonable)
  * Applied to SMS/verification endpoints to prevent abuse
+ * Allows 3 requests per 5 minutes to handle legitimate retries
  */
 const smsLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 1, // Limit each IP to 1 request per minute
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 3, // Limit each IP to 3 requests per 5 minutes
   message: {
     success: false,
-    message: 'Please wait before requesting another verification code.',
+    message: 'Too many verification code requests. Please wait a few minutes before trying again.',
     code: 'SMS_RATE_LIMIT_EXCEEDED'
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  // Skip rate limiting in development mode
+  skip: () => isDevelopment,
+  // Use a custom key generator that includes phone number if available
+  keyGenerator: (req) => {
+    // If phone number is in the request body, use it for more granular rate limiting
+    // This allows different phone numbers from the same IP to have separate limits
+    const phoneNumber = req.body?.phoneNumber;
+    const ip = req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress || 'unknown';
+    // Normalize phone number (remove spaces, dashes, etc.) for consistent key generation
+    const normalizedPhone = phoneNumber ? String(phoneNumber).replace(/\s+/g, '').trim() : null;
+    return normalizedPhone ? `${ip}:${normalizedPhone}` : ip;
+  },
+  // Add handler to include retry-after in response
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: 'Too many verification code requests. Please wait a few minutes before trying again.',
+      code: 'SMS_RATE_LIMIT_EXCEEDED',
+      retryAfter: Math.ceil((5 * 60 * 1000) / 1000) // 5 minutes in seconds
+    });
+  }
 });
 
 /**
@@ -76,7 +103,9 @@ const searchLimiter = rateLimit({
     code: 'SEARCH_RATE_LIMIT_EXCEEDED'
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  // Skip rate limiting in development mode
+  skip: () => isDevelopment
 });
 
 /**
@@ -92,7 +121,9 @@ const uploadLimiter = rateLimit({
     code: 'UPLOAD_RATE_LIMIT_EXCEEDED'
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  // Skip rate limiting in development mode
+  skip: () => isDevelopment
 });
 
 /**
@@ -108,7 +139,9 @@ const paymentLimiter = rateLimit({
     code: 'PAYMENT_RATE_LIMIT_EXCEEDED'
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  // Skip rate limiting in development mode
+  skip: () => isDevelopment
 });
 
 module.exports = {

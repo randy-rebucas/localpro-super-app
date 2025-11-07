@@ -16,7 +16,25 @@ const alertThresholds = {
 };
 
 // Alert history storage (in production, use database)
+// Maximum number of alerts to keep in memory (prevents unbounded growth)
+const MAX_ALERT_HISTORY = 1000;
 let alertHistory = [];
+
+// Clean up old alerts to prevent unbounded memory growth
+const cleanupAlertHistory = () => {
+  if (alertHistory.length > MAX_ALERT_HISTORY) {
+    // Keep only the most recent alerts
+    alertHistory = alertHistory.slice(-MAX_ALERT_HISTORY);
+    logger.debug(`Alert history cleaned up. Kept ${alertHistory.length} most recent alerts.`);
+  }
+  
+  // Also remove alerts older than 24 hours to prevent stale data
+  const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000);
+  alertHistory = alertHistory.filter(alert => {
+    const alertTime = new Date(alert.timestamp).getTime();
+    return alertTime > twentyFourHoursAgo;
+  });
+};
 
 // Check for alerts based on current metrics
 const checkAlerts = async () => {
@@ -97,7 +115,7 @@ const checkAlerts = async () => {
       });
     }
     
-    // Store alerts in history
+    // Store alerts in history with size limit
     alerts.forEach(alert => {
       alertHistory.push(alert);
       
@@ -107,6 +125,9 @@ const checkAlerts = async () => {
       // Record as business event
       recordBusinessEvent('alert_triggered', 'monitoring');
     });
+    
+    // Clean up old alerts after adding new ones
+    cleanupAlertHistory();
     
     return alerts;
   } catch (error) {
@@ -240,6 +261,7 @@ router.delete('/alerts/history', (req, res) => {
 
 // Start alert monitoring (runs every minute)
 let alertMonitoringInterval;
+let cleanupInterval;
 
 const startAlertMonitoring = () => {
   // Skip in test environment
@@ -251,6 +273,10 @@ const startAlertMonitoring = () => {
     clearInterval(alertMonitoringInterval);
   }
   
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+  }
+  
   alertMonitoringInterval = setInterval(async () => {
     try {
       await checkAlerts();
@@ -259,9 +285,21 @@ const startAlertMonitoring = () => {
     }
   }, 60000); // Check every minute
   
+  // Clean up alert history every hour to prevent memory leaks
+  cleanupInterval = setInterval(() => {
+    try {
+      cleanupAlertHistory();
+    } catch (error) {
+      logger.error('Error cleaning up alert history:', error);
+    }
+  }, 60 * 60 * 1000); // Every hour
+  
   // Unref to allow Node.js to exit if only this timer is running
   if (alertMonitoringInterval.unref) {
     alertMonitoringInterval.unref();
+  }
+  if (cleanupInterval.unref) {
+    cleanupInterval.unref();
   }
 };
 
@@ -269,6 +307,10 @@ const stopAlertMonitoring = () => {
   if (alertMonitoringInterval) {
     clearInterval(alertMonitoringInterval);
     alertMonitoringInterval = null;
+  }
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
   }
 };
 

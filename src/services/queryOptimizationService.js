@@ -8,6 +8,65 @@ class QueryOptimizationService {
   constructor() {
     this.queryCache = new Map();
     this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+    this.maxCacheSize = 1000; // Maximum number of cached queries
+    
+    // Start periodic cache cleanup
+    this.startCacheCleanup();
+  }
+  
+  /**
+   * Start periodic cache cleanup to prevent unbounded growth
+   */
+  startCacheCleanup() {
+    // Skip in test environment
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+    
+    // Clean up expired entries every 10 minutes
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+    }
+    
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupExpiredCache();
+    }, 10 * 60 * 1000); // Every 10 minutes
+    
+    // Unref to allow Node.js to exit if only this timer is running
+    if (this.cleanupInterval.unref) {
+      this.cleanupInterval.unref();
+    }
+  }
+  
+  /**
+   * Clean up expired cache entries
+   */
+  cleanupExpiredCache() {
+    const now = Date.now();
+    let cleaned = 0;
+    
+    for (const [key, value] of this.queryCache.entries()) {
+      if (now - value.timestamp > this.cacheTimeout) {
+        this.queryCache.delete(key);
+        cleaned++;
+      }
+    }
+    
+    // If cache is still too large, remove oldest entries
+    if (this.queryCache.size > this.maxCacheSize) {
+      const entries = Array.from(this.queryCache.entries())
+        .sort((a, b) => a[1].timestamp - b[1].timestamp); // Sort by timestamp
+      
+      const toRemove = entries.slice(0, entries.length - this.maxCacheSize);
+      toRemove.forEach(([key]) => {
+        this.queryCache.delete(key);
+        cleaned++;
+      });
+    }
+    
+    if (cleaned > 0) {
+      logger.debug(`Query cache cleanup: removed ${cleaned} entries. Current size: ${this.queryCache.size}`);
+    }
   }
 
   /**
@@ -316,6 +375,24 @@ class QueryOptimizationService {
    * Set query cache
    */
   setCachedQuery(cacheKey, data) {
+    // If cache is at max size, remove oldest entry first
+    if (this.queryCache.size >= this.maxCacheSize && !this.queryCache.has(cacheKey)) {
+      // Find and remove oldest entry
+      let oldestKey = null;
+      let oldestTime = Infinity;
+      
+      for (const [key, value] of this.queryCache.entries()) {
+        if (value.timestamp < oldestTime) {
+          oldestTime = value.timestamp;
+          oldestKey = key;
+        }
+      }
+      
+      if (oldestKey) {
+        this.queryCache.delete(oldestKey);
+      }
+    }
+    
     this.queryCache.set(cacheKey, {
       data,
       timestamp: Date.now()
@@ -327,6 +404,16 @@ class QueryOptimizationService {
    */
   clearCache() {
     this.queryCache.clear();
+  }
+  
+  /**
+   * Stop cache cleanup interval (for testing/shutdown)
+   */
+  stopCacheCleanup() {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
   }
 
   /**

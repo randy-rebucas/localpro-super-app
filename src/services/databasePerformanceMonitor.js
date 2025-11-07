@@ -11,6 +11,7 @@ class DatabasePerformanceMonitor {
       activeConnections: 0,
       queuedConnections: 0
     };
+    this.maxQueryStatsSize = 500; // Maximum number of unique query stats to track
     
     this.startMonitoring();
   }
@@ -113,6 +114,22 @@ class DatabasePerformanceMonitor {
         // Update query stats
         const key = `${operation}_${collection}`;
         if (!monitor.queryStats.has(key)) {
+          // If we've reached max size, remove oldest/least-used stats
+          if (monitor.queryStats.size >= monitor.maxQueryStatsSize) {
+            // Remove entry with lowest count (least used)
+            let leastUsedKey = null;
+            let leastUsedCount = Infinity;
+            for (const [k, v] of monitor.queryStats.entries()) {
+              if (v.count < leastUsedCount) {
+                leastUsedCount = v.count;
+                leastUsedKey = k;
+              }
+            }
+            if (leastUsedKey) {
+              monitor.queryStats.delete(leastUsedKey);
+            }
+          }
+          
           monitor.queryStats.set(key, {
             operation,
             collection,
@@ -158,10 +175,11 @@ class DatabasePerformanceMonitor {
             timestamp: new Date().toISOString()
           };
           
-          if (this.slowQueries.length >= 100) {
-            this.slowQueries.shift();
+          // Keep only last 100 slow queries
+          if (monitor.slowQueries.length >= 100) {
+            monitor.slowQueries.shift();
           }
-          this.slowQueries.push(slowQuery);
+          monitor.slowQueries.push(slowQuery);
           
           logger.warn('Slow aggregate query detected', slowQuery);
         }

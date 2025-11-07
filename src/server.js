@@ -139,8 +139,8 @@ function startServer() {
   app.use(requestIdMiddleware);
 
   // Rate limiting middleware (apply early to protect all routes)
-  // General rate limiting for all API routes (skip in test for faster test execution)
-  if (process.env.NODE_ENV !== 'test') {
+  // General rate limiting for all API routes (skip in test and development for easier development)
+  if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
     app.use('/api', generalLimiter);
   }
 

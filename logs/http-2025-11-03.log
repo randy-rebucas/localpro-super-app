@@ -145,3 +145,476 @@
 {"level":"info","message":"Test log message","timestamp":"2025-11-02T23:00:38.055Z"}
 {"level":"error","message":"Test error message","timestamp":"2025-11-02T23:00:38.076Z"}
 {"level":"warn","message":"Test warning message","timestamp":"2025-11-02T23:00:38.080Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-03T02:57:23.484Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-03T02:57:24.379Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-03T02:57:24.380Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-03T02:57:24.387Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-03T02:57:24.388Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-03T02:57:24.389Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-03T02:57:24.389Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-03T02:57:24.389Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-03T02:57:24.390Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-03T02:57:24.390Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-03T02:57:24.391Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-03T02:57:24.391Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-03T02:57:24.392Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-03T02:57:24.392Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-03T02:57:24.392Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:24.488Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:24.490Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:24.490Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:24.567Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:24.567Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:24.567Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:24.670Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:24.671Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:24.671Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:24.837Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:24.838Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:24.838Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-03T02:57:25.007Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-03T02:57:25.012Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-03T02:57:25.019Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-03T02:57:25.020Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-03T02:57:25.020Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-03T02:57:25.020Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-03T02:57:25.020Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:25.041Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:25.042Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:25.042Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:25.294Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:25.294Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:25.295Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:25.601Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:25.603Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:25.604Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:25.955Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:25.956Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:25.956Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:26.372Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:26.373Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:26.373Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:26.833Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:26.834Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:26.834Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:27.336Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:27.337Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:27.337Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:27.890Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:27.892Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:27.893Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:28.499Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:28.499Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:28.500Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:29.151Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:29.151Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:29.152Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:29.858Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:29.859Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:29.859Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:30.633Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:30.634Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:30.651Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:31.443Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:31.444Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:31.445Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:32.307Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:32.309Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:32.309Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:33.218Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:33.219Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:33.219Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:34.182Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:34.183Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:34.183Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:35.192Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:35.192Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:35.192Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:36.244Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:36.244Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:36.245Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:37.353Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:37.354Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:37.354Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:38.506Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:38.506Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:38.507Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:39.722Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:39.723Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:39.724Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:40.990Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:40.991Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:40.991Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:42.316Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:42.317Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:42.334Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:43.676Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:43.677Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:43.678Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:45.089Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:45.090Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:45.090Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:46.565Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:46.582Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:46.652Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:48.082Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:48.091Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:48.131Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:49.642Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:49.643Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:49.643Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:51.258Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:51.259Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:51.260Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-03T02:57:52.917Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-03T02:57:52.917Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-03T02:57:52.918Z"}
+{"level":"info","message":"✅ Redis connected successfully","timestamp":"2025-11-03T02:57:54.629Z"}
+{"level":"info","message":"✅ Redis client ready","timestamp":"2025-11-03T02:57:54.646Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.78%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T02:58:24.387Z","type":"memory_usage","value":0.9478430327626419}
+{"level":"warn","message":"Performance Alert High memory usage: 95.08%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T02:59:24.400Z","type":"memory_usage","value":0.9507928456936591}
+{"level":"warn","message":"Performance Alert High memory usage: 95.49%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:00:24.405Z","type":"memory_usage","value":0.9549165478173802}
+{"level":"warn","message":"Performance Alert High memory usage: 94.84%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:01:24.414Z","type":"memory_usage","value":0.948370188617859}
+{"level":"warn","message":"Performance Alert High memory usage: 94.88%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:02:24.432Z","type":"memory_usage","value":0.9487949906984117}
+{"level":"warn","message":"Performance Alert High memory usage: 94.97%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:03:24.486Z","type":"memory_usage","value":0.9497486120611986}
+{"level":"warn","message":"Performance Alert High memory usage: 95.01%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:04:24.455Z","type":"memory_usage","value":0.9501208841514281}
+{"level":"warn","message":"Performance Alert High memory usage: 92.84%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:05:24.473Z","type":"memory_usage","value":0.9284268904948595}
+{"level":"warn","message":"Performance Alert High memory usage: 94.71%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:06:24.496Z","type":"memory_usage","value":0.9471259129747882}
+{"level":"warn","message":"Performance Alert High memory usage: 94.63%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:07:24.535Z","type":"memory_usage","value":0.9463118420944254}
+{"level":"warn","message":"Performance Alert High memory usage: 94.71%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:08:24.537Z","type":"memory_usage","value":0.9471464503986557}
+{"level":"warn","message":"Performance Alert High memory usage: 94.41%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:09:24.562Z","type":"memory_usage","value":0.9440586040026246}
+{"level":"warn","message":"Performance Alert High memory usage: 94.57%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:10:24.585Z","type":"memory_usage","value":0.9456871052739502}
+{"level":"warn","message":"Performance Alert High memory usage: 94.81%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:11:24.624Z","type":"memory_usage","value":0.9481360728346456}
+{"level":"warn","message":"Performance Alert High memory usage: 95.01%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:12:24.617Z","type":"memory_usage","value":0.9500726654773622}
+{"level":"warn","message":"Performance Alert High memory usage: 94.78%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:13:24.660Z","type":"memory_usage","value":0.9478071245671066}
+{"level":"warn","message":"Performance Alert High memory usage: 94.56%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:14:24.652Z","type":"memory_usage","value":0.9455690954824961}
+{"level":"warn","message":"Performance Alert High memory usage: 94.28%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:15:24.688Z","type":"memory_usage","value":0.9428422373153188}
+{"level":"warn","message":"Performance Alert High memory usage: 94.51%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:16:24.698Z","type":"memory_usage","value":0.94506671405197}
+{"level":"warn","message":"Performance Alert High memory usage: 94.24%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:17:24.718Z","type":"memory_usage","value":0.9423926436661074}
+{"level":"warn","message":"Performance Alert High memory usage: 94.12%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:18:24.740Z","type":"memory_usage","value":0.9412320252249358}
+{"level":"warn","message":"Performance Alert High memory usage: 94.30%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:19:24.779Z","type":"memory_usage","value":0.9430410507712083}
+{"level":"warn","message":"Performance Alert High memory usage: 94.55%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:20:24.770Z","type":"memory_usage","value":0.9455171011407455}
+{"level":"warn","message":"Performance Alert High memory usage: 94.40%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:21:24.807Z","type":"memory_usage","value":0.9439884152585766}
+{"level":"warn","message":"Performance Alert High memory usage: 94.46%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:22:24.797Z","type":"memory_usage","value":0.9446333315332182}
+{"level":"warn","message":"Performance Alert High memory usage: 95.39%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:23:24.832Z","type":"memory_usage","value":0.9539038596379398}
+{"level":"warn","message":"Performance Alert High memory usage: 95.31%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:24:24.827Z","type":"memory_usage","value":0.9530623774939444}
+{"level":"warn","message":"Performance Alert High memory usage: 95.59%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:25:24.841Z","type":"memory_usage","value":0.9558737918711754}
+{"level":"warn","message":"Performance Alert High memory usage: 95.49%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:26:24.880Z","type":"memory_usage","value":0.9549410526756119}
+{"level":"warn","message":"Performance Alert High memory usage: 95.14%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:27:24.873Z","type":"memory_usage","value":0.9514008885776409}
+{"level":"warn","message":"Performance Alert High memory usage: 95.30%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:28:24.884Z","type":"memory_usage","value":0.9529941882380015}
+{"level":"warn","message":"Performance Alert High memory usage: 95.13%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:29:24.927Z","type":"memory_usage","value":0.9512648633108877}
+{"level":"warn","message":"Performance Alert High memory usage: 95.28%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:30:24.924Z","type":"memory_usage","value":0.9528183732059307}
+{"level":"warn","message":"Performance Alert High memory usage: 95.43%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:31:25.001Z","type":"memory_usage","value":0.9543150774927289}
+{"level":"warn","message":"Performance Alert High memory usage: 95.34%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:32:25.001Z","type":"memory_usage","value":0.9534112508693728}
+{"level":"warn","message":"Performance Alert High memory usage: 95.36%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:33:24.967Z","type":"memory_usage","value":0.9535791978850531}
+{"level":"warn","message":"Performance Alert High memory usage: 95.29%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:34:24.979Z","type":"memory_usage","value":0.9528840701267703}
+{"level":"warn","message":"Performance Alert High memory usage: 95.00%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:35:25.174Z","type":"memory_usage","value":0.949991923724393}
+{"level":"warn","message":"Performance Alert High memory usage: 95.71%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:36:25.054Z","type":"memory_usage","value":0.957131277266692}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-03T03:38:21.808Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-03T03:38:26.234Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-03T03:38:26.235Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-03T03:38:26.278Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-03T03:38:26.290Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-03T03:38:26.305Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-03T03:38:26.306Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-03T03:38:26.306Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-03T03:38:26.307Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-03T03:38:26.308Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-03T03:38:26.309Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-03T03:38:26.310Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-03T03:38:26.315Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-03T03:38:26.323Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-03T03:38:26.326Z"}
+{"level":"info","message":"✅ Redis connected successfully","timestamp":"2025-11-03T03:38:26.889Z"}
+{"level":"info","message":"✅ Redis client ready","timestamp":"2025-11-03T03:38:27.121Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-03T03:38:27.376Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-03T03:38:27.388Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-03T03:38:27.436Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-03T03:38:27.442Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-03T03:38:27.443Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-03T03:38:27.444Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-03T03:38:27.446Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 93.73%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:39:26.294Z","type":"memory_usage","value":0.937290206154943}
+{"level":"warn","message":"Performance Alert High memory usage: 94.46%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:40:26.242Z","type":"memory_usage","value":0.944603449077204}
+{"level":"warn","message":"Performance Alert High memory usage: 94.07%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:41:26.268Z","type":"memory_usage","value":0.9407295715956516}
+{"level":"warn","message":"Performance Alert High memory usage: 93.23%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:42:27.854Z","type":"memory_usage","value":0.9323340512981023}
+{"level":"warn","message":"Performance Alert High memory usage: 94.92%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:43:26.353Z","type":"memory_usage","value":0.9492263425770777}
+{"level":"warn","message":"Performance Alert High memory usage: 94.67%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:44:26.443Z","type":"memory_usage","value":0.9467183049178954}
+{"level":"warn","message":"Performance Alert High memory usage: 92.34%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:45:26.608Z","type":"memory_usage","value":0.9233923884514436}
+{"level":"warn","message":"Performance Alert High memory usage: 94.37%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:46:26.568Z","type":"memory_usage","value":0.9437100094267218}
+{"level":"warn","message":"Performance Alert High memory usage: 95.07%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:47:26.596Z","type":"memory_usage","value":0.9506517889915911}
+{"level":"warn","message":"Performance Alert High memory usage: 94.68%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:48:26.878Z","type":"memory_usage","value":0.9467662642235051}
+{"level":"warn","message":"Performance Alert High memory usage: 93.44%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:49:26.990Z","type":"memory_usage","value":0.9344343952153031}
+{"level":"warn","message":"Performance Alert High memory usage: 94.35%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:50:26.989Z","type":"memory_usage","value":0.9434612625016614}
+{"level":"warn","message":"Performance Alert High memory usage: 95.04%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:51:27.387Z","type":"memory_usage","value":0.9504463321537746}
+{"level":"warn","message":"Performance Alert High memory usage: 95.00%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:52:27.360Z","type":"memory_usage","value":0.9500328116693249}
+{"level":"warn","message":"Performance Alert High memory usage: 95.22%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:53:27.249Z","type":"memory_usage","value":0.952192047946571}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-03T03:55:15.265Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-03T03:55:21.711Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-03T03:55:21.713Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-03T03:55:21.745Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-03T03:55:21.776Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-03T03:55:21.789Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-03T03:55:21.839Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-03T03:55:21.847Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-03T03:55:21.861Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-03T03:55:21.912Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-03T03:55:21.915Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-03T03:55:21.917Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-03T03:55:21.957Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-03T03:55:21.975Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-03T03:55:21.982Z"}
+{"level":"info","message":"✅ Redis connected successfully","timestamp":"2025-11-03T03:55:22.437Z"}
+{"level":"info","message":"✅ Redis client ready","timestamp":"2025-11-03T03:55:22.781Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-03T03:55:23.014Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-03T03:55:23.055Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-03T03:55:23.126Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-03T03:55:23.132Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-03T03:55:23.146Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-03T03:55:23.147Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-03T03:55:23.148Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.81%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:56:21.711Z","type":"memory_usage","value":0.9480902129447312}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"2ms","statusCode":200,"timestamp":"2025-11-03T03:56:41.250Z","url":"/","userAgent":"PostmanRuntime/7.49.1","userId":null}
+{"level":"http","message":"::1 - - [03/Nov/2025:03:56:41 +0000] \"GET / HTTP/1.1\" 200 - \"-\" \"PostmanRuntime/7.49.1\"","timestamp":"2025-11-03T03:56:41.296Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.62%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:57:21.728Z","type":"memory_usage","value":0.9462370002019386}
+{"level":"warn","message":"Performance Alert High memory usage: 94.74%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:58:21.728Z","type":"memory_usage","value":0.947369041136059}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"40ms","statusCode":200,"timestamp":"2025-11-03T03:58:23.842Z","url":"/health","userAgent":"PostmanRuntime/7.49.1","userId":null}
+{"level":"http","message":"::1 - - [03/Nov/2025:03:58:23 +0000] \"GET /health HTTP/1.1\" 200 807 \"-\" \"PostmanRuntime/7.49.1\"","timestamp":"2025-11-03T03:58:23.843Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"11ms","statusCode":200,"timestamp":"2025-11-03T03:58:38.243Z","url":"/monitoring","userAgent":"PostmanRuntime/7.49.1","userId":null}
+{"level":"http","message":"::1 - - [03/Nov/2025:03:58:38 +0000] \"GET /monitoring HTTP/1.1\" 200 - \"-\" \"PostmanRuntime/7.49.1\"","timestamp":"2025-11-03T03:58:38.245Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"5ms","statusCode":200,"timestamp":"2025-11-03T03:59:01.676Z","url":"/LocalPro-Super-App-API.postman_collection.json","userAgent":"PostmanRuntime/7.49.1","userId":null}
+{"level":"http","message":"::1 - - [03/Nov/2025:03:59:01 +0000] \"GET /LocalPro-Super-App-API.postman_collection.json HTTP/1.1\" 200 - \"-\" \"PostmanRuntime/7.49.1\"","timestamp":"2025-11-03T03:59:01.680Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 93.73%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T03:59:21.751Z","type":"memory_usage","value":0.9372731218434344}
+{"level":"warn","message":"Performance Alert High memory usage: 94.41%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:00:21.767Z","type":"memory_usage","value":0.9440522100112971}
+{"level":"warn","message":"Performance Alert High memory usage: 94.45%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:01:21.773Z","type":"memory_usage","value":0.9444650815307682}
+{"level":"warn","message":"Performance Alert High memory usage: 94.47%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:02:21.788Z","type":"memory_usage","value":0.9446928682383041}
+{"level":"warn","message":"Performance Alert High memory usage: 94.13%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:03:21.797Z","type":"memory_usage","value":0.9413417428811137}
+{"level":"warn","message":"Performance Alert High memory usage: 94.28%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:04:21.812Z","type":"memory_usage","value":0.942835660262161}
+{"level":"warn","message":"Performance Alert High memory usage: 94.57%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:05:21.819Z","type":"memory_usage","value":0.9457367933030968}
+{"level":"warn","message":"Performance Alert High memory usage: 94.72%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:06:21.830Z","type":"memory_usage","value":0.9472214953814461}
+{"level":"warn","message":"Performance Alert High memory usage: 95.07%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:07:21.835Z","type":"memory_usage","value":0.9506946261546385}
+{"level":"warn","message":"Performance Alert High memory usage: 95.16%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:08:21.854Z","type":"memory_usage","value":0.9515655371561005}
+{"level":"warn","message":"Performance Alert High memory usage: 95.29%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:09:21.866Z","type":"memory_usage","value":0.9529388768440988}
+{"level":"warn","message":"Performance Alert High memory usage: 95.37%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:10:21.904Z","type":"memory_usage","value":0.9537236052963849}
+{"level":"warn","message":"Performance Alert High memory usage: 95.25%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:11:21.943Z","type":"memory_usage","value":0.9524848609449761}
+{"level":"warn","message":"Performance Alert High memory usage: 95.48%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:12:21.927Z","type":"memory_usage","value":0.9548220434193913}
+{"level":"warn","message":"Performance Alert High memory usage: 94.69%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:13:21.938Z","type":"memory_usage","value":0.9468931721962309}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-03T04:13:49.085Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-03T04:13:51.224Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-03T04:13:51.225Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-03T04:13:51.239Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-03T04:13:51.242Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-03T04:13:51.245Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-03T04:13:51.249Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-03T04:13:51.249Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-03T04:13:51.250Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-03T04:13:51.250Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-03T04:13:51.251Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-03T04:13:51.251Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-03T04:13:51.251Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-03T04:13:51.252Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-03T04:13:51.252Z"}
+{"level":"info","message":"✅ Redis connected successfully","timestamp":"2025-11-03T04:13:51.436Z"}
+{"level":"info","message":"✅ Redis client ready","timestamp":"2025-11-03T04:13:51.466Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-03T04:13:51.868Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-03T04:13:51.871Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-03T04:13:51.879Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-03T04:13:51.880Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-03T04:13:51.880Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-03T04:13:51.880Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-03T04:13:51.880Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.57%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:14:51.223Z","type":"memory_usage","value":0.945673870561176}
+{"level":"warn","message":"Performance Alert High memory usage: 94.24%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:15:51.226Z","type":"memory_usage","value":0.9423556124087344}
+{"level":"warn","message":"Performance Alert High memory usage: 94.35%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:16:51.238Z","type":"memory_usage","value":0.9434790131091815}
+{"level":"warn","message":"Performance Alert High memory usage: 94.49%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:17:51.257Z","type":"memory_usage","value":0.9448624766508481}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-03T04:18:07.535Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-03T04:18:11.898Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-03T04:18:11.906Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-03T04:18:11.932Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-03T04:18:11.933Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-03T04:18:11.934Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-03T04:18:11.935Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-03T04:18:11.937Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-03T04:18:11.941Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-03T04:18:11.944Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-03T04:18:11.947Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-03T04:18:11.948Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-03T04:18:11.950Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-03T04:18:11.951Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-03T04:18:11.951Z"}
+{"level":"info","message":"✅ Redis connected successfully","timestamp":"2025-11-03T04:18:12.386Z"}
+{"level":"info","message":"✅ Redis client ready","timestamp":"2025-11-03T04:18:12.481Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-03T04:18:13.012Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-03T04:18:13.024Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-03T04:18:13.060Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-03T04:18:13.063Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-03T04:18:13.064Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-03T04:18:13.066Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-03T04:18:13.081Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.36%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:20:11.897Z","type":"memory_usage","value":0.9435666491971075}
+{"level":"warn","message":"Performance Alert High memory usage: 95.08%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:21:11.907Z","type":"memory_usage","value":0.9507573266057849}
+{"level":"warn","message":"Performance Alert High memory usage: 95.23%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:22:11.914Z","type":"memory_usage","value":0.9522823766804726}
+{"level":"warn","message":"Performance Alert High memory usage: 95.43%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:23:11.928Z","type":"memory_usage","value":0.9542796618261136}
+{"level":"warn","message":"Performance Alert High memory usage: 95.58%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:24:11.924Z","type":"memory_usage","value":0.9557820350692559}
+{"level":"warn","message":"Performance Alert High memory usage: 95.68%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:25:11.950Z","type":"memory_usage","value":0.9568047469106464}
+{"level":"warn","message":"Performance Alert High memory usage: 94.58%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:26:12.169Z","type":"memory_usage","value":0.9458418858914209}
+{"level":"warn","message":"Performance Alert High memory usage: 94.61%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:27:11.967Z","type":"memory_usage","value":0.9460509435740616}
+{"level":"warn","message":"Performance Alert High memory usage: 94.83%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:28:11.993Z","type":"memory_usage","value":0.948328716697386}
+{"level":"warn","message":"Performance Alert High memory usage: 95.01%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:29:11.991Z","type":"memory_usage","value":0.9500640132791555}
+{"level":"warn","message":"Performance Alert High memory usage: 94.87%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:30:11.991Z","type":"memory_usage","value":0.9486784601491591}
+{"level":"warn","message":"Performance Alert High memory usage: 94.98%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:31:12.042Z","type":"memory_usage","value":0.9497821113354245}
+{"level":"warn","message":"Performance Alert High memory usage: 94.80%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:32:12.019Z","type":"memory_usage","value":0.9479855867474083}
+{"level":"warn","message":"Performance Alert High memory usage: 94.95%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:33:12.040Z","type":"memory_usage","value":0.9495216868520734}
+{"level":"warn","message":"Performance Alert High memory usage: 95.82%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:34:12.038Z","type":"memory_usage","value":0.9582352807371625}
+{"level":"warn","message":"Performance Alert High memory usage: 94.07%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:35:12.047Z","type":"memory_usage","value":0.9407303833452629}
+{"level":"warn","message":"Performance Alert High memory usage: 95.59%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:36:12.054Z","type":"memory_usage","value":0.9558715497204209}
+{"level":"warn","message":"Performance Alert High memory usage: 95.25%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:37:12.065Z","type":"memory_usage","value":0.9525207616054955}
+{"level":"warn","message":"Performance Alert High memory usage: 95.30%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:38:12.586Z","type":"memory_usage","value":0.9530343964153927}
+{"level":"warn","message":"Performance Alert High memory usage: 95.04%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:39:12.296Z","type":"memory_usage","value":0.9504220788580654}
+{"level":"warn","message":"Performance Alert High memory usage: 95.10%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:40:12.299Z","type":"memory_usage","value":0.9510447211056932}
+{"level":"warn","message":"Performance Alert High memory usage: 95.29%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:41:12.304Z","type":"memory_usage","value":0.9529365857274644}
+{"level":"warn","message":"Performance Alert High memory usage: 94.96%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:42:12.311Z","type":"memory_usage","value":0.9496130915764436}
+{"level":"warn","message":"Performance Alert High memory usage: 94.76%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:43:12.313Z","type":"memory_usage","value":0.9476070134850366}
+{"level":"warn","message":"Performance Alert High memory usage: 94.85%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:44:12.324Z","type":"memory_usage","value":0.948537376870426}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-03T04:45:00.889Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-03T04:45:02.463Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-03T04:45:02.468Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-03T04:45:02.485Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-03T04:45:02.486Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-03T04:45:02.487Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-03T04:45:02.487Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-03T04:45:02.487Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-03T04:45:02.488Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-03T04:45:02.488Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-03T04:45:02.489Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-03T04:45:02.490Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-03T04:45:02.491Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-03T04:45:02.492Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-03T04:45:02.495Z"}
+{"level":"info","message":"✅ Redis connected successfully","timestamp":"2025-11-03T04:45:02.558Z"}
+{"level":"info","message":"✅ Redis client ready","timestamp":"2025-11-03T04:45:02.614Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-03T04:45:03.003Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-03T04:45:03.007Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-03T04:45:03.022Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-03T04:45:03.023Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-03T04:45:03.023Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-03T04:45:03.023Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-03T04:45:03.024Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-03T04:45:05.977Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-03T04:45:07.008Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-03T04:45:07.009Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-03T04:45:07.020Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-03T04:45:07.021Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-03T04:45:07.022Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-03T04:45:07.022Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-03T04:45:07.023Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-03T04:45:07.023Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-03T04:45:07.023Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-03T04:45:07.024Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-03T04:45:07.024Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-03T04:45:07.024Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-03T04:45:07.025Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-03T04:45:07.025Z"}
+{"level":"info","message":"✅ Redis connected successfully","timestamp":"2025-11-03T04:45:07.058Z"}
+{"level":"info","message":"✅ Redis client ready","timestamp":"2025-11-03T04:45:07.116Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-03T04:45:07.544Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-03T04:45:07.549Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-03T04:45:07.558Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-03T04:45:07.563Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-03T04:45:07.563Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-03T04:45:07.564Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-03T04:45:07.564Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 93.11%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:46:07.020Z","type":"memory_usage","value":0.9311040392510054}
+{"level":"warn","message":"Performance Alert High memory usage: 94.43%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:47:07.013Z","type":"memory_usage","value":0.944301590720057}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-03T04:47:53.850Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-03T04:47:55.009Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-03T04:47:55.010Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-03T04:47:55.022Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-03T04:47:55.023Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-03T04:47:55.024Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-03T04:47:55.024Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-03T04:47:55.024Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-03T04:47:55.025Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-03T04:47:55.025Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-03T04:47:55.026Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-03T04:47:55.026Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-03T04:47:55.026Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-03T04:47:55.027Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-03T04:47:55.027Z"}
+{"level":"info","message":"✅ Redis connected successfully","timestamp":"2025-11-03T04:47:55.240Z"}
+{"level":"info","message":"✅ Redis client ready","timestamp":"2025-11-03T04:47:55.318Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-03T04:47:55.756Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-03T04:47:55.761Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-03T04:47:55.773Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-03T04:47:55.774Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-03T04:47:55.774Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-03T04:47:55.774Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-03T04:47:55.775Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.13%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:49:55.029Z","type":"memory_usage","value":0.9412689291508923}
+{"level":"warn","message":"Performance Alert High memory usage: 95.01%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:50:55.134Z","type":"memory_usage","value":0.9501018286911844}
+{"level":"warn","message":"Performance Alert High memory usage: 95.29%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:51:55.061Z","type":"memory_usage","value":0.9529213954333423}
+{"level":"warn","message":"Performance Alert High memory usage: 95.57%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:52:55.062Z","type":"memory_usage","value":0.9556819406182396}
+{"level":"warn","message":"Performance Alert High memory usage: 95.35%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:53:55.070Z","type":"memory_usage","value":0.9534701099303312}
+{"level":"warn","message":"Performance Alert High memory usage: 95.53%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:54:55.070Z","type":"memory_usage","value":0.9552544268729806}
+{"level":"warn","message":"Performance Alert High memory usage: 95.67%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:55:55.086Z","type":"memory_usage","value":0.9567283420840065}
+{"level":"warn","message":"Performance Alert High memory usage: 95.43%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:56:55.088Z","type":"memory_usage","value":0.9542602211796246}
+{"level":"warn","message":"Performance Alert High memory usage: 95.72%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:57:55.106Z","type":"memory_usage","value":0.9571796979725201}
+{"level":"warn","message":"Performance Alert High memory usage: 95.80%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:58:55.112Z","type":"memory_usage","value":0.9580477389829088}
+{"level":"warn","message":"Performance Alert High memory usage: 95.87%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T04:59:55.129Z","type":"memory_usage","value":0.9587361762734584}
+{"level":"warn","message":"Performance Alert High memory usage: 95.57%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:00:55.165Z","type":"memory_usage","value":0.9556564762830352}
+{"level":"warn","message":"Performance Alert High memory usage: 95.68%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:01:55.198Z","type":"memory_usage","value":0.9567671662273092}
+{"level":"warn","message":"Performance Alert High memory usage: 95.82%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:02:55.179Z","type":"memory_usage","value":0.9581936878503737}
+{"level":"warn","message":"Performance Alert High memory usage: 95.35%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:03:55.182Z","type":"memory_usage","value":0.9535159365031898}
+{"level":"warn","message":"Performance Alert High memory usage: 95.19%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:04:55.181Z","type":"memory_usage","value":0.9518761317949229}
+{"level":"warn","message":"Performance Alert High memory usage: 95.42%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:05:55.182Z","type":"memory_usage","value":0.9542008541417464}
+{"level":"warn","message":"Performance Alert High memory usage: 95.52%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:06:55.199Z","type":"memory_usage","value":0.9551570391414141}
+{"level":"warn","message":"Performance Alert High memory usage: 95.54%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:07:55.214Z","type":"memory_usage","value":0.9554126015500398}
+{"level":"warn","message":"Performance Alert High memory usage: 95.53%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:08:55.229Z","type":"memory_usage","value":0.9552526965792797}
+{"level":"warn","message":"Performance Alert High memory usage: 93.47%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:09:55.231Z","type":"memory_usage","value":0.9346765600598647}
+{"level":"warn","message":"Performance Alert High memory usage: 95.01%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:10:55.234Z","type":"memory_usage","value":0.9500954074162917}
+{"level":"warn","message":"Performance Alert High memory usage: 94.80%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:11:55.240Z","type":"memory_usage","value":0.947997403383632}
+{"level":"warn","message":"Performance Alert High memory usage: 94.99%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:12:55.242Z","type":"memory_usage","value":0.9499030387206774}
+{"level":"warn","message":"Performance Alert High memory usage: 95.06%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:13:55.247Z","type":"memory_usage","value":0.9506236203545071}
+{"level":"warn","message":"Performance Alert High memory usage: 95.30%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:14:55.249Z","type":"memory_usage","value":0.9529573061495124}
+{"level":"warn","message":"Performance Alert High memory usage: 96.09%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:15:55.317Z","type":"memory_usage","value":0.9609085363353018}
+{"level":"warn","message":"Performance Alert High memory usage: 95.15%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:16:55.363Z","type":"memory_usage","value":0.9515000223679073}
+{"level":"warn","message":"Performance Alert High memory usage: 94.37%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:17:55.959Z","type":"memory_usage","value":0.9436852347410203}
+{"level":"warn","message":"Performance Alert High memory usage: 95.24%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:18:55.708Z","type":"memory_usage","value":0.9524321032339927}
+{"level":"warn","message":"Performance Alert High memory usage: 93.67%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:19:55.707Z","type":"memory_usage","value":0.9367223252288146}
+{"level":"warn","message":"Performance Alert High memory usage: 95.27%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:20:55.771Z","type":"memory_usage","value":0.9526925114279672}
+{"level":"warn","message":"Performance Alert High memory usage: 95.10%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:21:55.772Z","type":"memory_usage","value":0.9510413531770562}
+{"level":"warn","message":"Performance Alert High memory usage: 94.78%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:22:55.749Z","type":"memory_usage","value":0.9477559312629601}
+{"level":"warn","message":"Performance Alert High memory usage: 94.93%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:23:55.760Z","type":"memory_usage","value":0.9492953208025532}
+{"level":"warn","message":"Performance Alert High memory usage: 94.56%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:24:55.762Z","type":"memory_usage","value":0.9455640770198761}
+{"level":"warn","message":"Performance Alert High memory usage: 94.63%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:25:55.775Z","type":"memory_usage","value":0.9462700303707409}
+{"level":"warn","message":"Performance Alert High memory usage: 93.11%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:26:55.790Z","type":"memory_usage","value":0.9310661691769299}
+{"level":"warn","message":"Performance Alert High memory usage: 94.73%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:27:55.799Z","type":"memory_usage","value":0.94729713514778}
+{"level":"warn","message":"Performance Alert High memory usage: 94.57%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:28:55.819Z","type":"memory_usage","value":0.945708396931234}
+{"level":"warn","message":"Performance Alert High memory usage: 95.79%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:29:56.004Z","type":"memory_usage","value":0.9578888174807197}
+{"level":"warn","message":"Performance Alert High memory usage: 95.45%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:30:56.031Z","type":"memory_usage","value":0.9545180450674807}
+{"level":"warn","message":"Performance Alert High memory usage: 95.28%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:31:55.917Z","type":"memory_usage","value":0.9527592283901029}
+{"level":"warn","message":"Performance Alert High memory usage: 95.22%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:32:55.865Z","type":"memory_usage","value":0.9522390645083547}
+{"level":"warn","message":"Performance Alert High memory usage: 93.38%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:33:55.867Z","type":"memory_usage","value":0.9338440402629093}
+{"level":"warn","message":"Performance Alert High memory usage: 94.66%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:34:55.872Z","type":"memory_usage","value":0.9465990625796787}
+{"level":"warn","message":"Performance Alert High memory usage: 94.74%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:35:55.881Z","type":"memory_usage","value":0.9474069302572029}
+{"level":"warn","message":"Performance Alert High memory usage: 95.81%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:36:55.886Z","type":"memory_usage","value":0.958145133820436}
+{"level":"warn","message":"Performance Alert High memory usage: 95.67%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:37:55.898Z","type":"memory_usage","value":0.9566779246079806}
+{"level":"warn","message":"Performance Alert High memory usage: 95.38%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:38:56.270Z","type":"memory_usage","value":0.9538020202543345}
+{"level":"warn","message":"Performance Alert High memory usage: 95.78%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:39:56.115Z","type":"memory_usage","value":0.957813222088539}
+{"level":"warn","message":"Performance Alert High memory usage: 95.84%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:40:56.051Z","type":"memory_usage","value":0.9583623061754063}
+{"level":"warn","message":"Performance Alert High memory usage: 94.47%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:41:55.988Z","type":"memory_usage","value":0.9446667684227997}
+{"level":"warn","message":"Performance Alert High memory usage: 95.42%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:42:56.012Z","type":"memory_usage","value":0.9541964031676783}
+{"level":"warn","message":"Performance Alert High memory usage: 94.91%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:43:56.101Z","type":"memory_usage","value":0.9490857507824355}
+{"level":"warn","message":"Performance Alert High memory usage: 95.78%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:44:56.291Z","type":"memory_usage","value":0.9577549040528579}
+{"level":"warn","message":"Performance Alert High memory usage: 95.22%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:45:56.195Z","type":"memory_usage","value":0.9521835087885685}
+{"level":"warn","message":"Performance Alert High memory usage: 95.77%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:46:56.055Z","type":"memory_usage","value":0.9576905655269979}
+{"level":"warn","message":"Performance Alert High memory usage: 95.02%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:47:56.172Z","type":"memory_usage","value":0.9502469694584383}
+{"level":"warn","message":"Performance Alert High memory usage: 95.77%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:48:56.077Z","type":"memory_usage","value":0.9576864324228589}
+{"level":"warn","message":"Performance Alert High memory usage: 94.89%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:49:56.095Z","type":"memory_usage","value":0.948852845310148}
+{"level":"warn","message":"Performance Alert High memory usage: 95.24%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:50:56.302Z","type":"memory_usage","value":0.9524228353926242}
+{"level":"warn","message":"Performance Alert High memory usage: 95.12%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:51:56.758Z","type":"memory_usage","value":0.9511544276689781}
+{"level":"warn","message":"Performance Alert High memory usage: 95.49%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:52:56.193Z","type":"memory_usage","value":0.9549129243971765}
+{"level":"warn","message":"Performance Alert High memory usage: 94.70%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:53:56.172Z","type":"memory_usage","value":0.9470323432033984}
+{"level":"warn","message":"Performance Alert High memory usage: 95.24%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:54:56.546Z","type":"memory_usage","value":0.9524343053082833}
+{"level":"warn","message":"Performance Alert High memory usage: 95.37%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:55:56.466Z","type":"memory_usage","value":0.9537018600074962}
+{"level":"warn","message":"Performance Alert High memory usage: 93.04%","severity":"warning","threshold":0.9,"timestamp":"2025-11-03T05:56:56.499Z","type":"memory_usage","value":0.9304382234505144}
