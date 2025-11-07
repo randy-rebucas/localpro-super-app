@@ -1,0 +1,273 @@
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-07T22:25:34.719Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-07T22:25:37.233Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-07T22:25:37.233Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-07T22:25:37.270Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-07T22:25:37.277Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-07T22:25:37.278Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-07T22:25:37.279Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-07T22:25:37.279Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-07T22:25:37.280Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-07T22:25:37.280Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-07T22:25:37.283Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-07T22:25:37.284Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-07T22:25:37.290Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-07T22:25:37.294Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-07T22:25:37.295Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:37.431Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:37.432Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:37.432Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:37.497Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:37.498Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:37.498Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:37.782Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:37.782Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:37.782Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:37.971Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:37.971Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:37.972Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:38.177Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:38.179Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:38.179Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:38.437Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:38.438Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:38.438Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-07T22:25:38.504Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-07T22:25:38.510Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-07T22:25:38.527Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-07T22:25:38.533Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-07T22:25:38.534Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-07T22:25:38.534Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-07T22:25:38.534Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:38.739Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:38.740Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:38.741Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:39.093Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:39.096Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:39.097Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:39.503Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:39.504Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:39.504Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:39.959Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:39.960Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:39.960Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:40.469Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:40.469Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:40.470Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:41.050Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:41.053Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:41.055Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:25:41.656Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:25:41.656Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:25:41.656Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-07T22:28:23.698Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-07T22:28:24.877Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-07T22:28:24.877Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-07T22:28:24.886Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-07T22:28:24.886Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-07T22:28:24.887Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-07T22:28:24.887Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-07T22:28:24.887Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-07T22:28:24.888Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-07T22:28:24.888Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-07T22:28:24.889Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-07T22:28:24.890Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-07T22:28:24.890Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-07T22:28:24.891Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-07T22:28:24.891Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:25.242Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:25.242Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:25.243Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:25.354Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:25.354Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:25.355Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:25.471Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:25.471Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:25.472Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:25.628Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:25.630Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:25.630Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:25.839Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:25.839Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:25.840Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-07T22:28:25.869Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-07T22:28:25.873Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-07T22:28:25.885Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-07T22:28:25.886Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-07T22:28:25.886Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-07T22:28:25.886Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-07T22:28:25.886Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:26.103Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:26.104Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:26.104Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:26.409Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:26.411Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:26.412Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:26.767Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:26.768Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:26.768Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:27.169Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:27.170Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:27.170Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:27.639Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:27.640Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:27.640Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:28.147Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:28.148Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:28.148Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:28.708Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:28.709Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:28.709Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:29.313Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:29.313Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:29.314Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:29.974Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:29.975Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:29.975Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:30.687Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:30.688Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:30.688Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:31.449Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:31.449Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:31.450Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:32.256Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:32.256Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:32.257Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:33.112Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:33.112Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:33.112Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:34.015Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:34.016Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:34.016Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:34.978Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:34.979Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:34.980Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:35.994Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:35.994Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:35.995Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:37.051Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:37.052Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:37.052Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:38.159Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:38.159Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:38.160Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:39.315Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:39.316Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:39.316Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:40.519Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:40.520Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:40.520Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:41.789Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:41.790Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:41.790Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:43.099Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:43.100Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:43.100Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:44.472Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:44.473Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:44.474Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:45.884Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:45.884Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:45.884Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:47.339Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:47.341Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:47.342Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:48.855Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:48.855Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:48.855Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:50.422Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:50.423Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:50.424Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:52.040Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:52.040Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:52.041Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:53.696Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:53.697Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:53.698Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:55.399Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:55.399Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:55.400Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:57.155Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:57.156Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:57.157Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:28:58.970Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:28:58.971Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:28:58.971Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:29:00.831Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:29:00.835Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:29:00.837Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:29:02.745Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:29:02.746Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:29:02.746Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:29:04.716Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:29:04.720Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:29:04.721Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:29:06.735Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:29:06.735Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:29:06.736Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:29:08.751Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:29:08.752Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:29:08.753Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:29:10.763Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:29:10.764Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:29:10.764Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:29:12.781Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:29:12.813Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:29:12.829Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:29:14.802Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:29:14.805Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:29:14.809Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:29:16.819Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:29:16.822Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:29:16.824Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:29:18.830Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:29:18.831Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:29:18.831Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis Client Error:","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-07T22:29:20.850Z"}
+{"level":"warn","message":"⚠️  Redis connection closed","timestamp":"2025-11-07T22:29:20.855Z"}
+{"level":"info","message":"🔄 Redis reconnecting...","timestamp":"2025-11-07T22:29:20.859Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-07T22:30:00.325Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-07T22:30:04.456Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-07T22:30:04.463Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-07T22:30:04.489Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-07T22:30:04.491Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-07T22:30:04.494Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-07T22:30:04.495Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-07T22:30:04.497Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-07T22:30:04.498Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-07T22:30:04.500Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-07T22:30:04.502Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-07T22:30:04.503Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-07T22:30:04.506Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-07T22:30:04.507Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-07T22:30:04.508Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-07T22:30:06.040Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-07T22:30:06.055Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-07T22:30:06.153Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-07T22:30:06.159Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-07T22:30:06.165Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-07T22:30:06.173Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-07T22:30:06.177Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.49%","severity":"warning","threshold":0.9,"timestamp":"2025-11-07T22:31:04.450Z","type":"memory_usage","value":0.9449456317737815}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-07T22:31:18.060Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-07T22:31:19.659Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-07T22:31:19.660Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-07T22:31:19.663Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-07T22:31:19.664Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-07T22:31:19.665Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-07T22:31:19.665Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-07T22:31:19.666Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-07T22:31:19.667Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-07T22:31:19.668Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-07T22:31:19.672Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-07T22:31:19.673Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-07T22:31:19.675Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-07T22:31:19.675Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-07T22:31:19.675Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-07T22:31:20.453Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-07T22:31:20.465Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-07T22:31:20.482Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-07T22:31:20.492Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-07T22:31:20.494Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-07T22:31:20.501Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-07T22:31:20.502Z"}
+{"level":"warn","message":"Database disconnected","timestamp":"2025-11-07T22:31:25.946Z"}

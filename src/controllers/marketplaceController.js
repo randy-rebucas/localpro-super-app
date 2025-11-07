@@ -6,7 +6,6 @@ const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
 const PayPalService = require('../services/paypalService');
-const cacheService = require('../services/cacheService');
 const logger = require('../config/logger');
 const { 
   sendPaginated, 
@@ -94,20 +93,6 @@ const getServices = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    // Generate cache key based on query parameters
-    const cacheKey = cacheService.servicesKey({ filter, sort, skip, limit });
-
-    // Try to get from cache first
-    let cachedResult = await cacheService.get(cacheKey);
-    
-    if (cachedResult) {
-      logger.info('Cache hit for services query', { cacheKey, page, limit });
-      return sendPaginated(res, cachedResult.services, cachedResult.pagination, 'Services retrieved successfully (from cache)');
-    }
-
-    // Cache miss - fetch from database
-    logger.info('Cache miss for services query', { cacheKey, page, limit });
-    
     const services = await Service.find(filter)
       .populate('provider', 'firstName lastName profile.avatar profile.rating profile.experience')
       .select('-reviews -bookings -metadata -featured -promoted')
@@ -118,10 +103,6 @@ const getServices = async (req, res) => {
 
     const total = await Service.countDocuments(filter);
     const pagination = createPagination(page, limit, total);
-
-    // Cache the result for 5 minutes (300 seconds)
-    const resultToCache = { services, pagination };
-    await cacheService.set(cacheKey, resultToCache, 300);
 
     return sendPaginated(res, services, pagination, 'Services retrieved successfully');
   } catch (error) {

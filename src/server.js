@@ -243,52 +243,6 @@ function startServer() {
     }
   };
 
-  const checkRedisHealth = async () => {
-    try {
-      const cacheService = require('./services/cacheService');
-      
-      if (!cacheService.enabled) {
-        return {
-          status: 'disabled',
-          enabled: false,
-          message: 'Redis caching is disabled'
-        };
-      }
-
-      // Try to get stats to verify connection
-      const stats = await cacheService.getStats();
-      const isConnected = stats.connected === true;
-
-      // Try a simple ping operation
-      try {
-        await cacheService.set('health_check_ping', 'pong', 1);
-        await cacheService.del('health_check_ping');
-      } catch (pingError) {
-        return {
-          status: 'unhealthy',
-          enabled: true,
-          connected: false,
-          error: pingError.message
-        };
-      }
-
-      return {
-        status: isConnected ? 'healthy' : 'unhealthy',
-        enabled: true,
-        connected: isConnected,
-        host: process.env.REDIS_HOST || 'localhost',
-        port: process.env.REDIS_PORT || 6379
-      };
-    } catch (error) {
-      return {
-        status: 'unhealthy',
-        enabled: true,
-        connected: false,
-        error: error.message
-      };
-    }
-  };
-
   const checkExternalAPIs = async () => {
     const apis = {
       twilio: { status: 'unknown', response_time: null },
@@ -305,13 +259,11 @@ function startServer() {
   // Health check endpoint
   app.get('/health', async (req, res) => {
     const databaseHealth = await checkDatabaseHealth();
-    const redisHealth = await checkRedisHealth();
     const externalApis = await checkExternalAPIs();
 
     // Determine overall health status
     const isHealthy = 
       databaseHealth.status === 'healthy' &&
-      (redisHealth.status === 'healthy' || redisHealth.status === 'disabled') &&
       process.uptime() > 0;
 
     const health = {
@@ -323,7 +275,6 @@ function startServer() {
       environment: process.env.NODE_ENV || 'development',
       services: {
         database: databaseHealth,
-        redis: redisHealth,
         external_apis: externalApis
       },
       system: {
