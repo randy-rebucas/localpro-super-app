@@ -287,7 +287,7 @@ const financeSchema = new mongoose.Schema({
   transactions: [{
     type: {
       type: String,
-      enum: ['income', 'expense', 'withdrawal', 'refund', 'bonus', 'referral'],
+      enum: ['income', 'expense', 'withdrawal', 'refund', 'bonus', 'referral', 'topup'],
       required: true
     },
     amount: {
@@ -318,6 +318,42 @@ const financeSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     }
+  }],
+  topUpRequests: [{
+    amount: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+    receipt: {
+      url: {
+        type: String,
+        required: true
+      },
+      publicId: String
+    },
+    paymentMethod: {
+      type: String,
+      enum: ['bank_transfer', 'mobile_money', 'card', 'cash', 'paypal', 'paymaya'],
+      required: true
+    },
+    reference: String,
+    notes: String,
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+    },
+    requestedAt: {
+      type: Date,
+      default: Date.now
+    },
+    processedAt: Date,
+    processedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    adminNotes: String
   }]
 }, {
   timestamps: true
@@ -327,6 +363,8 @@ const financeSchema = new mongoose.Schema({
 // user already has unique: true which creates an index
 financeSchema.index({ 'transactions.timestamp': -1 });
 financeSchema.index({ 'transactions.type': 1 });
+financeSchema.index({ 'topUpRequests.status': 1 });
+financeSchema.index({ 'topUpRequests.requestedAt': -1 });
 
 module.exports = {
   Loan: mongoose.model('Loan', loanSchema),

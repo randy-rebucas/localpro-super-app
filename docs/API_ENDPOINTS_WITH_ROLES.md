@@ -209,6 +209,8 @@ This document provides a comprehensive list of all API endpoints in the LocalPro
 | PUT | `/api/finance/withdrawals/:withdrawalId/process` | **admin** | Process withdrawal |
 | GET | `/api/finance/tax-documents` | AUTHENTICATED | Get tax documents |
 | PUT | `/api/finance/wallet/settings` | AUTHENTICATED | Update wallet settings |
+| POST | `/api/finance/top-up` | AUTHENTICATED | Request top-up (with receipt upload) |
+| PUT | `/api/finance/top-ups/:topUpId/process` | **admin** | Process top-up request |
 
 ---
 

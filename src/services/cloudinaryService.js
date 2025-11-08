@@ -36,7 +36,19 @@ class CloudinaryService {
         ...options
       };
 
-      const result = await cloudinary.uploader.upload(file.path, uploadOptions);
+      // Support both file path (disk storage) and buffer (memory storage)
+      let uploadSource;
+      if (file.buffer) {
+        // Memory storage - upload from buffer
+        uploadSource = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+      } else if (file.path) {
+        // Disk storage - upload from path
+        uploadSource = file.path;
+      } else {
+        throw new Error('File must have either path or buffer');
+      }
+
+      const result = await cloudinary.uploader.upload(uploadSource, uploadOptions);
 
       return {
         success: true,

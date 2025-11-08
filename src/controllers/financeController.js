@@ -3,6 +3,7 @@ const User = require('../models/User');
 const EmailService = require('../services/emailService');
 const { Booking } = require('../models/Marketplace');
 const Referral = require('../models/Referral');
+const CloudinaryService = require('../services/cloudinaryService');
 
 // @desc    Get user's financial overview
 // @route   GET /api/finance/overview
@@ -911,6 +912,240 @@ const updateWalletSettings = async (req, res) => {
   }
 };
 
+// @desc    Request top-up (add money to account)
+// @route   POST /api/finance/top-up
+// @access  Private
+const requestTopUp = async (req, res) => {
+  try {
+    const { amount, paymentMethod, reference, notes } = req.body;
+
+    // Validate required fields
+    if (!amount || !paymentMethod) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount and payment method are required'
+      });
+    }
+
+    // Validate amount is a positive number
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be a positive number'
+      });
+    }
+
+    // Check minimum top-up amount
+    const minTopUp = 10; // $10 minimum
+    if (amount < minTopUp) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum top-up amount is $${minTopUp}`
+      });
+    }
+
+    // Validate receipt image is uploaded
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Receipt image is required'
+      });
+    }
+
+    // Get or create finance record
+    let finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      finance = await Finance.create({ user: req.user.id });
+    }
+
+    // Upload receipt to Cloudinary
+    const uploadResult = await CloudinaryService.uploadFile(
+      req.file,
+      'localpro/finance/receipts'
+    );
+
+    if (!uploadResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload receipt image',
+        error: uploadResult.error
+      });
+    }
+
+    // Create top-up request
+    const topUpRequest = {
+      amount: parseFloat(amount),
+      receipt: {
+        url: uploadResult.data.secure_url,
+        publicId: uploadResult.data.public_id
+      },
+      paymentMethod,
+      reference: reference || undefined,
+      notes: notes || undefined,
+      status: 'pending',
+      requestedAt: new Date()
+    };
+
+    finance.topUpRequests.push(topUpRequest);
+    await finance.save();
+
+    // Send notification email to admin
+    await EmailService.sendEmail({
+      to: process.env.ADMIN_EMAIL,
+      subject: 'New Top-Up Request',
+      template: 'topup-request',
+      data: {
+        userName: `${req.user.firstName} ${req.user.lastName}`,
+        userEmail: req.user.email,
+        amount: parseFloat(amount),
+        paymentMethod,
+        reference: reference || 'N/A',
+        receiptUrl: uploadResult.data.secure_url
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Top-up request submitted successfully. Please wait for admin approval.',
+      data: {
+        topUpRequest: {
+          _id: finance.topUpRequests[finance.topUpRequests.length - 1]._id,
+          amount: topUpRequest.amount,
+          paymentMethod: topUpRequest.paymentMethod,
+          status: topUpRequest.status,
+          requestedAt: topUpRequest.requestedAt
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Request top-up error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Process top-up request (Admin only)
+// @route   PUT /api/finance/top-ups/:topUpId/process
+// @access  Private (Admin only)
+const processTopUp = async (req, res) => {
+  try {
+    const { topUpId } = req.params;
+    const { status, adminNotes } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status is required'
+      });
+    }
+
+    // Validate status
+    const validStatuses = ['approved', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status must be either "approved" or "rejected"'
+      });
+    }
+
+    // Find the user with this top-up request
+    const finance = await Finance.findOne({
+      'topUpRequests._id': topUpId
+    });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Top-up request not found'
+      });
+    }
+
+    const topUpRequest = finance.topUpRequests.id(topUpId);
+
+    if (!topUpRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Top-up request not found'
+      });
+    }
+
+    if (topUpRequest.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Top-up request has already been processed'
+      });
+    }
+
+    // Update top-up request status
+    topUpRequest.status = status;
+    topUpRequest.adminNotes = adminNotes;
+    topUpRequest.processedAt = new Date();
+    topUpRequest.processedBy = req.user.id;
+
+    if (status === 'approved') {
+      // Add transaction to user's account
+      const transaction = {
+        type: 'topup',
+        amount: topUpRequest.amount,
+        category: 'topup',
+        description: `Top-up via ${topUpRequest.paymentMethod}`,
+        paymentMethod: topUpRequest.paymentMethod,
+        status: 'completed',
+        timestamp: new Date(),
+        reference: topUpRequest.reference,
+        processedAt: new Date(),
+        processedBy: req.user.id
+      };
+
+      finance.transactions.push(transaction);
+
+      // Update wallet balance
+      finance.wallet.balance += topUpRequest.amount;
+      finance.wallet.lastUpdated = new Date();
+    }
+
+    await finance.save();
+
+    // Send notification email to user
+    const user = await User.findById(finance.user);
+    await EmailService.sendEmail({
+      to: user.email,
+      subject: 'Top-Up Request Update',
+      template: 'topup-status-update',
+      data: {
+        userName: `${user.firstName} ${user.lastName}`,
+        amount: topUpRequest.amount,
+        status,
+        adminNotes: adminNotes || 'No additional notes provided'
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Top-up request ${status} successfully`,
+      data: {
+        topUpRequest: {
+          _id: topUpRequest._id,
+          amount: topUpRequest.amount,
+          status: topUpRequest.status,
+          processedAt: topUpRequest.processedAt,
+          adminNotes: topUpRequest.adminNotes
+        },
+        newBalance: status === 'approved' ? finance.wallet.balance : undefined
+      }
+    });
+  } catch (error) {
+    console.error('Process top-up error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getFinancialOverview,
   getTransactions,
@@ -921,5 +1156,7 @@ module.exports = {
   processWithdrawal,
   getTaxDocuments,
   getFinancialReports,
-  updateWalletSettings
+  updateWalletSettings,
+  requestTopUp,
+  processTopUp
 };
