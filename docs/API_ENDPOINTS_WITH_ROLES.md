@@ -251,6 +251,11 @@ This document provides a comprehensive list of all API endpoints in the LocalPro
 | PUT | `/api/localpro-plus/settings` | AUTHENTICATED | Update subscription settings |
 | GET | `/api/localpro-plus/usage` | AUTHENTICATED | Get subscription usage |
 | GET | `/api/localpro-plus/analytics` | **admin** | Get subscription analytics |
+| POST | `/api/localpro-plus/admin/subscriptions` | **admin** | Create manual subscription |
+| GET | `/api/localpro-plus/admin/subscriptions` | **admin** | Get all subscriptions |
+| GET | `/api/localpro-plus/admin/subscriptions/user/:userId` | **admin** | Get subscription by user ID |
+| PUT | `/api/localpro-plus/admin/subscriptions/:subscriptionId` | **admin** | Update manual subscription |
+| DELETE | `/api/localpro-plus/admin/subscriptions/:subscriptionId` | **admin** | Delete manual subscription |
 
 ---
 

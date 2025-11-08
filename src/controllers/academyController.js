@@ -989,15 +989,8 @@ const getCourseStatistics = async (req, res) => {
       }
     ]);
 
-    // Get total enrollments
-    const totalEnrollments = await Academy.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalEnrollments: { $sum: { $size: '$enrollments' } }
-        }
-      }
-    ]);
+    // Get total enrollments from Enrollment collection
+    const totalEnrollments = await Enrollment.countDocuments();
 
     // Get monthly trends
     const monthlyTrends = await Academy.aggregate([
@@ -1020,7 +1013,7 @@ const getCourseStatistics = async (req, res) => {
       data: {
         totalCourses,
         coursesByCategory,
-        totalEnrollments: totalEnrollments[0]?.totalEnrollments || 0,
+        totalEnrollments,
         monthlyTrends
       }
     });

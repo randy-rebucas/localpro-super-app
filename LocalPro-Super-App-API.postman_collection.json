@@ -4,7 +4,7 @@
     "description": "Complete API collection for LocalPro Super App with all endpoints organized by module. Generated automatically from route files.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "1e3e122b-7797-461c-a3ed-d06fe0577dae",
-    "version": "2025-11-03"
+    "version": "2025-01-15"
   },
   "auth": {
     "type": "bearer",
@@ -49,6 +49,26 @@
     },
     {
       "key": "courseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "topUpId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "subscriptionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "planId",
       "value": "",
       "type": "string"
     }
@@ -2960,6 +2980,116 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "POST /api/finance/top-up [AUTHENTICATED]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "amount",
+                  "value": "100.00",
+                  "type": "text",
+                  "description": "Top-up amount (minimum $10)"
+                },
+                {
+                  "key": "paymentMethod",
+                  "value": "bank_transfer",
+                  "type": "text",
+                  "description": "Payment method: bank_transfer, mobile_money, card, cash, paypal, paymaya"
+                },
+                {
+                  "key": "receipt",
+                  "type": "file",
+                  "src": [],
+                  "description": "Receipt image file (required, max 5MB)"
+                },
+                {
+                  "key": "reference",
+                  "value": "TXN123456789",
+                  "type": "text",
+                  "description": "Payment reference/transaction ID (optional)"
+                },
+                {
+                  "key": "notes",
+                  "value": "Payment for services",
+                  "type": "text",
+                  "description": "Additional notes (optional)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/top-up",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "finance",
+                "top-up"
+              ]
+            },
+            "description": "Request top-up (add money to account). Requires receipt image upload. Admin approval required."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/finance/top-ups/:topUpId/process [ADMIN]",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/top-ups/:topUpId/process",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "finance",
+                "top-ups",
+                ":topUpId",
+                "process"
+              ],
+              "variable": [
+                {
+                  "key": "topUpId",
+                  "value": "{{topUpId}}",
+                  "description": "Top-up request ID"
+                }
+              ]
+            },
+            "description": "Process top-up request (Admin only). Approve or reject top-up request.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"adminNotes\": \"Payment verified and approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -4910,6 +5040,235 @@
               ]
             },
             "description": "Get subscription analytics"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/localpro-plus/admin/subscriptions [ADMIN]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/admin/subscriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "localpro-plus",
+                "admin",
+                "subscriptions"
+              ]
+            },
+            "description": "Create manual subscription for user (Admin only)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"planId\": \"{{planId}}\",\n  \"billingCycle\": \"monthly\",\n  \"startDate\": \"2025-01-15\",\n  \"endDate\": \"2025-02-15\",\n  \"reason\": \"Free trial for new user\",\n  \"notes\": \"Promotional subscription\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/localpro-plus/admin/subscriptions [ADMIN]",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/admin/subscriptions?page=1&limit=20&status=active&isManual=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "localpro-plus",
+                "admin",
+                "subscriptions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "Filter by status (optional)"
+                },
+                {
+                  "key": "planId",
+                  "value": "",
+                  "description": "Filter by plan ID (optional)"
+                },
+                {
+                  "key": "isManual",
+                  "value": "true",
+                  "description": "Filter manual subscriptions (optional)"
+                }
+              ]
+            },
+            "description": "Get all subscriptions (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/localpro-plus/admin/subscriptions/user/:userId [ADMIN]",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/admin/subscriptions/user/:userId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "localpro-plus",
+                "admin",
+                "subscriptions",
+                "user",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}",
+                  "description": "User ID"
+                }
+              ]
+            },
+            "description": "Get subscription by user ID (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/localpro-plus/admin/subscriptions/:subscriptionId [ADMIN]",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/admin/subscriptions/:subscriptionId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "localpro-plus",
+                "admin",
+                "subscriptions",
+                ":subscriptionId"
+              ],
+              "variable": [
+                {
+                  "key": "subscriptionId",
+                  "value": "{{subscriptionId}}",
+                  "description": "Subscription ID"
+                }
+              ]
+            },
+            "description": "Update manual subscription (Admin only)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"{{planId}}\",\n  \"status\": \"active\",\n  \"startDate\": \"2025-01-15\",\n  \"endDate\": \"2025-12-31\",\n  \"billingCycle\": \"yearly\",\n  \"reason\": \"Plan upgrade\",\n  \"notes\": \"Extended subscription for 1 year\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/localpro-plus/admin/subscriptions/:subscriptionId [ADMIN]",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/localpro-plus/admin/subscriptions/:subscriptionId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "localpro-plus",
+                "admin",
+                "subscriptions",
+                ":subscriptionId"
+              ],
+              "variable": [
+                {
+                  "key": "subscriptionId",
+                  "value": "{{subscriptionId}}",
+                  "description": "Subscription ID"
+                }
+              ]
+            },
+            "description": "Delete/Cancel manual subscription (Admin only)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"User requested cancellation\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "response": []
         }

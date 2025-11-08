@@ -291,6 +291,11 @@
 | PUT | `/settings` | AUTHENTICATED | Update subscription settings |
 | GET | `/usage` | AUTHENTICATED | Get subscription usage |
 | GET | `/analytics` | **admin** | Get subscription analytics |
+| **POST** | **`/admin/subscriptions`** | **admin** | **Create manual subscription** ⭐ NEW |
+| **GET** | **`/admin/subscriptions`** | **admin** | **Get all subscriptions** ⭐ NEW |
+| **GET** | **`/admin/subscriptions/user/:userId`** | **admin** | **Get subscription by user ID** ⭐ NEW |
+| **PUT** | **`/admin/subscriptions/:subscriptionId`** | **admin** | **Update manual subscription** ⭐ NEW |
+| **DELETE** | **`/admin/subscriptions/:subscriptionId`** | **admin** | **Delete manual subscription** ⭐ NEW |
 
 ---
 

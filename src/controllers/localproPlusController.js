@@ -799,6 +799,424 @@ const getSubscriptionAnalytics = async (req, res) => {
   }
 };
 
+// @desc    Create manual subscription (Admin only)
+// @route   POST /api/localpro-plus/admin/subscriptions
+// @access  Private (Admin only)
+const createManualSubscription = async (req, res) => {
+  try {
+    const { userId, planId, billingCycle = 'monthly', startDate, endDate, reason, notes } = req.body;
+
+    if (!userId || !planId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID and Plan ID are required'
+      });
+    }
+
+    // Validate user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Validate plan exists
+    const plan = await SubscriptionPlan.findById(planId);
+    if (!plan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plan not found'
+      });
+    }
+
+    // Check if user already has an active subscription
+    const existingSubscription = await UserSubscription.findOne({
+      user: userId,
+      status: 'active'
+    });
+
+    if (existingSubscription) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already has an active subscription',
+        data: {
+          existingSubscriptionId: existingSubscription._id
+        }
+      });
+    }
+
+    // Calculate dates
+    const subscriptionStartDate = startDate ? new Date(startDate) : new Date();
+    const billingDays = billingCycle === 'yearly' ? 365 : 30;
+    const subscriptionEndDate = endDate 
+      ? new Date(endDate) 
+      : new Date(subscriptionStartDate.getTime() + billingDays * 24 * 60 * 60 * 1000);
+
+    // Create manual subscription
+    const subscription = new UserSubscription({
+      user: userId,
+      plan: planId,
+      status: 'active',
+      billingCycle,
+      paymentMethod: 'manual',
+      isManual: true,
+      manualDetails: {
+        createdBy: req.user.id,
+        reason: reason || 'Admin manual subscription',
+        notes: notes || undefined
+      },
+      startDate: subscriptionStartDate,
+      endDate: subscriptionEndDate,
+      nextBillingDate: subscriptionEndDate,
+      usage: {
+        services: { current: 0, limit: plan.limits.maxServices },
+        bookings: { current: 0, limit: plan.limits.maxBookings },
+        storage: { current: 0, limit: plan.limits.maxStorage },
+        apiCalls: { current: 0, limit: plan.limits.maxApiCalls }
+      },
+      features: {
+        prioritySupport: plan.features.some(f => f.name === 'priority_support' && f.included),
+        advancedAnalytics: plan.features.some(f => f.name === 'advanced_analytics' && f.included),
+        customBranding: plan.features.some(f => f.name === 'custom_branding' && f.included),
+        apiAccess: plan.features.some(f => f.name === 'api_access' && f.included),
+        whiteLabel: plan.features.some(f => f.name === 'white_label' && f.included)
+      },
+      history: [{
+        action: 'subscribed',
+        toPlan: plan.name,
+        timestamp: new Date(),
+        reason: reason || 'Admin manual subscription'
+      }]
+    });
+
+    await subscription.save();
+
+    // Update user's subscription reference
+    user.localProPlusSubscription = subscription._id;
+    await user.save();
+
+    // Send notification email to user
+    await EmailService.sendEmail({
+      to: user.email,
+      subject: 'LocalPro Plus Subscription Activated',
+      template: 'subscription-activated',
+      data: {
+        userName: `${user.firstName} ${user.lastName}`,
+        planName: plan.name,
+        startDate: subscriptionStartDate,
+        endDate: subscriptionEndDate,
+        billingCycle
+      }
+    });
+
+    const populatedSubscription = await subscription.populate('plan user');
+
+    res.status(201).json({
+      success: true,
+      message: 'Manual subscription created successfully',
+      data: populatedSubscription
+    });
+  } catch (error) {
+    console.error('Create manual subscription error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get all subscriptions (Admin only)
+// @route   GET /api/localpro-plus/admin/subscriptions
+// @access  Private (Admin only)
+const getAllSubscriptions = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, planId, isManual } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Build filter
+    const filter = {};
+    if (status) filter.status = status;
+    if (planId) filter.plan = planId;
+    if (isManual !== undefined) filter.isManual = isManual === 'true';
+
+    const subscriptions = await UserSubscription.find(filter)
+      .populate('user', 'firstName lastName email phoneNumber')
+      .populate('plan', 'name description price')
+      .populate('manualDetails.createdBy', 'firstName lastName email')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await UserSubscription.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      count: subscriptions.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: subscriptions
+    });
+  } catch (error) {
+    console.error('Get all subscriptions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get subscription by user ID (Admin only)
+// @route   GET /api/localpro-plus/admin/subscriptions/user/:userId
+// @access  Private (Admin only)
+const getSubscriptionByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const subscription = await UserSubscription.findOne({ user: userId })
+      .populate('user', 'firstName lastName email phoneNumber')
+      .populate('plan', 'name description price features limits benefits')
+      .populate('manualDetails.createdBy', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'No subscription found for this user'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: subscription
+    });
+  } catch (error) {
+    console.error('Get subscription by user ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Update manual subscription (Admin only)
+// @route   PUT /api/localpro-plus/admin/subscriptions/:subscriptionId
+// @access  Private (Admin only)
+const updateManualSubscription = async (req, res) => {
+  try {
+    const { subscriptionId } = req.params;
+    const { planId, status, startDate, endDate, billingCycle, reason, notes } = req.body;
+
+    const subscription = await UserSubscription.findById(subscriptionId)
+      .populate('plan');
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subscription not found'
+      });
+    }
+
+    // Only allow updates to manual subscriptions
+    if (!subscription.isManual) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only manual subscriptions can be updated by admin'
+      });
+    }
+
+    const oldPlanName = subscription.plan.name;
+    let newPlan = subscription.plan;
+
+    // Update plan if provided
+    if (planId && planId.toString() !== subscription.plan._id.toString()) {
+      newPlan = await SubscriptionPlan.findById(planId);
+      if (!newPlan) {
+        return res.status(404).json({
+          success: false,
+          message: 'Plan not found'
+        });
+      }
+      subscription.plan = planId;
+      
+      // Update usage limits based on new plan
+      subscription.usage = {
+        services: { 
+          current: Math.min(subscription.usage.services.current, newPlan.limits.maxServices || 0),
+          limit: newPlan.limits.maxServices 
+        },
+        bookings: { 
+          current: Math.min(subscription.usage.bookings.current, newPlan.limits.maxBookings || 0),
+          limit: newPlan.limits.maxBookings 
+        },
+        storage: { 
+          current: Math.min(subscription.usage.storage.current, newPlan.limits.maxStorage || 0),
+          limit: newPlan.limits.maxStorage 
+        },
+        apiCalls: { 
+          current: Math.min(subscription.usage.apiCalls.current, newPlan.limits.maxApiCalls || 0),
+          limit: newPlan.limits.maxApiCalls 
+        }
+      };
+
+      // Update features
+      subscription.features = {
+        prioritySupport: newPlan.features.some(f => f.name === 'priority_support' && f.included),
+        advancedAnalytics: newPlan.features.some(f => f.name === 'advanced_analytics' && f.included),
+        customBranding: newPlan.features.some(f => f.name === 'custom_branding' && f.included),
+        apiAccess: newPlan.features.some(f => f.name === 'api_access' && f.included),
+        whiteLabel: newPlan.features.some(f => f.name === 'white_label' && f.included)
+      };
+
+      // Determine if upgrade or downgrade based on price
+      const oldPrice = subscription.billingCycle === 'yearly' 
+        ? subscription.plan.price.yearly 
+        : subscription.plan.price.monthly;
+      const newPrice = subscription.billingCycle === 'yearly'
+        ? newPlan.price.yearly
+        : newPlan.price.monthly;
+      
+      subscription.history.push({
+        action: newPrice > oldPrice ? 'upgraded' : 'downgraded',
+        fromPlan: oldPlanName,
+        toPlan: newPlan.name,
+        timestamp: new Date(),
+        reason: reason || 'Admin plan change'
+      });
+    }
+
+    // Update status
+    if (status && status !== subscription.status) {
+      const oldStatus = subscription.status;
+      subscription.status = status;
+      
+      if (status === 'cancelled' || status === 'suspended') {
+        subscription.cancelledAt = new Date();
+        subscription.cancellationReason = reason || 'Admin action';
+      } else if (status === 'active' && oldStatus === 'suspended') {
+        subscription.history.push({
+          action: 'reactivated',
+          timestamp: new Date(),
+          reason: reason || 'Admin reactivation'
+        });
+      }
+    }
+
+    // Update dates
+    if (startDate) subscription.startDate = new Date(startDate);
+    if (endDate) subscription.endDate = new Date(endDate);
+    if (billingCycle) subscription.billingCycle = billingCycle;
+    if (endDate) subscription.nextBillingDate = new Date(endDate);
+
+    // Update manual details
+    if (notes) subscription.manualDetails.notes = notes;
+
+    await subscription.save();
+
+    const populatedSubscription = await subscription.populate('user plan');
+
+    // Send notification email to user
+    const user = await User.findById(subscription.user);
+    await EmailService.sendEmail({
+      to: user.email,
+      subject: 'LocalPro Plus Subscription Updated',
+      template: 'subscription-updated',
+      data: {
+        userName: `${user.firstName} ${user.lastName}`,
+        planName: newPlan.name,
+        status: subscription.status,
+        endDate: subscription.endDate
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Subscription updated successfully',
+      data: populatedSubscription
+    });
+  } catch (error) {
+    console.error('Update manual subscription error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Delete/Cancel manual subscription (Admin only)
+// @route   DELETE /api/localpro-plus/admin/subscriptions/:subscriptionId
+// @access  Private (Admin only)
+const deleteManualSubscription = async (req, res) => {
+  try {
+    const { subscriptionId } = req.params;
+    const { reason } = req.body;
+
+    const subscription = await UserSubscription.findById(subscriptionId)
+      .populate('user plan');
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subscription not found'
+      });
+    }
+
+    // Only allow deletion of manual subscriptions
+    if (!subscription.isManual) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only manual subscriptions can be deleted by admin. Use cancel endpoint for regular subscriptions.'
+      });
+    }
+
+    // Cancel subscription
+    subscription.status = 'cancelled';
+    subscription.cancelledAt = new Date();
+    subscription.cancellationReason = reason || 'Admin deletion';
+    
+    subscription.history.push({
+      action: 'cancelled',
+      reason: reason || 'Admin deletion',
+      timestamp: new Date()
+    });
+
+    await subscription.save();
+
+    // Remove subscription reference from user
+    const user = await User.findById(subscription.user);
+    if (user && user.localProPlusSubscription?.toString() === subscriptionId) {
+      user.localProPlusSubscription = undefined;
+      await user.save();
+    }
+
+    // Send notification email to user
+    await EmailService.sendEmail({
+      to: user.email,
+      subject: 'LocalPro Plus Subscription Cancelled',
+      template: 'subscription-cancelled',
+      data: {
+        userName: `${user.firstName} ${user.lastName}`,
+        planName: subscription.plan.name,
+        reason: reason || 'Admin cancellation'
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Subscription cancelled successfully',
+      data: subscription
+    });
+  } catch (error) {
+    console.error('Delete manual subscription error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getPlans,
   getPlan,
@@ -812,5 +1230,10 @@ module.exports = {
   updateSubscriptionSettings,
   getSubscriptionUsage,
   renewSubscription,
-  getSubscriptionAnalytics
+  getSubscriptionAnalytics,
+  createManualSubscription,
+  getAllSubscriptions,
+  getSubscriptionByUserId,
+  updateManualSubscription,
+  deleteManualSubscription
 };

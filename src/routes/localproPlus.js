@@ -13,7 +13,12 @@ const {
   updateSubscriptionSettings,
   getSubscriptionUsage,
   renewSubscription,
-  getSubscriptionAnalytics
+  getSubscriptionAnalytics,
+  createManualSubscription,
+  getAllSubscriptions,
+  getSubscriptionByUserId,
+  updateManualSubscription,
+  deleteManualSubscription
 } = require('../controllers/localproPlusController');
 
 const router = express.Router();
@@ -43,5 +48,12 @@ router.get('/usage', getSubscriptionUsage);
 
 // Analytics routes (Admin only) - [ADMIN ONLY]
 router.get('/analytics', authorize('admin'), getSubscriptionAnalytics);
+
+// Admin subscription management routes (Admin only) - [ADMIN ONLY]
+router.post('/admin/subscriptions', authorize('admin'), createManualSubscription);
+router.get('/admin/subscriptions', authorize('admin'), getAllSubscriptions);
+router.get('/admin/subscriptions/user/:userId', authorize('admin'), getSubscriptionByUserId);
+router.put('/admin/subscriptions/:subscriptionId', authorize('admin'), updateManualSubscription);
+router.delete('/admin/subscriptions/:subscriptionId', authorize('admin'), deleteManualSubscription);
 
 module.exports = router;

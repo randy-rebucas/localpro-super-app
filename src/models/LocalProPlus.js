@@ -89,8 +89,20 @@ const userSubscriptionSchema = new mongoose.Schema({
   cancellationReason: String,
   paymentMethod: {
     type: String,
-    enum: ['paypal', 'paymaya', 'stripe', 'bank_transfer'],
+    enum: ['paypal', 'paymaya', 'stripe', 'bank_transfer', 'manual'],
     default: 'paypal'
+  },
+  isManual: {
+    type: Boolean,
+    default: false
+  },
+  manualDetails: {
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    reason: String,
+    notes: String
   },
   paymentDetails: {
     paypalSubscriptionId: String,

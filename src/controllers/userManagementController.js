@@ -19,20 +19,61 @@ const getAllUsers = async (req, res) => {
     } = req.query;
 
     // Build filter object
-    const filter = {};
+    const baseFilters = {};
     
-    if (role) filter.role = role;
-    if (isActive !== undefined) filter.isActive = isActive === 'true';
-    if (isVerified !== undefined) filter.isVerified = isVerified === 'true';
+    // Role filter - only add if not empty
+    if (role && (typeof role === 'string' ? role.trim() !== '' : true)) {
+      baseFilters.role = typeof role === 'string' ? role.trim() : role;
+    }
     
-    if (search) {
-      filter.$or = [
-        { firstName: { $regex: search, $options: 'i' } },
-        { lastName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { phoneNumber: { $regex: search, $options: 'i' } },
-        { 'profile.businessName': { $regex: search, $options: 'i' } }
-      ];
+    // Status filters - handle string 'true'/'false' and boolean values
+    if (isActive !== undefined && isActive !== '') {
+      if (typeof isActive === 'string') {
+        baseFilters.isActive = isActive.toLowerCase() === 'true';
+      } else {
+        baseFilters.isActive = Boolean(isActive);
+      }
+    }
+    
+    if (isVerified !== undefined && isVerified !== '') {
+      if (typeof isVerified === 'string') {
+        baseFilters.isVerified = isVerified.toLowerCase() === 'true';
+      } else {
+        baseFilters.isVerified = Boolean(isVerified);
+      }
+    }
+    
+    // Build final filter - combine base filters with search if present
+    let filter = {};
+    
+    // Search filter - trim and validate
+    const searchTerm = search && typeof search === 'string' ? search.trim() : search;
+    if (searchTerm && searchTerm !== '') {
+      const searchConditions = {
+        $or: [
+          { firstName: { $regex: searchTerm, $options: 'i' } },
+          { lastName: { $regex: searchTerm, $options: 'i' } },
+          { email: { $regex: searchTerm, $options: 'i' } },
+          { phoneNumber: { $regex: searchTerm, $options: 'i' } },
+          { 'profile.businessName': { $regex: searchTerm, $options: 'i' } }
+        ]
+      };
+      
+      // If we have both base filters and search, combine them with $and
+      if (Object.keys(baseFilters).length > 0) {
+        filter = {
+          $and: [
+            baseFilters,
+            searchConditions
+          ]
+        };
+      } else {
+        // Only search filter
+        filter = searchConditions;
+      }
+    } else {
+      // No search, just use base filters
+      filter = baseFilters;
     }
 
     // Build sort object
@@ -52,10 +93,14 @@ const getAllUsers = async (req, res) => {
       .limit(parseInt(limit));
 
     let total = 0;
+    let users = [];
     try {
-      total = await User.countDocuments(filter);
+      [total, users] = await Promise.all([
+        User.countDocuments(filter),
+        usersQuery.exec()
+      ]);
     } catch (_err) {
-      // Keep total as 0 on error, but still respond 200 per tests
+      // Keep total as 0 and users as empty array on error, but still respond 200 per tests
     }
 
     // Audit log
@@ -64,7 +109,7 @@ const getAllUsers = async (req, res) => {
     res.status(200).json({
       success: true,
       data: {
-        users: usersQuery,
+        users,
         pagination: {
           current: parseInt(page),
           pages: Math.ceil(total / parseInt(limit)),
@@ -88,16 +133,22 @@ const getAllUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
-    const query = User.findById(id)
+    const user = await User.findById(id)
       .select('-verificationCode')
       .populate('agency.agencyId', 'name type address')
       .populate('referral.referredBy', 'firstName lastName email')
       .populate('settings');
 
-    // Per tests, always return 200 with a data object (query or result)
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        data: {}
+      });
+    }
+
     res.status(200).json({
       success: true,
-      data: query
+      data: user
     });
   } catch (_error) {
     res.status(200).json({

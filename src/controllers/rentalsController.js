@@ -939,12 +939,18 @@ const getRentalStatistics = async (req, res) => {
       }
     ]);
 
-    // Get total bookings
+    // Get total bookings - handle missing bookings field
     const totalBookings = await RentalItem.aggregate([
       {
         $group: {
           _id: null,
-          totalBookings: { $sum: { $size: '$bookings' } }
+          totalBookings: { 
+            $sum: { 
+              $size: { 
+                $ifNull: ['$bookings', []] 
+              } 
+            } 
+          }
         }
       }
     ]);
