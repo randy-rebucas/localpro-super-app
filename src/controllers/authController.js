@@ -868,9 +868,136 @@ const updateProfile = async (req, res) => {
     if (firstName !== undefined) user.firstName = firstName;
     if (lastName !== undefined) user.lastName = lastName;
     if (email !== undefined) user.email = email;
+    
     if (profile !== undefined) {
-      user.profile = { ...user.profile, ...profile };
+      // Helper function to remove undefined values from object
+      const removeUndefined = (obj) => {
+        if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+          return obj;
+        }
+        const cleaned = {};
+        Object.keys(obj).forEach(key => {
+          if (obj[key] !== undefined) {
+            if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+              const nested = removeUndefined(obj[key]);
+              if (Object.keys(nested).length > 0) {
+                cleaned[key] = nested;
+              }
+            } else {
+              cleaned[key] = obj[key];
+            }
+          }
+        });
+        return cleaned;
+      };
+
+      // Helper function to deep merge objects, skipping undefined values
+      const deepMerge = (target, source) => {
+        if (!source || typeof source !== 'object' || Array.isArray(source)) {
+          return source !== undefined ? source : target;
+        }
+        
+        const result = { ...target };
+        Object.keys(source).forEach(key => {
+          if (source[key] === undefined) {
+            // Skip undefined values - don't overwrite existing
+            return;
+          }
+          
+          if (
+            source[key] &&
+            typeof source[key] === 'object' &&
+            !Array.isArray(source[key]) &&
+            target[key] &&
+            typeof target[key] === 'object' &&
+            !Array.isArray(target[key])
+          ) {
+            // Recursively merge nested objects
+            result[key] = deepMerge(target[key], source[key]);
+          } else {
+            // Replace with new value (or set if doesn't exist)
+            result[key] = source[key];
+          }
+        });
+        return result;
+      };
+
+      // Clean profile data - remove undefined values
+      const cleanedProfile = removeUndefined(profile);
+      
+      // Start with existing profile and merge cleaned profile
+      const updatedProfile = deepMerge(
+        user.profile || {},
+        cleanedProfile
+      );
+      
+      // Handle address coordinates conversion (GeoJSON to {lat, lng} format)
+      if (cleanedProfile.address?.coordinates) {
+        const coords = cleanedProfile.address.coordinates;
+        
+        // Check if coordinates are in GeoJSON format [lng, lat]
+        if (Array.isArray(coords) && coords.length === 2) {
+          updatedProfile.address = {
+            ...updatedProfile.address,
+            ...cleanedProfile.address,
+            coordinates: {
+              lat: parseFloat(coords[1]),  // GeoJSON: [lng, lat] -> {lat, lng}
+              lng: parseFloat(coords[0])
+            }
+          };
+        } 
+        // Check if coordinates are already in {lat, lng} format
+        else if (typeof coords === 'object' && coords !== null && coords.lat !== undefined && coords.lng !== undefined) {
+          updatedProfile.address = {
+            ...updatedProfile.address,
+            ...cleanedProfile.address,
+            coordinates: {
+              lat: parseFloat(coords.lat),
+              lng: parseFloat(coords.lng)
+            }
+          };
+        }
+        // If format is invalid, remove coordinates to prevent errors
+        else {
+          console.warn('Invalid coordinates format received, removing coordinates');
+          updatedProfile.address = {
+            ...updatedProfile.address,
+            ...cleanedProfile.address
+          };
+          delete updatedProfile.address.coordinates;
+        }
+      } else if (cleanedProfile.address) {
+        // Merge address without coordinates
+        updatedProfile.address = {
+          ...(updatedProfile.address || {}),
+          ...cleanedProfile.address
+        };
+      }
+      
+      // Final cleanup: Explicitly remove undefined values from nested objects that cause Mongoose casting errors
+      // This must happen before assignment to prevent Mongoose from trying to cast undefined to Object
+      const problematicFields = ['avatar', 'insurance', 'backgroundCheck', 'availability'];
+      problematicFields.forEach(field => {
+        // Remove if undefined or null
+        if (updatedProfile[field] === undefined || updatedProfile[field] === null) {
+          delete updatedProfile[field];
+        }
+      });
+      
+      // Additional safety: Clean the entire profile object one more time to catch any missed undefined values
+      const finalClean = removeUndefined(updatedProfile);
+      
+      // Ensure problematic fields are completely removed if they're still undefined after cleaning
+      problematicFields.forEach(field => {
+        if (finalClean[field] === undefined) {
+          delete finalClean[field];
+        }
+      });
+      
+      // Assign the fully cleaned profile
+      user.profile = finalClean;
     }
+    
     await user.save();
 
     res.status(200).json({
@@ -879,7 +1006,12 @@ const updateProfile = async (req, res) => {
       user
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Update profile error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 

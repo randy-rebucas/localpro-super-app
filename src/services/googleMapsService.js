@@ -101,9 +101,46 @@ class GoogleMapsService {
       }
     } catch (error) {
       console.error('Reverse geocoding error:', error);
+      
+      // Handle specific HTTP error codes
+      let errorMessage = 'Reverse geocoding failed';
+      
+      if (error.response) {
+        const statusCode = error.response.status;
+        const statusText = error.response.statusText;
+        
+        switch (statusCode) {
+          case 400:
+            errorMessage = 'Invalid coordinates provided. Please check latitude and longitude values.';
+            break;
+          case 403:
+            errorMessage = 'Google Maps API access denied. Please check: 1) API key is valid, 2) Geocoding API is enabled in Google Cloud Console, 3) API key restrictions allow this request, 4) Billing is enabled for your Google Cloud project.';
+            break;
+          case 404:
+            errorMessage = 'Geocoding API endpoint not found. Please verify your API configuration.';
+            break;
+          case 429:
+            errorMessage = 'Too many requests. Please try again later or check your API quota.';
+            break;
+          case 500:
+          case 503:
+            errorMessage = 'Google Maps API service temporarily unavailable. Please try again later.';
+            break;
+          default:
+            errorMessage = `Google Maps API error (${statusCode}): ${statusText || error.message}`;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return {
         success: false,
-        error: error.message || 'Reverse geocoding failed'
+        error: errorMessage,
+        statusCode: error.response?.status,
+        details: process.env.NODE_ENV === 'development' ? {
+          originalError: error.message,
+          response: error.response?.data
+        } : undefined
       };
     }
   }

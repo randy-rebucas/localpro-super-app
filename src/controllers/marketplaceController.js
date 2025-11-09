@@ -1307,12 +1307,6 @@ const getServiceCategories = async (req, res) => {
         icon: '💦',
         subcategories: ['driveway', 'siding', 'deck_patio', 'fence', 'roof', 'commercial']
       },
-      snow_removal: {
-        name: 'Snow Removal',
-        description: 'Snow clearing and removal services',
-        icon: '❄️',
-        subcategories: ['driveway', 'sidewalk', 'commercial', 'roof', 'snow_plowing', 'ice_removal']
-      },
       other: {
         name: 'Other Services',
         description: 'Other specialized services',

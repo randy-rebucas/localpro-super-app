@@ -219,7 +219,116 @@ const updateUser = async (req, res) => {
       return res.status(200).json({ success: true, data: {} });
     }
 
-    // Apply provided fields
+    // Handle nested profile merge with undefined filtering
+    if (updateData.profile) {
+      // Helper function to remove undefined values from object
+      const removeUndefined = (obj) => {
+        if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+          return obj;
+        }
+        const cleaned = {};
+        Object.keys(obj).forEach(key => {
+          if (obj[key] !== undefined) {
+            if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+              const nested = removeUndefined(obj[key]);
+              if (Object.keys(nested).length > 0) {
+                cleaned[key] = nested;
+              }
+            } else {
+              cleaned[key] = obj[key];
+            }
+          }
+        });
+        return cleaned;
+      };
+
+      // Helper function to deep merge objects, skipping undefined values
+      const deepMerge = (target, source) => {
+        if (!source || typeof source !== 'object' || Array.isArray(source)) {
+          return source !== undefined ? source : target;
+        }
+        
+        const result = { ...target };
+        Object.keys(source).forEach(key => {
+          if (source[key] === undefined) {
+            // Skip undefined values - don't overwrite existing
+            return;
+          }
+          
+          if (
+            source[key] &&
+            typeof source[key] === 'object' &&
+            !Array.isArray(source[key]) &&
+            target[key] &&
+            typeof target[key] === 'object' &&
+            !Array.isArray(target[key])
+          ) {
+            // Recursively merge nested objects
+            result[key] = deepMerge(target[key], source[key]);
+          } else {
+            // Replace with new value (or set if doesn't exist)
+            result[key] = source[key];
+          }
+        });
+        return result;
+      };
+
+      // Clean profile data - remove undefined values
+      const cleanedProfile = removeUndefined(updateData.profile);
+      
+      // Handle GeoJSON coordinates conversion for profile.address
+      if (cleanedProfile.address?.coordinates) {
+        const coords = cleanedProfile.address.coordinates;
+        
+        // Convert GeoJSON format [lng, lat] to {lat, lng}
+        if (Array.isArray(coords) && coords.length === 2) {
+          cleanedProfile.address.coordinates = {
+            lat: parseFloat(coords[1]),  // GeoJSON: [lng, lat] -> {lat, lng}
+            lng: parseFloat(coords[0])
+          };
+        }
+        // Ensure {lat, lng} format if already an object
+        else if (typeof coords === 'object' && coords !== null && coords.lat !== undefined && coords.lng !== undefined) {
+          cleanedProfile.address.coordinates = {
+            lat: parseFloat(coords.lat),
+            lng: parseFloat(coords.lng)
+          };
+        }
+        // Remove invalid coordinates format
+        else {
+          console.warn('Invalid coordinates format received, removing coordinates');
+          delete cleanedProfile.address.coordinates;
+        }
+      }
+
+      // Deep merge profile
+      const mergedProfile = deepMerge(user.profile || {}, cleanedProfile);
+      
+      // Final cleanup: Explicitly remove undefined values from nested objects that cause Mongoose casting errors
+      const problematicFields = ['avatar', 'insurance', 'backgroundCheck', 'availability'];
+      problematicFields.forEach(field => {
+        // Remove if undefined or null
+        if (mergedProfile[field] === undefined || mergedProfile[field] === null) {
+          delete mergedProfile[field];
+        }
+      });
+      
+      // Additional safety: Clean the entire profile object one more time to catch any missed undefined values
+      const finalClean = removeUndefined(mergedProfile);
+      
+      // Ensure problematic fields are completely removed if they're still undefined after cleaning
+      problematicFields.forEach(field => {
+        if (finalClean[field] === undefined) {
+          delete finalClean[field];
+        }
+      });
+      
+      // Assign the fully cleaned profile
+      user.profile = finalClean;
+      delete updateData.profile; // Remove from updateData to avoid overwriting
+    }
+
+    // Apply remaining provided fields
     Object.keys(updateData).forEach((key) => {
       user[key] = updateData[key];
     });
@@ -229,13 +338,19 @@ const updateUser = async (req, res) => {
     } catch (err) {
       return res.status(400).json({
         success: false,
-        message: 'Validation error'
+        message: 'Validation error',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
       });
     }
 
     res.status(200).json({ success: true, message: 'User updated successfully', data: user });
   } catch (_error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Update user error:', _error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? _error.message : undefined
+    });
   }
 };
 

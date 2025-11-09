@@ -56,7 +56,13 @@ const geocodeAddress = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: result.data
+      data: {
+        coordinates: result.coordinates,
+        formattedAddress: result.formattedAddress,
+        addressComponents: result.addressComponents,
+        placeId: result.placeId,
+        types: result.types
+      }
     });
   } catch (error) {
     console.error('Geocode address error:', error);
@@ -72,35 +78,89 @@ const geocodeAddress = async (req, res) => {
 // @access  Public
 const reverseGeocode = async (req, res) => {
   try {
-    const { lat, lng } = req.body;
+    // Support both {lat, lng} object and separate lat/lng parameters
+    let lat, lng;
+    
+    if (req.body.lat !== undefined && req.body.lng !== undefined) {
+      lat = req.body.lat;
+      lng = req.body.lng;
+    } else if (req.body.coordinates) {
+      // Handle coordinates object or array format
+      if (Array.isArray(req.body.coordinates) && req.body.coordinates.length === 2) {
+        // GeoJSON format [lng, lat]
+        lng = req.body.coordinates[0];
+        lat = req.body.coordinates[1];
+      } else if (req.body.coordinates.lat !== undefined && req.body.coordinates.lng !== undefined) {
+        // Object format {lat, lng}
+        lat = req.body.coordinates.lat;
+        lng = req.body.coordinates.lng;
+      }
+    }
 
-    if (!lat || !lng) {
+    if (lat === undefined || lng === undefined) {
       return res.status(400).json({
         success: false,
-        message: 'Latitude and longitude are required'
+        message: 'Latitude and longitude are required. Provide either {lat, lng} or {coordinates: {lat, lng}}'
       });
     }
 
-    const coordinates = { lat: parseFloat(lat), lng: parseFloat(lng) };
-    const result = await GoogleMapsService.reverseGeocode(coordinates);
+    // Parse and validate coordinates
+    const parsedLat = parseFloat(lat);
+    const parsedLng = parseFloat(lng);
 
-    if (!result.success) {
+    if (isNaN(parsedLat) || isNaN(parsedLng)) {
       return res.status(400).json({
         success: false,
+        message: 'Invalid coordinates. Latitude and longitude must be valid numbers'
+      });
+    }
+
+    if (parsedLat < -90 || parsedLat > 90) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid latitude. Must be between -90 and 90'
+      });
+    }
+
+    if (parsedLng < -180 || parsedLng > 180) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid longitude. Must be between -180 and 180'
+      });
+    }
+
+    // Call service with separate parameters (lat, lng)
+    const result = await GoogleMapsService.reverseGeocode(parsedLat, parsedLng);
+
+    if (!result.success) {
+      // Return appropriate status code based on error
+      const statusCode = result.statusCode === 403 ? 403 : 
+                        result.statusCode === 429 ? 429 :
+                        result.statusCode === 500 || result.statusCode === 503 ? 503 : 400;
+      
+      return res.status(statusCode).json({
+        success: false,
         message: 'Failed to reverse geocode coordinates',
-        error: result.error
+        error: result.error || 'Unknown error',
+        ...(result.details && { details: result.details })
       });
     }
 
     res.status(200).json({
       success: true,
-      data: result.data
+      data: {
+        formattedAddress: result.formattedAddress,
+        addressComponents: result.addressComponents,
+        placeId: result.placeId,
+        types: result.types
+      }
     });
   } catch (error) {
     console.error('Reverse geocode error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Failed to reverse geocode coordinates',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

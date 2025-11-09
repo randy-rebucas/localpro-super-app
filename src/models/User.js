@@ -371,6 +371,23 @@ userSchema.index({
 userSchema.index({ 'profile.businessName': 1 }, { sparse: true });
 userSchema.index({ 'profile.website': 1 }, { sparse: true });
 
+// Pre-validate hook to clean undefined values before validation
+userSchema.pre('validate', function(next) {
+  // Remove undefined values from profile nested objects that cause casting errors
+  if (this.profile) {
+    const nestedFields = ['avatar', 'insurance', 'backgroundCheck', 'availability'];
+    
+    nestedFields.forEach(field => {
+      // If field is undefined, remove it to prevent Mongoose casting errors
+      if (this.profile[field] === undefined) {
+        // Use unset to properly remove the field
+        this.unset(`profile.${field}`);
+      }
+    });
+  }
+  next();
+});
+
 // Virtual for full name
 userSchema.virtual('fullName').get(function() {
   return `${this.firstName} ${this.lastName}`;
