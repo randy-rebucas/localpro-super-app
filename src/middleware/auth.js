@@ -46,10 +46,14 @@ const authorize = (...roles) => {
       return next();
     }
 
-    if (!roles.includes(req.user.role)) {
+    // Check if user has any of the required roles (multi-role support)
+    const userRoles = req.user.roles || [];
+    const userHasRole = roles.some(role => userRoles.includes(role));
+    
+    if (!userHasRole) {
       return res.status(403).json({
         success: false,
-        message: `User role ${req.user.role} is not authorized to access this route`
+        message: `User roles [${userRoles.join(', ')}] are not authorized to access this route. Required: [${roles.join(', ')}]`
       });
     }
 

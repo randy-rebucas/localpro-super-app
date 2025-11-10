@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-10-27T04:44:04.882Z",
+  "timestamp": "2025-11-10T04:02:00.783Z",
   "environment": "development",
   "database": {
     "uri": "mongodb+srv://admin_db_user:yVpOf6aRwMFMkwsI@master.e2kwbyc.mongodb.net/localpro-super-app?retryWrites=true&w=majority&appName=Master",
@@ -28,43 +28,70 @@
     {
       "email": "admin@localpro.com",
       "phone": "+639179157515",
-      "role": "admin",
+      "roles": [
+        "client",
+        "admin"
+      ],
+      "primaryRole": "client",
       "name": "Super Admin"
     },
     {
       "email": "client@localpro.com",
       "phone": "+639171234569",
-      "role": "client",
+      "roles": [
+        "client"
+      ],
+      "primaryRole": "client",
       "name": "John Client"
     },
     {
       "email": "provider@localpro.com",
       "phone": "+639171234570",
-      "role": "provider",
+      "roles": [
+        "client",
+        "provider"
+      ],
+      "primaryRole": "client",
       "name": "Maria Provider"
     },
     {
       "email": "supplier@localpro.com",
       "phone": "+639171234571",
-      "role": "supplier",
+      "roles": [
+        "client",
+        "supplier"
+      ],
+      "primaryRole": "client",
       "name": "Carlos Supplier"
     },
     {
       "email": "instructor@localpro.com",
       "phone": "+639171234572",
-      "role": "instructor",
+      "roles": [
+        "client",
+        "instructor"
+      ],
+      "primaryRole": "client",
       "name": "Dr. Sarah Instructor"
     },
     {
       "email": "agency@localpro.com",
       "phone": "+639171234568",
-      "role": "agency_owner",
+      "roles": [
+        "client",
+        "agency_owner"
+      ],
+      "primaryRole": "client",
       "name": "Roberto AgencyOwner"
     },
     {
       "email": "agencyadmin@localpro.com",
       "phone": "+639171234573",
-      "role": "agency_admin",
+      "roles": [
+        "client",
+        "agency_admin"
+      ],
+      "primaryRole": "client",
       "name": "Lisa AgencyAdmin"
     }
   ],

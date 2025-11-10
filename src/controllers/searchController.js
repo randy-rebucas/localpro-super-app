@@ -161,7 +161,7 @@ const searchUsers = async (query, filters = {}) => {
   try {
     // Create optimized search query using query optimization service
     const searchQuery = queryOptimizationService.createCompoundQuery({
-      role: { $in: ['provider', 'supplier', 'instructor'] },
+      roles: { $in: ['provider', 'supplier', 'instructor'] },
       isVerified: true,
       search: query,
       textFields: ['firstName', 'lastName', 'profile.bio', 'profile.businessName', 'profile.skills', 'profile.specialties'],
@@ -620,7 +620,7 @@ const getSearchSuggestions = async (req, res) => {
     const [userSuggestions, jobSuggestions, serviceSuggestions, courseSuggestions] = await Promise.all([
       // User suggestions
       User.find({
-        role: { $in: ['provider', 'supplier', 'instructor'] },
+        roles: { $in: ['provider', 'supplier', 'instructor'] },
         $or: [
           { firstName: { $regex: searchQuery, $options: 'i' } },
           { lastName: { $regex: searchQuery, $options: 'i' } },

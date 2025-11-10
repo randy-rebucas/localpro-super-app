@@ -17,8 +17,9 @@ const authorize = (roles = [], options = {}) => {
       const user = req.user;
       const { allowSelf = false, allowAgencyMembers = false } = options;
 
-      // Check if user has required role
-      if (roles.length > 0 && !roles.includes(user.role)) {
+      // Check if user has required role (multi-role support)
+      const userHasRole = user.hasAnyRole ? user.hasAnyRole(roles) : (user.roles || []).some(r => roles.includes(r));
+      if (roles.length > 0 && !userHasRole) {
         // Special case: allow users to access their own data
         if (allowSelf && req.params.id === user.id) {
           return next();
@@ -39,7 +40,9 @@ const authorize = (roles = [], options = {}) => {
       }
 
       // Additional role-specific checks
-      if (user.role === 'agency_admin' || user.role === 'agency_owner') {
+      const isAgencyAdmin = user.hasRole ? user.hasRole('agency_admin') : user.roles?.includes('agency_admin');
+      const isAgencyOwner = user.hasRole ? user.hasRole('agency_owner') : user.roles?.includes('agency_owner');
+      if (isAgencyAdmin || isAgencyOwner) {
         // Agency admins and owners can only manage users within their agency
         if (req.params.id && req.params.id !== user.id) {
           const targetUser = await User.findById(req.params.id);
@@ -66,11 +69,14 @@ const authorize = (roles = [], options = {}) => {
 // @desc    Check if user can manage specific user
 // @param   {String} targetUserId - ID of user to manage
 // @param   {String} currentUserId - ID of current user
-// @param   {String} currentUserRole - Role of current user
-const canManageUser = async (targetUserId, currentUserId, currentUserRole) => {
+// @param   {String} _currentUserRole - Role of current user (unused, kept for API compatibility)
+const canManageUser = async (targetUserId, currentUserId, _currentUserRole) => {
   try {
+    const currentUser = await User.findById(currentUserId);
+    if (!currentUser) return false;
+
     // Admin can manage anyone
-    if (currentUserRole === 'admin') {
+    if (currentUser.hasRole ? currentUser.hasRole('admin') : currentUser.roles?.includes('admin')) {
       return true;
     }
 
@@ -80,8 +86,9 @@ const canManageUser = async (targetUserId, currentUserId, currentUserRole) => {
     }
 
     // Agency admins and owners can manage users in their agency
-    if (currentUserRole === 'agency_admin' || currentUserRole === 'agency_owner') {
-      const currentUser = await User.findById(currentUserId);
+    const isAgencyAdmin = currentUser.hasRole ? currentUser.hasRole('agency_admin') : currentUser.roles?.includes('agency_admin');
+    const isAgencyOwner = currentUser.hasRole ? currentUser.hasRole('agency_owner') : currentUser.roles?.includes('agency_owner');
+    if (isAgencyAdmin || isAgencyOwner) {
       const targetUser = await User.findById(targetUserId);
       
       if (currentUser?.agency?.agencyId?.toString() === targetUser?.agency?.agencyId?.toString()) {
@@ -99,11 +106,14 @@ const canManageUser = async (targetUserId, currentUserId, currentUserRole) => {
 // @desc    Check if user can view specific user data
 // @param   {String} targetUserId - ID of user to view
 // @param   {String} currentUserId - ID of current user
-// @param   {String} currentUserRole - Role of current user
-const canViewUser = async (targetUserId, currentUserId, currentUserRole) => {
+// @param   {String} _currentUserRole - Role of current user (unused, kept for API compatibility)
+const canViewUser = async (targetUserId, currentUserId, _currentUserRole) => {
   try {
+    const currentUser = await User.findById(currentUserId);
+    if (!currentUser) return false;
+
     // Admin can view anyone
-    if (currentUserRole === 'admin') {
+    if (currentUser.hasRole ? currentUser.hasRole('admin') : currentUser.roles?.includes('admin')) {
       return true;
     }
 
@@ -113,8 +123,10 @@ const canViewUser = async (targetUserId, currentUserId, currentUserRole) => {
     }
 
     // Agency members can view each other
-    if (currentUserRole === 'agency_admin' || currentUserRole === 'agency_owner' || currentUserRole === 'provider') {
-      const currentUser = await User.findById(currentUserId);
+    const isAgencyAdmin = currentUser.hasRole ? currentUser.hasRole('agency_admin') : currentUser.roles?.includes('agency_admin');
+    const isAgencyOwner = currentUser.hasRole ? currentUser.hasRole('agency_owner') : currentUser.roles?.includes('agency_owner');
+    const isProvider = currentUser.hasRole ? currentUser.hasRole('provider') : currentUser.roles?.includes('provider');
+    if (isAgencyAdmin || isAgencyOwner || isProvider) {
       const targetUser = await User.findById(targetUserId);
       
       if (currentUser?.agency?.agencyId?.toString() === targetUser?.agency?.agencyId?.toString()) {
@@ -129,9 +141,13 @@ const canViewUser = async (targetUserId, currentUserId, currentUserRole) => {
   }
 };
 
-// @desc    Get user permissions based on role
-// @param   {String} role - User role
-const getUserPermissions = (role) => {
+// @desc    Get user permissions based on roles
+// @param   {Array|String} roles - User roles (array or single role)
+const getUserPermissions = (roles) => {
+  if (!Array.isArray(roles)) {
+    roles = [roles];
+  }
+  
   const permissions = {
     admin: [
       'manage_all_users',
@@ -160,30 +176,47 @@ const getUserPermissions = (role) => {
     provider: [
       'view_own_profile',
       'update_own_profile',
-      'view_agency_members'
+      'view_agency_members',
+      'create_services',
+      'manage_services',
+      'create_jobs',
+      'manage_jobs'
     ],
     client: [
       'view_own_profile',
-      'update_own_profile'
+      'update_own_profile',
+      'book_services',
+      'apply_for_jobs'
     ],
     supplier: [
       'view_own_profile',
-      'update_own_profile'
+      'update_own_profile',
+      'manage_supplies'
     ],
     instructor: [
       'view_own_profile',
-      'update_own_profile'
+      'update_own_profile',
+      'create_courses',
+      'manage_courses'
     ]
   };
 
-  return permissions[role] || [];
+  // Combine permissions from all roles
+  const allPermissions = new Set();
+  roles.forEach(role => {
+    if (permissions[role]) {
+      permissions[role].forEach(perm => allPermissions.add(perm));
+    }
+  });
+
+  return Array.from(allPermissions);
 };
 
 // @desc    Check if user has specific permission
-// @param   {String} role - User role
+// @param   {Array|String} roles - User roles (array or single role)
 // @param   {String} permission - Permission to check
-const hasPermission = (role, permission) => {
-  const permissions = getUserPermissions(role);
+const hasPermission = (roles, permission) => {
+  const permissions = getUserPermissions(roles);
   return permissions.includes(permission);
 };
 

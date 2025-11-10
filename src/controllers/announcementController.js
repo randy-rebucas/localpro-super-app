@@ -707,8 +707,10 @@ const checkAnnouncementAccess = (announcement, user) => {
     return announcement.targetAudience === 'all';
   }
 
-  // Admin can access all announcements
-  if (user.role === 'admin') {
+  // Admin can access all announcements (multi-role support)
+  const userRoles = user.roles || [];
+  const isAdmin = user.hasRole ? user.hasRole('admin') : userRoles.includes('admin');
+  if (isAdmin) {
     return true;
   }
 

@@ -202,8 +202,10 @@ const createProviderProfile = async (req, res) => {
       });
     }
 
-    // Check if user has client role
-    if (req.user.role !== 'client') {
+    // Check if user has client role (multi-role support)
+    const userRoles = req.user.roles || [];
+    const hasClientRole = req.user.hasRole ? req.user.hasRole('client') : userRoles.includes('client');
+    if (!hasClientRole) {
       return res.status(400).json({
         success: false,
         message: 'Only clients can upgrade to provider status'
@@ -241,11 +243,12 @@ const createProviderProfile = async (req, res) => {
     const provider = new Provider(providerData);
     await provider.save();
 
-    // Update user role to include provider
-    await User.findByIdAndUpdate(req.user.id, {
-      $addToSet: { roles: 'provider' },
-      role: 'provider'
-    });
+    // Update user role to include provider (multi-role support)
+    const user = await User.findById(req.user.id);
+    if (user) {
+      user.addRole('provider');
+      await user.save();
+    }
 
     // Log audit event
     await auditLogger.logUser('user_create', req, {

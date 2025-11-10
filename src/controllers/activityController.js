@@ -800,8 +800,10 @@ const checkActivityAccess = (activity, user) => {
     return activity.visibility === 'public';
   }
 
-  // Admin can access all activities
-  if (user.role === 'admin') {
+  // Admin can access all activities (multi-role support)
+  const userRoles = user.roles || [];
+  const isAdmin = user.hasRole ? user.hasRole('admin') : userRoles.includes('admin');
+  if (isAdmin) {
     return true;
   }
 

@@ -218,7 +218,9 @@ const deleteUserSettings = async (req, res) => {
 const getAppSettings = async (req, res) => {
   try {
     // Check if user is admin
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -245,7 +247,9 @@ const getAppSettings = async (req, res) => {
 const updateAppSettings = async (req, res) => {
   try {
     // Check if user is admin
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -283,7 +287,9 @@ const updateAppSettings = async (req, res) => {
 const updateAppSettingsCategory = async (req, res) => {
   try {
     // Check if user is admin
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -377,7 +383,9 @@ const getPublicAppSettings = async (req, res) => {
 const toggleFeatureFlag = async (req, res) => {
   try {
     // Check if user is admin
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'

@@ -247,8 +247,10 @@ const updateJob = async (req, res) => {
       });
     }
 
-    // Check if user is the employer or admin
-    if (job.employer.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Check if user is the employer or admin (multi-role support)
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this job'
@@ -323,8 +325,10 @@ const deleteJob = async (req, res) => {
       });
     }
 
-    // Check if user is the employer or admin
-    if (job.employer.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Check if user is the employer or admin (multi-role support)
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this job'
@@ -461,8 +465,10 @@ const getJobApplications = async (req, res) => {
       });
     }
 
-    // Check if user is the employer or admin
-    if (job.employer.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Check if user is the employer or admin (multi-role support)
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to view applications for this job'
@@ -515,8 +521,10 @@ const updateApplicationStatus = async (req, res) => {
       });
     }
 
-    // Check if user is the employer or admin
-    if (job.employer.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Check if user is the employer or admin (multi-role support)
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update applications for this job'
@@ -696,8 +704,10 @@ const uploadCompanyLogo = async (req, res) => {
       });
     }
 
-    // Check if user is the employer or admin
-    if (job.employer.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Check if user is the employer or admin (multi-role support)
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to upload logo for this job'
@@ -754,8 +764,10 @@ const getJobStats = async (req, res) => {
       });
     }
 
-    // Check if user is the employer or admin
-    if (job.employer.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Check if user is the employer or admin (multi-role support)
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to view stats for this job'

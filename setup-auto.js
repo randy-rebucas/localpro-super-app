@@ -4,6 +4,12 @@
  * LocalPro Super App Automated Setup Script
  * This script provides a non-interactive setup for admin users and application settings
  * Usage: node setup-auto.js [admin-email] [admin-phone] [admin-password] [company-name]
+ * 
+ * MULTI-ROLE SUPPORT:
+ * - Users can have multiple roles simultaneously (e.g., client + provider + instructor)
+ * - All users automatically have 'client' role in addition to their specific roles
+ * - Use user.addRole('provider') to add additional roles to existing users
+ * - See docs/MULTI_ROLE_IMPLEMENTATION.md for more details
  */
 
 const mongoose = require('mongoose');
@@ -293,7 +299,7 @@ class AutoSetup {
     
     try {
       // Check if admin users already exist
-      const existingAdmin = await User.findOne({ role: 'admin' });
+      const existingAdmin = await User.findOne({ roles: 'admin' });
       if (existingAdmin) {
         this.logWarning('Admin users already exist, skipping...');
         this.setupResults.adminUsers = true;
@@ -311,7 +317,7 @@ class AutoSetup {
         firstName: 'Super',
         lastName: 'Admin',
         password: hashedPassword,
-        role: 'admin',
+        roles: ['client', 'admin'], // Multi-role support: admin also has client role
         isVerified: true,
         verification: {
           phoneVerified: true,
@@ -494,7 +500,7 @@ class AutoSetup {
       phoneNumber: roleData.phone,
       email: roleData.email,
       password: hashedPassword,
-      role: roleData.role,
+      roles: roleData.role === 'client' ? ['client'] : ['client', roleData.role], // Multi-role support: all users have client role + their specific role (except pure client)
       isVerified: true,
       verification: {
         phoneVerified: true,
@@ -794,12 +800,14 @@ class AutoSetup {
     this.logStep('SAMPLE DATA', 'Creating sample data for all collections...');
     
     try {
-      // Get created users for references
-      const provider = this.createdData.users.find(u => u.role === 'provider');
-      const client = this.createdData.users.find(u => u.role === 'client');
-      const supplier = this.createdData.users.find(u => u.role === 'supplier');
-      const instructor = this.createdData.users.find(u => u.role === 'instructor');
-      const agencyOwner = this.createdData.users.find(u => u.role === 'agency_owner');
+      // Get created users for references (multi-role support)
+      // Note: All users have 'client' role, so we find users with specific roles
+      const provider = this.createdData.users.find(u => u.roles && u.roles.includes('provider'));
+      // Client user should only have 'client' role (roles.length === 1)
+      const client = this.createdData.users.find(u => u.roles && u.roles.length === 1 && u.roles[0] === 'client');
+      const supplier = this.createdData.users.find(u => u.roles && u.roles.includes('supplier'));
+      const instructor = this.createdData.users.find(u => u.roles && u.roles.includes('instructor'));
+      const agencyOwner = this.createdData.users.find(u => u.roles && u.roles.includes('agency_owner'));
 
       if (!provider || !client || !supplier || !instructor || !agencyOwner) {
         this.logWarning('Required users not found, skipping sample data creation');
@@ -850,6 +858,17 @@ class AutoSetup {
             currency: 'USD'
           },
           serviceArea: ['1000', '1100', '1200'],
+          availability: {
+            schedule: [
+              { day: 'monday', startTime: '08:00', endTime: '17:00', isAvailable: true },
+              { day: 'tuesday', startTime: '08:00', endTime: '17:00', isAvailable: true },
+              { day: 'wednesday', startTime: '08:00', endTime: '17:00', isAvailable: true },
+              { day: 'thursday', startTime: '08:00', endTime: '17:00', isAvailable: true },
+              { day: 'friday', startTime: '08:00', endTime: '17:00', isAvailable: true },
+              { day: 'saturday', startTime: '09:00', endTime: '15:00', isAvailable: true }
+            ],
+            timezone: 'Asia/Manila'
+          },
           features: ['Eco-friendly products', 'Insured service', 'Same-day booking'],
           requirements: ['Access to all areas', 'Water supply'],
           serviceType: 'one_time',
@@ -861,6 +880,10 @@ class AutoSetup {
             hasWarranty: true,
             duration: 7,
             description: '7-day satisfaction guarantee'
+          },
+          insurance: {
+            covered: true,
+            coverageAmount: 50000
           },
           emergencyService: {
             available: true,
@@ -880,13 +903,33 @@ class AutoSetup {
             currency: 'USD'
           },
           serviceArea: ['1000', '1100'],
+          availability: {
+            schedule: [
+              { day: 'monday', startTime: '18:00', endTime: '22:00', isAvailable: true },
+              { day: 'tuesday', startTime: '18:00', endTime: '22:00', isAvailable: true },
+              { day: 'wednesday', startTime: '18:00', endTime: '22:00', isAvailable: true },
+              { day: 'thursday', startTime: '18:00', endTime: '22:00', isAvailable: true },
+              { day: 'friday', startTime: '18:00', endTime: '22:00', isAvailable: true },
+              { day: 'saturday', startTime: '08:00', endTime: '17:00', isAvailable: true }
+            ],
+            timezone: 'Asia/Manila'
+          },
           features: ['After-hours service', 'Green cleaning', 'Detailed reporting'],
           requirements: ['Office access', 'Parking space'],
           serviceType: 'recurring',
           estimatedDuration: { min: 4, max: 6 },
           teamSize: 3,
           equipmentProvided: true,
-          materialsIncluded: true
+          materialsIncluded: true,
+          warranty: {
+            hasWarranty: true,
+            duration: 30,
+            description: '30-day service guarantee'
+          },
+          insurance: {
+            covered: true,
+            coverageAmount: 100000
+          }
         }
       ];
 
@@ -1089,6 +1132,7 @@ class AutoSetup {
       const products = [
         {
           name: 'Professional All-Purpose Cleaner',
+          title: 'Professional All-Purpose Cleaner',
           description: 'Heavy-duty all-purpose cleaner suitable for all surfaces.',
           category: 'cleaning_supplies',
           subcategory: 'cleaners',
@@ -1119,6 +1163,7 @@ class AutoSetup {
         },
         {
           name: 'Microfiber Cleaning Cloths',
+          title: 'Microfiber Cleaning Cloths',
           description: 'High-quality microfiber cloths for streak-free cleaning.',
           category: 'cleaning_supplies',
           subcategory: 'cloths',
@@ -1166,6 +1211,7 @@ class AutoSetup {
       const rentalItems = [
         {
           name: 'Professional Pressure Washer',
+          title: 'Professional Pressure Washer',
           description: 'High-pressure washer for exterior cleaning and maintenance.',
           category: 'equipment',
           subcategory: 'pressure_washers',
@@ -1476,8 +1522,8 @@ class AutoSetup {
         this.logError('App settings not found');
       }
 
-      // Check admin users
-      const adminUsers = await User.find({ role: 'admin' });
+      // Check admin users (multi-role support)
+      const adminUsers = await User.find({ roles: 'admin' });
       
       if (adminUsers.length > 0) {
         validationResults.adminUsers = true;
@@ -1543,7 +1589,8 @@ class AutoSetup {
       adminCredentials: this.createdData.users.map(user => ({
         email: user.email,
         phone: user.phoneNumber,
-        role: user.role,
+        roles: user.roles || ['client'], // Multi-role support
+        primaryRole: user.roles && user.roles.length > 0 ? user.roles[0] : 'client', // For backward compatibility in report
         name: `${user.firstName} ${user.lastName}`
       })),
       nextSteps: [
@@ -1614,7 +1661,8 @@ class AutoSetup {
       
       this.log(`\n${colors.bright}Admin Credentials:${colors.reset}`, 'yellow');
       report.adminCredentials.forEach(cred => {
-        this.log(`${cred.role}: ${cred.email} (${cred.phone}) - ${cred.name}`, 'cyan');
+        const rolesDisplay = Array.isArray(cred.roles) ? cred.roles.join(', ') : cred.primaryRole;
+        this.log(`${rolesDisplay}: ${cred.email} (${cred.phone}) - ${cred.name}`, 'cyan');
       });
       
       this.log(`\n${colors.bright}Created Data:${colors.reset}`, 'yellow');

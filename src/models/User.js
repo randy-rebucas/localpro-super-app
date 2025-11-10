@@ -22,10 +22,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  role: {
-    type: String,
+  roles: {
+    type: [String],
     enum: ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'],
-    default: 'client'
+    default: ['client']
   },
   isVerified: {
     type: Boolean,
@@ -333,28 +333,32 @@ const userSchema = new mongoose.Schema({
 });
 
 // Index for better performance (phoneNumber and email already have unique indexes)
-userSchema.index({ role: 1 });
+userSchema.index({ roles: 1 }); // Multi-role index
 userSchema.index({ 'agency.agencyId': 1, 'agency.status': 1 });
 userSchema.index({ status: 1, isActive: 1 });
 userSchema.index({ 'referral.referredBy': 1, 'referral.referralStats.referralTier': 1 });
 userSchema.index({ trustScore: -1, 'profile.rating': -1 });
 
 // Additional performance indexes
-userSchema.index({ role: 1, isActive: 1, status: 1 }); // Compound index for common queries
-userSchema.index({ 'profile.address.city': 1, 'profile.address.state': 1, role: 1 }); // Location-based queries
+userSchema.index({ roles: 1, isActive: 1, status: 1 }); // Compound index for common queries
+userSchema.index({ 'profile.address.city': 1, 'profile.address.state': 1, roles: 1 }); // Location-based queries
 userSchema.index({ 'profile.rating': -1, 'profile.totalReviews': -1, isActive: 1 }); // Rating-based sorting
-userSchema.index({ 'profile.businessName': 1, role: 1 }); // Business name search
-userSchema.index({ 'profile.skills': 1, role: 1, isActive: 1 }); // Skills-based filtering
-userSchema.index({ 'profile.specialties': 1, role: 1, isActive: 1 }); // Specialties filtering
-userSchema.index({ 'profile.serviceAreas': 1, role: 1, isActive: 1 }); // Service areas filtering
-userSchema.index({ 'profile.certifications.name': 1, role: 1 }); // Certification filtering
-userSchema.index({ 'profile.insurance.hasInsurance': 1, role: 1 }); // Insurance status
-userSchema.index({ 'profile.backgroundCheck.status': 1, role: 1 }); // Background check status
+userSchema.index({ 'profile.businessName': 1, roles: 1 }); // Business name search
+// Note: Cannot create compound indexes with multiple arrays (roles + skills/specialties/serviceAreas)
+// Using separate indexes instead
+userSchema.index({ 'profile.skills': 1, isActive: 1 }); // Skills-based filtering
+userSchema.index({ 'profile.specialties': 1, isActive: 1 }); // Specialties filtering
+userSchema.index({ 'profile.serviceAreas': 1, isActive: 1 }); // Service areas filtering
+userSchema.index({ roles: 1, isActive: 1 }); // Roles filtering (separate index)
+// Note: Cannot index certifications.name (array field) with roles (array field)
+userSchema.index({ 'profile.certifications.name': 1 }); // Certification filtering (separate index)
+userSchema.index({ 'profile.insurance.hasInsurance': 1, roles: 1 }); // Insurance status
+userSchema.index({ 'profile.backgroundCheck.status': 1, roles: 1 }); // Background check status
 userSchema.index({ 'activity.lastActiveAt': -1, isActive: 1 }); // Recent activity
-userSchema.index({ createdAt: -1, role: 1 }); // Registration date with role
+userSchema.index({ createdAt: -1, roles: 1 }); // Registration date with roles
 userSchema.index({ updatedAt: -1, isActive: 1 }); // Last updated
-userSchema.index({ 'profile.experience': -1, role: 1, isActive: 1 }); // Experience-based sorting
-userSchema.index({ 'profile.availability.isAvailable': 1, role: 1, isActive: 1 }); // Availability status
+userSchema.index({ 'profile.experience': -1, roles: 1, isActive: 1 }); // Experience-based sorting
+userSchema.index({ 'profile.availability.isAvailable': 1, roles: 1, isActive: 1 }); // Availability status
 
 // Text search index for comprehensive search
 userSchema.index({
@@ -373,6 +377,15 @@ userSchema.index({ 'profile.website': 1 }, { sparse: true });
 
 // Pre-validate hook to clean undefined values before validation
 userSchema.pre('validate', function(next) {
+  // Ensure roles array exists and has at least 'client'
+  if (!this.roles || !Array.isArray(this.roles) || this.roles.length === 0) {
+    this.roles = ['client'];
+  }
+  // Ensure 'client' is always present
+  if (!this.roles.includes('client')) {
+    this.roles.unshift('client');
+  }
+  
   // Remove undefined values from profile nested objects that cause casting errors
   if (this.profile) {
     const nestedFields = ['avatar', 'insurance', 'backgroundCheck', 'availability'];
@@ -388,10 +401,92 @@ userSchema.pre('validate', function(next) {
   next();
 });
 
+
 // Virtual for full name
 userSchema.virtual('fullName').get(function() {
   return `${this.firstName} ${this.lastName}`;
 });
+
+// Note: role field is kept for backward compatibility but synced via pre-save hook
+// The virtual is not needed since we keep the actual field (hidden from queries with select: false)
+
+// Method to check if user has a specific role
+userSchema.methods.hasRole = function(role) {
+  if (!this.roles || this.roles.length === 0) {
+    return false;
+  }
+  return this.roles.includes(role);
+};
+
+// Method to check if user has any of the specified roles
+userSchema.methods.hasAnyRole = function(roles) {
+  if (!this.roles || this.roles.length === 0) {
+    return false;
+  }
+  if (!Array.isArray(roles)) {
+    roles = [roles];
+  }
+  return roles.some(role => this.roles.includes(role));
+};
+
+// Method to check if user has all of the specified roles
+userSchema.methods.hasAllRoles = function(roles) {
+  if (!this.roles || this.roles.length === 0) {
+    return false;
+  }
+  if (!Array.isArray(roles)) {
+    roles = [roles];
+  }
+  return roles.every(role => this.roles.includes(role));
+};
+
+// Method to add a role to user
+userSchema.methods.addRole = function(role) {
+  if (!this.roles) {
+    this.roles = [];
+  }
+  const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'];
+  if (validRoles.includes(role) && !this.roles.includes(role)) {
+    this.roles.push(role);
+    // Ensure 'client' is always present if user has other roles
+    if (this.roles.length > 1 && !this.roles.includes('client')) {
+      this.roles.unshift('client');
+    }
+  }
+  return this;
+};
+
+// Method to remove a role from user
+userSchema.methods.removeRole = function(role) {
+  if (!this.roles) {
+    this.roles = ['client'];
+    return this;
+  }
+  // Don't allow removing 'client' if it's the only role
+  if (role === 'client' && this.roles.length === 1) {
+    return this;
+  }
+  this.roles = this.roles.filter(r => r !== role);
+  // Ensure at least 'client' role exists
+  if (this.roles.length === 0) {
+    this.roles = ['client'];
+  }
+  return this;
+};
+
+// Method to set roles (replaces all existing roles)
+userSchema.methods.setRoles = function(roles) {
+  if (!Array.isArray(roles)) {
+    roles = [roles];
+  }
+  const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'];
+  this.roles = roles.filter(role => validRoles.includes(role));
+  // Ensure 'client' is always present
+  if (!this.roles.includes('client')) {
+    this.roles.unshift('client');
+  }
+  return this;
+};
 
 // Method to generate verification code
 userSchema.methods.generateVerificationCode = function() {
@@ -620,9 +715,12 @@ userSchema.statics.getUsersByStatus = function(status) {
   return this.find({ status });
 };
 
-// Static method to get users by role
+// Static method to get users by role (supports both single role and array)
 userSchema.statics.getUsersByRole = function(role) {
-  return this.find({ role });
+  if (Array.isArray(role)) {
+    return this.find({ roles: { $in: role } });
+  }
+  return this.find({ roles: role });
 };
 
 // Static method to get active users

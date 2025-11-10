@@ -3,6 +3,12 @@
 /**
  * LocalPro Super App Enhanced Setup Installation Script
  * This script provides an interactive setup for admin users and application settings
+ * 
+ * MULTI-ROLE SUPPORT:
+ * - Users can have multiple roles simultaneously (e.g., client + provider + instructor)
+ * - All users automatically have 'client' role in addition to their specific roles
+ * - Use user.addRole('provider') to add additional roles to existing users
+ * - See docs/MULTI_ROLE_IMPLEMENTATION.md for more details
  */
 
 const mongoose = require('mongoose');
@@ -34,7 +40,8 @@ class SetupInstaller {
   constructor() {
     this.rl = readline.createInterface({
       input: process.stdin,
-      output: process.stdout
+      output: process.stdout,
+      terminal: true
     });
     this.setupResults = {
       database: false,
@@ -75,7 +82,15 @@ class SetupInstaller {
   // Promisified readline question
   question(prompt) {
     return new Promise((resolve) => {
-      this.rl.question(prompt, resolve);
+      // Ensure stdin is in the right mode
+      if (process.stdin.isPaused()) {
+        process.stdin.resume();
+      }
+      
+      // Use the standard readline question method
+      this.rl.question(prompt, (answer) => {
+        resolve(answer ? answer.trim() : '');
+      });
     });
   }
 
@@ -336,7 +351,7 @@ class SetupInstaller {
     
     try {
       // Check if admin users already exist
-      const existingAdmin = await User.findOne({ role: 'admin' });
+      const existingAdmin = await User.findOne({ roles: 'admin' });
       if (existingAdmin) {
         this.logWarning('Admin users already exist');
         const update = await this.question('Do you want to create additional admin users? (y/N): ');
@@ -383,7 +398,7 @@ class SetupInstaller {
         firstName: firstName,
         lastName: lastName,
         password: hashedPassword, // Add password field
-        role: 'admin',
+        roles: ['client', 'admin'],
         isVerified: true,
         verification: {
           phoneVerified: true,
@@ -457,9 +472,25 @@ class SetupInstaller {
       this.logSuccess(`Super admin created: ${superAdmin.email}`);
 
       // Ask if user wants to create additional role users
-      const createRoleUsers = await this.question('\nDo you want to create users for all roles (client, provider, supplier, instructor, agency_owner, agency_admin)? (y/N): ');
+      this.logInfo('\n💡 Multi-Role Feature: Users can have multiple roles (e.g., client + provider + instructor)');
+      this.logInfo('   All users automatically have "client" role in addition to their specific roles.');
+      
+      // Check if stdin is available
+      let createRoleUsers = 'n';
+      if (process.stdin.isTTY && !process.stdin.isPaused()) {
+        try {
+          createRoleUsers = await this.question('\nDo you want to create users for all roles (client, provider, supplier, instructor, agency_owner, agency_admin)? (y/N, default: N): ') || 'n';
+        } catch (error) {
+          this.logWarning('Could not read input, defaulting to skip (N)');
+          createRoleUsers = 'n';
+        }
+      } else {
+        this.logWarning('stdin not available, skipping role user creation. You can create them later via API.');
+      }
       if (createRoleUsers.toLowerCase() === 'y' || createRoleUsers.toLowerCase() === 'yes') {
         await this.createRoleUsers();
+      } else {
+        this.logInfo('Skipping role user creation. You can create them later or use the API.');
       }
 
       this.setupResults.adminUsers = true;
@@ -523,7 +554,7 @@ class SetupInstaller {
       phoneNumber: roleData.phone,
       email: roleData.email,
       password: hashedPassword,
-      role: roleData.role,
+      roles: ['client', roleData.role], // Multi-role support: all users have client role + their specific role
       isVerified: true,
       verification: {
         phoneVerified: true,
@@ -1179,13 +1210,32 @@ class SetupInstaller {
 
 // Run setup if this file is executed directly
 if (require.main === module) {
+  // Ensure stdin is available and not paused
+  if (process.stdin.isTTY) {
+    process.stdin.setRawMode(false);
+  }
+  if (process.stdin.isPaused()) {
+    process.stdin.resume();
+  }
+  process.stdin.setEncoding('utf8');
+  
   const installer = new SetupInstaller();
+  
+  // Handle cleanup on exit
+  process.on('SIGINT', () => {
+    console.log('\n\nSetup interrupted by user.');
+    installer.rl.close();
+    process.exit(0);
+  });
+  
   installer.run()
     .then(success => {
+      installer.rl.close();
       process.exit(success ? 0 : 1);
     })
     .catch(error => {
       console.error('Setup installation error:', error);
+      installer.rl.close();
       process.exit(1);
     });
 }

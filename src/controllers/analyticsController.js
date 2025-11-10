@@ -83,7 +83,7 @@ const getAnalyticsOverview = async (req, res) => {
     // Get top performing providers
     const topProviders = await User.aggregate([
       {
-        $match: { role: 'provider' }
+        $match: { roles: 'provider' }
       },
       {
         $lookup: {
@@ -369,7 +369,7 @@ const getMarketplaceAnalytics = async (req, res) => {
     // Get provider performance
     const providerPerformance = await User.aggregate([
       {
-        $match: { role: 'provider' }
+        $match: { roles: 'provider' }
       },
       {
         $lookup: {

@@ -21,9 +21,15 @@ const getAllUsers = async (req, res) => {
     // Build filter object
     const baseFilters = {};
     
-    // Role filter - only add if not empty
+    // Role filter - only add if not empty (multi-role support)
     if (role && (typeof role === 'string' ? role.trim() !== '' : true)) {
-      baseFilters.role = typeof role === 'string' ? role.trim() : role;
+      const roleValue = typeof role === 'string' ? role.trim() : role;
+      // Support both single role and array of roles
+      if (Array.isArray(roleValue)) {
+        baseFilters.roles = { $in: roleValue };
+      } else {
+        baseFilters.roles = roleValue;
+      }
     }
     
     // Status filters - handle string 'true'/'false' and boolean values
@@ -370,9 +376,12 @@ const updateUserStatus = async (req, res) => {
       });
     }
 
-    // Check permissions
-    const canUpdateStatus = req.user.role === 'admin' || 
-                           (req.user.role === 'agency_admin' && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
+    // Check permissions (multi-role support)
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
+    const canUpdateStatus = isAdmin || 
+                           (isAgencyAdmin && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
 
     if (!canUpdateStatus) {
       return res.status(403).json({
@@ -430,9 +439,12 @@ const updateUserVerification = async (req, res) => {
       });
     }
 
-    // Check permissions
-    const canUpdateVerification = req.user.role === 'admin' || 
-                                 (req.user.role === 'agency_admin' && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
+    // Check permissions (multi-role support)
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
+    const canUpdateVerification = isAdmin || 
+                                 (isAgencyAdmin && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
 
     if (!canUpdateVerification) {
       return res.status(403).json({
@@ -489,9 +501,12 @@ const addUserBadge = async (req, res) => {
       });
     }
 
-    // Check permissions
-    const canAddBadge = req.user.role === 'admin' || 
-                       (req.user.role === 'agency_admin' && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
+    // Check permissions (multi-role support)
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
+    const canAddBadge = isAdmin || 
+                       (isAgencyAdmin && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
 
     if (!canAddBadge) {
       return res.status(403).json({
@@ -537,7 +552,9 @@ const getUserStats = async (req, res) => {
 
     // Build filter for agency-specific stats
     const filter = {};
-    if (agencyId && req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (agencyId && !isAdmin) {
       filter['agency.agencyId'] = agencyId;
     }
 
@@ -554,7 +571,8 @@ const getUserStats = async (req, res) => {
       User.countDocuments({ ...filter, isVerified: true }),
       User.aggregate([
         { $match: filter },
-        { $group: { _id: '$role', count: { $sum: 1 } } }
+        { $unwind: '$roles' },
+        { $group: { _id: '$roles', count: { $sum: 1 } } }
       ]),
       User.find(filter)
         .select('firstName lastName email createdAt')
@@ -653,7 +671,8 @@ const deleteUser = async (req, res) => {
       return res.status(200).json({ success: true, data: {} });
     }
 
-    if (user.role === 'admin') {
+    const userRoles = user.roles || [];
+    if (user.hasRole ? user.hasRole('admin') : userRoles.includes('admin')) {
       return res.status(403).json({
         success: false,
         message: 'Cannot delete admin users'

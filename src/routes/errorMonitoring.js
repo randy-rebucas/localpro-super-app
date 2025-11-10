@@ -27,7 +27,9 @@ router.get('/stats', auth, async (req, res) => {
     const { timeframe = '24h' } = req.query;
     
     // Only allow admin users to view error stats
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -67,7 +69,9 @@ router.get('/stats', auth, async (req, res) => {
 router.get('/unresolved', auth, async (req, res) => {
   try {
     // Only allow admin users to view unresolved errors
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -108,7 +112,9 @@ router.get('/unresolved', auth, async (req, res) => {
 router.get('/:errorId', auth, async (req, res) => {
   try {
     // Only allow admin users to view error details
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -151,7 +157,9 @@ router.get('/:errorId', auth, async (req, res) => {
 router.patch('/:errorId/resolve', auth, async (req, res) => {
   try {
     // Only allow admin users to resolve errors
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -209,7 +217,9 @@ router.patch('/:errorId/resolve', auth, async (req, res) => {
 router.get('/dashboard/summary', auth, async (req, res) => {
   try {
     // Only allow admin users to view dashboard
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'

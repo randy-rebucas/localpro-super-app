@@ -8,7 +8,9 @@ const logger = require('../config/logger');
 router.get('/stats', auth, async (req, res) => {
   try {
     // Only allow admin users to view log statistics
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -45,7 +47,9 @@ router.get('/stats', auth, async (req, res) => {
 router.get('/', auth, async (req, res) => {
   try {
     // Only allow admin users to view logs
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -120,7 +124,9 @@ router.get('/', auth, async (req, res) => {
 router.get('/:logId', auth, async (req, res) => {
   try {
     // Only allow admin users to view log details
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -156,7 +162,9 @@ router.get('/:logId', auth, async (req, res) => {
 router.get('/analytics/error-trends', auth, async (req, res) => {
   try {
     // Only allow admin users to view error trends
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -193,7 +201,9 @@ router.get('/analytics/error-trends', auth, async (req, res) => {
 router.get('/analytics/performance', auth, async (req, res) => {
   try {
     // Only allow admin users to view performance metrics
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -275,7 +285,9 @@ router.get('/user/:userId/activity', auth, async (req, res) => {
 router.get('/export/data', auth, async (req, res) => {
   try {
     // Only allow admin users to export logs
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -347,7 +359,9 @@ router.get('/export/data', auth, async (req, res) => {
 router.get('/dashboard/summary', auth, async (req, res) => {
   try {
     // Only allow admin users to view log dashboard
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -382,7 +396,9 @@ router.get('/dashboard/summary', auth, async (req, res) => {
 router.get('/search/global', auth, async (req, res) => {
   try {
     // Only allow admin users to search logs
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -429,7 +445,9 @@ router.get('/search/global', auth, async (req, res) => {
 router.post('/cleanup', auth, async (req, res) => {
   try {
     // Only allow admin users to perform cleanup
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -464,7 +482,9 @@ router.post('/cleanup', auth, async (req, res) => {
 router.post('/flush', auth, async (req, res) => {
   try {
     // Only allow admin users to flush logs
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -526,7 +546,9 @@ router.post('/flush', auth, async (req, res) => {
 router.delete('/flush', auth, async (req, res) => {
   try {
     // Only allow admin users to flush logs
-    if (req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'

@@ -10,7 +10,7 @@ const generateToken = (user) => {
   const payload = {
     id: user._id,
     phoneNumber: user.phoneNumber,
-    role: user.role,
+    roles: user.roles || ['client'],
     isVerified: user.isVerified
   };
   
@@ -325,7 +325,7 @@ const verifyCode = async (req, res) => {
           firstName: user.firstName ? user.firstName : 'User',
           lastName: user.lastName ? user.lastName : 'User',
           email: user.email,
-          role: user.role,
+          roles: user.roles || ['client'],
           isVerified: user.isVerified,
           subscription: user.subscription,
           trustScore: user.trustScore,
@@ -382,7 +382,7 @@ const verifyCode = async (req, res) => {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          role: user.role,
+          roles: user.roles || ['client'],
           isVerified: user.isVerified,
           subscription: user.subscription,
           trustScore: user.trustScore
@@ -559,7 +559,7 @@ const completeOnboarding = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role,
+        roles: user.roles || ['client'],
         isVerified: user.isVerified,
         subscription: user.subscription,
         trustScore: user.trustScore,
@@ -632,7 +632,7 @@ const getProfileCompletionStatus = async (req, res) => {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          role: user.role,
+          roles: user.roles || ['client'],
           isVerified: user.isVerified
         }
       }
@@ -814,7 +814,7 @@ const getProfileCompleteness = async (req, res) => {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          role: user.role,
+          roles: user.roles || ['client'],
           isVerified: user.isVerified,
           trustScore: user.trustScore
         }

@@ -59,7 +59,9 @@ const getVerificationRequestRequest = async (req, res) => {
     }
 
     // Check if user has access to view this request
-    if (request.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (request.user._id.toString() !== req.user.id && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to view this request'
@@ -295,16 +297,19 @@ const deleteVerificationRequestRequest = async (req, res) => {
       });
     }
 
-    // Check if user is the owner of the request or admin
-    if (request.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Check if user is the owner of the request or admin (support multi-role)
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (request.user.toString() !== req.user.id && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this request'
       });
     }
 
-    // Check if request can be deleted
-    if (request.status === 'approved' && req.user.role !== 'admin') {
+    // Check if request can be deleted (support multi-role)
+    // Reuse userRoles and isAdmin from above
+    if (request.status === 'approved' && !isAdmin) {
       return res.status(400).json({
         success: false,
         message: 'Approved requests cannot be deleted'
