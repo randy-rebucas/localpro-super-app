@@ -7050,3 +7050,625 @@
 {"level":"warn","message":"Performance Alert High memory usage: 95.73%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:08:17.193Z","type":"memory_usage","value":0.9572867682442928}
 {"level":"warn","message":"Performance Alert High memory usage: 96.08%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:09:17.199Z","type":"memory_usage","value":0.9607570410644334}
 {"level":"warn","message":"Performance Alert High memory usage: 96.21%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:10:17.200Z","type":"memory_usage","value":0.9621048107608402}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:10:44.083Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:10:45.115Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:10:45.116Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:10:45.120Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:10:45.121Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:10:45.122Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:10:45.123Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:10:45.123Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:10:45.123Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:10:45.124Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:10:45.124Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:10:45.125Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:10:45.125Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:10:45.126Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:10:45.126Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:10:45.654Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:10:45.661Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:10:45.675Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:10:45.675Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:10:45.676Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:10:45.676Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:10:45.676Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.23%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:11:45.117Z","type":"memory_usage","value":0.9422820956440702}
+{"level":"warn","message":"Performance Alert High memory usage: 93.96%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:12:45.116Z","type":"memory_usage","value":0.9396346112542955}
+{"level":"warn","message":"Performance Alert High memory usage: 94.69%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:13:45.127Z","type":"memory_usage","value":0.9468788928264604}
+{"level":"warn","message":"Performance Alert High memory usage: 94.88%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:14:45.138Z","type":"memory_usage","value":0.9487995328608247}
+{"level":"warn","message":"Performance Alert High memory usage: 95.10%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:15:45.142Z","type":"memory_usage","value":0.9509733408505154}
+{"level":"warn","message":"Performance Alert High memory usage: 95.27%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:16:45.148Z","type":"memory_usage","value":0.9526873926116839}
+{"level":"warn","message":"Performance Alert High memory usage: 95.03%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:17:45.155Z","type":"memory_usage","value":0.9503197383502121}
+{"level":"warn","message":"Performance Alert High memory usage: 95.14%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:18:45.156Z","type":"memory_usage","value":0.9513692724014643}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:18:48.136Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:18:49.737Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:18:49.739Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:18:49.743Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:18:49.743Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:18:49.744Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:18:49.745Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:18:49.745Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:18:49.745Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:18:49.746Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:18:49.747Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:18:49.748Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:18:49.751Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:18:49.753Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:18:49.753Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:18:50.411Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:18:50.418Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:18:50.427Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:18:50.427Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:18:50.428Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:18:50.428Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:18:50.428Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:19:11.089Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:19:11.976Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:19:11.977Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:19:11.980Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:19:11.980Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:19:11.981Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:19:11.982Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:19:11.982Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:19:11.982Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:19:11.983Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:19:11.983Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:19:11.984Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:19:11.984Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:19:11.985Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:19:11.985Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:19:13.182Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:19:14.110Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:19:14.112Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:19:14.116Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:19:14.116Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:19:14.118Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:19:14.120Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:19:14.120Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:19:14.121Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:19:14.123Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:19:14.124Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:19:14.125Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:19:14.125Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:19:14.126Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:19:14.126Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:19:14.697Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:19:14.702Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:19:14.712Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:19:14.713Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:19:14.713Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:19:14.714Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:19:14.714Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:19:23.299Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:19:24.224Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:19:24.225Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:19:24.232Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:19:24.233Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:19:24.234Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:19:24.234Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:19:24.234Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:19:24.234Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:19:24.235Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:19:24.235Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:19:24.235Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:19:24.236Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:19:24.236Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:19:24.236Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:19:24.744Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:19:24.757Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:19:24.769Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:19:24.770Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:19:24.770Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:19:24.770Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:19:24.770Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:19:26.825Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:19:27.680Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:19:27.680Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:19:27.685Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:19:27.686Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:19:27.686Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:19:27.687Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:19:27.687Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:19:27.687Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:19:27.688Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:19:27.688Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:19:27.688Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:19:27.689Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:19:27.689Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:19:27.689Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:19:28.222Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:19:28.232Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:19:28.238Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:19:28.239Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:19:28.240Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:19:28.240Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:19:28.240Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:19:33.059Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:19:33.614Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:19:33.614Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:19:33.617Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:19:33.617Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:19:33.618Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:19:33.618Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:19:33.619Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:19:33.619Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:19:33.619Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:19:33.620Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:19:33.620Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:19:33.621Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:19:33.621Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:19:33.621Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:19:34.054Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:19:34.057Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:19:34.062Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:19:34.062Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:19:34.062Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:19:34.063Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:19:34.063Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.18%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:20:33.659Z","type":"memory_usage","value":0.9418387796838327}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:20:33.271Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:20:34.893Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:20:34.893Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:20:34.896Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:20:34.897Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:20:34.897Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:20:34.897Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:20:34.898Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:20:34.898Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:20:34.898Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:20:34.899Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:20:34.899Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:20:34.900Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:20:34.900Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:20:34.900Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:20:35.479Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.90%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:21:33.670Z","type":"memory_usage","value":0.9489614207474227}
+{"level":"warn","message":"Performance Alert High memory usage: 95.27%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:22:33.673Z","type":"memory_usage","value":0.9526702104810997}
+{"level":"warn","message":"Performance Alert High memory usage: 95.60%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:23:34.089Z","type":"memory_usage","value":0.9559575010738831}
+{"level":"warn","message":"Performance Alert High memory usage: 95.87%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:24:33.842Z","type":"memory_usage","value":0.9586963058419244}
+{"level":"warn","message":"Performance Alert High memory usage: 96.05%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:25:33.849Z","type":"memory_usage","value":0.9605178801546391}
+{"level":"warn","message":"Performance Alert High memory usage: 96.16%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:26:33.862Z","type":"memory_usage","value":0.9616118986254295}
+{"level":"warn","message":"Performance Alert High memory usage: 95.07%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:27:33.860Z","type":"memory_usage","value":0.9506709412308371}
+{"level":"warn","message":"Performance Alert High memory usage: 95.21%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:28:33.865Z","type":"memory_usage","value":0.9521138583638583}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"325ms","statusCode":304,"timestamp":"2025-11-10T04:29:06.441Z","url":"/api/settings/app/public","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [10/Nov/2025:04:29:06 +0000] \"GET /api/settings/app/public HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T04:29:06.466Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"60ms","statusCode":304,"timestamp":"2025-11-10T04:29:06.546Z","url":"/api/settings/app/public","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [10/Nov/2025:04:29:06 +0000] \"GET /api/settings/app/public HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T04:29:06.550Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.82%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:29:33.876Z","type":"memory_usage","value":0.9481531131234164}
+{"level":"warn","message":"Performance Alert High memory usage: 94.94%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:30:33.878Z","type":"memory_usage","value":0.9494194828044085}
+{"level":"warn","message":"Performance Alert High memory usage: 94.74%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:31:33.882Z","type":"memory_usage","value":0.9473717646767156}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:31:36.853Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:31:39.339Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:31:39.343Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:31:39.349Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:31:39.349Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:31:39.350Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:31:39.350Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:31:39.350Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:31:39.351Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:31:39.351Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:31:39.352Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:31:39.355Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:31:39.359Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:31:39.360Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:31:39.360Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:31:40.018Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:31:40.023Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:31:40.031Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:31:40.032Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:31:40.032Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:31:40.033Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:31:40.033Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:31:41.522Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:31:42.493Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:31:42.494Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:31:42.497Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:31:42.497Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:31:42.498Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:31:42.498Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:31:42.498Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:31:42.499Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:31:42.499Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:31:42.500Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:31:42.501Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:31:42.503Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:31:42.505Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:31:42.506Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:31:43.159Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:31:43.167Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:31:43.176Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:31:43.177Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:31:43.177Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:31:43.177Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:31:43.178Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:31:59.530Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:32:00.541Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:32:00.542Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:32:00.545Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:32:00.545Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:32:00.546Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:32:00.547Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:32:00.548Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:32:00.550Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:32:00.552Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:32:00.554Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:32:00.554Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:32:00.555Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:32:00.555Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:32:00.555Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:32:01.111Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:32:01.117Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:32:01.127Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:32:01.128Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:32:01.129Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:32:01.129Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:32:01.129Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:32:07.517Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:32:08.127Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:32:08.127Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:32:08.130Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:32:08.130Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:32:08.131Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:32:08.131Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:32:08.132Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:32:08.132Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:32:08.132Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:32:08.133Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:32:08.133Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:32:08.134Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:32:08.134Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:32:08.134Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:32:08.670Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:32:08.674Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:32:08.678Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:32:08.679Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:32:08.679Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:32:08.679Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:32:08.680Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:32:26.443Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:32:28.211Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:32:28.217Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:32:28.222Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:32:28.225Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:32:28.231Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:32:28.232Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:32:28.232Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:32:28.233Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:32:28.233Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:32:28.234Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:32:28.235Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:32:28.235Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:32:28.238Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:32:28.240Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:32:28.973Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:32:28.988Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:32:29.006Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:32:29.008Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:32:29.009Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:32:29.010Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:32:29.012Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 93.33%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:33:28.208Z","type":"memory_usage","value":0.9333080115813603}
+{"level":"warn","message":"Performance Alert High memory usage: 93.23%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:34:29.351Z","type":"memory_usage","value":0.9323066142781714}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T04:35:06.172Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T04:35:08.012Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T04:35:08.013Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T04:35:08.023Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T04:35:08.026Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T04:35:08.031Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T04:35:08.036Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T04:35:08.038Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T04:35:08.044Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T04:35:08.045Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T04:35:08.047Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T04:35:08.048Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T04:35:08.059Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T04:35:08.063Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T04:35:08.064Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T04:35:09.426Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T04:35:09.438Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T04:35:09.489Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T04:35:09.507Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T04:35:09.511Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T04:35:09.512Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T04:35:09.513Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 92.02%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:36:08.019Z","type":"memory_usage","value":0.9201800206942363}
+{"level":"warn","message":"Performance Alert High memory usage: 94.76%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:37:08.480Z","type":"memory_usage","value":0.9475560454921994}
+{"level":"warn","message":"Performance Alert High memory usage: 94.85%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:38:08.038Z","type":"memory_usage","value":0.948532672895189}
+{"level":"warn","message":"Performance Alert High memory usage: 95.04%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:39:08.038Z","type":"memory_usage","value":0.950443111039519}
+{"level":"warn","message":"Performance Alert High memory usage: 95.34%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:40:08.124Z","type":"memory_usage","value":0.9534278350515464}
+{"level":"warn","message":"Performance Alert High memory usage: 95.63%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:41:08.098Z","type":"memory_usage","value":0.9563094662800687}
+{"level":"warn","message":"Performance Alert High memory usage: 94.15%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:42:08.106Z","type":"memory_usage","value":0.9414590157706335}
+{"level":"warn","message":"Performance Alert High memory usage: 95.42%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:43:08.119Z","type":"memory_usage","value":0.9542214443342001}
+{"level":"warn","message":"Performance Alert High memory usage: 94.62%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:44:08.126Z","type":"memory_usage","value":0.946202945877425}
+{"level":"warn","message":"Performance Alert High memory usage: 94.79%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:45:08.130Z","type":"memory_usage","value":0.9479051402879528}
+{"level":"warn","message":"Performance Alert High memory usage: 94.95%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:46:08.137Z","type":"memory_usage","value":0.9494922033984534}
+{"level":"warn","message":"Performance Alert High memory usage: 95.13%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:47:08.149Z","type":"memory_usage","value":0.9513141661579162}
+{"level":"warn","message":"Performance Alert High memory usage: 94.75%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:48:08.184Z","type":"memory_usage","value":0.9475181092124815}
+{"level":"warn","message":"Performance Alert High memory usage: 93.21%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:49:08.159Z","type":"memory_usage","value":0.9321075751477228}
+{"level":"warn","message":"Performance Alert High memory usage: 94.98%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:50:08.164Z","type":"memory_usage","value":0.9497510247112657}
+{"level":"warn","message":"Performance Alert High memory usage: 94.93%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:51:08.178Z","type":"memory_usage","value":0.949325864514386}
+{"level":"warn","message":"Performance Alert High memory usage: 94.70%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:52:08.189Z","type":"memory_usage","value":0.9469640530430397}
+{"level":"warn","message":"Performance Alert High memory usage: 94.45%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:53:08.191Z","type":"memory_usage","value":0.9445132803083568}
+{"level":"warn","message":"Performance Alert High memory usage: 94.61%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:54:08.200Z","type":"memory_usage","value":0.9461071422592742}
+{"level":"warn","message":"Performance Alert High memory usage: 95.91%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:55:08.195Z","type":"memory_usage","value":0.9591379151600375}
+{"level":"warn","message":"Performance Alert High memory usage: 95.72%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:56:08.212Z","type":"memory_usage","value":0.9571915909167001}
+{"level":"warn","message":"Performance Alert High memory usage: 95.62%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:57:08.208Z","type":"memory_usage","value":0.956160491579617}
+{"level":"warn","message":"Performance Alert High memory usage: 95.31%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:58:08.220Z","type":"memory_usage","value":0.9530947876383518}
+{"level":"warn","message":"Performance Alert High memory usage: 95.01%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T04:59:08.220Z","type":"memory_usage","value":0.9501060979202629}
+{"level":"warn","message":"Performance Alert High memory usage: 94.64%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:00:08.227Z","type":"memory_usage","value":0.9464454473592484}
+{"level":"warn","message":"Performance Alert High memory usage: 94.81%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:01:08.282Z","type":"memory_usage","value":0.9481484343878634}
+{"level":"warn","message":"Performance Alert High memory usage: 94.99%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:02:08.236Z","type":"memory_usage","value":0.9499144421806534}
+{"level":"warn","message":"Performance Alert High memory usage: 96.30%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:03:08.250Z","type":"memory_usage","value":0.9629833407333024}
+{"level":"warn","message":"Performance Alert High memory usage: 95.26%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:04:08.247Z","type":"memory_usage","value":0.9526378116770902}
+{"level":"warn","message":"Performance Alert High memory usage: 95.15%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:05:08.270Z","type":"memory_usage","value":0.9515069535878867}
+{"level":"warn","message":"Performance Alert High memory usage: 93.54%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:06:08.331Z","type":"memory_usage","value":0.9353584665932928}
+{"level":"warn","message":"Performance Alert High memory usage: 95.25%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:07:08.262Z","type":"memory_usage","value":0.9525229900427913}
+{"level":"warn","message":"Performance Alert High memory usage: 95.07%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:08:08.273Z","type":"memory_usage","value":0.950659485064187}
+{"level":"warn","message":"Performance Alert High memory usage: 95.21%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:09:08.278Z","type":"memory_usage","value":0.9520869764236339}
+{"level":"warn","message":"Performance Alert High memory usage: 94.96%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:10:08.283Z","type":"memory_usage","value":0.9496037668398453}
+{"level":"warn","message":"Performance Alert High memory usage: 96.06%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:11:08.286Z","type":"memory_usage","value":0.9605657993395175}
+{"level":"warn","message":"Performance Alert High memory usage: 95.48%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:12:08.289Z","type":"memory_usage","value":0.9548381601710406}
+{"level":"warn","message":"Performance Alert High memory usage: 93.85%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:13:08.298Z","type":"memory_usage","value":0.9385010173205343}
+{"level":"warn","message":"Performance Alert High memory usage: 95.44%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:14:08.311Z","type":"memory_usage","value":0.954439068824259}
+{"level":"warn","message":"Performance Alert High memory usage: 95.12%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:15:08.315Z","type":"memory_usage","value":0.9512223670681551}
+{"level":"warn","message":"Performance Alert High memory usage: 95.99%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:16:08.317Z","type":"memory_usage","value":0.9599407485209985}
+{"level":"warn","message":"Performance Alert High memory usage: 95.63%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:17:08.332Z","type":"memory_usage","value":0.9562526410739826}
+{"level":"warn","message":"Performance Alert High memory usage: 95.41%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:18:08.332Z","type":"memory_usage","value":0.9540604226937329}
+{"level":"warn","message":"Performance Alert High memory usage: 94.94%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:19:08.348Z","type":"memory_usage","value":0.9494096873786093}
+{"level":"warn","message":"Performance Alert High memory usage: 96.08%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:20:08.356Z","type":"memory_usage","value":0.9607990387883595}
+{"level":"warn","message":"Performance Alert High memory usage: 95.84%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:21:08.364Z","type":"memory_usage","value":0.9584465891250162}
+{"level":"warn","message":"Performance Alert High memory usage: 95.79%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T05:22:08.372Z","type":"memory_usage","value":0.9578998253997799}
+{"level":"warn","message":"Performance Alert High memory usage: 95.65%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:26:59.171Z","type":"memory_usage","value":0.9564569204810307}
+{"level":"warn","message":"Performance Alert High memory usage: 95.42%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:27:59.182Z","type":"memory_usage","value":0.9541813228377424}
+{"level":"warn","message":"Performance Alert High memory usage: 95.91%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:28:59.177Z","type":"memory_usage","value":0.9590801702983118}
+{"level":"warn","message":"Performance Alert High memory usage: 95.60%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:29:59.181Z","type":"memory_usage","value":0.9559693834729505}
+{"level":"warn","message":"Performance Alert High memory usage: 95.44%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:30:59.195Z","type":"memory_usage","value":0.9543724621115233}
+{"level":"warn","message":"Performance Alert High memory usage: 95.15%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:31:59.220Z","type":"memory_usage","value":0.9514811177100653}
+{"level":"warn","message":"Performance Alert High memory usage: 95.50%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:32:59.216Z","type":"memory_usage","value":0.9549820982199719}
+{"level":"warn","message":"Performance Alert High memory usage: 94.87%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:33:59.242Z","type":"memory_usage","value":0.9486648731843841}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"350ms","statusCode":304,"timestamp":"2025-11-10T06:34:12.983Z","url":"/api/settings/app/public","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:34:13 +0000] \"GET /api/settings/app/public HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:34:13.091Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"71ms","statusCode":304,"timestamp":"2025-11-10T06:34:13.206Z","url":"/api/settings/app/public","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:34:13 +0000] \"GET /api/settings/app/public HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:34:13.209Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 95.84%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:34:59.243Z","type":"memory_usage","value":0.9584436835441047}
+{"level":"info","message":"✅ Verification code sent to +6394***","timestamp":"2025-11-10T06:35:23.380Z"}
+{"clientInfo":{"ip":"::1","timestamp":"2025-11-10T06:35:22.022Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"},"duration":1359,"isNewUser":true,"level":"info","message":"Verification code sent successfully","phoneNumber":"+6394***","timestamp":"2025-11-10T06:35:23.381Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"POST","responseTime":"1383ms","statusCode":200,"timestamp":"2025-11-10T06:35:23.384Z","url":"/api/auth/send-code","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:23 +0000] \"POST /api/auth/send-code HTTP/1.1\" 200 81 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:23.386Z"}
+{"level":"info","message":"✅ Verification approved for +6394***","timestamp":"2025-11-10T06:35:37.630Z"}
+{"clientInfo":{"ip":"::1","timestamp":"2025-11-10T06:35:37.231Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"},"duration":554,"level":"info","message":"New user registration successful","phoneNumber":"+6394***","timestamp":"2025-11-10T06:35:37.784Z","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"POST","responseTime":"556ms","statusCode":201,"timestamp":"2025-11-10T06:35:37.785Z","url":"/api/auth/verify-code","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:37 +0000] \"POST /api/auth/verify-code HTTP/1.1\" 201 552 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:37.786Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"134ms","statusCode":200,"timestamp":"2025-11-10T06:35:45.260Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:45 +0000] \"GET /api/auth/me HTTP/1.1\" 200 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:45.294Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"108ms","statusCode":200,"timestamp":"2025-11-10T06:35:45.415Z","url":"/api/users/691187b9a1a4e85ea4bf9a2e","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:45 +0000] \"GET /api/users/691187b9a1a4e85ea4bf9a2e HTTP/1.1\" 200 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:45.418Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"125ms","statusCode":304,"timestamp":"2025-11-10T06:35:45.422Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:45 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:45.423Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"115ms","statusCode":304,"timestamp":"2025-11-10T06:35:45.642Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:45 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:45.643Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"77ms","statusCode":304,"timestamp":"2025-11-10T06:35:45.737Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:45 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:45.738Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"119ms","statusCode":304,"timestamp":"2025-11-10T06:35:45.764Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:45 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:45.779Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"126ms","statusCode":304,"timestamp":"2025-11-10T06:35:45.914Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:45 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:45.915Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"130ms","statusCode":304,"timestamp":"2025-11-10T06:35:46.046Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:46 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:46.049Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"85ms","statusCode":304,"timestamp":"2025-11-10T06:35:46.151Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:46 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:46.153Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"145ms","statusCode":304,"timestamp":"2025-11-10T06:35:46.195Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:46 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:46.196Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"126ms","statusCode":304,"timestamp":"2025-11-10T06:35:46.328Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:35:46 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:35:46.329Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"117ms","statusCode":304,"timestamp":"2025-11-10T06:36:16.188Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:36:16 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:36:16.189Z"}
+{"clientInfo":{"ip":"::1","timestamp":"2025-11-10T06:36:44.351Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"},"duration":125,"level":"info","message":"Roles updated during onboarding","newRoles":["client","provider"],"previousRoles":["client"],"timestamp":"2025-11-10T06:36:44.482Z","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"clientInfo":{"ip":"::1","timestamp":"2025-11-10T06:36:44.351Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"},"duration":183,"error":"Cannot read properties of null (reading 'charAt')","level":"error","message":"Complete onboarding error","stack":"TypeError: Cannot read properties of null (reading 'charAt')\n    at userSchema.methods.generateReferralCode (C:\\Users\\corew\\localpro-super-app\\src\\models\\User.js:563:38)\n    at completeOnboarding (C:\\Users\\corew\\localpro-super-app\\src\\controllers\\authController.js:546:85)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-10T06:36:44.564Z","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"299ms","statusCode":500,"timestamp":"2025-11-10T06:36:44.576Z","url":"/api/auth/complete-onboarding","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:36:44 +0000] \"POST /api/auth/complete-onboarding HTTP/1.1\" 500 92 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:36:44.618Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"284ms","statusCode":304,"timestamp":"2025-11-10T06:36:46.451Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:36:46 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:36:46.459Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"394ms","statusCode":304,"timestamp":"2025-11-10T06:37:17.166Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:37:17 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:37:17.191Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"122ms","statusCode":304,"timestamp":"2025-11-10T06:37:46.588Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:37:46 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:37:46.594Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 90.33%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:37:59.298Z","type":"memory_usage","value":0.9033066634130409}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"1736ms","statusCode":304,"timestamp":"2025-11-10T06:38:18.827Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:38:19 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:38:19.359Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"152ms","statusCode":304,"timestamp":"2025-11-10T06:38:46.629Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:38:46 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:38:46.630Z"}
+{"clientInfo":{"ip":"::1","timestamp":"2025-11-10T06:38:52.057Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"},"duration":119,"level":"info","message":"Roles updated during onboarding","newRoles":["client","provider"],"previousRoles":["client"],"timestamp":"2025-11-10T06:38:52.178Z","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"clientInfo":{"ip":"::1","timestamp":"2025-11-10T06:38:52.057Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"},"duration":137,"error":"Cannot read properties of null (reading 'charAt')","level":"error","message":"Complete onboarding error","stack":"TypeError: Cannot read properties of null (reading 'charAt')\n    at userSchema.methods.generateReferralCode (C:\\Users\\corew\\localpro-super-app\\src\\models\\User.js:563:38)\n    at completeOnboarding (C:\\Users\\corew\\localpro-super-app\\src\\controllers\\authController.js:546:85)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-11-10T06:38:52.193Z","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"ip":"::1","level":"warn","message":"HTTP Request","method":"POST","responseTime":"199ms","statusCode":500,"timestamp":"2025-11-10T06:38:52.194Z","url":"/api/auth/complete-onboarding","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:38:52 +0000] \"POST /api/auth/complete-onboarding HTTP/1.1\" 500 92 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:38:52.195Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 90.28%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:38:59.319Z","type":"memory_usage","value":0.9027913213645479}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"166ms","statusCode":304,"timestamp":"2025-11-10T06:39:16.260Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:39:16 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:39:16.279Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"115ms","statusCode":304,"timestamp":"2025-11-10T06:39:46.587Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:39:46 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:39:46.588Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 91.86%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:39:59.284Z","type":"memory_usage","value":0.918589605425073}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"127ms","statusCode":304,"timestamp":"2025-11-10T06:40:16.616Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:40:16 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:40:16.619Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T06:40:30.454Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T06:40:33.040Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T06:40:33.043Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T06:40:33.048Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T06:40:33.048Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T06:40:33.049Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T06:40:33.050Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T06:40:33.052Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T06:40:33.055Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T06:40:33.057Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T06:40:33.058Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T06:40:33.059Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T06:40:33.059Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T06:40:33.059Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T06:40:33.060Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T06:40:33.920Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T06:40:33.935Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T06:40:33.981Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T06:40:33.982Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T06:40:33.982Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T06:40:33.982Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T06:40:33.983Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T06:40:36.624Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T06:40:38.102Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T06:40:38.102Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T06:40:38.110Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T06:40:38.113Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T06:40:38.115Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T06:40:38.115Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T06:40:38.116Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T06:40:38.116Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T06:40:38.117Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T06:40:38.118Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T06:40:38.118Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T06:40:38.123Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T06:40:38.126Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T06:40:38.127Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T06:40:38.769Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T06:40:38.773Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T06:40:38.785Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T06:40:38.787Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T06:40:38.788Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T06:40:38.788Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T06:40:38.790Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T06:41:00.509Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T06:41:02.388Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T06:41:02.390Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T06:41:02.404Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T06:41:02.405Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T06:41:02.407Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T06:41:02.415Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T06:41:02.417Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T06:41:02.420Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T06:41:02.429Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T06:41:02.439Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T06:41:02.441Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T06:41:02.443Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T06:41:02.444Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T06:41:02.445Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T06:41:03.056Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T06:41:03.072Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T06:41:03.109Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T06:41:03.282Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T06:41:03.353Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T06:41:03.364Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T06:41:03.366Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"154ms","statusCode":304,"timestamp":"2025-11-10T06:41:13.658Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:41:13 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:41:13.660Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T06:41:16.431Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T06:41:18.093Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T06:41:18.096Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T06:41:18.109Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T06:41:18.112Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T06:41:18.116Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T06:41:18.117Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T06:41:18.118Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T06:41:18.118Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T06:41:18.119Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T06:41:18.119Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T06:41:18.120Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T06:41:18.121Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T06:41:18.121Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T06:41:18.122Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T06:41:18.705Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T06:41:18.710Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T06:41:18.716Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T06:41:18.717Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T06:41:18.717Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T06:41:18.718Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T06:41:18.718Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T06:41:36.113Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T06:41:36.707Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T06:41:36.708Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T06:41:36.712Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T06:41:36.713Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T06:41:36.714Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T06:41:36.714Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T06:41:36.716Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T06:41:36.717Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T06:41:36.718Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T06:41:36.719Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T06:41:36.721Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T06:41:36.726Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T06:41:36.728Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T06:41:36.728Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T06:41:37.255Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T06:41:37.258Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T06:41:37.263Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T06:41:37.264Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T06:41:37.264Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T06:41:37.265Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T06:41:37.265Z"}
+{"level":"info","message":"✅ Twilio client initialized successfully","timestamp":"2025-11-10T06:41:41.095Z"}
+{"level":"info","message":"🚀 Initializing LocalPro Super App...","timestamp":"2025-11-10T06:41:41.738Z"}
+{"level":"info","message":"🔍 Running startup validation checks...","timestamp":"2025-11-10T06:41:41.739Z"}
+{"level":"info","message":"✅ JWT Secret: PASSED","timestamp":"2025-11-10T06:41:41.743Z"}
+{"level":"info","message":"✅ MongoDB URI: PASSED","timestamp":"2025-11-10T06:41:41.745Z"}
+{"level":"info","message":"✅ Node Environment: PASSED","timestamp":"2025-11-10T06:41:41.747Z"}
+{"level":"info","message":"✅ Twilio Configuration: PASSED","timestamp":"2025-11-10T06:41:41.748Z"}
+{"level":"info","message":"✅ PayPal Configuration: PASSED","timestamp":"2025-11-10T06:41:41.748Z"}
+{"level":"info","message":"✅ Cloudinary Configuration: PASSED","timestamp":"2025-11-10T06:41:41.749Z"}
+{"level":"info","message":"✅ CORS Configuration: PASSED","timestamp":"2025-11-10T06:41:41.750Z"}
+{"level":"warn","message":"⚠️  Database Connection: Database not yet connected - will be checked after connection","timestamp":"2025-11-10T06:41:41.751Z"}
+{"level":"info","message":"✅ Port Configuration: PASSED","timestamp":"2025-11-10T06:41:41.752Z"}
+{"criticalFailures":0,"failed":0,"level":"info","message":"📊 Startup validation summary:","passed":8,"timestamp":"2025-11-10T06:41:41.753Z","warnings":1}
+{"level":"warn","message":"⚠️  Startup validation warnings:","timestamp":"2025-11-10T06:41:41.753Z","totalChecks":9,"warnings":["Database Connection: Database not yet connected - will be checked after connection"]}
+{"level":"info","message":"✅ Application startup validation completed successfully","timestamp":"2025-11-10T06:41:41.754Z"}
+{"level":"info","message":"Database connected","timestamp":"2025-11-10T06:41:42.353Z"}
+{"level":"info","message":"✅ Database connection verified successfully","timestamp":"2025-11-10T06:41:42.358Z"}
+{"environment":"development","level":"info","message":"LocalPro Super App API Started","port":"5000","timestamp":"2025-11-10T06:41:42.362Z"}
+{"level":"info","message":"🚀 LocalPro Super App API running on port 5000","timestamp":"2025-11-10T06:41:42.363Z"}
+{"level":"info","message":"📱 Environment: development","timestamp":"2025-11-10T06:41:42.363Z"}
+{"level":"info","message":"📊 Logging enabled with Winston","timestamp":"2025-11-10T06:41:42.363Z"}
+{"level":"info","message":"🔍 Error monitoring active","timestamp":"2025-11-10T06:41:42.363Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"87ms","statusCode":304,"timestamp":"2025-11-10T06:41:48.531Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:41:48 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:41:48.534Z"}
+{"clientInfo":{"ip":"::1","timestamp":"2025-11-10T06:41:58.854Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"},"duration":77,"level":"info","message":"Roles updated during onboarding","newRoles":["client","provider"],"previousRoles":["client"],"timestamp":"2025-11-10T06:41:58.932Z","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"info","message":"[Resend] Sending email to: rebucasrandy1986@gmail.com","timestamp":"2025-11-10T06:41:59.027Z"}
+{"level":"info","message":"[Resend] Subject: Welcome to LocalPro Super App!","timestamp":"2025-11-10T06:41:59.028Z"}
+{"clientInfo":{"ip":"::1","timestamp":"2025-11-10T06:41:58.854Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"},"duration":814,"email":"reb***@gmail.com","level":"info","message":"Welcome email sent successfully","timestamp":"2025-11-10T06:41:59.671Z","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"clientInfo":{"ip":"::1","timestamp":"2025-11-10T06:41:58.854Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"},"duration":820,"email":"reb***@gmail.com","level":"info","message":"Onboarding completed successfully","phoneNumber":"+6394***","timestamp":"2025-11-10T06:41:59.677Z","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"POST","responseTime":"884ms","statusCode":200,"timestamp":"2025-11-10T06:41:59.679Z","url":"/api/auth/complete-onboarding","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:41:59 +0000] \"POST /api/auth/complete-onboarding HTTP/1.1\" 200 773 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:41:59.694Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"281ms","statusCode":304,"timestamp":"2025-11-10T06:42:16.367Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:42:16 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:42:16.387Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"85ms","statusCode":200,"timestamp":"2025-11-10T06:42:24.262Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"context":"App","level":"info","message":"Announcements retrieved","query":{"limit":"1","page":"1","sortBy":"publishedAt","sortOrder":"desc","status":"published"},"resultCount":0,"timestamp":"2025-11-10T06:42:24.289Z","totalCount":0}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"106ms","statusCode":304,"timestamp":"2025-11-10T06:42:24.291Z","url":"/api/announcements?status=published&page=1&limit=1&sortBy=publishedAt&sortOrder=desc","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":null}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:42:24 +0000] \"GET /api/announcements?status=published&page=1&limit=1&sortBy=publishedAt&sortOrder=desc HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:42:24.293Z"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:42:24 +0000] \"GET /api/auth/me HTTP/1.1\" 200 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:42:24.303Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"73ms","statusCode":304,"timestamp":"2025-11-10T06:42:24.378Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:42:24 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:42:24.379Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 94.38%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:42:41.812Z","type":"memory_usage","value":0.9438275363798506}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"130ms","statusCode":304,"timestamp":"2025-11-10T06:42:46.622Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:42:46 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:42:46.623Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"75ms","statusCode":304,"timestamp":"2025-11-10T06:43:18.237Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:43:18 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:43:18.238Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"91ms","statusCode":304,"timestamp":"2025-11-10T06:43:35.882Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:43:35 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:43:35.885Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"79ms","statusCode":304,"timestamp":"2025-11-10T06:43:35.966Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:43:35 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:43:35.968Z"}
+{"canAccessDashboard":true,"clientInfo":{"ip":"::1","timestamp":"2025-11-10T06:43:35.985Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"},"duration":42,"level":"info","message":"Profile completeness checked","needsOnboarding":false,"overallPercentage":88,"timestamp":"2025-11-10T06:43:36.028Z","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"101ms","statusCode":200,"timestamp":"2025-11-10T06:43:36.039Z","url":"/api/auth/profile-completeness","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:43:36 +0000] \"GET /api/auth/profile-completeness HTTP/1.1\" 200 804 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:43:36.041Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"74ms","statusCode":304,"timestamp":"2025-11-10T06:43:36.044Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:43:36 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:43:36.045Z"}
+{"canAccessDashboard":true,"clientInfo":{"ip":"::1","timestamp":"2025-11-10T06:43:36.086Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"},"duration":34,"level":"info","message":"Profile completeness checked","needsOnboarding":false,"overallPercentage":88,"timestamp":"2025-11-10T06:43:36.121Z","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"73ms","statusCode":304,"timestamp":"2025-11-10T06:43:36.121Z","url":"/api/auth/profile-completeness","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:43:36 +0000] \"GET /api/auth/profile-completeness HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:43:36.122Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"74ms","statusCode":304,"timestamp":"2025-11-10T06:43:36.124Z","url":"/api/auth/me","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:43:36 +0000] \"GET /api/auth/me HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:43:36.125Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 95.67%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:43:41.749Z","type":"memory_usage","value":0.9567456026236566}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"75ms","statusCode":304,"timestamp":"2025-11-10T06:43:46.545Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:43:46 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:43:46.546Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"300ms","statusCode":304,"timestamp":"2025-11-10T06:44:17.091Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:44:17 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:44:17.108Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 95.34%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:44:42.099Z","type":"memory_usage","value":0.9533944646241314}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"103ms","statusCode":304,"timestamp":"2025-11-10T06:44:46.737Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:44:46 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:44:46.743Z"}
+{"ip":"::1","level":"http","message":"HTTP Request","method":"GET","responseTime":"148ms","statusCode":304,"timestamp":"2025-11-10T06:45:16.639Z","url":"/api/communication/notifications/count?isRead=false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","userId":"691187b9a1a4e85ea4bf9a2e"}
+{"level":"http","message":"::1 - - [10/Nov/2025:06:45:16 +0000] \"GET /api/communication/notifications/count?isRead=false HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36\"","timestamp":"2025-11-10T06:45:16.643Z"}
+{"level":"warn","message":"Performance Alert High memory usage: 95.09%","severity":"warning","threshold":0.9,"timestamp":"2025-11-10T06:45:41.771Z","type":"memory_usage","value":0.9509243857745061}

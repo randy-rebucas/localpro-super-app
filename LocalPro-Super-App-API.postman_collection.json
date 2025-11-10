@@ -1,10 +1,10 @@
 {
   "info": {
     "name": "LocalPro Super App API - Complete Collection",
-    "description": "Complete API collection for LocalPro Super App with all endpoints organized by module. Generated automatically from route files.",
+    "description": "Complete API collection for LocalPro Super App with all endpoints organized by module. Updated for multi-role support - users can have multiple roles (client, provider, supplier, instructor, agency_owner, agency_admin). Generated automatically from route files.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "1e3e122b-7797-461c-a3ed-d06fe0577dae",
-    "version": "2025-01-15"
+    "version": "2025-01-15-multi-role"
   },
   "auth": {
     "type": "bearer",
@@ -315,10 +315,10 @@
                 "complete-onboarding"
               ]
             },
-            "description": "Complete onboarding",
+            "description": "Complete onboarding with multi-role support. The `roles` field is optional - if not provided, user keeps existing roles or defaults to ['client']. If provided, must be an array of valid roles. Valid roles: 'client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'. The 'client' role is always automatically included even if not specified.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"role\": \"provider\",\n  \"bio\": \"Professional service provider\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Manila\",\n    \"state\": \"Metro Manila\",\n    \"zipCode\": \"1000\",\n    \"country\": \"Philippines\"\n  }\n}",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"roles\": [\"client\", \"provider\"],\n  \"bio\": \"Professional service provider\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Manila\",\n    \"state\": \"Metro Manila\",\n    \"zipCode\": \"1000\",\n    \"country\": \"Philippines\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -7705,7 +7705,7 @@
             "description": "Add provider",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"providerId\": \"{{userId}}\",\n  \"role\": \"provider\",\n  \"commission\": 15\n}",
+              "raw": "{\n  \"providerId\": \"{{userId}}\",\n  \"commission\": 15\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -7939,7 +7939,7 @@
             "description": "Join agency",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"agencyId\": \"{{agencyId}}\",\n  \"role\": \"provider\"\n}",
+              "raw": "{\n  \"agencyId\": \"{{agencyId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -9597,7 +9597,7 @@
             "description": "Create user",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"role\": \"provider\"\n}",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"roles\": [\"client\", \"provider\"]\n}",
               "options": {
                 "raw": {
                   "language": "json"

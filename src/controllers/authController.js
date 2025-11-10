@@ -413,7 +413,7 @@ const completeOnboarding = async (req, res) => {
   const clientInfo = getClientInfo(req);
   
   try {
-    const { firstName, lastName, email } = req.body;
+    const { firstName, lastName, email, roles, profile } = req.body;
     const userId = req.user.id;
 
     // Input validation
@@ -490,23 +490,116 @@ const completeOnboarding = async (req, res) => {
       });
     }
 
+    // Handle roles if provided (multi-role support)
+    let rolesToSet = currentUser.roles || ['client'];
+    if (roles && Array.isArray(roles) && roles.length > 0) {
+      // Validate roles
+      const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'];
+      const invalidRoles = roles.filter(role => !validRoles.includes(role));
+      
+      if (invalidRoles.length > 0) {
+        logger.warn('Complete onboarding failed: Invalid roles provided', {
+          userId,
+          invalidRoles,
+          validRoles,
+          clientInfo,
+          duration: Date.now() - startTime
+        });
+        return res.status(400).json({
+          success: false,
+          message: `Invalid roles: ${invalidRoles.join(', ')}. Valid roles are: ${validRoles.join(', ')}`,
+          code: 'INVALID_ROLES'
+        });
+      }
+
+      // Ensure 'client' is always present
+      if (!roles.includes('client')) {
+        rolesToSet = ['client', ...roles];
+      } else {
+        rolesToSet = [...new Set(['client', ...roles])]; // Remove duplicates, ensure 'client' is first
+      }
+      
+      logger.info('Roles updated during onboarding', {
+        userId,
+        previousRoles: currentUser.roles,
+        newRoles: rolesToSet,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+    }
+
+    // Prepare update data
+    const updateData = {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.toLowerCase().trim(),
+      roles: rolesToSet, // Multi-role support
+      status: 'active'
+    };
+
+    // Handle verification - preserve existing verification data
+    if (currentUser.verification) {
+      updateData.verification = {
+        ...currentUser.verification,
+        emailVerified: false // Will need email verification
+      };
+    } else {
+      updateData.verification = {
+        emailVerified: false
+      };
+    }
+
+    // Handle profile data if provided
+    if (profile) {
+      updateData.profile = {
+        ...(currentUser.profile || {}),
+        ...(profile.bio && { bio: profile.bio.trim() }),
+        ...(profile.address && {
+          address: {
+            ...(currentUser.profile?.address || {}),
+            ...(profile.address.street && { street: profile.address.street.trim() }),
+            ...(profile.address.city && { city: profile.address.city.trim() }),
+            ...(profile.address.state && { state: profile.address.state.trim() }),
+            ...(profile.address.zipCode && { zipCode: profile.address.zipCode.trim() }),
+            ...(profile.address.country && { country: profile.address.country.trim() }),
+            ...(profile.address.coordinates && { coordinates: profile.address.coordinates })
+          }
+        })
+      };
+    }
+
+    // Generate referral code if needed
+    let referralCode = currentUser.referral?.referralCode;
+    if (!referralCode) {
+      // Generate referral code using the new firstName and lastName
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+      let result = initials;
+      
+      // Add 6 random characters
+      for (let i = 0; i < 6; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      
+      referralCode = result;
+    }
+    
+    // Handle referral
+    if (currentUser.referral) {
+      updateData.referral = {
+        ...currentUser.referral,
+        referralCode: referralCode
+      };
+    } else {
+      updateData.referral = {
+        referralCode: referralCode
+      };
+    }
+
     // Update user with onboarding information
     const user = await User.findByIdAndUpdate(
       userId,
-      {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.toLowerCase().trim(),
-        verification: {
-          ...currentUser.verification,
-          emailVerified: false // Will need email verification
-        },
-        status: 'active',
-        // Generate referral code for new users
-        $set: {
-          'referral.referralCode': currentUser.referral.referralCode || currentUser.generateReferralCode()
-        }
-      },
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -581,13 +674,23 @@ const completeOnboarding = async (req, res) => {
       userId: req.user?.id,
       error: error.message,
       stack: error.stack,
+      errorName: error.name,
+      body: {
+        firstName: req.body?.firstName,
+        lastName: req.body?.lastName,
+        email: req.body?.email ? req.body.email.substring(0, 3) + '***@' + req.body.email.split('@')[1] : undefined,
+        hasRoles: !!req.body?.roles,
+        rolesCount: req.body?.roles?.length,
+        hasProfile: !!req.body?.profile
+      },
       clientInfo,
       duration: Date.now() - startTime
     });
     res.status(500).json({
       success: false,
       message: 'Server error. Please try again.',
-      code: 'INTERNAL_SERVER_ERROR'
+      code: 'INTERNAL_SERVER_ERROR',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
