@@ -948,10 +948,10 @@
                 "bookings"
               ]
             },
-            "description": "Create booking",
+            "description": "Create booking. Supports multiple field name formats: `bookingDate` (preferred) or `scheduledDate`, `duration` as number (hours) or object `{hours, minutes}`, `specialInstructions` (preferred) or `notes`.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"scheduledDate\": \"2024-12-15T10:00:00Z\",\n  \"duration\": {\n    \"hours\": 2,\n    \"minutes\": 0\n  },\n  \"address\": {\n    \"street\": \"456 Customer St\",\n    \"city\": \"Makati\",\n    \"state\": \"Metro Manila\",\n    \"zipCode\": \"1200\",\n    \"country\": \"Philippines\"\n  },\n  \"notes\": \"Please ring doorbell twice\",\n  \"paymentMethod\": \"paypal\"\n}",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"bookingDate\": \"2024-12-15T10:00:00Z\",\n  \"duration\": 2,\n  \"address\": {\n    \"street\": \"456 Customer St\",\n    \"city\": \"Makati\",\n    \"state\": \"Metro Manila\",\n    \"zipCode\": \"1200\",\n    \"country\": \"Philippines\",\n    \"coordinates\": {\n      \"lat\": 14.5547,\n      \"lng\": 121.0244\n    }\n  },\n  \"specialInstructions\": \"Please ring doorbell twice\",\n  \"paymentMethod\": \"paypal\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -984,6 +984,40 @@
               ]
             },
             "description": "Get bookings"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/marketplace/bookings/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketplace/bookings/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketplace",
+                "bookings",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{bookingId}}",
+                  "description": "Booking ID"
+                }
+              ]
+            },
+            "description": "Get a single booking by ID. Only the booking's client, provider, or an admin can view it. Returns full booking details including populated service, client, and provider information."
           },
           "response": []
         },

@@ -16,6 +16,7 @@ const {
   deleteService,
   uploadServiceImages,
   createBooking,
+  getBooking,
   getBookings,
   updateBookingStatus,
   uploadBookingPhotos,
@@ -78,6 +79,7 @@ router.post('/services/:id/images', authorize('provider', 'admin'), uploaders.ma
 // Booking routes
 router.post('/bookings', createBooking);
 router.get('/bookings', getBookings);
+router.get('/bookings/:id', validateObjectIdParam('id'), getBooking);
 router.put('/bookings/:id/status', updateBookingStatus);
 router.post('/bookings/:id/photos', uploaders.marketplace.array('photos', 5), uploadBookingPhotos);
 router.post('/bookings/:id/review', uploaders.marketplace.array('photos', 3), addReview);

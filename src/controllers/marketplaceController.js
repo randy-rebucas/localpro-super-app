@@ -255,28 +255,130 @@ const deleteService = async (req, res) => {
 // @access  Private
 const createBooking = async (req, res) => {
   try {
-    const { serviceId, bookingDate, duration, address, specialInstructions, paymentMethod } = req.body;
+    // Support both field names for backward compatibility
+    // serviceId can be in body, formData, URL params, or query params
+    // Frontend may send: { serviceId, providerId, formData: { bookingDate, bookingTime, ... } }
+    const { 
+      serviceId: bodyServiceId,
+      // providerId may be sent but not used (service.provider is used instead)
+      bookingDate, 
+      bookingTime, // Separate time field (frontend sends date and time separately)
+      scheduledDate, // Alternative field name
+      duration, 
+      address, 
+      specialInstructions, 
+      notes, // Alternative field name
+      paymentMethod,
+      formData // Handle nested formData object from frontend
+    } = req.body;
 
-    const service = await Service.findById(serviceId);
+    // Extract serviceId from multiple possible locations
+    const actualServiceId = bodyServiceId || 
+                           formData?.serviceId || 
+                           req.params.serviceId || 
+                           req.query.serviceId;
+    
+    // Debug logging to help diagnose issues
+    if (!actualServiceId) {
+      logger.warn('Service ID extraction failed', {
+        bodyServiceId,
+        formDataServiceId: formData?.serviceId,
+        paramsServiceId: req.params.serviceId,
+        queryServiceId: req.query.serviceId,
+        bodyKeys: Object.keys(req.body || {}),
+        hasFormData: !!formData
+      });
+    }
+    
+    // Extract other fields, checking formData first if it exists
+    const actualBookingDate = formData?.bookingDate || bookingDate || scheduledDate || formData?.scheduledDate;
+    const actualBookingTime = formData?.bookingTime || bookingTime;
+    const actualDuration = formData?.duration || duration;
+    const actualPaymentMethod = formData?.paymentMethod || paymentMethod;
+
+    // Combine bookingDate and bookingTime if both are provided
+    let finalBookingDate = actualBookingDate;
+    if (actualBookingDate && actualBookingTime) {
+      // Combine date and time: "2025-11-17" + "08:32" = "2025-11-17T08:32:00"
+      finalBookingDate = `${actualBookingDate}T${actualBookingTime}:00`;
+    } else if (actualBookingDate) {
+      // If only date is provided, use it as-is (might already be ISO format)
+      finalBookingDate = actualBookingDate;
+    }
+    
+    // Handle duration - can be number (hours) or object {hours, minutes}
+    let finalDuration = actualDuration;
+    if (typeof finalDuration === 'object' && finalDuration !== null) {
+      // Convert {hours: 2, minutes: 30} to decimal hours (e.g., 2.5)
+      finalDuration = (finalDuration.hours || 0) + ((finalDuration.minutes || 0) / 60);
+    }
+    
+    // Use specialInstructions or notes (specialInstructions takes precedence)
+    // Also check formData for nested values
+    const finalSpecialInstructions = specialInstructions || notes || formData?.specialInstructions || formData?.notes;
+    const finalAddress = address || formData?.address;
+    const finalPaymentMethod = actualPaymentMethod;
+
+    // Validation
+    if (!actualServiceId) {
+      logger.warn('Create booking failed: Service ID missing', {
+        userId: req.user?.id,
+        body: req.body,
+        params: req.params,
+        query: req.query
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Service ID is required',
+        code: 'MISSING_SERVICE_ID'
+      });
+    }
+
+    if (!finalBookingDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Booking date is required (use bookingDate or scheduledDate)'
+      });
+    }
+
+    if (!finalDuration || finalDuration <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Duration is required and must be greater than 0'
+      });
+    }
+
+    const service = await Service.findById(actualServiceId);
     if (!service) {
       return res.status(404).json({
         success: false,
-        message: 'Service not found'
+        message: 'Service not found',
+        code: 'SERVICE_NOT_FOUND'
+      });
+    }
+
+    // Get provider ID - handle both populated and non-populated service.provider
+    const providerId = service.provider?._id || service.provider;
+    if (!providerId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Service does not have an associated provider',
+        code: 'MISSING_PROVIDER'
       });
     }
 
     // Calculate pricing
     let totalAmount = 0;
     if (service.pricing.type === 'hourly') {
-      totalAmount = service.pricing.basePrice * duration;
+      totalAmount = service.pricing.basePrice * finalDuration;
     } else {
       totalAmount = service.pricing.basePrice;
     }
 
     // Validate service area if address coordinates are provided
-    if (address.coordinates) {
+    if (finalAddress?.coordinates) {
       const serviceAreaValidation = await GoogleMapsService.validateServiceArea(
-        address.coordinates,
+        finalAddress.coordinates,
         service.serviceArea
       );
 
@@ -291,28 +393,28 @@ const createBooking = async (req, res) => {
     }
 
     const bookingData = {
-      service: serviceId,
+      service: actualServiceId,
       client: req.user.id,
-      provider: service.provider,
-      bookingDate: new Date(bookingDate),
-      duration,
-      address,
-      specialInstructions,
+      provider: providerId,
+      bookingDate: new Date(finalBookingDate),
+      duration: finalDuration,
+      address: finalAddress,
+      specialInstructions: finalSpecialInstructions,
       pricing: {
         basePrice: service.pricing.basePrice,
         totalAmount,
         currency: service.pricing.currency
       },
       payment: {
-        method: paymentMethod || 'cash',
-        status: paymentMethod === 'paypal' ? 'pending' : 'pending'
+        method: finalPaymentMethod || 'cash',
+        status: finalPaymentMethod === 'paypal' ? 'pending' : 'pending'
       }
     };
 
     const booking = await Booking.create(bookingData);
 
     // Handle PayPal payment if selected
-    if (paymentMethod === 'paypal') {
+    if (finalPaymentMethod === 'paypal') {
       try {
         // Get user details for PayPal
         const user = await User.findById(req.user.id).select('firstName lastName email');
@@ -331,13 +433,13 @@ const createBooking = async (req, res) => {
             },
             quantity: '1'
           }],
-          shipping: address ? {
+          shipping: finalAddress ? {
             name: `${user.firstName} ${user.lastName}`,
-            address_line_1: address.street,
-            city: address.city,
-            state: address.state,
-            postal_code: address.zipCode,
-            country_code: address.country || 'US'
+            address_line_1: finalAddress.street,
+            city: finalAddress.city,
+            state: finalAddress.state,
+            postal_code: finalAddress.zipCode,
+            country_code: finalAddress.country || 'US'
           } : undefined
         };
 
@@ -400,9 +502,24 @@ const createBooking = async (req, res) => {
     });
   } catch (error) {
     console.error('Create booking error:', error);
+    logger.error('Create booking failed', {
+      userId: req.user?.id,
+      error: error.message,
+      stack: error.stack,
+      body: {
+        serviceId: req.body?.serviceId,
+        hasBookingDate: !!req.body?.bookingDate,
+        hasScheduledDate: !!req.body?.scheduledDate,
+        duration: req.body?.duration,
+        hasAddress: !!req.body?.address,
+        paymentMethod: req.body?.paymentMethod
+      }
+    });
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error. Please try again.',
+      code: 'INTERNAL_SERVER_ERROR',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -442,6 +559,71 @@ const getBookings = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get single booking by ID
+// @route   GET /api/marketplace/bookings/:id
+// @access  Private
+const getBooking = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const userId = req.user.id;
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid booking ID format',
+        code: 'INVALID_BOOKING_ID'
+      });
+    }
+
+    // Find booking and populate related data
+    const booking = await Booking.findById(bookingId)
+      .populate('service', 'title category subcategory pricing images description features requirements')
+      .populate('client', 'firstName lastName phoneNumber email profile.avatar')
+      .populate('provider', 'firstName lastName phoneNumber email profile.avatar');
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found',
+        code: 'BOOKING_NOT_FOUND'
+      });
+    }
+
+    // Check authorization: user must be the client, provider, or admin
+    const isClient = booking.client._id.toString() === userId || booking.client.toString() === userId;
+    const isProvider = booking.provider._id.toString() === userId || booking.provider.toString() === userId;
+
+    if (!isClient && !isProvider && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view this booking',
+        code: 'UNAUTHORIZED'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: booking
+    });
+  } catch (error) {
+    logger.error('Get booking error', {
+      bookingId: req.params.id,
+      userId: req.user?.id,
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again.',
+      code: 'INTERNAL_SERVER_ERROR',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -2208,6 +2390,7 @@ module.exports = {
   deleteService,
   uploadServiceImages,
   createBooking,
+  getBooking,
   getBookings,
   updateBookingStatus,
   uploadBookingPhotos,
