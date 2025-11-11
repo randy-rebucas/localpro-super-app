@@ -285,7 +285,8 @@ This document provides a comprehensive list of all API endpoints in the LocalPro
 | GET | `/api/communication/conversations/:id` | AUTHENTICATED | Get conversation |
 | POST | `/api/communication/conversations` | AUTHENTICATED | Create conversation |
 | DELETE | `/api/communication/conversations/:id` | AUTHENTICATED | Delete conversation |
-| POST | `/api/communication/conversations/:id/messages` | AUTHENTICATED | Send message |
+| GET | `/api/communication/conversations/:id/messages` | AUTHENTICATED | Get all messages for conversation |
+| POST | `/api/communication/conversations/:id/messages` | AUTHENTICATED | Send message (supports file attachments: images, PDFs, documents) |
 | PUT | `/api/communication/conversations/:id/messages/:messageId` | AUTHENTICATED | Update message |
 | DELETE | `/api/communication/conversations/:id/messages/:messageId` | AUTHENTICATED | Delete message |
 | PUT | `/api/communication/conversations/:id/read` | AUTHENTICATED | Mark as read |

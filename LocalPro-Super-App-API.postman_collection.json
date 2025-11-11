@@ -1236,6 +1236,503 @@
       ]
     },
     {
+      "name": "AI Marketplace",
+      "item": [
+        {
+          "name": "POST /api/ai/marketplace/recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/recommendations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "recommendations"
+              ]
+            },
+            "description": "AI-powered natural language search for marketplace services. Uses AI to understand user queries and extract search parameters like service type, location, price range, and other filters.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"I need a professional house cleaning service in Manila for under 1000 PHP\",\n  \"context\": {\n    \"userId\": \"{{userId}}\",\n    \"preferences\": {}\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ai/marketplace/price-estimator",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/price-estimator",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "price-estimator"
+              ]
+            },
+            "description": "AI-powered price estimation for services. Analyzes service details and provides accurate price estimates based on market data, location, and service complexity.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceType\": \"house cleaning\",\n  \"category\": \"cleaning\",\n  \"subcategory\": \"residential_cleaning\",\n  \"location\": \"Manila\",\n  \"duration\": 3,\n  \"complexity\": \"standard\",\n  \"additionalInfo\": \"3 bedroom house, regular cleaning\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ai/marketplace/service-matcher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/service-matcher",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "service-matcher"
+              ]
+            },
+            "description": "AI-powered service matching. Matches user requirements with available services and ranks them by relevance using AI analysis.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requirements\": {\n    \"serviceType\": \"house cleaning\",\n    \"location\": \"Manila\",\n    \"budget\": 1000,\n    \"preferredTime\": \"morning\",\n    \"specialRequirements\": [\"eco-friendly products\", \"pet-friendly\"]\n  },\n  \"filters\": {\n    \"category\": \"cleaning\",\n    \"location\": \"Manila\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ai/marketplace/review-sentiment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/review-sentiment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "review-sentiment"
+              ]
+            },
+            "description": "AI-powered sentiment analysis for reviews. Analyzes review text to determine sentiment, key themes, and actionable insights.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewText\": \"Excellent service! The cleaner was very professional and thorough. The house looked amazing after the cleaning. Highly recommend!\",\n  \"reviewId\": \"{{bookingId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ai/marketplace/booking-assistant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/booking-assistant",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "booking-assistant"
+              ]
+            },
+            "description": "AI booking assistant. Helps users with booking-related questions and provides helpful guidance using AI.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What do I need to prepare before the cleaning service arrives?\",\n  \"serviceId\": \"{{serviceId}}\",\n  \"bookingId\": \"{{bookingId}}\",\n  \"context\": {\n    \"userRole\": \"client\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ai/marketplace/description-generator",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/description-generator",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "description-generator"
+              ]
+            },
+            "description": "AI-powered service description generator. Creates compelling, accurate service descriptions that highlight key features and benefits. (Provider only)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional House Cleaning Service\",\n  \"category\": \"cleaning\",\n  \"subcategory\": \"residential_cleaning\",\n  \"features\": [\"Eco-friendly products\", \"Deep cleaning\", \"Window cleaning\"],\n  \"pricing\": {\n    \"basePrice\": 500,\n    \"currency\": \"PHP\"\n  },\n  \"serviceArea\": [\"Manila\", \"Quezon City\"],\n  \"additionalInfo\": \"5 years of experience, fully insured\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ai/marketplace/pricing-optimizer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/pricing-optimizer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "pricing-optimizer"
+              ]
+            },
+            "description": "AI-powered pricing optimization. Analyzes service pricing and market conditions to suggest optimal pricing strategies. (Provider only)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"currentPrice\": 500,\n  \"category\": \"cleaning\",\n  \"subcategory\": \"residential_cleaning\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ai/marketplace/demand-forecast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/demand-forecast",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "demand-forecast"
+              ]
+            },
+            "description": "AI-powered demand forecasting. Analyzes historical data and market trends to predict future demand for services. (Provider only)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"category\": \"cleaning\",\n  \"period\": \"30 days\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ai/marketplace/review-insights",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/review-insights",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "review-insights"
+              ]
+            },
+            "description": "AI-powered review insights. Analyzes multiple reviews to extract insights, patterns, and recommendations. (Provider only)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"providerId\": \"{{userId}}\",\n  \"limit\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ai/marketplace/response-assistant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/response-assistant",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "response-assistant"
+              ]
+            },
+            "description": "AI-powered response assistant. Helps craft appropriate, professional responses to customer reviews and messages. (Provider only)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewId\": \"{{bookingId}}\",\n  \"messageType\": \"review\",\n  \"context\": {\n    \"rating\": 4,\n    \"comment\": \"Good service but could be faster\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ai/marketplace/listing-optimizer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/listing-optimizer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "listing-optimizer"
+              ]
+            },
+            "description": "AI-powered listing optimization. Analyzes service listings and provides recommendations to improve visibility and conversion. (Provider only)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"listingData\": {\n    \"title\": \"House Cleaning\",\n    \"description\": \"We clean houses\",\n    \"category\": \"cleaning\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/ai/marketplace/scheduling-assistant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/marketplace/scheduling-assistant",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "marketplace",
+                "scheduling-assistant"
+              ]
+            },
+            "description": "AI-powered scheduling assistant. Helps users find optimal scheduling options and resolve scheduling conflicts.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"I need to reschedule my booking for next week\",\n  \"serviceId\": \"{{serviceId}}\",\n  \"providerId\": \"{{userId}}\",\n  \"dateRange\": {\n    \"start\": \"2024-12-15\",\n    \"end\": \"2024-12-22\"\n  },\n  \"availability\": {\n    \"preferredDays\": [\"monday\", \"wednesday\", \"friday\"],\n    \"preferredTime\": \"morning\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Job Board",
       "item": [
         {
