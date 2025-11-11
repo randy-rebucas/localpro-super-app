@@ -45,6 +45,7 @@ const alertsRoutes = require('./routes/alerts');
 const databaseMonitoringRoutes = require('./routes/databaseMonitoring');
 const databaseOptimizationRoutes = require('./routes/databaseOptimization');
 const metricsStreamRoutes = require('./routes/metricsStream');
+const aiMarketplaceRoutes = require('./routes/aiMarketplace');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 const { generalLimiter } = require('./middleware/rateLimiter');
 
@@ -354,6 +355,9 @@ function startServer() {
   app.use('/api/announcements', announcementsRoutes);
   app.use('/api/activities', activitiesRoutes);
   app.use('/api/registration', registrationRoutes);
+  
+  // AI Marketplace Routes
+  app.use('/api/ai/marketplace', aiMarketplaceRoutes);
   
   // Monitoring and Performance Routes
   app.use('/api/monitoring', monitoringRoutes);
