@@ -1,4 +1,4 @@
-const auditLogger = require('../../../middleware/auditLogger');
+const { auditLogger } = require('../../../middleware/auditLogger');
 const auditService = require('../../../services/auditService');
 const { logger } = require('../../../utils/logger');
 
@@ -27,16 +27,26 @@ describe('Audit Logger Middleware', () => {
       user: { id: 'user-id', email: 'test@example.com', role: 'admin' },
       sessionID: 'session123'
     };
+    let finishCallback = null;
     res = {
       statusCode: 200,
-      send: jest.fn(),
-      json: jest.fn(),
-      end: jest.fn(),
+      send: jest.fn(function(data) {
+        return this;
+      }),
+      json: jest.fn(function(data) {
+        return this;
+      }),
+      end: jest.fn(function(data) {
+        return this;
+      }),
       on: jest.fn((event, callback) => {
         if (event === 'finish') {
-          setTimeout(callback, 10);
+          finishCallback = callback;
         }
-      })
+      }),
+      triggerFinish: () => {
+        if (finishCallback) finishCallback();
+      }
     };
     next = jest.fn();
   });
@@ -64,6 +74,7 @@ describe('Audit Logger Middleware', () => {
 
       middleware(req, res, next);
       res.json({ success: true });
+      res.triggerFinish();
 
       setTimeout(() => {
         expect(auditService.logAuditEvent).toHaveBeenCalled();
@@ -84,7 +95,7 @@ describe('Audit Logger Middleware', () => {
           })
         }));
         done();
-      }, 20);
+      }, 50);
     });
 
     test('should include request body if configured', (done) => {
@@ -95,6 +106,7 @@ describe('Audit Logger Middleware', () => {
 
       middleware(req, res, next);
       res.json({ success: true });
+      res.triggerFinish();
 
       setTimeout(() => {
         expect(auditService.logAuditEvent).toHaveBeenCalledWith(
@@ -105,7 +117,7 @@ describe('Audit Logger Middleware', () => {
           })
         );
         done();
-      }, 20);
+      }, 50);
     });
 
     test('should include response body if configured', (done) => {
@@ -116,6 +128,7 @@ describe('Audit Logger Middleware', () => {
 
       middleware(req, res, next);
       res.json({ data: 'response data' });
+      res.triggerFinish();
 
       setTimeout(() => {
         expect(auditService.logAuditEvent).toHaveBeenCalledWith(
@@ -126,7 +139,7 @@ describe('Audit Logger Middleware', () => {
           })
         );
         done();
-      }, 20);
+      }, 50);
     });
 
     test('should use custom action mapper if provided', (done) => {
@@ -142,6 +155,7 @@ describe('Audit Logger Middleware', () => {
 
       middleware(req, res, next);
       res.json({ success: true });
+      res.triggerFinish();
 
       setTimeout(() => {
         expect(customActionMapper).toHaveBeenCalledWith(req, res);
@@ -152,23 +166,27 @@ describe('Audit Logger Middleware', () => {
           })
         );
         done();
-      }, 20);
+      }, 50);
     });
 
     test('should filter by actions if specified', (done) => {
+      // Use a path that maps to an action
+      req.path = '/api/marketplace/services';
+      req.method = 'POST';
       const middleware = auditLogger({
-        actions: ['user_create', 'user_update']
+        actions: ['service_create', 'user_update']
       });
       auditService.logAuditEvent = jest.fn().mockResolvedValue();
 
       middleware(req, res, next);
-      res.json({ success: true });
+      res.json({ success: true, data: { id: 'service-id' } });
+      res.triggerFinish();
 
       setTimeout(() => {
         // Should only audit if action matches
         expect(auditService.logAuditEvent).toHaveBeenCalled();
         done();
-      }, 20);
+      }, 50);
     });
 
     test('should exclude specified actions', (done) => {
@@ -179,12 +197,13 @@ describe('Audit Logger Middleware', () => {
 
       middleware(req, res, next);
       res.json({ success: true });
+      res.triggerFinish();
 
       setTimeout(() => {
         // Should audit unless action is excluded
         expect(auditService.logAuditEvent).toHaveBeenCalled();
         done();
-      }, 20);
+      }, 50);
     });
 
     test('should handle errors gracefully', (done) => {
@@ -193,11 +212,25 @@ describe('Audit Logger Middleware', () => {
 
       middleware(req, res, next);
       res.json({ success: true });
-
+      
+      // Trigger finish after a short delay to allow middleware to set up
       setTimeout(() => {
-        expect(logger.logger.error).toHaveBeenCalled();
-        done();
-      }, 20);
+        res.triggerFinish();
+        
+        // Wait for async error handling
+        setTimeout(() => {
+          // The logger.error is called directly, not logger.logger.error
+          expect(logger.error).toHaveBeenCalledWith(
+            'Audit middleware error',
+            expect.any(Error),
+            expect.objectContaining({
+              method: 'POST',
+              url: '/api/users'
+            })
+          );
+          done();
+        }, 100);
+      }, 50);
     });
 
     test('should capture response via res.send', (done) => {
@@ -208,11 +241,12 @@ describe('Audit Logger Middleware', () => {
 
       middleware(req, res, next);
       res.send('response text');
+      res.triggerFinish();
 
       setTimeout(() => {
         expect(auditService.logAuditEvent).toHaveBeenCalled();
         done();
-      }, 20);
+      }, 50);
     });
 
     test('should capture response via res.end', (done) => {
@@ -223,11 +257,12 @@ describe('Audit Logger Middleware', () => {
 
       middleware(req, res, next);
       res.end('response text');
+      res.triggerFinish();
 
       setTimeout(() => {
         expect(auditService.logAuditEvent).toHaveBeenCalled();
         done();
-      }, 20);
+      }, 50);
     });
   });
 });
