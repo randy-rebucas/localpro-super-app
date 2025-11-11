@@ -1,6 +1,7 @@
 const { Conversation, Message, Notification } = require('../models/Communication');
 const EmailService = require('../services/emailService');
 const TwilioService = require('../services/twilioService');
+const CloudinaryService = require('../services/cloudinaryService');
 
 // @desc    Get user conversations
 // @route   GET /api/communication/conversations
@@ -164,17 +165,103 @@ const createConversation = async (req, res) => {
   }
 };
 
+// @desc    Get all messages for a conversation
+// @route   GET /api/communication/conversations/:id/messages
+// @access  Private
+const getMessages = async (req, res) => {
+  try {
+    const { page = 1, limit = 50, includeDeleted = false } = req.query;
+    const skip = (page - 1) * limit;
+
+    const conversation = await Conversation.findById(req.params.id);
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Conversation not found'
+      });
+    }
+
+    // Check if user is a participant
+    if (!conversation.participants.some(p => p.user.toString() === req.user.id)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view messages in this conversation'
+      });
+    }
+
+    // Build query
+    const query = {
+      conversation: req.params.id
+    };
+
+    // Filter out soft-deleted messages unless includeDeleted is true
+    if (includeDeleted !== 'true') {
+      query['metadata.isDeleted'] = { $ne: true };
+    }
+
+    // Get messages with pagination
+    const messages = await Message.find(query)
+      .populate('sender', 'firstName lastName profile.avatar')
+      .sort({ createdAt: -1 }) // Most recent first
+      .skip(skip)
+      .limit(Number(limit))
+      .lean();
+
+    // Get total count
+    const total = await Message.countDocuments(query);
+
+    // Reverse to show oldest first (optional - you can remove this if you want newest first)
+    // messages.reverse();
+
+    res.status(200).json({
+      success: true,
+      count: messages.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: messages
+    });
+  } catch (error) {
+    console.error('Get messages error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 // @desc    Send message
 // @route   POST /api/communication/conversations/:id/messages
 // @access  Private
 const sendMessage = async (req, res) => {
   try {
-    const { content, type = 'text', metadata = {} } = req.body;
+    const { content = '', type } = req.body;
+    
+    // Debug: Check what multer provides
+    console.log('req.files:', req.files ? req.files.length : 'undefined');
+    console.log('req.file:', req.file ? 'exists' : 'undefined');
+    
+    const files = req.files || (req.file ? [req.file] : []);
+    console.log('Files array length:', files.length);
+    
+    // Parse metadata if it's a string (from form-data)
+    let metadata = {};
+    if (req.body.metadata) {
+      try {
+        metadata = typeof req.body.metadata === 'string' 
+          ? JSON.parse(req.body.metadata) 
+          : req.body.metadata;
+      } catch (e) {
+        metadata = {};
+      }
+    }
 
-    if (!content) {
+    // Validate: must have either content or files
+    if (!content && (!files || files.length === 0)) {
       return res.status(400).json({
         success: false,
-        message: 'Message content is required'
+        message: 'Message content or file attachment is required'
       });
     }
 
@@ -195,12 +282,100 @@ const sendMessage = async (req, res) => {
       });
     }
 
+    // Determine message type based on files
+    let messageType = type || 'text';
+    if (files && files.length > 0) {
+      const hasImages = files.some(file => file.mimetype && file.mimetype.startsWith('image/'));
+      const hasFiles = files.some(file => !file.mimetype || !file.mimetype.startsWith('image/'));
+      
+      if (hasImages && hasFiles) {
+        messageType = 'file'; // Mixed content
+      } else if (hasImages) {
+        messageType = 'image';
+      } else {
+        messageType = 'file';
+      }
+    }
+
+    // Handle file uploads if any
+    let attachments = [];
+    if (files && files.length > 0) {
+      // Check if files are already uploaded via CloudinaryStorage
+      // CloudinaryStorage adds the Cloudinary response directly to the file object
+      // Check for public_id or path containing cloudinary.com
+      const firstFile = files[0];
+      const hasCloudinaryInfo = firstFile.public_id || (firstFile.path && firstFile.path.includes('cloudinary.com'));
+      
+      if (hasCloudinaryInfo) {
+        // Files already uploaded via CloudinaryStorage - extract info directly
+        // CloudinaryStorage adds the entire Cloudinary response to the file object
+        attachments = files.map(file => {
+          // Extract public_id - CloudinaryStorage should add it directly
+          let publicId = file.public_id;
+          if (!publicId && file.path) {
+            // Path format: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/folder/filename.jpg
+            const pathParts = file.path.split('/');
+            const uploadIndex = pathParts.findIndex(part => part === 'upload');
+            if (uploadIndex !== -1 && pathParts.length > uploadIndex + 2) {
+              // Get everything after 'upload/v1234567890/'
+              publicId = pathParts.slice(uploadIndex + 2).join('/').replace(/\.[^/.]+$/, '');
+            }
+          }
+          
+          return {
+            filename: file.originalname || file.filename || 'file',
+            url: file.secure_url || file.url || file.path,
+            publicId: publicId,
+            mimeType: file.mimetype || 'application/octet-stream',
+            size: file.bytes || file.size || 0
+          };
+        });
+      } else {
+        // Files need to be uploaded (memory storage or disk storage)
+        const uploadResult = await CloudinaryService.uploadMultipleFiles(
+          files,
+          'localpro/communication/messages'
+        );
+
+        if (!uploadResult.success) {
+          console.error('Upload failed:', uploadResult.errors);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to upload files',
+            error: uploadResult.errors || 'Unknown upload error'
+          });
+        }
+
+        if (uploadResult.failed > 0) {
+          console.warn('Some files failed to upload:', uploadResult.errors);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to upload some files',
+            error: uploadResult.errors
+          });
+        }
+
+        // Map uploaded files to attachment format
+        attachments = uploadResult.data.map((uploadedFile, index) => {
+          const originalFile = files[index];
+          return {
+            filename: originalFile.originalname || originalFile.filename || `file.${uploadedFile.format || 'bin'}`,
+            url: uploadedFile.secure_url,
+            publicId: uploadedFile.public_id,
+            mimeType: originalFile.mimetype || (uploadedFile.format ? `image/${uploadedFile.format}` : 'application/octet-stream'),
+            size: uploadedFile.bytes || originalFile.size || 0
+          };
+        });
+      }
+    }
+
     // Create message in separate Message model
     const message = await Message.create({
       conversation: req.params.id,
       sender: req.user.id,
-      content,
-      type,
+      content: content || (attachments.length > 0 ? `Sent ${attachments.length} file(s)` : ''),
+      type: messageType,
+      attachments: attachments,
       metadata,
       readBy: [{
         user: req.user.id,
@@ -859,6 +1034,7 @@ module.exports = {
   getConversations,
   getConversation,
   createConversation,
+  getMessages,
   sendMessage,
   markAsRead,
   deleteConversation,

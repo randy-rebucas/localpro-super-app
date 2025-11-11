@@ -71,6 +71,21 @@
       "key": "planId",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "conversationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "messageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notificationId",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -5674,7 +5689,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/conversations",
+              "raw": "{{baseUrl}}/api/communication/conversations?page=1&limit=20",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -5682,9 +5697,21 @@
                 "api",
                 "communication",
                 "conversations"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)"
+                }
               ]
             },
-            "description": "Get conversations"
+            "description": "Get user conversations with pagination. Returns list of conversations with participants and last message."
           },
           "response": []
         },
@@ -5700,7 +5727,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/conversations/:id",
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -5708,10 +5735,10 @@
                 "api",
                 "communication",
                 "conversations",
-                ":id"
+                "{{conversationId}}"
               ]
             },
-            "description": "Get conversation"
+            "description": "Get single conversation with messages. Automatically marks all messages as read for the current user. Returns conversation with participants and latest 50 messages."
           },
           "response": []
         },
@@ -5742,10 +5769,10 @@
                 "conversations"
               ]
             },
-            "description": "Create conversation",
+            "description": "Create new conversation or return existing one. Current user is automatically added to participants. Types: 'direct', 'group', 'general'.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"participants\": [\n    \"{{userId}}\"\n  ],\n  \"subject\": \"Service Inquiry\",\n  \"context\": {\n    \"type\": \"service_booking\",\n    \"serviceId\": \"{{serviceId}}\"\n  }\n}",
+              "raw": "{\n  \"participants\": [\n    \"{{userId}}\"\n  ],\n  \"type\": \"direct\",\n  \"subject\": \"Service Inquiry\",\n  \"context\": {\n    \"type\": \"service_booking\",\n    \"serviceId\": \"{{serviceId}}\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5767,7 +5794,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/conversations/:id",
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -5775,10 +5802,55 @@
                 "api",
                 "communication",
                 "conversations",
-                ":id"
+                "{{conversationId}}"
               ]
             },
-            "description": "Delete conversation"
+            "description": "Delete conversation and all its messages. Only participants can delete conversations."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/communication/conversations/:id/messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}/messages?page=1&limit=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communication",
+                "conversations",
+                "{{conversationId}}",
+                "messages"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Items per page (default: 50, max recommended: 100)"
+                },
+                {
+                  "key": "includeDeleted",
+                  "value": "false",
+                  "description": "Include soft-deleted messages (default: false)"
+                }
+              ]
+            },
+            "description": "Get all messages for a conversation with pagination. Returns messages sorted by creation date (newest first). Filters out soft-deleted messages by default. Only participants can view messages."
           },
           "response": []
         },
@@ -5791,15 +5863,10 @@
                 "key": "Authorization",
                 "value": "Bearer {{authToken}}",
                 "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/conversations/:id/messages",
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}/messages",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -5807,19 +5874,39 @@
                 "api",
                 "communication",
                 "conversations",
-                ":id",
+                "{{conversationId}}",
                 "messages"
               ]
             },
-            "description": "Send message",
+            "description": "Send message in conversation with optional file attachments. Supports images (jpg, png, gif) and documents (pdf, doc, docx). Max 5 files, 10MB each. Use form-data mode for file uploads. Message type is automatically set to 'image' or 'file' based on attachments.",
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"content\": \"Hello, I am interested in your service.\",\n  \"type\": \"text\",\n  \"metadata\": {}\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "content",
+                  "value": "Hello, I am interested in your service.",
+                  "type": "text",
+                  "description": "Message content (optional if files are attached)"
+                },
+                {
+                  "key": "type",
+                  "value": "text",
+                  "type": "text",
+                  "description": "Message type (auto-detected if files are attached): 'text', 'image', 'file'"
+                },
+                {
+                  "key": "attachments",
+                  "type": "file",
+                  "src": [],
+                  "description": "File attachments (images or documents). Can upload up to 5 files."
+                },
+                {
+                  "key": "metadata",
+                  "value": "{}",
+                  "type": "text",
+                  "description": "Optional metadata (JSON string)"
                 }
-              }
+              ]
             }
           },
           "response": []
@@ -5841,7 +5928,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/conversations/:id/messages/:messageId",
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}/messages/{{messageId}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -5849,12 +5936,12 @@
                 "api",
                 "communication",
                 "conversations",
-                ":id",
+                "{{conversationId}}",
                 "messages",
-                ":messageId"
+                "{{messageId}}"
               ]
             },
-            "description": "Update message",
+            "description": "Update message content. Only the sender can update their own messages. Sets metadata.isEdited and metadata.editedAt.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"content\": \"Updated message content\"\n}",
@@ -5879,7 +5966,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/conversations/:id/messages/:messageId",
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}/messages/{{messageId}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -5887,12 +5974,12 @@
                 "api",
                 "communication",
                 "conversations",
-                ":id",
+                "{{conversationId}}",
                 "messages",
-                ":messageId"
+                "{{messageId}}"
               ]
             },
-            "description": "Delete message"
+            "description": "Soft delete message. Only the sender can delete their own messages. Sets metadata.isDeleted and metadata.deletedAt."
           },
           "response": []
         },
@@ -5913,7 +6000,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/conversations/:id/read",
+              "raw": "{{baseUrl}}/api/communication/conversations/{{conversationId}}/read",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -5921,11 +6008,11 @@
                 "api",
                 "communication",
                 "conversations",
-                ":id",
+                "{{conversationId}}",
                 "read"
               ]
             },
-            "description": "Mark as read",
+            "description": "Mark all messages in conversation as read for current user. Updates readBy array for all unread messages.",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -5950,7 +6037,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/notifications",
+              "raw": "{{baseUrl}}/api/communication/notifications?page=1&limit=20",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -5958,9 +6045,31 @@
                 "api",
                 "communication",
                 "notifications"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)"
+                },
+                {
+                  "key": "isRead",
+                  "value": "",
+                  "description": "Filter by read status (true/false)"
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by notification type"
+                }
               ]
             },
-            "description": "Get user notifications"
+            "description": "Get user notifications with pagination and filtering. Returns non-expired notifications sorted by creation date (newest first)."
           },
           "response": []
         },
@@ -5976,7 +6085,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/notifications/count",
+              "raw": "{{baseUrl}}/api/communication/notifications/count?isRead=",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -5985,9 +6094,16 @@
                 "communication",
                 "notifications",
                 "count"
+              ],
+              "query": [
+                {
+                  "key": "isRead",
+                  "value": "",
+                  "description": "Filter by read status (true/false). Leave empty for all notifications."
+                }
               ]
             },
-            "description": "Get notification count"
+            "description": "Get notification count. Can filter by read status. Returns count of non-expired notifications."
           },
           "response": []
         },
@@ -6008,7 +6124,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/notifications/:notificationId/read",
+              "raw": "{{baseUrl}}/api/communication/notifications/{{notificationId}}/read",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -6016,11 +6132,11 @@
                 "api",
                 "communication",
                 "notifications",
-                ":notificationId",
+                "{{notificationId}}",
                 "read"
               ]
             },
-            "description": "Mark notification as read",
+            "description": "Mark a specific notification as read. Sets isRead to true and readAt timestamp.",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -6086,7 +6202,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/notifications/:notificationId",
+              "raw": "{{baseUrl}}/api/communication/notifications/{{notificationId}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -6094,10 +6210,10 @@
                 "api",
                 "communication",
                 "notifications",
-                ":notificationId"
+                "{{notificationId}}"
               ]
             },
-            "description": "Delete notification"
+            "description": "Delete notification. Only the owner can delete their own notifications."
           },
           "response": []
         },
@@ -6129,10 +6245,10 @@
                 "email"
               ]
             },
-            "description": "Send email notification",
+            "description": "Send email notification via EmailService. Requires: to, subject, template. Optional: data object for template variables.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"user@example.com\",\n  \"subject\": \"Notification Subject\",\n  \"body\": \"Notification body content\",\n  \"template\": \"default\"\n}",
+              "raw": "{\n  \"to\": \"user@example.com\",\n  \"subject\": \"Notification Subject\",\n  \"template\": \"default\",\n  \"data\": {\n    \"name\": \"John Doe\",\n    \"message\": \"Your booking has been confirmed.\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6221,7 +6337,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/search",
+              "raw": "{{baseUrl}}/api/communication/search?query=search+term&page=1&limit=20",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -6229,9 +6345,26 @@
                 "api",
                 "communication",
                 "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "search term",
+                  "description": "Search query (required) - searches in message content"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)"
+                }
               ]
             },
-            "description": "Search conversations"
+            "description": "Search conversations by message content. Returns conversations that contain messages matching the search query. Only searches within user's conversations."
           },
           "response": []
         },
@@ -6247,7 +6380,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/communication/conversation-with/:userId",
+              "raw": "{{baseUrl}}/api/communication/conversation-with/{{userId}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -6255,10 +6388,10 @@
                 "api",
                 "communication",
                 "conversation-with",
-                ":userId"
+                "{{userId}}"
               ]
             },
-            "description": "Get conversation with user"
+            "description": "Get conversation with specific user (type: 'general'). Returns conversation and last 50 messages. Creates conversation if it doesn't exist."
           },
           "response": []
         }

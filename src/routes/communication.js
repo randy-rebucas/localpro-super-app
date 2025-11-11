@@ -1,9 +1,11 @@
 const express = require('express');
 const { auth } = require('../middleware/auth');
+const { uploaders } = require('../config/cloudinary');
 const {
   getConversations,
   getConversation,
   createConversation,
+  getMessages,
   sendMessage,
   markAsRead,
   deleteConversation,
@@ -33,7 +35,9 @@ router.post('/conversations', createConversation);
 router.delete('/conversations/:id', deleteConversation);
 
 // Message routes
-router.post('/conversations/:id/messages', sendMessage);
+router.get('/conversations/:id/messages', getMessages);
+// Allow file uploads (images and documents) - max 5 files, 10MB each
+router.post('/conversations/:id/messages', uploaders.communication.array('attachments', 5), sendMessage);
 router.put('/conversations/:id/messages/:messageId', updateMessage);
 router.delete('/conversations/:id/messages/:messageId', deleteMessage);
 
