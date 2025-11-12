@@ -26,8 +26,9 @@ winston.addColors(colors);
 
 // Define which transports the logger must use to print out messages
 const transports = [
-  // Console transport
+  // Console transport (silent during tests)
   new winston.transports.Console({
+    silent: process.env.NODE_ENV === 'test', // Suppress console output during tests
     format: winston.format.combine(
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
       winston.format.colorize({ all: true }),
@@ -89,9 +90,11 @@ const transports = [
 
 // Create the logger instance
 const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'development' ? 'debug' : 'warn',
+  level: process.env.NODE_ENV === 'test' ? 'error' : (process.env.NODE_ENV === 'development' ? 'debug' : 'warn'),
   levels,
-  transports,
+  transports: process.env.NODE_ENV === 'test' 
+    ? [] // No transports during tests to suppress all output
+    : transports,
   exitOnError: false,
 });
 

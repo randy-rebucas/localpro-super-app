@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const logger = require('../config/logger');
 
 class TemplateEngine {
   constructor() {
@@ -30,7 +31,7 @@ class TemplateEngine {
         }
       }
     } catch (error) {
-      console.error('Error loading email templates:', error);
+      logger.error('Error loading email templates:', error);
       // Create default templates as fallback
       this.createDefaultTemplates();
     }

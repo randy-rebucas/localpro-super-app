@@ -2,6 +2,7 @@
 // Handles geocoding, places search, distance calculations, and location services
 
 const { Client } = require('@googlemaps/google-maps-services-js');
+const logger = require('../config/logger');
 
 class GoogleMapsService {
   constructor() {
@@ -12,7 +13,7 @@ class GoogleMapsService {
     this.distanceMatrixApiKey = process.env.GOOGLE_MAPS_DISTANCE_MATRIX_API_KEY || this.apiKey;
     
     if (!this.apiKey) {
-      console.warn('Google Maps API key not configured. Some features may not work.');
+      logger.warn('Google Maps API key not configured. Some features may not work.');
     }
   }
 
@@ -56,7 +57,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Geocoding error:', error);
+      logger.error('Geocoding error:', error);
       return {
         success: false,
         error: error.message || 'Geocoding failed'
@@ -100,7 +101,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Reverse geocoding error:', error);
+      logger.error('Reverse geocoding error:', error);
       
       // Handle specific HTTP error codes
       let errorMessage = 'Reverse geocoding failed';
@@ -187,7 +188,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Places search error:', error);
+      logger.error('Places search error:', error);
       return {
         success: false,
         error: error.message || 'Places search failed'
@@ -236,7 +237,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Place details error:', error);
+      logger.error('Place details error:', error);
       return {
         success: false,
         error: error.message || 'Failed to get place details'
@@ -305,7 +306,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Distance calculation error:', error);
+      logger.error('Distance calculation error:', error);
       return {
         success: false,
         error: error.message || 'Distance calculation failed'
@@ -367,7 +368,7 @@ class GoogleMapsService {
         };
       }
     } catch (error) {
-      console.error('Nearby places search error:', error);
+      logger.error('Nearby places search error:', error);
       return {
         success: false,
         error: error.message || 'Nearby places search failed'
@@ -421,7 +422,7 @@ class GoogleMapsService {
         }
       };
     } catch (error) {
-      console.error('Service area validation error:', error);
+      logger.error('Service area validation error:', error);
       return {
         success: false,
         error: error.message || 'Service area validation failed'
@@ -478,7 +479,7 @@ class GoogleMapsService {
         recommendations: this.generateCoverageRecommendations(coverageAnalysis, maxDistance)
       };
     } catch (error) {
-      console.error('Service coverage analysis error:', error);
+      logger.error('Service coverage analysis error:', error);
       return {
         success: false,
         error: error.message || 'Service coverage analysis failed'

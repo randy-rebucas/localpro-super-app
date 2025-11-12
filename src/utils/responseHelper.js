@@ -3,6 +3,8 @@
  * Standardized response formats for all API endpoints
  */
 
+const logger = require('../config/logger');
+
 /**
  * Send success response
  * @param {Object} res - Express response object
@@ -148,7 +150,7 @@ const sendConflictError = (res, message = 'Resource conflict', code = 'CONFLICT'
  * @returns {Object} - Response object
  */
 const sendServerError = (res, error, message = 'Internal server error', code = 'SERVER_ERROR') => {
-  console.error('Server error:', error);
+  logger.error('Server error:', error);
   
   return res.status(500).json({
     success: false,

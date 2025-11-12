@@ -3,6 +3,8 @@
  * Standardized validation functions for controllers
  */
 
+const logger = require('../config/logger');
+
 /**
  * Validate pagination parameters
  * @param {Object} query - Query parameters
@@ -184,7 +186,7 @@ const sendNotFoundError = (res, message = 'Resource not found', code = 'NOT_FOUN
  * @returns {Object} - Response object
  */
 const sendServerError = (res, error, message = 'Internal server error', code = 'SERVER_ERROR') => {
-  console.error('Server error:', error);
+  logger.error('Server error:', error);
   
   return res.status(500).json({
     success: false,

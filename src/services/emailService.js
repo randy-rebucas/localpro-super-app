@@ -24,7 +24,7 @@ class EmailService {
         if (process.env.RESEND_API_KEY) {
           this.resend = new Resend(process.env.RESEND_API_KEY);
         } else {
-          console.warn('RESEND_API_KEY not provided. Email service will use fallback mode.');
+          logger.warn('RESEND_API_KEY not provided. Email service will use fallback mode.');
           this.resend = null;
         }
         break;
@@ -47,16 +47,16 @@ class EmailService {
             }
           });
         } else {
-          console.warn('SMTP credentials not provided. Email service will use fallback mode.');
+          logger.warn('SMTP credentials not provided. Email service will use fallback mode.');
           this.transporter = null;
         }
         break;
       default:
-        console.warn(`Unknown email service: ${this.emailService}. Using Resend as fallback.`);
+        logger.warn(`Unknown email service: ${this.emailService}. Using Resend as fallback.`);
         if (process.env.RESEND_API_KEY) {
           this.resend = new Resend(process.env.RESEND_API_KEY);
         } else {
-          console.warn('RESEND_API_KEY not provided. Email service will use fallback mode.');
+          logger.warn('RESEND_API_KEY not provided. Email service will use fallback mode.');
           this.resend = null;
         }
     }
@@ -79,7 +79,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error rendering welcome email template:', error);
+      logger.error('Error rendering welcome email template:', error);
       // Fallback to simple HTML
       const fallbackHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -139,7 +139,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error rendering booking confirmation template:', error);
+      logger.error('Error rendering booking confirmation template:', error);
       // Fallback to simple HTML
       const fallbackHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -210,7 +210,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error rendering order confirmation template:', error);
+      logger.error('Error rendering order confirmation template:', error);
       // Fallback to simple HTML
       const fallbackHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -264,7 +264,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error rendering loan approval template:', error);
+      logger.error('Error rendering loan approval template:', error);
       // Fallback to simple HTML
       const fallbackHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -306,7 +306,7 @@ class EmailService {
           throw new Error(`Unsupported email service: ${this.emailService}`);
       }
     } catch (error) {
-      console.error('Email sending error:', error);
+      logger.error('Email sending error:', error);
       return {
         success: false,
         error: error.message
@@ -421,7 +421,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error sending job application notification:', error);
+      logger.error('Error sending job application notification:', error);
       return { success: false, error: error.message };
     }
   }
@@ -458,7 +458,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error sending application status update:', error);
+      logger.error('Error sending application status update:', error);
       return { success: false, error: error.message };
     }
   }
@@ -494,7 +494,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error sending referral invitation:', error);
+      logger.error('Error sending referral invitation:', error);
       return { success: false, error: error.message };
     }
   }
@@ -530,7 +530,7 @@ class EmailService {
 
       return await this.sendEmail(to, subject, html);
     } catch (error) {
-      console.error('Error sending referral reward notification:', error);
+      logger.error('Error sending referral reward notification:', error);
       return { success: false, error: error.message };
     }
   }

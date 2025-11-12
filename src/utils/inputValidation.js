@@ -85,9 +85,19 @@ const validateEmail = (email) => {
     };
   }
 
+  // Trim whitespace before validation
+  const trimmedEmail = String(email).trim();
+  
+  if (trimmedEmail.length === 0) {
+    return {
+      valid: false,
+      error: 'Email is required'
+    };
+  }
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   
-  if (!emailRegex.test(email)) {
+  if (!emailRegex.test(trimmedEmail)) {
     return {
       valid: false,
       error: 'Invalid email format'
@@ -96,7 +106,7 @@ const validateEmail = (email) => {
 
   return {
     valid: true,
-    value: email.toLowerCase().trim()
+    value: trimmedEmail.toLowerCase()
   };
 };
 
