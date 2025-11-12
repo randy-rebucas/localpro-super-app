@@ -150,4 +150,214 @@ router.get('/performance', async (req, res) => {
   }
 });
 
+// Comprehensive System Health Endpoint
+router.get('/system-health', async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const AppSettings = require('../models/AppSettings');
+    
+    // Helper function to format uptime
+    const formatUptime = (seconds) => {
+      const days = Math.floor(seconds / 86400);
+      const hours = Math.floor((seconds % 86400) / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = Math.floor(seconds % 60);
+      
+      if (days > 0) {
+        return `${days}d ${hours}h ${minutes}m ${secs}s`;
+      } else if (hours > 0) {
+        return `${hours}h ${minutes}m ${secs}s`;
+      } else if (minutes > 0) {
+        return `${minutes}m ${secs}s`;
+      } else {
+        return `${secs}s`;
+      }
+    };
+
+    // Check database health
+    const checkDatabaseHealth = async () => {
+      try {
+        const state = mongoose.connection.readyState;
+        const states = {
+          0: 'disconnected',
+          1: 'connected',
+          2: 'connecting',
+          3: 'disconnecting'
+        };
+        
+        // Test database connection with a simple query
+        let queryTest = false;
+        try {
+          await mongoose.connection.db.admin().ping();
+          queryTest = true;
+        } catch (e) {
+          queryTest = false;
+        }
+        
+        let collectionsCount = 0;
+        try {
+          if (mongoose.connection.db) {
+            const collections = await mongoose.connection.db.listCollections().toArray();
+            collectionsCount = collections.length;
+          }
+        } catch (e) {
+          // Ignore error, collections count will remain 0
+        }
+        
+        return {
+          status: state === 1 && queryTest ? 'healthy' : 'unhealthy',
+          state: states[state] || 'unknown',
+          host: mongoose.connection.host,
+          port: mongoose.connection.port,
+          name: mongoose.connection.name,
+          queryTest: queryTest,
+          collections: collectionsCount
+        };
+      } catch (error) {
+        return {
+          status: 'unhealthy',
+          error: error.message
+        };
+      }
+    };
+
+    // Check external APIs (basic check)
+    const checkExternalAPIs = async () => {
+      const apis = {
+        cloudinary: { status: 'unknown', response_time: null },
+        paypal: { status: 'unknown', response_time: null },
+        paymaya: { status: 'unknown', response_time: null }
+      };
+      
+      // Check Cloudinary if configured
+      if (process.env.CLOUDINARY_CLOUD_NAME) {
+        apis.cloudinary.status = 'configured';
+      }
+      
+      // Check PayPal if configured
+      if (process.env.PAYPAL_CLIENT_ID) {
+        apis.paypal.status = 'configured';
+      }
+      
+      // Check PayMaya if configured
+      if (process.env.PAYMAYA_SECRET_KEY) {
+        apis.paymaya.status = 'configured';
+      }
+      
+      return apis;
+    };
+
+    // Get app settings health
+    const getAppHealth = async () => {
+      try {
+        const appSettings = await AppSettings.getCurrentSettings();
+        return {
+          status: appSettings.general.maintenanceMode.enabled ? 'maintenance' : 'healthy',
+          version: appSettings.general.appVersion,
+          environment: appSettings.general.environment,
+          maintenanceMode: appSettings.general.maintenanceMode.enabled,
+          features: Object.keys(appSettings.features || {}).reduce((acc, key) => {
+            acc[key] = appSettings.features[key].enabled;
+            return acc;
+          }, {})
+        };
+      } catch (error) {
+        return {
+          status: 'unknown',
+          error: error.message
+        };
+      }
+    };
+
+    // Get system metrics
+    const getSystemMetrics = async () => {
+      try {
+        const metrics = await getMetricsAsJSON();
+        const httpRequests = metrics.find(m => m.name === 'http_requests_total');
+        const activeConnections = metrics.find(m => m.name === 'active_connections');
+        const memoryUsage = metrics.find(m => m.name === 'memory_usage_bytes');
+        const cpuUsage = metrics.find(m => m.name === 'cpu_usage_percent');
+        const errors = metrics.find(m => m.name === 'errors_total');
+        
+        return {
+          httpRequests: httpRequests?.values?.reduce((sum, v) => sum + v.value, 0) || 0,
+          activeConnections: activeConnections?.values?.[0]?.value || 0,
+          memoryUsage: memoryUsage?.values || [],
+          cpuUsage: cpuUsage?.values?.[0]?.value || 0,
+          totalErrors: errors?.values?.reduce((sum, v) => sum + v.value, 0) || 0
+        };
+      } catch (error) {
+        return {
+          error: error.message
+        };
+      }
+    };
+
+    // Run all health checks in parallel
+    const [databaseHealth, externalApis, appHealth, systemMetrics] = await Promise.all([
+      checkDatabaseHealth(),
+      checkExternalAPIs(),
+      getAppHealth(),
+      getSystemMetrics()
+    ]);
+
+    // Determine overall health status
+    const isHealthy = 
+      databaseHealth.status === 'healthy' &&
+      appHealth.status !== 'maintenance' &&
+      process.uptime() > 0;
+
+    const memUsage = process.memoryUsage();
+    const cpuUsage = process.cpuUsage();
+
+    const systemHealth = {
+      status: isHealthy ? 'healthy' : 'degraded',
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(process.uptime()),
+      uptimeFormatted: formatUptime(process.uptime()),
+      version: process.env.npm_package_version || '1.0.0',
+      environment: process.env.NODE_ENV || 'development',
+      services: {
+        database: databaseHealth,
+        external_apis: externalApis,
+        app: appHealth
+      },
+      system: {
+        memory: {
+          rss: Math.round(memUsage.rss / 1024 / 1024),
+          heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
+          heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
+          external: Math.round(memUsage.external / 1024 / 1024),
+          unit: 'MB'
+        },
+        cpu: {
+          user: cpuUsage.user,
+          system: cpuUsage.system,
+          unit: 'microseconds'
+        },
+        platform: process.platform,
+        nodeVersion: process.version,
+        pid: process.pid,
+        arch: process.arch
+      },
+      metrics: systemMetrics,
+      requestId: req.id
+    };
+
+    // Return 503 if critical services are down
+    const statusCode = isHealthy ? 200 : 503;
+    res.status(statusCode).json({
+      success: isHealthy,
+      data: systemHealth
+    });
+  } catch (error) {
+    logger.error('Error getting system health:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get system health',
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;

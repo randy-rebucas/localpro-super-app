@@ -2106,7 +2106,7 @@ const getProviderDetails = async (req, res) => {
       if (!mongoose.isValidObjectId(trimmedId)) {
         throw new Error('Invalid ObjectId format');
       }
-      providerId = mongoose.Types.ObjectId(trimmedId);
+      providerId = new mongoose.Types.ObjectId(trimmedId);
       userIdForLookup = providerId;
       
       logger.info('Provider ID validated and converted', {
@@ -2133,50 +2133,90 @@ const getProviderDetails = async (req, res) => {
       });
     }
 
-    let provider = await Provider.findById(providerId)
-      .populate('userId', 'firstName lastName email phone profile.avatar profile.bio')
-      .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+    let provider;
+    let user;
+
+    // First, try to find User by ID (query Users collection first)
+    user = await User.findById(userIdForLookup)
+      .select('firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
       .lean();
 
-    logger.info('Provider lookup attempt', {
-      requestedId: id,
-      foundById: !!provider,
-      providerId: provider?._id,
-      providerStatus: provider?.status
-    });
+    if (user) {
+      // User found - now find Provider profile by userId
+      logger.info('User found in Users collection, looking up provider profile', {
+        userId: user._id,
+        userEmail: user.email,
+        requestedId: id
+      });
 
-    // If not found by ID, try finding by userId
-    if (!provider) {
-      logger.info('Provider not found by ID, trying userId lookup', { userId: id });
       provider = await Provider.findOne({ userId: userIdForLookup })
-        .populate('userId', 'firstName lastName email phone profile.avatar profile.bio')
+        .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
         .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
         .lean();
       
       if (provider) {
-        logger.info('Provider found by userId', {
+        logger.info('Provider found by userId from Users collection', {
           userId: id,
           providerId: provider._id,
           providerStatus: provider.status
         });
       }
+    } else {
+      // User not found - try Provider ID directly
+      logger.info('User not found, trying provider ID lookup', {
+        requestedId: id,
+        providerId: providerId.toString()
+      });
+
+      provider = await Provider.findById(providerId)
+        .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
+        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+        .lean();
+
+      if (provider && provider.userId) {
+        user = provider.userId;
+      }
+
+      logger.info('Provider lookup attempt', {
+        requestedId: id,
+        foundById: !!provider,
+        providerId: provider?._id,
+        providerStatus: provider?.status
+      });
     }
 
     if (!provider) {
-      // Try to provide more helpful error message
-      const byUserId = await Provider.findOne({ userId: userIdForLookup }).select('_id status').lean();
-      if (byUserId) {
-        logger.warn('Provider found but query failed', {
+      // If we already checked for user, use that info
+      if (user) {
+        logger.warn('User exists but no provider profile found', {
           requestedId: id,
-          foundProviderId: byUserId._id,
-          status: byUserId.status
+          userId: user._id,
+          userEmail: user.email
+        });
+        
+        return res.status(404).json({
+          success: false,
+          message: 'Provider profile not found',
+          error: 'User exists but does not have a provider profile',
+          user: {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          },
+          hint: 'This user ID exists but no provider profile has been created. The user may need to complete provider registration.'
         });
       }
+      
+      logger.warn('Provider not found - ID does not exist as provider or user', {
+        requestedId: id,
+        providerId: providerId.toString()
+      });
       
       return res.status(404).json({
         success: false,
         message: 'Provider not found',
-        hint: 'Make sure you are using the provider ID or userId. If using userId, ensure a provider profile exists for that user.'
+        hint: 'The ID does not exist as a User ID or Provider ID. Please verify the ID and try again.'
       });
     }
 
@@ -2191,11 +2231,20 @@ const getProviderDetails = async (req, res) => {
       });
     }
 
+    // Build extended response with User and Provider data
+    const extendedProviderData = {
+      ...provider,
+      user: user || provider.userId,
+      userProfile: user || provider.userId
+    };
+
     // Initialize response data
     const providerDetails = {
       provider: {
         id: provider._id,
         userId: provider.userId,
+        user: user || provider.userId, // Include extended user data
+        userProfile: user || provider.userId, // Alias for user data
         providerType: provider.providerType,
         status: provider.status,
         businessInfo: provider.businessInfo,
@@ -2355,15 +2404,18 @@ const getProviderDetails = async (req, res) => {
     }
 
     // Increment profile views
-    await Provider.findByIdAndUpdate(id, {
+    await Provider.findByIdAndUpdate(provider._id, {
       $inc: { 'metadata.profileViews': 1 }
     });
 
-    logger.info('Provider details retrieved', {
-      providerId: id,
+    logger.info('Provider details retrieved with extended user data', {
+      providerId: provider._id,
+      userId: actualUserId,
+      userFound: !!user,
       includeServices,
       includeReviews,
-      includeStatistics
+      includeStatistics,
+      requestedId: id
     });
 
     return res.status(200).json({

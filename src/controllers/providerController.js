@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Provider = require('../models/Provider');
 const User = require('../models/User');
 const { logger } = require('../utils/logger');
@@ -95,7 +96,7 @@ const getProviders = async (req, res) => {
   }
 };
 
-// Get single provider by ID
+// Get single provider by ID (accepts either User ID or Provider ID)
 const getProvider = async (req, res) => {
   try {
     const { id } = req.params;
@@ -104,34 +105,104 @@ const getProvider = async (req, res) => {
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid provider ID format'
+        message: 'Invalid ID format'
       });
     }
-    
-    const provider = await Provider.findById(id)
-      .populate('userId', 'firstName lastName email phone profileImage')
-      .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents');
+
+    let provider;
+    let user;
+    const objectId = new mongoose.Types.ObjectId(id);
+
+    // First, try to find User by ID
+    user = await User.findById(objectId)
+      .select('firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
+      .lean();
+
+    if (user) {
+      // User found - now find Provider profile by userId
+      logger.info('User found, looking up provider profile', {
+        userId: user._id,
+        userEmail: user.email
+      });
+
+      provider = await Provider.findOne({ userId: objectId })
+        .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
+        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents')
+        .lean();
+
+      if (!provider) {
+        logger.warn('User found but no provider profile exists', {
+          userId: user._id,
+          userEmail: user.email
+        });
+
+        return res.status(404).json({
+          success: false,
+          message: 'Provider profile not found',
+          error: 'User exists but does not have a provider profile',
+          user: {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          },
+          hint: 'This user has not completed provider registration. They need to create a provider profile first.'
+        });
+      }
+    } else {
+      // User not found - try Provider ID directly
+      logger.info('User not found, trying provider ID lookup', {
+        id: id
+      });
+
+      provider = await Provider.findById(objectId)
+        .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
+        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents')
+        .lean();
+
+      if (provider && provider.userId) {
+        user = provider.userId;
+      }
+    }
 
     if (!provider) {
+      logger.warn('Provider not found by ID or User ID', {
+        requestedId: id,
+        requestedBy: req.user?.id
+      });
+      
       return res.status(404).json({
         success: false,
-        message: 'Provider not found'
+        message: 'Provider not found',
+        hint: 'The ID does not exist as a User ID or Provider ID. Please verify the ID and try again.'
       });
     }
 
-    // Increment profile views
-    provider.metadata.profileViews += 1;
-    await provider.save();
+    // Convert to plain object if needed and increment profile views
+    const providerDoc = await Provider.findById(provider._id);
+    if (providerDoc) {
+      providerDoc.metadata.profileViews += 1;
+      await providerDoc.save();
+    }
 
-    logger.info('Provider retrieved', {
+    // Build extended response with User and Provider data
+    const extendedProviderData = {
+      ...provider,
+      user: user || provider.userId,
+      // Ensure user data is properly included
+      userProfile: user || provider.userId
+    };
+
+    logger.info('Provider retrieved successfully', {
       userId: req.user?.id,
-      providerId: id,
-      profileViews: provider.metadata.profileViews
+      providerId: provider._id,
+      userFound: !!user,
+      profileViews: providerDoc?.metadata?.profileViews || provider.metadata?.profileViews
     });
 
     res.json({
       success: true,
-      data: provider
+      data: extendedProviderData
     });
   } catch (error) {
     logger.error('Failed to get provider', error, {
@@ -141,7 +212,8 @@ const getProvider = async (req, res) => {
     
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve provider'
+      message: 'Failed to retrieve provider',
+      error: error.message
     });
   }
 };
@@ -656,9 +728,16 @@ const updateProviderStatus = async (req, res) => {
 
     const provider = await Provider.findById(id);
     if (!provider) {
+      logger.warn('Provider not found for status update', {
+        providerId: id,
+        requestedBy: req.user?.id,
+        requestedStatus: status
+      });
+      
       return res.status(404).json({
         success: false,
-        message: 'Provider not found'
+        message: 'Provider not found',
+        hint: 'The provider ID does not exist. Please verify the ID and try again.'
       });
     }
 
