@@ -119,7 +119,6 @@ describe('Audit Logger Utility', () => {
   describe('logPayment', () => {
     test('should log payment event', async () => {
       auditService.logFinancialEvent = jest.fn().mockResolvedValue({});
-      const target = { id: 'payment-id' };
 
       await auditLogger.logPayment('process', mockReq, 'payment-id', 100, 'USD', {});
 

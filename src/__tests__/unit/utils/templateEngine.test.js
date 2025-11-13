@@ -1,6 +1,4 @@
-const TemplateEngine = require('../../../utils/templateEngine');
-const fs = require('fs');
-const path = require('path');
+// TemplateEngine is used via require in beforeEach
 
 describe('Template Engine', () => {
   let templateEngine;

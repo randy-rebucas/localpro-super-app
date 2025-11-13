@@ -312,7 +312,7 @@ const getCourse = async (req, res) => {
 
 // @desc    Create new course
 // @route   POST /api/academy/courses
-// @access  Private
+// @access  Private (Instructor/Admin)
 const createCourse = async (req, res) => {
   try {
     const courseData = {
@@ -340,7 +340,7 @@ const createCourse = async (req, res) => {
 
 // @desc    Update course
 // @route   PUT /api/academy/courses/:id
-// @access  Private
+// @access  Private (Instructor/Admin)
 const updateCourse = async (req, res) => {
   try {
     let course = await Academy.findById(req.params.id);
@@ -352,8 +352,12 @@ const updateCourse = async (req, res) => {
       });
     }
 
-    // Check if user is the instructor
-    if (course.instructor.toString() !== req.user.id) {
+    // Check if user is the instructor or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isInstructor = course.instructor.toString() === req.user.id;
+
+    if (!isInstructor && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this course'
@@ -381,7 +385,7 @@ const updateCourse = async (req, res) => {
 
 // @desc    Delete course
 // @route   DELETE /api/academy/courses/:id
-// @access  Private
+// @access  Private (Instructor/Admin)
 const deleteCourse = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id);
@@ -393,8 +397,12 @@ const deleteCourse = async (req, res) => {
       });
     }
 
-    // Check if user is the instructor
-    if (course.instructor.toString() !== req.user.id) {
+    // Check if user is the instructor or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isInstructor = course.instructor.toString() === req.user.id;
+
+    if (!isInstructor && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this course'
@@ -420,7 +428,7 @@ const deleteCourse = async (req, res) => {
 
 // @desc    Upload course thumbnail
 // @route   POST /api/academy/courses/:id/thumbnail
-// @access  Private
+// @access  Private (Instructor/Admin)
 const uploadCourseThumbnail = async (req, res) => {
   try {
     if (!req.file) {
@@ -439,8 +447,12 @@ const uploadCourseThumbnail = async (req, res) => {
       });
     }
 
-    // Check if user is the instructor
-    if (course.instructor.toString() !== req.user.id) {
+    // Check if user is the instructor or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isInstructor = course.instructor.toString() === req.user.id;
+
+    if (!isInstructor && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to upload thumbnail for this course'
@@ -490,7 +502,7 @@ const uploadCourseThumbnail = async (req, res) => {
 
 // @desc    Upload course video
 // @route   POST /api/academy/courses/:id/videos
-// @access  Private
+// @access  Private (Instructor/Admin)
 const uploadCourseVideo = async (req, res) => {
   try {
     if (!req.file) {
@@ -509,34 +521,95 @@ const uploadCourseVideo = async (req, res) => {
       });
     }
 
-    // Check if user is the instructor
-    if (course.instructor.toString() !== req.user.id) {
+    // Check if user is the instructor or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isInstructor = course.instructor.toString() === req.user.id;
+
+    if (!isInstructor && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to upload videos for this course'
       });
     }
 
-    // Upload to Cloudinary
-    const uploadResult = await CloudinaryService.uploadFile(
-      req.file, 
-      'localpro/academy/videos'
-    );
+    // CloudinaryStorage automatically uploads to Cloudinary and adds response to req.file
+    // The Cloudinary response is merged into req.file object
+    let videoUrl, publicId;
+    
+    // Check if file was already uploaded via CloudinaryStorage
+    // CloudinaryStorage adds: path (URL), filename (public_id), and may add other Cloudinary response properties
+    const isCloudinaryUploaded = req.file.path && req.file.path.includes('cloudinary.com');
+    
+    if (isCloudinaryUploaded) {
+      // File already uploaded via CloudinaryStorage - extract info from Cloudinary response
+      videoUrl = req.file.secure_url || req.file.url || req.file.path;
+      
+      // Extract public_id - CloudinaryStorage typically uses filename as public_id
+      // For videos, the path format is: .../upload/v1234567890/folder/filename.ext
+      if (req.file.public_id) {
+        publicId = req.file.public_id;
+      } else if (req.file.filename) {
+        // CloudinaryStorage uses filename as public_id (without extension)
+        publicId = req.file.filename;
+      } else if (req.file.path) {
+        // Extract public_id from Cloudinary URL
+        try {
+          const pathParts = req.file.path.split('/');
+          const uploadIndex = pathParts.findIndex(part => part === 'upload');
+          if (uploadIndex !== -1 && pathParts.length > uploadIndex + 2) {
+            // Get everything after 'upload/v1234567890/' and remove file extension
+            publicId = pathParts.slice(uploadIndex + 2).join('/').replace(/\.[^/.]+$/, '');
+          } else {
+            // Fallback: use original filename without extension
+            publicId = req.file.originalname?.replace(/\.[^/.]+$/, '') || `video-${Date.now()}`;
+          }
+        } catch (parseError) {
+          console.error('Error parsing public_id from path:', parseError);
+          publicId = req.file.originalname?.replace(/\.[^/.]+$/, '') || `video-${Date.now()}`;
+        }
+      } else {
+        publicId = req.file.originalname?.replace(/\.[^/.]+$/, '') || `video-${Date.now()}`;
+      }
+      
+      // Validate we have required values
+      if (!videoUrl) {
+        throw new Error('Failed to extract video URL from Cloudinary response');
+      }
+      if (!publicId) {
+        throw new Error('Failed to extract public_id from Cloudinary response');
+      }
+    } else {
+      // Fallback: Upload manually if not using CloudinaryStorage (shouldn't happen with our setup)
+      const uploadResult = await CloudinaryService.uploadFile(
+        req.file, 
+        'localpro/academy/videos',
+        { resource_type: 'video' }
+      );
 
-    if (!uploadResult.success) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to upload video',
-        error: uploadResult.error
-      });
+      if (!uploadResult.success) {
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload video',
+          error: uploadResult.error
+        });
+      }
+
+      videoUrl = uploadResult.data.secure_url;
+      publicId = uploadResult.data.public_id;
+    }
+
+    // Ensure videos array exists
+    if (!course.videos || !Array.isArray(course.videos)) {
+      course.videos = [];
     }
 
     // Add video to course
     const video = {
-      title: req.body.title || 'Untitled Video',
-      url: uploadResult.data.secure_url,
-      publicId: uploadResult.data.public_id,
-      duration: req.body.duration || 0,
+      title: req.body.title || '',
+      url: videoUrl,
+      publicId: publicId,
+      duration: req.body.duration ? Number(req.body.duration) : 0,
       order: course.videos.length + 1
     };
 
@@ -550,16 +623,32 @@ const uploadCourseVideo = async (req, res) => {
     });
   } catch (error) {
     console.error('Upload course video error:', error);
+    logger.error('Upload course video failed', {
+      courseId: req.params.id,
+      userId: req.user?.id,
+      error: error.message,
+      stack: error.stack,
+      fileInfo: req.file ? {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        path: req.file.path,
+        filename: req.file.filename,
+        hasPublicId: !!req.file.public_id,
+        hasSecureUrl: !!req.file.secure_url
+      } : null
+    });
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message, stack: error.stack })
     });
   }
 };
 
 // @desc    Delete course video
 // @route   DELETE /api/academy/courses/:id/videos/:videoId
-// @access  Private
+// @access  Private (Instructor/Admin)
 const deleteCourseVideo = async (req, res) => {
   try {
     const { videoId } = req.params;
@@ -573,8 +662,12 @@ const deleteCourseVideo = async (req, res) => {
       });
     }
 
-    // Check if user is the instructor
-    if (course.instructor.toString() !== req.user.id) {
+    // Check if user is the instructor or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isInstructor = course.instructor.toString() === req.user.id;
+
+    if (!isInstructor && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete videos for this course'

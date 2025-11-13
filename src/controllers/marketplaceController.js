@@ -675,7 +675,7 @@ const updateBookingStatus = async (req, res) => {
 
 // @desc    Upload service images
 // @route   POST /api/marketplace/services/:id/images
-// @access  Private (Provider)
+// @access  Private (Provider/Admin)
 const uploadServiceImages = async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
@@ -695,8 +695,12 @@ const uploadServiceImages = async (req, res) => {
       });
     }
 
-    // Check if user is the provider
-    if (service.provider.toString() !== req.user.id) {
+    // Check if user is the provider or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+
+    if (!isProvider && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to upload images for this service'
@@ -2097,7 +2101,7 @@ const getProviderDetails = async (req, res) => {
           receivedId: trimmedId,
           receivedLength: trimmedId?.length || 0,
           expectedLength: 24,
-          hint: 'Ensure you are using the correct provider ID. Example format: 507f1f77bcf86cd799439011'
+          hint: 'Ensure you are using the correct provider ID format'
         });
       }
       
@@ -2230,13 +2234,6 @@ const getProviderDetails = async (req, res) => {
         hint: 'Set requireActive=false in query params to view inactive providers'
       });
     }
-
-    // Build extended response with User and Provider data
-    const extendedProviderData = {
-      ...provider,
-      user: user || provider.userId,
-      userProfile: user || provider.userId
-    };
 
     // Initialize response data
     const providerDetails = {

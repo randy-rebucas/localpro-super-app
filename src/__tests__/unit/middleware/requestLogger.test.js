@@ -17,7 +17,7 @@ describe('Request Logger Middleware', () => {
     };
     res = {
       statusCode: 200,
-      end: jest.fn(function(chunk, encoding) {
+      end: jest.fn(function(_chunk, _encoding) {
         this.end = jest.fn();
       })
     };

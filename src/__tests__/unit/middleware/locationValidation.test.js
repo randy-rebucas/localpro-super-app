@@ -1,7 +1,5 @@
 const {
   validateAndGeocodeAddress,
-  validateServiceArea,
-  calculateDistance,
   validateCoordinates,
   enhanceLocationData
 } = require('../../../middleware/locationValidation');

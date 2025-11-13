@@ -47,7 +47,6 @@ describe('Query Optimization Middleware', () => {
   describe('addQueryCaching', () => {
     test('should add cache headers for successful responses', () => {
       const middleware = addQueryCaching(300000); // 5 minutes
-      const originalJson = res.json;
 
       middleware(req, res, next);
       res.json({ data: 'test' });
@@ -212,7 +211,6 @@ describe('Query Optimization Middleware', () => {
   describe('addQueryLogging', () => {
     test('should log request and response', () => {
       const middleware = addQueryLogging('debug');
-      const originalJson = res.json;
 
       middleware(req, res, next);
       res.json({ data: 'test' });
@@ -230,7 +228,6 @@ describe('Query Optimization Middleware', () => {
 
     test('should use specified log level', () => {
       const middleware = addQueryLogging('info');
-      const originalJson = res.json;
 
       middleware(req, res, next);
       res.json({ data: 'test' });

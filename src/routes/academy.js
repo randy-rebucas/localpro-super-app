@@ -38,7 +38,7 @@ router.delete('/courses/:id', authorize('instructor', 'admin'), deleteCourse);
 
 // Course content routes
 router.post('/courses/:id/thumbnail', authorize('instructor', 'admin'), uploaders.academy.single('thumbnail'), uploadCourseThumbnail);
-router.post('/courses/:id/videos', authorize('instructor', 'admin'), uploaders.academy.single('video'), uploadCourseVideo);
+router.post('/courses/:id/videos', authorize('instructor', 'admin'), uploaders.academyVideos.single('video'), uploadCourseVideo);
 router.delete('/courses/:id/videos/:videoId', authorize('instructor', 'admin'), deleteCourseVideo);
 
 // Enrollment routes

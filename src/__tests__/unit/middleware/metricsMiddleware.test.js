@@ -43,7 +43,8 @@ describe('Metrics Middleware', () => {
 
   describe('metricsMiddleware', () => {
     test('should increment active connections', () => {
-      const initialValue = typeof activeConnections.get === 'function' 
+      // Get initial value to verify increment
+      typeof activeConnections.get === 'function' 
         ? activeConnections.get() 
         : 0;
       

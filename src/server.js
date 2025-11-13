@@ -196,7 +196,7 @@ function startServer() {
       tagline: 'Connecting Local Professionals with Opportunities',
       mission: 'Empowering local service providers and creating opportunities for growth and success',
       founded: '2024',
-      location: 'Philippines'
+      location: ''
     },
 
     // Contact Info

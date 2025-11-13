@@ -8,23 +8,7 @@ const {
 } = require('../../../middleware/rateLimiter');
 
 describe('Rate Limiter Middleware', () => {
-  let req, res, next;
-
   beforeEach(() => {
-    req = {
-      path: '/api/test',
-      ip: '127.0.0.1',
-      connection: { remoteAddress: '127.0.0.1' },
-      socket: { remoteAddress: '127.0.0.1' },
-      body: {},
-      method: 'GET'
-    };
-    res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-      setHeader: jest.fn()
-    };
-    next = jest.fn();
     process.env.NODE_ENV = 'test';
   });
 

@@ -1,6 +1,6 @@
 // Mock cloudinary before requiring the config
 jest.mock('cloudinary', () => {
-  const mockUrl = jest.fn((publicId, options) => {
+  const mockUrl = jest.fn((publicId, _options) => {
     return `https://res.cloudinary.com/test-cloud/image/upload/${publicId}`;
   });
 

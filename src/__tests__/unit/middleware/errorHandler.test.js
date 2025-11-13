@@ -2,7 +2,6 @@ const {
   handleAsyncErrors,
   errorHandler,
   notFoundHandler,
-  requestLogger,
   securityHeaders,
   performanceMonitor
 } = require('../../../middleware/errorHandler');

@@ -34,6 +34,9 @@ router.post('/:id/click', trackAdClick);
 // Protected routes
 router.use(auth);
 
+// Statistics route (Admin only) - Must be before /:id routes to avoid route conflict
+router.get('/statistics', authorize('admin'), getAdStatistics);
+
 // Ad management routes - All authenticated users can create ads
 router.post('/', createAd);
 router.put('/:id', updateAd);
@@ -56,8 +59,5 @@ router.get('/:id/analytics', getAdAnalytics);
 
 // User-specific routes
 router.get('/my-ads', getMyAds);
-
-// Statistics route (Admin only) - [ADMIN ONLY]
-router.get('/statistics', authorize('admin'), getAdStatistics);
 
 module.exports = router;

@@ -186,7 +186,7 @@ const formatDate = (date, locale = 'en-US') => {
  * @param {string} timezone - Timezone (default: UTC)
  * @returns {boolean} True if within business hours
  */
-const isBusinessHours = (date, timezone = 'UTC') => {
+const isBusinessHours = (date, _timezone = 'UTC') => {
   const dateObj = new Date(date);
   // Get hours in UTC (or convert to specified timezone if needed)
   // For simplicity, using UTC hours. In production, use a timezone library

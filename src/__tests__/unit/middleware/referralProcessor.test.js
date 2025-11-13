@@ -1,10 +1,6 @@
 const {
   processServiceBookingReferral,
   processSuppliesOrderReferral,
-  processCourseEnrollmentReferral,
-  processLoanApplicationReferral,
-  processRentalBookingReferral,
-  processSubscriptionUpgradeReferral,
   processSignupReferral,
   getReferralStats,
   hasPendingReferrals

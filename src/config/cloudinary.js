@@ -25,6 +25,23 @@ const createStorage = (folder, allowedFormats = ['jpg', 'jpeg', 'png', 'gif', 'p
   });
 };
 
+// Create storage configuration for video files
+const createVideoStorage = (folder, allowedFormats = ['mp4', 'avi', 'mov', 'webm', 'mkv', 'flv', 'wmv']) => {
+  return new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: folder,
+      allowed_formats: allowedFormats,
+      resource_type: 'video',
+      // No image transformations for videos
+      transformation: [
+        { quality: 'auto' }, // Auto quality optimization
+        { fetch_format: 'auto' } // Auto format selection
+      ]
+    }
+  });
+};
+
 // Storage configurations for different modules
 const storageConfigs = {
   // User profile images
@@ -33,8 +50,11 @@ const storageConfigs = {
   // Marketplace product images
   marketplace: createStorage('localpro/marketplace', ['jpg', 'jpeg', 'png', 'gif']),
   
-  // Academy course materials
+  // Academy course materials (images, documents, thumbnails)
   academy: createStorage('localpro/academy', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']),
+  
+  // Academy course videos
+  academyVideos: createVideoStorage('localpro/academy/videos', ['mp4', 'avi', 'mov', 'webm', 'mkv', 'flv', 'wmv', 'm4v', '3gp']),
   
   // Facility care images
   facilityCare: createStorage('localpro/facility-care', ['jpg', 'jpeg', 'png']),
@@ -70,10 +90,14 @@ const storageConfigs = {
 // Create multer uploaders for each storage type
 const uploaders = {};
 Object.keys(storageConfigs).forEach(key => {
+  // Videos need larger file size limits
+  const isVideoStorage = key.includes('Video') || key === 'academyVideos';
+  const fileSizeLimit = isVideoStorage ? 500 * 1024 * 1024 : 10 * 1024 * 1024; // 500MB for videos, 10MB for others
+  
   uploaders[key] = multer({ 
     storage: storageConfigs[key],
     limits: {
-      fileSize: 10 * 1024 * 1024, // 10MB limit
+      fileSize: fileSizeLimit,
       files: 5 // Maximum 5 files per upload
     },
     fileFilter: (req, file, cb) => {

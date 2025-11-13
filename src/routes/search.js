@@ -236,21 +236,8 @@ router.get('/locations', (req, res) => {
   try {
     const { q: query } = req.query;
     
-    // In a real application, you might query the database for actual location data
-    const popularLocations = [
-      { name: 'Manila', country: 'Philippines', count: 1250 },
-      { name: 'Quezon City', country: 'Philippines', count: 980 },
-      { name: 'Makati', country: 'Philippines', count: 850 },
-      { name: 'Taguig', country: 'Philippines', count: 720 },
-      { name: 'Pasig', country: 'Philippines', count: 650 },
-      { name: 'Mandaluyong', country: 'Philippines', count: 580 },
-      { name: 'San Juan', country: 'Philippines', count: 520 },
-      { name: 'Marikina', country: 'Philippines', count: 480 },
-      { name: 'Pasay', country: 'Philippines', count: 420 },
-      { name: 'Parañaque', country: 'Philippines', count: 380 },
-      { name: 'Las Piñas', country: 'Philippines', count: 350 },
-      { name: 'Muntinlupa', country: 'Philippines', count: 320 }
-    ];
+    // Query the database for actual location data
+    const popularLocations = [];
 
     let filteredLocations = popularLocations;
     

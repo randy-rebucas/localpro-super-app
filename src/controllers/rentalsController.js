@@ -126,9 +126,51 @@ const getRental = async (req, res) => {
   }
 };
 
+// Helper function to parse weight string (e.g., "15kg", "30lbs") into object
+const parseWeight = (weight) => {
+  if (!weight) return null;
+  
+  // If already an object with value and unit, return as is
+  if (typeof weight === 'object' && weight.value !== undefined) {
+    return weight;
+  }
+  
+  // If string, parse it (e.g., "15kg", "30lbs", "10.5 kg")
+  if (typeof weight === 'string') {
+    const match = weight.match(/^([\d.]+)\s*(kg|lbs|lb|g|oz|tons?)?$/i);
+    if (match) {
+      const value = parseFloat(match[1]);
+      let unit = (match[2] || 'lbs').toLowerCase();
+      
+      // Normalize unit names
+      if (unit === 'lb') unit = 'lbs';
+      if (unit === 'g') {
+        // Convert grams to lbs (1g = 0.00220462 lbs)
+        return { value: value * 0.00220462, unit: 'lbs' };
+      }
+      if (unit === 'oz') {
+        // Convert ounces to lbs (1oz = 0.0625 lbs)
+        return { value: value * 0.0625, unit: 'lbs' };
+      }
+      if (unit === 'ton' || unit === 'tons') {
+        // Convert tons to lbs (1ton = 2000 lbs)
+        return { value: value * 2000, unit: 'lbs' };
+      }
+      if (unit === 'kg') {
+        // Convert kg to lbs (1kg = 2.20462 lbs)
+        return { value: value * 2.20462, unit: 'lbs' };
+      }
+      
+      return { value, unit };
+    }
+  }
+  
+  return null;
+};
+
 // @desc    Create new rental item
 // @route   POST /api/rentals
-// @access  Private
+// @access  Private (Provider/Admin)
 const createRental = async (req, res) => {
   try {
     const rentalData = {
@@ -136,18 +178,48 @@ const createRental = async (req, res) => {
       owner: req.user.id
     };
 
+    // Ensure title is set (use name as fallback if not provided)
+    if (!rentalData.title && rentalData.name) {
+      rentalData.title = rentalData.name;
+    }
+
+    // Parse weight if provided as string
+    if (rentalData.specifications?.weight) {
+      const parsedWeight = parseWeight(rentalData.specifications.weight);
+      if (parsedWeight) {
+        rentalData.specifications.weight = parsedWeight;
+      } else {
+        // If parsing fails, remove weight to avoid validation error
+        delete rentalData.specifications.weight;
+      }
+    }
+
     // Geocode location if provided
-    if (rentalData.location?.street) {
+    if (rentalData.location?.address?.street || rentalData.location?.street) {
       try {
-        const address = `${rentalData.location.street}, ${rentalData.location.city}, ${rentalData.location.state}`;
-        const geocodeResult = await GoogleMapsService.geocodeAddress(address);
+        // Handle both location.address.street and location.street formats
+        const street = rentalData.location.address?.street || rentalData.location.street;
+        const city = rentalData.location.address?.city || rentalData.location.city;
+        const state = rentalData.location.address?.state || rentalData.location.state;
         
-        if (geocodeResult.success && geocodeResult.data.length > 0) {
-          const location = geocodeResult.data[0];
-          rentalData.location.coordinates = {
-            lat: location.geometry.location.lat,
-            lng: location.geometry.location.lng
-          };
+        if (street && city && state) {
+          const address = `${street}, ${city}, ${state}`;
+          const geocodeResult = await GoogleMapsService.geocodeAddress(address);
+          
+          if (geocodeResult.success && geocodeResult.data.length > 0) {
+            const location = geocodeResult.data[0];
+            // Ensure location structure is correct
+            if (!rentalData.location.address) {
+              rentalData.location.address = {};
+            }
+            rentalData.location.address.street = street;
+            rentalData.location.address.city = city;
+            rentalData.location.address.state = state;
+            rentalData.location.coordinates = {
+              lat: location.geometry.location.lat,
+              lng: location.geometry.location.lng
+            };
+          }
         }
       } catch (geocodeError) {
         console.error('Geocoding error:', geocodeError);
@@ -166,16 +238,32 @@ const createRental = async (req, res) => {
     });
   } catch (error) {
     console.error('Create rental error:', error);
+    
+    // Provide more detailed error messages for validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+      
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
 
 // @desc    Update rental item
 // @route   PUT /api/rentals/:id
-// @access  Private
+// @access  Private (Provider/Admin)
 const updateRental = async (req, res) => {
   try {
     // Validate ObjectId format
@@ -195,31 +283,64 @@ const updateRental = async (req, res) => {
       });
     }
 
-    // Check if user is the owner
-    if (rental.owner.toString() !== req.user.id) {
+    // Check if user is the owner or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isOwner = rental.owner.toString() === req.user.id;
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this rental item'
       });
     }
 
+    // Ensure title is set if name is provided but title is not
+    if (req.body.name && !req.body.title) {
+      req.body.title = req.body.name;
+    }
+
+    // Parse weight if provided as string
+    if (req.body.specifications?.weight) {
+      const parsedWeight = parseWeight(req.body.specifications.weight);
+      if (parsedWeight) {
+        req.body.specifications.weight = parsedWeight;
+      } else {
+        // If parsing fails, remove weight to avoid validation error
+        delete req.body.specifications.weight;
+      }
+    }
+
     // Geocode location if changed
-    if (req.body.location?.street && 
-        req.body.location.street !== rental.location.street) {
-      try {
-        const address = `${req.body.location.street}, ${req.body.location.city}, ${req.body.location.state}`;
-        const geocodeResult = await GoogleMapsService.geocodeAddress(address);
-        
-        if (geocodeResult.success && geocodeResult.data.length > 0) {
-          const location = geocodeResult.data[0];
-          req.body.location.coordinates = {
-            lat: location.geometry.location.lat,
-            lng: location.geometry.location.lng
-          };
+    const street = req.body.location?.address?.street || req.body.location?.street;
+    const city = req.body.location?.address?.city || req.body.location?.city;
+    const state = req.body.location?.address?.state || req.body.location?.state;
+    
+    if (street && city && state) {
+      const currentStreet = rental.location?.address?.street || rental.location?.street;
+      if (street !== currentStreet) {
+        try {
+          const address = `${street}, ${city}, ${state}`;
+          const geocodeResult = await GoogleMapsService.geocodeAddress(address);
+          
+          if (geocodeResult.success && geocodeResult.data.length > 0) {
+            const location = geocodeResult.data[0];
+            // Ensure location structure is correct
+            if (!req.body.location.address) {
+              req.body.location.address = {};
+            }
+            req.body.location.address.street = street;
+            req.body.location.address.city = city;
+            req.body.location.address.state = state;
+            req.body.location.coordinates = {
+              lat: location.geometry.location.lat,
+              lng: location.geometry.location.lng
+            };
+          }
+        } catch (geocodeError) {
+          console.error('Geocoding error:', geocodeError);
+          // Continue without geocoding if it fails
         }
-      } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
-        // Continue without geocoding if it fails
       }
     }
 
@@ -235,16 +356,32 @@ const updateRental = async (req, res) => {
     });
   } catch (error) {
     console.error('Update rental error:', error);
+    
+    // Provide more detailed error messages for validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+      
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
 
 // @desc    Delete rental item
 // @route   DELETE /api/rentals/:id
-// @access  Private
+// @access  Private (Provider/Admin)
 const deleteRental = async (req, res) => {
   try {
     // Validate ObjectId format
@@ -264,8 +401,12 @@ const deleteRental = async (req, res) => {
       });
     }
 
-    // Check if user is the owner
-    if (rental.owner.toString() !== req.user.id) {
+    // Check if user is the owner or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isOwner = rental.owner.toString() === req.user.id;
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this rental item'
@@ -291,7 +432,7 @@ const deleteRental = async (req, res) => {
 
 // @desc    Upload rental images
 // @route   POST /api/rentals/:id/images
-// @access  Private
+// @access  Private (Provider/Admin)
 const uploadRentalImages = async (req, res) => {
   try {
     // Validate ObjectId format
@@ -318,8 +459,12 @@ const uploadRentalImages = async (req, res) => {
       });
     }
 
-    // Check if user is the owner
-    if (rental.owner.toString() !== req.user.id) {
+    // Check if user is the owner or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isOwner = rental.owner.toString() === req.user.id;
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to upload images for this rental item'
@@ -366,7 +511,7 @@ const uploadRentalImages = async (req, res) => {
 
 // @desc    Delete rental image
 // @route   DELETE /api/rentals/:id/images/:imageId
-// @access  Private
+// @access  Private (Provider/Admin)
 const deleteRentalImage = async (req, res) => {
   try {
     // Validate ObjectId format
@@ -388,8 +533,12 @@ const deleteRentalImage = async (req, res) => {
       });
     }
 
-    // Check if user is the owner
-    if (rental.owner.toString() !== req.user.id) {
+    // Check if user is the owner or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isOwner = rental.owner.toString() === req.user.id;
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete images for this rental item'
@@ -549,7 +698,7 @@ const bookRental = async (req, res) => {
 
 // @desc    Update booking status
 // @route   PUT /api/rentals/:id/bookings/:bookingId/status
-// @access  Private
+// @access  Private (Provider/Admin)
 const updateBookingStatus = async (req, res) => {
   try {
     // Validate ObjectId format
@@ -579,8 +728,12 @@ const updateBookingStatus = async (req, res) => {
       });
     }
 
-    // Check if user is the owner
-    if (rental.owner.toString() !== req.user.id) {
+    // Check if user is the owner or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isOwner = rental.owner.toString() === req.user.id;
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update booking status'

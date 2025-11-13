@@ -135,11 +135,23 @@ const createAd = async (req, res) => {
       });
     }
 
-    // Validate budget
-    if (!budget || !budget.total) {
+    // Validate budget - accept both number or object format
+    let budgetTotal;
+    if (typeof budget === 'number') {
+      budgetTotal = budget;
+    } else if (budget && typeof budget === 'object' && budget.total) {
+      budgetTotal = budget.total;
+    } else {
       return res.status(400).json({
         success: false,
-        message: 'Budget total is required'
+        message: 'Budget total is required. Provide budget as a number or object with total property'
+      });
+    }
+
+    if (!budgetTotal || budgetTotal <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Budget total must be a positive number'
       });
     }
 
@@ -193,9 +205,9 @@ const createAd = async (req, res) => {
       type,
       category,
       budget: {
-        total: budget.total,
-        daily: budget.daily || null,
-        currency: budget.currency || 'USD'
+        total: budgetTotal,
+        daily: (typeof budget === 'object' ? budget.daily : null) || null,
+        currency: (typeof budget === 'object' ? budget.currency : 'USD') || 'USD'
       },
       schedule: {
         startDate: startDate,

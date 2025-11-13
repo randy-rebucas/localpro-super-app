@@ -18,6 +18,7 @@ const {
   getFeaturedRentalItem,
   getRentalStatistics
 } = require('../controllers/rentalsController');
+const { uploaders } = require('../config/cloudinary');
 
 const router = express.Router();
 
@@ -40,7 +41,7 @@ router.put('/:id', authorize('provider', 'admin'), updateRental);
 router.delete('/:id', authorize('provider', 'admin'), deleteRental);
 
 // Image management routes
-router.post('/:id/images', authorize('provider', 'admin'), uploadRentalImages);
+router.post('/:id/images', authorize('provider', 'admin'), uploaders.rentals.array('images', 5), uploadRentalImages);
 router.delete('/:id/images/:imageId', authorize('provider', 'admin'), deleteRentalImage);
 
 // Booking routes

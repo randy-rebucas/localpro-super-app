@@ -30,13 +30,13 @@ describe('Audit Logger Middleware', () => {
     let finishCallback = null;
     res = {
       statusCode: 200,
-      send: jest.fn(function(data) {
+      send: jest.fn(function(_data) {
         return this;
       }),
-      json: jest.fn(function(data) {
+      json: jest.fn(function(_data) {
         return this;
       }),
-      end: jest.fn(function(data) {
+      end: jest.fn(function(_data) {
         return this;
       }),
       on: jest.fn((event, callback) => {

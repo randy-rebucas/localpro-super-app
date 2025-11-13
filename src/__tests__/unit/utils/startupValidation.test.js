@@ -108,7 +108,7 @@ describe('Startup Validation Utility', () => {
 
     test('should validate JWT Secret', async () => {
       createDefaultChecks(validator);
-      const results = await validator.runValidation();
+      await validator.runValidation();
       
       // Should pass with valid JWT_SECRET
       expect(validator.canProceed()).toBe(true);
@@ -117,14 +117,14 @@ describe('Startup Validation Utility', () => {
     test('should fail with short JWT Secret', async () => {
       process.env.JWT_SECRET = 'short';
       createDefaultChecks(validator);
-      const results = await validator.runValidation();
+      await validator.runValidation();
       
       expect(validator.canProceed()).toBe(false);
     });
 
     test('should validate MongoDB URI', async () => {
       createDefaultChecks(validator);
-      const results = await validator.runValidation();
+      await validator.runValidation();
       
       expect(validator.canProceed()).toBe(true);
     });
@@ -132,7 +132,7 @@ describe('Startup Validation Utility', () => {
     test('should fail with invalid MongoDB URI', async () => {
       process.env.MONGODB_URI = 'invalid-uri';
       createDefaultChecks(validator);
-      const results = await validator.runValidation();
+      await validator.runValidation();
       
       expect(validator.canProceed()).toBe(false);
     });
@@ -140,7 +140,7 @@ describe('Startup Validation Utility', () => {
     test('should validate Node Environment', async () => {
       process.env.NODE_ENV = 'development';
       createDefaultChecks(validator);
-      const results = await validator.runValidation();
+      await validator.runValidation();
       
       expect(validator.canProceed()).toBe(true);
     });

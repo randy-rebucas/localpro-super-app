@@ -310,7 +310,7 @@ const getSupply = async (req, res) => {
 
 // @desc    Create new supply item
 // @route   POST /api/supplies
-// @access  Private
+// @access  Private (Supplier/Admin)
 const createSupply = async (req, res) => {
   try {
     const supplyData = {
@@ -357,7 +357,7 @@ const createSupply = async (req, res) => {
 
 // @desc    Update supply item
 // @route   PUT /api/supplies/:id
-// @access  Private
+// @access  Private (Supplier/Admin)
 const updateSupply = async (req, res) => {
   try {
     let supply = await Supplies.findById(req.params.id);
@@ -369,8 +369,12 @@ const updateSupply = async (req, res) => {
       });
     }
 
-    // Check if user is the supplier
-    if (supply.supplier.toString() !== req.user.id) {
+    // Check if user is the supplier or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isSupplier = supply.supplier.toString() === req.user.id;
+
+    if (!isSupplier && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this supply item'
@@ -418,7 +422,7 @@ const updateSupply = async (req, res) => {
 
 // @desc    Delete supply item
 // @route   DELETE /api/supplies/:id
-// @access  Private
+// @access  Private (Supplier/Admin)
 const deleteSupply = async (req, res) => {
   try {
     const supply = await Supplies.findById(req.params.id);
@@ -430,8 +434,12 @@ const deleteSupply = async (req, res) => {
       });
     }
 
-    // Check if user is the supplier
-    if (supply.supplier.toString() !== req.user.id) {
+    // Check if user is the supplier or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isSupplier = supply.supplier.toString() === req.user.id;
+
+    if (!isSupplier && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this supply item'
@@ -457,7 +465,7 @@ const deleteSupply = async (req, res) => {
 
 // @desc    Upload supply images
 // @route   POST /api/supplies/:id/images
-// @access  Private
+// @access  Private (Supplier/Admin)
 const uploadSupplyImages = async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
@@ -476,8 +484,12 @@ const uploadSupplyImages = async (req, res) => {
       });
     }
 
-    // Check if user is the supplier
-    if (supply.supplier.toString() !== req.user.id) {
+    // Check if user is the supplier or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isSupplier = supply.supplier.toString() === req.user.id;
+
+    if (!isSupplier && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to upload images for this supply item'

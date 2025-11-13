@@ -12,7 +12,7 @@ class AIService {
     this.model = process.env.AI_MODEL || 'gpt-4o-mini';
     
     if (!this.apiKey) {
-      logger.warn('AI API key not configured. AI features will use mock responses.');
+      logger.warn('AI API key not configured. AI features will use fallback responses.');
     }
   }
 
@@ -21,7 +21,7 @@ class AIService {
    */
   async makeAICall(prompt, systemPrompt = null, options = {}) {
     if (!this.apiKey) {
-      // Return mock response for development/testing
+      // Return fallback response when API key is not configured
       return this.getMockResponse(prompt, options);
     }
 
@@ -62,52 +62,21 @@ class AIService {
         data: error.response?.data
       });
       
-      // Return mock response on error
+      // Return fallback response on error
       return this.getMockResponse(prompt, options);
     }
   }
 
   /**
-   * Get mock response for development/testing
+   * Get fallback response when AI service is not configured
    */
   getMockResponse(prompt, _options = {}) {
-    logger.warn('Using mock AI response - configure AI_API_KEY for real responses');
-    
-    // Simple keyword-based mock responses
-    const lowerPrompt = prompt.toLowerCase();
-    
-    if (lowerPrompt.includes('price') || lowerPrompt.includes('cost')) {
-      return {
-        success: true,
-        content: JSON.stringify({
-          estimatedPrice: 150,
-          priceRange: { min: 100, max: 200 },
-          currency: 'USD',
-          confidence: 0.75,
-          factors: ['Service type', 'Location', 'Market average']
-        }),
-        usage: { prompt_tokens: 50, completion_tokens: 30, total_tokens: 80 }
-      };
-    }
-    
-    if (lowerPrompt.includes('recommend') || lowerPrompt.includes('suggest')) {
-      return {
-        success: true,
-        content: JSON.stringify({
-          recommendations: [
-            { serviceId: 'mock1', title: 'Recommended Service 1', score: 0.9 },
-            { serviceId: 'mock2', title: 'Recommended Service 2', score: 0.85 }
-          ],
-          reasoning: 'Based on your preferences and requirements'
-        }),
-        usage: { prompt_tokens: 50, completion_tokens: 40, total_tokens: 90 }
-      };
-    }
+    logger.warn('Using fallback AI response - configure AI_API_KEY for real responses');
     
     return {
       success: true,
-      content: JSON.stringify({ message: 'AI response (mock mode - configure API key for real responses)' }),
-      usage: { prompt_tokens: 50, completion_tokens: 20, total_tokens: 70 }
+      content: JSON.stringify({}),
+      usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
     };
   }
 

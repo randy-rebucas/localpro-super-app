@@ -18,6 +18,7 @@ const {
   getFeaturedSupplies,
   getSupplyStatistics
 } = require('../controllers/suppliesController');
+const { uploaders } = require('../config/cloudinary');
 
 const router = express.Router();
 
@@ -40,7 +41,7 @@ router.put('/:id', authorize('supplier', 'admin'), updateSupply);
 router.delete('/:id', authorize('supplier', 'admin'), deleteSupply);
 
 // Image management routes
-router.post('/:id/images', authorize('supplier', 'admin'), uploadSupplyImages);
+router.post('/:id/images', authorize('supplier', 'admin'), uploaders.supplies.array('images', 5), uploadSupplyImages);
 router.delete('/:id/images/:imageId', authorize('supplier', 'admin'), deleteSupplyImage);
 
 // Order routes
