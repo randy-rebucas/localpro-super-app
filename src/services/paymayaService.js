@@ -65,9 +65,9 @@ class PayMayaService {
           }
         }],
         redirectUrl: {
-          success: checkoutData.redirectUrl.success || `${process.env.FRONTEND_URL}/payment/success`,
-          failure: checkoutData.redirectUrl.failure || `${process.env.FRONTEND_URL}/payment/failure`,
-          cancel: checkoutData.redirectUrl.cancel || `${process.env.FRONTEND_URL}/payment/cancel`
+          success: checkoutData.redirectUrl?.success || `${process.env.FRONTEND_URL}/payment/success`,
+          failure: checkoutData.redirectUrl?.failure || `${process.env.FRONTEND_URL}/payment/failure`,
+          cancel: checkoutData.redirectUrl?.cancel || `${process.env.FRONTEND_URL}/payment/cancel`
         },
         requestReferenceNumber: checkoutData.referenceId,
         metadata: {

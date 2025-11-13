@@ -136,7 +136,7 @@ class ErrorMonitoringService {
     if (error.statusCode === 403) return 'authorization';
     if (error.statusCode === 429) return 'rate_limit';
     if (req && req.originalUrl.includes('/api/payment')) return 'payment';
-    if (req && req.originalUrl.includes('/api/paypal') || req.originalUrl.includes('/api/paymaya')) return 'external_api';
+    if (req && (req.originalUrl.includes('/api/paypal') || req.originalUrl.includes('/api/paymaya'))) return 'external_api';
     
     return 'application';
   }

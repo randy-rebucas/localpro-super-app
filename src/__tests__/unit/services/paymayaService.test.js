@@ -1,12 +1,11 @@
-const PayMayaService = require('../../../services/paymayaService');
-const axios = require('axios');
-const logger = require('../../../config/logger');
-
 jest.mock('axios');
 jest.mock('../../../config/logger', () => ({
   error: jest.fn(),
   info: jest.fn()
 }));
+
+const axios = require('axios');
+const PayMayaService = require('../../../services/paymayaService');
 
 describe('PayMayaService', () => {
   const originalEnv = process.env;
@@ -14,6 +13,10 @@ describe('PayMayaService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
+    // Ensure axios.post is a mock function
+    if (!axios.post || typeof axios.post.mockResolvedValue !== 'function') {
+      axios.post = jest.fn();
+    }
   });
 
   afterEach(() => {
@@ -42,9 +45,8 @@ describe('PayMayaService', () => {
       process.env.PAYMAYA_SECRET_KEY = 'test-secret-key';
       process.env.FRONTEND_URL = 'http://localhost:3000';
       
-      // Reset axios mock and set up proper response
-      axios.post.mockClear();
-      axios.post.mockResolvedValueOnce({
+      // Set up axios.post mock to return a successful response
+      axios.post.mockResolvedValue({
         data: {
           checkoutId: 'checkout123',
           redirectUrl: 'https://paymaya.com/checkout',
@@ -60,10 +62,8 @@ describe('PayMayaService', () => {
         buyer: {
           firstName: 'John',
           lastName: 'Doe',
-          contact: {
-            phone: '+1234567890',
-            email: 'test@example.com'
-          }
+          phone: '+1234567890',
+          email: 'test@example.com'
         }
       });
 
@@ -72,4 +72,3 @@ describe('PayMayaService', () => {
     });
   });
 });
-
