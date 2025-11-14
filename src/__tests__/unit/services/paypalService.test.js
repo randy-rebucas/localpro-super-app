@@ -1,6 +1,5 @@
 const PayPalService = require('../../../services/paypalService');
 const paypal = require('@paypal/paypal-server-sdk');
-const logger = require('../../../config/logger');
 
 jest.mock('@paypal/paypal-server-sdk');
 jest.mock('../../../config/logger', () => ({

@@ -1,5 +1,4 @@
-const logger = require('../../../config/logger');
-const { createComprehensivePagination } = require('../../../utils/responseHelper');
+// logger and createComprehensivePagination are mocked below
 
 jest.mock('../../../config/logger', () => ({
   warn: jest.fn(),

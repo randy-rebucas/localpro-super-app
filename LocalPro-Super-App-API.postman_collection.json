@@ -612,7 +612,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/marketplace/services/categories",
+              "raw": "{{baseUrl}}/api/marketplace/services/categories?includeStats=true",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -621,9 +621,17 @@
                 "marketplace",
                 "services",
                 "categories"
+              ],
+              "query": [
+                {
+                  "key": "includeStats",
+                  "value": "true",
+                  "description": "Include statistics for each category (service counts, pricing, ratings). Default: true",
+                  "disabled": false
+                }
               ]
             },
-            "description": "Get service categories"
+            "description": "Get all service categories with optional statistics. Returns all active service categories from the database. When includeStats=true (default), includes service counts, pricing statistics, ratings, and popular subcategories for each category."
           },
           "response": []
         },
@@ -633,7 +641,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/marketplace/services/categories/:category",
+              "raw": "{{baseUrl}}/api/marketplace/services/categories/cleaning?page=1&limit=20&includeServices=true",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -643,9 +651,41 @@
                 "services",
                 "categories",
                 ":category"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination (default: 1)",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Number of services per page (default: 20)",
+                  "disabled": false
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Sort field (default: createdAt)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction - asc or desc (default: desc)",
+                  "disabled": true
+                },
+                {
+                  "key": "includeServices",
+                  "value": "true",
+                  "description": "Include services in response (default: true)",
+                  "disabled": false
+                }
               ]
             },
-            "description": "Get category details"
+            "description": "Get detailed information about a specific service category. Returns category information, statistics (pricing, ratings, subcategory distribution), and optionally paginated services. Path parameter :category should be a category key (e.g., cleaning, plumbing, electrical)."
           },
           "response": []
         },
@@ -1775,6 +1815,26 @@
           "response": []
         },
         {
+          "name": "GET /api/jobs/categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "jobs",
+                "categories"
+              ]
+            },
+            "description": "Get all job categories. Returns all active job categories from the database with their metadata."
+          },
+          "response": []
+        },
+        {
           "name": "GET /api/jobs/:id",
           "request": {
             "method": "GET",
@@ -2020,7 +2080,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/jobs/my-applications",
+              "raw": "{{baseUrl}}/api/jobs/my-applications?status=&page=1&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -2028,9 +2088,29 @@
                 "api",
                 "jobs",
                 "my-applications"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by status: pending, reviewing, shortlisted, interviewed, rejected, hired",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination (default: 1)",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of applications per page (default: 10)",
+                  "disabled": false
+                }
               ]
             },
-            "description": "Get my applications"
+            "description": "Get all job applications submitted by the authenticated user. Returns paginated list of applications with job details, employer information, and application status. Can be filtered by status and supports pagination."
           },
           "response": []
         },
@@ -9464,6 +9544,34 @@
               ]
             },
             "description": "Get all providers"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/providers/skills",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/skills?category=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "skills"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "Optional: Filter skills by category (construction, mechanical, technology, service, transportation, health_safety, beauty, cleaning)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all provider skills. Returns all active provider skills from the database. Can be filtered by category using the category query parameter."
           },
           "response": []
         },

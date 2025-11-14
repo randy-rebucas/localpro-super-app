@@ -1,4 +1,5 @@
 const { Service, Booking } = require('../models/Marketplace');
+const ServiceCategory = require('../models/ServiceCategory');
 const User = require('../models/User');
 const Provider = require('../models/Provider');
 const mongoose = require('mongoose');
@@ -1371,151 +1372,41 @@ const getServiceCategories = async (req, res) => {
   try {
     const { includeStats = 'true' } = req.query;
 
-    // Service category definitions
-    const categoryDefinitions = {
-      cleaning: {
-        name: 'Cleaning Services',
-        description: 'Professional cleaning services for homes and businesses',
-        icon: '🧹',
-        subcategories: ['residential_cleaning', 'commercial_cleaning', 'deep_cleaning', 'carpet_cleaning', 'window_cleaning', 'power_washing', 'post_construction_cleaning']
-      },
-      plumbing: {
-        name: 'Plumbing Services',
-        description: 'Plumbing repair, installation, and maintenance',
-        icon: '🔧',
-        subcategories: ['pipe_repair', 'installation', 'leak_repair', 'drain_cleaning', 'water_heater', 'sewer_services', 'emergency_plumbing']
-      },
-      electrical: {
-        name: 'Electrical Services',
-        description: 'Electrical work, repairs, and installations',
-        icon: '⚡',
-        subcategories: ['wiring', 'panel_upgrade', 'outlet_installation', 'lighting', 'electrical_repair', 'safety_inspection']
-      },
-      moving: {
-        name: 'Moving Services',
-        description: 'Residential and commercial moving services',
-        icon: '📦',
-        subcategories: ['local_moving', 'long_distance', 'packing', 'unpacking', 'storage', 'furniture_assembly']
-      },
-      landscaping: {
-        name: 'Landscaping Services',
-        description: 'Outdoor landscaping and yard maintenance',
-        icon: '🌳',
-        subcategories: ['lawn_care', 'garden_design', 'tree_services', 'irrigation', 'hardscaping', 'mulching']
-      },
-      painting: {
-        name: 'Painting Services',
-        description: 'Interior and exterior painting',
-        icon: '🎨',
-        subcategories: ['interior_painting', 'exterior_painting', 'cabinet_painting', 'deck_staining', 'wallpaper', 'texture_painting']
-      },
-      carpentry: {
-        name: 'Carpentry Services',
-        description: 'Woodwork and carpentry services',
-        icon: '🪵',
-        subcategories: ['furniture_repair', 'custom_build', 'cabinet_installation', 'trim_work', 'deck_building', 'shelving']
-      },
-      flooring: {
-        name: 'Flooring Services',
-        description: 'Floor installation and repair',
-        icon: '🏠',
-        subcategories: ['hardwood', 'tile', 'carpet', 'laminate', 'vinyl', 'floor_repair', 'refinishing']
-      },
-      roofing: {
-        name: 'Roofing Services',
-        description: 'Roof repair, installation, and maintenance',
-        icon: '🏡',
-        subcategories: ['roof_repair', 'roof_replacement', 'gutter_repair', 'roof_inspection', 'leak_repair', 'solar_installation']
-      },
-      hvac: {
-        name: 'HVAC Services',
-        description: 'Heating, ventilation, and air conditioning',
-        icon: '❄️',
-        subcategories: ['installation', 'repair', 'maintenance', 'duct_cleaning', 'thermostat_installation', 'air_quality']
-      },
-      appliance_repair: {
-        name: 'Appliance Repair',
-        description: 'Home appliance repair and maintenance',
-        icon: '🔌',
-        subcategories: ['refrigerator', 'washer_dryer', 'dishwasher', 'oven_range', 'microwave', 'garbage_disposal']
-      },
-      locksmith: {
-        name: 'Locksmith Services',
-        description: 'Lock installation, repair, and emergency services',
-        icon: '🔐',
-        subcategories: ['lock_installation', 'key_duplication', 'lockout_service', 'safe_services', 'access_control']
-      },
-      handyman: {
-        name: 'Handyman Services',
-        description: 'General repair and maintenance services',
-        icon: '🔨',
-        subcategories: ['general_repair', 'assembly', 'mounting', 'caulking', 'drywall_repair', 'fence_repair']
-      },
-      home_security: {
-        name: 'Home Security',
-        description: 'Security system installation and monitoring',
-        icon: '🚨',
-        subcategories: ['alarm_installation', 'camera_installation', 'smart_locks', 'motion_sensors', 'security_consultation']
-      },
-      pool_maintenance: {
-        name: 'Pool Maintenance',
-        description: 'Swimming pool cleaning and maintenance',
-        icon: '🏊',
-        subcategories: ['cleaning', 'chemical_balance', 'equipment_repair', 'winterization', 'pool_repair', 'opening_closing']
-      },
-      pest_control: {
-        name: 'Pest Control',
-        description: 'Pest elimination and prevention',
-        icon: '🐛',
-        subcategories: ['general_pest', 'termite_control', 'rodent_control', 'bed_bug', 'wildlife_removal', 'preventive_treatment']
-      },
-      carpet_cleaning: {
-        name: 'Carpet Cleaning',
-        description: 'Professional carpet and upholstery cleaning',
-        icon: '🧼',
-        subcategories: ['steam_cleaning', 'dry_cleaning', 'stain_removal', 'pet_odor', 'upholstery', 'area_rugs']
-      },
-      window_cleaning: {
-        name: 'Window Cleaning',
-        description: 'Window and glass cleaning services',
-        icon: '🪟',
-        subcategories: ['residential', 'commercial', 'interior_exterior', 'screen_cleaning', 'pressure_washing', 'storefront']
-      },
-      gutter_cleaning: {
-        name: 'Gutter Cleaning',
-        description: 'Gutter cleaning and maintenance',
-        icon: '🌧️',
-        subcategories: ['cleaning', 'repair', 'installation', 'leaf_removal', 'downspout_cleaning', 'gutter_guards']
-      },
-      power_washing: {
-        name: 'Power Washing',
-        description: 'Exterior surface pressure washing',
-        icon: '💦',
-        subcategories: ['driveway', 'siding', 'deck_patio', 'fence', 'roof', 'commercial']
-      },
-      other: {
-        name: 'Other Services',
-        description: 'Other specialized services',
-        icon: '📋',
-        subcategories: []
-      }
-    };
+    // Get categories from database
+    const categories = await ServiceCategory.getActiveCategories();
+    
+    // Convert to object format for compatibility
+    const categoryDefinitions = {};
+    categories.forEach(cat => {
+      categoryDefinitions[cat.key] = {
+        name: cat.name,
+        description: cat.description,
+        icon: cat.icon,
+        subcategories: cat.subcategories || []
+      };
+    });
 
     // If stats are not needed, return just category definitions
     if (includeStats !== 'true' && includeStats !== true) {
       return res.status(200).json({
         success: true,
         message: 'Service categories retrieved successfully',
-        data: Object.keys(categoryDefinitions).map(key => ({
-          key,
-          ...categoryDefinitions[key]
+        data: categories.map(cat => ({
+          key: cat.key,
+          name: cat.name,
+          description: cat.description,
+          icon: cat.icon,
+          subcategories: cat.subcategories || [],
+          displayOrder: cat.displayOrder,
+          metadata: cat.metadata
         }))
       });
     }
 
     // Get statistics for each category
     const categoriesWithStats = await Promise.all(
-      Object.keys(categoryDefinitions).map(async (categoryKey) => {
+      categories.map(async (category) => {
+        const categoryKey = category.key;
         const categoryFilter = { category: categoryKey, isActive: true };
         
         // Get service count
@@ -1562,7 +1453,12 @@ const getServiceCategories = async (req, res) => {
 
         return {
           key: categoryKey,
-          ...categoryDefinitions[categoryKey],
+          name: category.name,
+          description: category.description,
+          icon: category.icon,
+          subcategories: category.subcategories || [],
+          displayOrder: category.displayOrder,
+          metadata: category.metadata,
           statistics: {
             totalServices: serviceCount,
             pricing: pricingStats[0] ? {
@@ -1628,158 +1524,20 @@ const getCategoryDetails = async (req, res) => {
       includeServices = 'true'
     } = req.query;
 
-    // Valid category enum values
-    const validCategories = [
-      'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 
-      'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 
-      'appliance_repair', 'locksmith', 'handyman', 'home_security',
-      'pool_maintenance', 'pest_control', 'carpet_cleaning', 'window_cleaning',
-      'gutter_cleaning', 'power_washing', 'snow_removal', 'other'
-    ];
-
-    if (!validCategories.includes(category)) {
+    // Get category from database
+    const categoryData = await ServiceCategory.getByKey(category);
+    
+    if (!categoryData) {
+      // Get all valid categories for error message
+      const allCategories = await ServiceCategory.getActiveCategories();
+      const validCategories = allCategories.map(cat => cat.key);
+      
       return res.status(400).json({
         success: false,
         message: 'Invalid category',
         validCategories
       });
     }
-
-    // Category definitions (same as in getServiceCategories)
-    const categoryDefinitions = {
-      cleaning: {
-        name: 'Cleaning Services',
-        description: 'Professional cleaning services for homes and businesses',
-        icon: '🧹',
-        subcategories: ['residential_cleaning', 'commercial_cleaning', 'deep_cleaning', 'carpet_cleaning', 'window_cleaning', 'power_washing', 'post_construction_cleaning']
-      },
-      plumbing: {
-        name: 'Plumbing Services',
-        description: 'Plumbing repair, installation, and maintenance',
-        icon: '🔧',
-        subcategories: ['pipe_repair', 'installation', 'leak_repair', 'drain_cleaning', 'water_heater', 'sewer_services', 'emergency_plumbing']
-      },
-      electrical: {
-        name: 'Electrical Services',
-        description: 'Electrical work, repairs, and installations',
-        icon: '⚡',
-        subcategories: ['wiring', 'panel_upgrade', 'outlet_installation', 'lighting', 'electrical_repair', 'safety_inspection']
-      },
-      moving: {
-        name: 'Moving Services',
-        description: 'Residential and commercial moving services',
-        icon: '📦',
-        subcategories: ['local_moving', 'long_distance', 'packing', 'unpacking', 'storage', 'furniture_assembly']
-      },
-      landscaping: {
-        name: 'Landscaping Services',
-        description: 'Outdoor landscaping and yard maintenance',
-        icon: '🌳',
-        subcategories: ['lawn_care', 'garden_design', 'tree_services', 'irrigation', 'hardscaping', 'mulching']
-      },
-      painting: {
-        name: 'Painting Services',
-        description: 'Interior and exterior painting',
-        icon: '🎨',
-        subcategories: ['interior_painting', 'exterior_painting', 'cabinet_painting', 'deck_staining', 'wallpaper', 'texture_painting']
-      },
-      carpentry: {
-        name: 'Carpentry Services',
-        description: 'Woodwork and carpentry services',
-        icon: '🪵',
-        subcategories: ['furniture_repair', 'custom_build', 'cabinet_installation', 'trim_work', 'deck_building', 'shelving']
-      },
-      flooring: {
-        name: 'Flooring Services',
-        description: 'Floor installation and repair',
-        icon: '🏠',
-        subcategories: ['hardwood', 'tile', 'carpet', 'laminate', 'vinyl', 'floor_repair', 'refinishing']
-      },
-      roofing: {
-        name: 'Roofing Services',
-        description: 'Roof repair, installation, and maintenance',
-        icon: '🏡',
-        subcategories: ['roof_repair', 'roof_replacement', 'gutter_repair', 'roof_inspection', 'leak_repair', 'solar_installation']
-      },
-      hvac: {
-        name: 'HVAC Services',
-        description: 'Heating, ventilation, and air conditioning',
-        icon: '❄️',
-        subcategories: ['installation', 'repair', 'maintenance', 'duct_cleaning', 'thermostat_installation', 'air_quality']
-      },
-      appliance_repair: {
-        name: 'Appliance Repair',
-        description: 'Home appliance repair and maintenance',
-        icon: '🔌',
-        subcategories: ['refrigerator', 'washer_dryer', 'dishwasher', 'oven_range', 'microwave', 'garbage_disposal']
-      },
-      locksmith: {
-        name: 'Locksmith Services',
-        description: 'Lock installation, repair, and emergency services',
-        icon: '🔐',
-        subcategories: ['lock_installation', 'key_duplication', 'lockout_service', 'safe_services', 'access_control']
-      },
-      handyman: {
-        name: 'Handyman Services',
-        description: 'General repair and maintenance services',
-        icon: '🔨',
-        subcategories: ['general_repair', 'assembly', 'mounting', 'caulking', 'drywall_repair', 'fence_repair']
-      },
-      home_security: {
-        name: 'Home Security',
-        description: 'Security system installation and monitoring',
-        icon: '🚨',
-        subcategories: ['alarm_installation', 'camera_installation', 'smart_locks', 'motion_sensors', 'security_consultation']
-      },
-      pool_maintenance: {
-        name: 'Pool Maintenance',
-        description: 'Swimming pool cleaning and maintenance',
-        icon: '🏊',
-        subcategories: ['cleaning', 'chemical_balance', 'equipment_repair', 'winterization', 'pool_repair', 'opening_closing']
-      },
-      pest_control: {
-        name: 'Pest Control',
-        description: 'Pest elimination and prevention',
-        icon: '🐛',
-        subcategories: ['general_pest', 'termite_control', 'rodent_control', 'bed_bug', 'wildlife_removal', 'preventive_treatment']
-      },
-      carpet_cleaning: {
-        name: 'Carpet Cleaning',
-        description: 'Professional carpet and upholstery cleaning',
-        icon: '🧼',
-        subcategories: ['steam_cleaning', 'dry_cleaning', 'stain_removal', 'pet_odor', 'upholstery', 'area_rugs']
-      },
-      window_cleaning: {
-        name: 'Window Cleaning',
-        description: 'Window and glass cleaning services',
-        icon: '🪟',
-        subcategories: ['residential', 'commercial', 'interior_exterior', 'screen_cleaning', 'pressure_washing', 'storefront']
-      },
-      gutter_cleaning: {
-        name: 'Gutter Cleaning',
-        description: 'Gutter cleaning and maintenance',
-        icon: '🌧️',
-        subcategories: ['cleaning', 'repair', 'installation', 'leaf_removal', 'downspout_cleaning', 'gutter_guards']
-      },
-      power_washing: {
-        name: 'Power Washing',
-        description: 'Exterior surface pressure washing',
-        icon: '💦',
-        subcategories: ['driveway', 'siding', 'deck_patio', 'fence', 'roof', 'commercial']
-      },
-      snow_removal: {
-        name: 'Snow Removal',
-        description: 'Snow clearing and removal services',
-        icon: '❄️',
-        subcategories: ['driveway', 'sidewalk', 'commercial', 'roof', 'snow_plowing', 'ice_removal']
-      },
-      other: {
-        name: 'Other Services',
-        description: 'Other specialized services',
-        icon: '📋',
-        subcategories: []
-      }
-    };
 
     const categoryFilter = { category, isActive: true };
 
@@ -1879,11 +1637,11 @@ const getCategoryDetails = async (req, res) => {
       providerCount
     });
 
-    const categoryInfo = categoryDefinitions[category] || {
-      name: category.charAt(0).toUpperCase() + category.slice(1),
-      description: `${category} services`,
-      icon: '📋',
-      subcategories: []
+    const categoryInfo = {
+      name: categoryData.name,
+      description: categoryData.description,
+      icon: categoryData.icon,
+      subcategories: categoryData.subcategories || []
     };
 
     return res.status(200).json({

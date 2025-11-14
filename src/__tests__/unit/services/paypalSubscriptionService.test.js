@@ -1,5 +1,4 @@
 const axios = require('axios');
-const logger = require('../../../config/logger');
 
 jest.mock('axios');
 jest.mock('../../../config/logger', () => ({

@@ -57,7 +57,7 @@ jest.mock('mongoose', () => {
     connection: {
       model: jest.fn()
     },
-    model: jest.fn((modelName, schema) => {
+    model: jest.fn((modelName, _schema) => {
       // Handle both cases: model(name) and model(name, schema)
       if (modelName === 'ErrorTracking') {
         return MockErrorTracking;

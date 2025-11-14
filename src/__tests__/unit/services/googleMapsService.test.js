@@ -1,5 +1,4 @@
 const { Client } = require('@googlemaps/google-maps-services-js');
-const logger = require('../../../config/logger');
 
 jest.mock('@googlemaps/google-maps-services-js');
 jest.mock('../../../config/logger', () => ({

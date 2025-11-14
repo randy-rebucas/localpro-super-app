@@ -1,6 +1,4 @@
-const nodemailer = require('nodemailer');
-const { Resend } = require('resend');
-const logger = require('../../../config/logger');
+// nodemailer, Resend, and logger are mocked below
 
 jest.mock('nodemailer');
 jest.mock('resend');

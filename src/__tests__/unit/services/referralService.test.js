@@ -1,6 +1,5 @@
 const Referral = require('../../../models/Referral');
 const User = require('../../../models/User');
-const EmailService = require('../../../services/emailService');
 
 jest.mock('../../../models/Referral', () => {
   const mockReferral = jest.fn();

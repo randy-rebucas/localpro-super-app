@@ -1,9 +1,50 @@
 const mongoose = require('mongoose');
 const Provider = require('../models/Provider');
+const ProviderSkill = require('../models/ProviderSkill');
 const User = require('../models/User');
 const { logger } = require('../utils/logger');
 const { auditLogger } = require('../utils/auditLogger');
 const { validationResult } = require('express-validator');
+
+// @desc    Get provider skills
+// @route   GET /api/providers/skills
+// @access  Public
+const getProviderSkills = async (req, res) => {
+  try {
+    const { category } = req.query;
+    const skills = await ProviderSkill.getActiveSkills(category);
+    
+    // Transform to include id field (using _id)
+    const formattedSkills = skills.map((skill) => ({
+      id: skill._id.toString(),
+      name: skill.name,
+      description: skill.description,
+      category: skill.category,
+      displayOrder: skill.displayOrder,
+      metadata: skill.metadata
+    }));
+
+    logger.info('Provider skills retrieved', {
+      skillCount: formattedSkills.length,
+      category: category || 'all'
+    });
+
+    res.json({
+      success: true,
+      data: {
+        skills: formattedSkills,
+        count: formattedSkills.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get provider skills', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve provider skills'
+    });
+  }
+};
 
 // Get all providers with filtering and pagination
 const getProviders = async (req, res) => {
@@ -855,5 +896,6 @@ module.exports = {
   getProviderDashboard,
   getProviderAnalytics,
   updateProviderStatus,
-  getProvidersForAdmin
+  getProvidersForAdmin,
+  getProviderSkills
 };

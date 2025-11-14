@@ -17,6 +17,8 @@
     "setup:paymaya": "node setup-paymaya-config.js",
     "setup:reset": "node reset-database.js",
     "setup:monitoring": "node setup-monitoring.js",
+    "seed:categories": "node scripts/seed-job-categories-and-skills.js seed",
+    "seed:categories:clear": "node scripts/seed-job-categories-and-skills.js clear",
     "verify": "node verify-setup.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",

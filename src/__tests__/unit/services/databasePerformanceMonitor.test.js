@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-const logger = require('../../../config/logger');
+// mongoose is mocked below
 
 jest.mock('mongoose', () => ({
   connection: {

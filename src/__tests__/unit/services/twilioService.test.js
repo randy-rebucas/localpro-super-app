@@ -1,6 +1,4 @@
 const TwilioService = require('../../../services/twilioService');
-const twilio = require('twilio');
-const logger = require('../../../config/logger');
 
 jest.mock('twilio');
 jest.mock('../../../config/logger', () => ({
@@ -11,25 +9,10 @@ jest.mock('../../../config/logger', () => ({
 
 describe('TwilioService', () => {
   const originalEnv = process.env;
-  let mockClient;
 
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
-    mockClient = {
-      verify: {
-        v2: {
-          services: jest.fn().mockReturnValue({
-            verifications: {
-              create: jest.fn()
-            },
-            verificationChecks: {
-              create: jest.fn()
-            }
-          })
-        }
-      }
-    };
   });
 
   afterEach(() => {
@@ -52,19 +35,6 @@ describe('TwilioService', () => {
       process.env.TWILIO_ACCOUNT_SID = 'test-sid';
       process.env.TWILIO_AUTH_TOKEN = 'test-token';
       process.env.TWILIO_VERIFY_SERVICE_SID = 'test-service';
-      
-      // Mock the client to be available
-      const mockClient = {
-        verify: {
-          v2: {
-            services: jest.fn().mockReturnValue({
-              verifications: {
-                create: jest.fn()
-              }
-            })
-          }
-        }
-      };
       
       // Need to reload the module or mock the internal client
       // Since TwilioService checks isTwilioConfigured at module load,

@@ -14,7 +14,8 @@ const {
   getProviderDashboard,
   getProviderAnalytics,
   updateProviderStatus,
-  getProvidersForAdmin
+  getProvidersForAdmin,
+  getProviderSkills
 } = require('../controllers/providerController');
 
 // Configure multer for file uploads
@@ -75,6 +76,7 @@ const validateOnboardingStep = [
 ];
 
 // Public routes (no authentication required)
+router.get('/skills', getProviderSkills);
 router.get('/', getProviders);
 
 router.get('/:id', [

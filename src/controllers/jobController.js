@@ -1,4 +1,5 @@
 const Job = require('../models/Job');
+const JobCategory = require('../models/JobCategory');
 const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
@@ -389,18 +390,29 @@ const applyForJob = async (req, res) => {
 
     // Handle resume upload if provided
     let resumeData = null;
-    if (req.files && req.files.resume) {
-      const uploadResult = await CloudinaryService.uploadFile(
-        req.files.resume,
-        'localpro/jobs/resumes'
-      );
-
-      if (uploadResult.success) {
+    if (req.file) {
+      // Check if file was already uploaded by CloudinaryStorage
+      if (req.file.public_id && req.file.secure_url) {
+        // File already uploaded via CloudinaryStorage
         resumeData = {
-          url: uploadResult.data.secure_url,
-          publicId: uploadResult.data.public_id,
-          filename: req.files.resume.originalname
+          url: req.file.secure_url,
+          publicId: req.file.public_id,
+          filename: req.file.originalname || req.file.filename || 'resume'
         };
+      } else {
+        // Upload resume to Cloudinary
+        const uploadResult = await CloudinaryService.uploadFile(
+          req.file,
+          'localpro/jobs/resumes'
+        );
+
+        if (uploadResult.success) {
+          resumeData = {
+            url: uploadResult.data.secure_url,
+            publicId: uploadResult.data.public_id,
+            filename: req.file.originalname || 'resume'
+          };
+        }
       }
     }
 
@@ -689,7 +701,7 @@ const getMyJobs = async (req, res) => {
 // @access  Private (Employer/Admin)
 const uploadCompanyLogo = async (req, res) => {
   try {
-    if (!req.files || !req.files.logo) {
+    if (!req.file) {
       return res.status(400).json({
         success: false,
         message: 'No logo file uploaded'
@@ -714,9 +726,33 @@ const uploadCompanyLogo = async (req, res) => {
       });
     }
 
-    // Upload logo to Cloudinary
+    // Check if file was already uploaded by CloudinaryStorage
+    // CloudinaryStorage adds Cloudinary response directly to req.file
+    if (req.file.public_id && req.file.secure_url) {
+      // File already uploaded via CloudinaryStorage
+      // Delete old logo if exists
+      if (job.company.logo && job.company.logo.publicId) {
+        await CloudinaryService.deleteFile(job.company.logo.publicId);
+      }
+
+      // Update job with logo
+      job.company.logo = {
+        url: req.file.secure_url,
+        publicId: req.file.public_id
+      };
+
+      await job.save();
+
+      return res.status(200).json({
+        success: true,
+        message: 'Company logo uploaded successfully',
+        data: job.company.logo
+      });
+    }
+
+    // Upload logo to Cloudinary (if not already uploaded)
     const uploadResult = await CloudinaryService.uploadFile(
-      req.files.logo,
+      req.file,
       'localpro/jobs/logos'
     );
 
@@ -726,6 +762,11 @@ const uploadCompanyLogo = async (req, res) => {
         message: 'Failed to upload company logo',
         error: uploadResult.error
       });
+    }
+
+    // Delete old logo if exists
+    if (job.company.logo && job.company.logo.publicId) {
+      await CloudinaryService.deleteFile(job.company.logo.publicId);
     }
 
     // Update job with logo
@@ -807,6 +848,32 @@ const getJobStats = async (req, res) => {
   }
 };
 
+// @desc    Get job categories
+// @route   GET /api/jobs/categories
+// @access  Public
+const getJobCategories = async (req, res) => {
+  try {
+    const categories = await JobCategory.getActiveCategories();
+    
+    // Transform to include id field (using _id)
+    const formattedCategories = categories.map((cat) => ({
+      id: cat._id.toString(),
+      name: cat.name,
+      description: cat.description,
+      displayOrder: cat.displayOrder,
+      metadata: cat.metadata
+    }));
+
+    return sendSuccess(res, {
+      categories: formattedCategories,
+      count: formattedCategories.length
+    });
+  } catch (error) {
+    console.error('Get job categories error:', error);
+    return sendServerError(res, 'Failed to retrieve job categories');
+  }
+};
+
 // @desc    Search jobs with advanced filters
 // @route   GET /api/jobs/search
 // @access  Public
@@ -881,5 +948,6 @@ module.exports = {
   getMyJobs,
   uploadCompanyLogo,
   getJobStats,
-  searchJobs
+  searchJobs,
+  getJobCategories
 };

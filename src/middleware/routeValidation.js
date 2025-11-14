@@ -15,11 +15,21 @@ const validateObjectIdParam = (paramName = 'id') => {
   return (req, res, next) => {
     const id = req.params[paramName];
     
+    if (!id) {
+      return sendValidationError(res, [{
+        field: paramName,
+        message: `${paramName} is required`,
+        code: `MISSING_${paramName.toUpperCase()}`
+      }]);
+    }
+    
     if (!validateObjectId(id)) {
       return sendValidationError(res, [{
         field: paramName,
-        message: `Invalid ${paramName} format`,
-        code: `INVALID_${paramName.toUpperCase()}_FORMAT`
+        message: `Invalid ${paramName} format. Must be a valid MongoDB ObjectId (24 hexadecimal characters)`,
+        code: `INVALID_${paramName.toUpperCase()}_FORMAT`,
+        received: id,
+        expectedFormat: '24 hexadecimal characters (e.g., 507f1f77bcf86cd799439011)'
       }]);
     }
     
@@ -120,13 +130,26 @@ const validateSearchParams = (req, res, next) => {
 /**
  * Validate file upload parameters
  * @param {Object} options - Upload validation options
+ * @param {number} options.maxSize - Maximum file size in bytes (default: 5MB)
+ * @param {string[]} options.allowedTypes - Allowed MIME types (default: image types)
+ * @param {boolean} options.required - Whether file is required (default: true)
  * @returns {Function} - Express middleware
  */
 const validateFileUpload = (options = {}) => {
   return (req, res, next) => {
-    const { maxSize = 5 * 1024 * 1024, allowedTypes = ['image/jpeg', 'image/png', 'image/gif'] } = options;
+    const { 
+      maxSize = 5 * 1024 * 1024, 
+      allowedTypes = ['image/jpeg', 'image/png', 'image/gif'],
+      required = true
+    } = options;
     
-    if (!req.file && !req.files) {
+    // If file is not required and no file is provided, skip validation
+    if (!required && !req.file && !req.files) {
+      return next();
+    }
+    
+    // If file is required but not provided, return error
+    if (required && !req.file && !req.files) {
       return sendValidationError(res, [{
         field: 'file',
         message: 'No file uploaded',

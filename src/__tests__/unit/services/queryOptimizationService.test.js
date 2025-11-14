@@ -1,4 +1,4 @@
-const logger = require('../../../config/logger');
+// logger is mocked below
 
 jest.mock('../../../config/logger', () => ({
   warn: jest.fn(),
