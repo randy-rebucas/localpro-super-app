@@ -413,7 +413,7 @@ const completeOnboarding = async (req, res) => {
   const clientInfo = getClientInfo(req);
   
   try {
-    const { firstName, lastName, email, roles, profile } = req.body;
+    const { firstName, lastName, email, roles, profile, gender, birthdate } = req.body;
     const userId = req.user.id;
 
     // Input validation
@@ -536,6 +536,31 @@ const completeOnboarding = async (req, res) => {
       roles: rolesToSet, // Multi-role support
       status: 'active'
     };
+
+    // Handle gender if provided
+    if (gender !== undefined) {
+      // Validate gender enum value
+      if (gender && !['male', 'female', 'other', 'prefer_not_to_say'].includes(gender)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid gender value. Must be one of: male, female, other, prefer_not_to_say',
+          code: 'INVALID_GENDER'
+        });
+      }
+      updateData.gender = gender || null;
+    }
+
+    // Handle birthdate if provided
+    if (birthdate !== undefined) {
+      // Convert birthdate string to Date if provided
+      if (birthdate && typeof birthdate === 'string') {
+        updateData.birthdate = new Date(birthdate);
+      } else if (birthdate === null || birthdate === '') {
+        updateData.birthdate = null;
+      } else if (birthdate instanceof Date) {
+        updateData.birthdate = birthdate;
+      }
+    }
 
     // Handle verification - preserve existing verification data
     if (currentUser.verification) {

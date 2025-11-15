@@ -7,12 +7,19 @@ const logger = require('../config/logger');
 class AIService {
   constructor() {
     this.provider = process.env.AI_PROVIDER || 'openai';
+    // Prioritize OPENAI_API_KEY for OpenAI integration
     this.apiKey = process.env.OPENAI_API_KEY || process.env.AI_API_KEY;
     this.baseURL = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
     this.model = process.env.AI_MODEL || 'gpt-4o-mini';
     
     if (!this.apiKey) {
-      logger.warn('AI API key not configured. AI features will use fallback responses.');
+      logger.warn('OPENAI_API_KEY not configured. AI features will use fallback responses. Set OPENAI_API_KEY environment variable to enable AI features.');
+    } else {
+      logger.info('OpenAI API configured', {
+        provider: this.provider,
+        model: this.model,
+        baseURL: this.baseURL
+      });
     }
   }
 
@@ -71,7 +78,7 @@ class AIService {
    * Get fallback response when AI service is not configured
    */
   getMockResponse(prompt, _options = {}) {
-    logger.warn('Using fallback AI response - configure AI_API_KEY for real responses');
+    logger.warn('Using fallback AI response - configure OPENAI_API_KEY environment variable for real AI responses');
     
     return {
       success: true,
@@ -397,6 +404,129 @@ class AIService {
       };
     } catch (e) {
       return response;
+    }
+  }
+
+  /**
+   * Generate user bio
+   */
+  async generateUserBio(userData, preferences = {}) {
+    const systemPrompt = `You are a professional bio writer for user profiles.
+    Create engaging, authentic, and professional bios that highlight the user's skills, experience, and personality.
+    Keep bios concise (100-200 words), professional yet personable, and tailored to the user's role and background.`;
+    
+    const {
+      firstName,
+      lastName,
+      roles = [],
+      profile = {},
+      gender,
+      birthdate,
+      experience,
+      skills = [],
+      specialties = [],
+      businessName,
+      businessType,
+      yearsInBusiness,
+      serviceAreas = [],
+      certifications = []
+    } = userData;
+
+    const {
+      tone = 'professional', // professional, friendly, casual, formal
+      length = 'medium', // short (50-100 words), medium (100-200 words), long (200-300 words)
+      focus = 'general' // general, skills, experience, business, achievements
+    } = preferences;
+
+    const lengthMap = {
+      short: '50-100 words',
+      medium: '100-200 words',
+      long: '200-300 words'
+    };
+
+    const age = birthdate ? Math.floor((new Date() - new Date(birthdate)) / (365.25 * 24 * 60 * 60 * 1000)) : null;
+    
+    let prompt = `Create a ${tone} bio (${lengthMap[length] || '100-200 words'}) for a user profile.\n\n`;
+    prompt += `User Information:\n`;
+    prompt += `- Name: ${firstName} ${lastName}\n`;
+    if (gender) prompt += `- Gender: ${gender}\n`;
+    if (age) prompt += `- Age: ${age} years old\n`;
+    if (roles.length > 0) prompt += `- Roles: ${roles.join(', ')}\n`;
+    
+    if (profile.bio) {
+      prompt += `- Current bio (for reference): ${profile.bio}\n`;
+    }
+    
+    if (experience) {
+      prompt += `- Experience: ${experience} years\n`;
+    }
+    
+    if (skills.length > 0) {
+      prompt += `- Skills: ${skills.join(', ')}\n`;
+    }
+    
+    if (specialties.length > 0) {
+      prompt += `- Specialties: ${specialties.join(', ')}\n`;
+    }
+    
+    if (businessName) {
+      prompt += `- Business: ${businessName}\n`;
+      if (businessType) prompt += `- Business Type: ${businessType}\n`;
+      if (yearsInBusiness) prompt += `- Years in Business: ${yearsInBusiness}\n`;
+    }
+    
+    if (serviceAreas.length > 0) {
+      prompt += `- Service Areas: ${serviceAreas.join(', ')}\n`;
+    }
+    
+    if (certifications.length > 0) {
+      prompt += `- Certifications: ${certifications.map(c => c.name || c).join(', ')}\n`;
+    }
+    
+    if (profile.rating) {
+      prompt += `- Rating: ${profile.rating}/5 (${profile.totalReviews || 0} reviews)\n`;
+    }
+    
+    prompt += `\nFocus: ${focus}\n`;
+    prompt += `Tone: ${tone}\n\n`;
+    prompt += `Generate a compelling bio that:\n`;
+    prompt += `- Highlights key strengths and experience\n`;
+    prompt += `- Reflects the user's professional identity\n`;
+    prompt += `- Is authentic and engaging\n`;
+    prompt += `- Uses appropriate tone (${tone})\n`;
+    prompt += `- Is ${lengthMap[length] || '100-200 words'} in length\n`;
+    
+    if (focus !== 'general') {
+      prompt += `- Emphasizes ${focus}\n`;
+    }
+    
+    prompt += `\nReturn JSON with:\n`;
+    prompt += `- bio: string (the generated bio text)\n`;
+    prompt += `- highlights: array of key highlights mentioned\n`;
+    prompt += `- suggestedTags: array of relevant tags/keywords\n`;
+    prompt += `- wordCount: number`;
+    
+    const response = await this.makeAICall(prompt, systemPrompt, { 
+      max_tokens: length === 'long' ? 600 : length === 'short' ? 200 : 400,
+      temperature: 0.8 
+    });
+    
+    try {
+      return {
+        ...response,
+        parsed: JSON.parse(response.content)
+      };
+    } catch (e) {
+      // If JSON parsing fails, return the content as bio
+      return {
+        ...response,
+        parsed: {
+          bio: response.content,
+          highlights: [],
+          suggestedTags: [],
+          wordCount: response.content.split(/\s+/).length
+        }
+      };
     }
   }
 }

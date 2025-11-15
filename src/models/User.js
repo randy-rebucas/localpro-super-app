@@ -22,6 +22,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'other', 'prefer_not_to_say'],
+    trim: true
+  },
+  birthdate: {
+    type: Date
+  },
   roles: {
     type: [String],
     enum: ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'],
@@ -375,8 +383,13 @@ userSchema.index({
 userSchema.index({ 'profile.businessName': 1 }, { sparse: true });
 userSchema.index({ 'profile.website': 1 }, { sparse: true });
 
-// Pre-validate hook to clean undefined values before validation
+// Pre-validate hook to clean undefined values before validation and validate birthdate
 userSchema.pre('validate', function(next) {
+  // Validate birthdate is not in the future
+  if (this.birthdate && this.birthdate > new Date()) {
+    this.invalidate('birthdate', 'Birthdate cannot be in the future');
+  }
+  
   // Ensure roles array exists and has at least 'client'
   if (!this.roles || !Array.isArray(this.roles) || this.roles.length === 0) {
     this.roles = ['client'];
@@ -405,6 +418,23 @@ userSchema.pre('validate', function(next) {
 // Virtual for full name
 userSchema.virtual('fullName').get(function() {
   return `${this.firstName} ${this.lastName}`;
+});
+
+// Virtual for age calculation
+userSchema.virtual('age').get(function() {
+  if (!this.birthdate) {
+    return null;
+  }
+  const today = new Date();
+  const birthDate = new Date(this.birthdate);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  return age;
 });
 
 // Note: role field is kept for backward compatibility but synced via pre-save hook

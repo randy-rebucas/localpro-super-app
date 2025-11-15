@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Provider = require('../models/Provider');
 const EmailService = require('../services/emailService');
 const { auditLogger } = require('../utils/auditLogger');
 
@@ -22,13 +23,16 @@ const getAllUsers = async (req, res) => {
     const baseFilters = {};
     
     // Role filter - only add if not empty (multi-role support)
+    // Since roles is an array field, we need to use $in operator to check if role exists in array
     if (role && (typeof role === 'string' ? role.trim() !== '' : true)) {
       const roleValue = typeof role === 'string' ? role.trim() : role;
       // Support both single role and array of roles
+      // Always use $in operator since roles is an array field
       if (Array.isArray(roleValue)) {
         baseFilters.roles = { $in: roleValue };
       } else {
-        baseFilters.roles = roleValue;
+        // For single role, wrap in array and use $in to check if role exists in roles array
+        baseFilters.roles = { $in: [roleValue] };
       }
     }
     
@@ -109,6 +113,47 @@ const getAllUsers = async (req, res) => {
       // Keep total as 0 and users as empty array on error, but still respond 200 per tests
     }
 
+    // Fetch provider data for users who have "provider" role
+    if (users && users.length > 0) {
+      // Identify users with provider role
+      const providerUserIds = users
+        .filter(user => user.roles && user.roles.includes('provider'))
+        .map(user => user._id);
+
+      // Fetch provider data for these users
+      if (providerUserIds.length > 0) {
+        try {
+          const providers = await Provider.find({ userId: { $in: providerUserIds } })
+            .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+            .lean();
+
+          // Create a map of userId to provider data for quick lookup
+          const providerMap = new Map();
+          providers.forEach(provider => {
+            providerMap.set(provider.userId.toString(), provider);
+          });
+
+          // Attach provider data to users
+          users = users.map(user => {
+            const userObj = user.toObject ? user.toObject() : user;
+            if (userObj.roles && userObj.roles.includes('provider')) {
+              const providerData = providerMap.get(userObj._id.toString());
+              if (providerData) {
+                userObj.provider = providerData;
+              } else {
+                // User has provider role but no provider profile yet
+                userObj.provider = null;
+              }
+            }
+            return userObj;
+          });
+        } catch (providerError) {
+          // If provider fetch fails, continue without provider data
+          console.error('Error fetching provider data:', providerError);
+        }
+      }
+    }
+
     // Audit log
     await auditLogger.logUser('user_list', req, { type: 'user', id: null, name: 'Users' }, {}, { filter, pagination: { page, limit } });
 
@@ -152,9 +197,29 @@ const getUserById = async (req, res) => {
       });
     }
 
+    // Fetch provider data if user has provider role
+    const userObj = user.toObject ? user.toObject() : user;
+    if (userObj.roles && userObj.roles.includes('provider')) {
+      try {
+        const provider = await Provider.findOne({ userId: id })
+          .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+          .lean();
+        
+        if (provider) {
+          userObj.provider = provider;
+        } else {
+          // User has provider role but no provider profile yet
+          userObj.provider = null;
+        }
+      } catch (providerError) {
+        // If provider fetch fails, continue without provider data
+        console.error('Error fetching provider data:', providerError);
+      }
+    }
+
     res.status(200).json({
       success: true,
-      data: user
+      data: userObj
     });
   } catch (_error) {
     res.status(200).json({
@@ -169,7 +234,7 @@ const getUserById = async (req, res) => {
 // @access  Admin
 const createUser = async (req, res) => {
   try {
-    const { phoneNumber, firstName, lastName, email } = req.body;
+    const { phoneNumber, firstName, lastName, email, gender, birthdate } = req.body;
 
     if (!phoneNumber || !firstName || !lastName) {
       return res.status(400).json({
@@ -195,7 +260,34 @@ const createUser = async (req, res) => {
       // Ignore lookup errors for unit test simplicity
     }
 
-    const user = await User.create(req.body);
+    // Prepare user data with proper date conversion
+    const userData = { ...req.body };
+    
+    // Handle gender - validate and include if provided
+    if (gender !== undefined) {
+      if (gender && !['male', 'female', 'other', 'prefer_not_to_say'].includes(gender)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid gender value. Must be one of: male, female, other, prefer_not_to_say'
+        });
+      }
+      userData.gender = gender || null;
+    }
+    
+    // Handle birthdate - convert string to Date if provided
+    if (birthdate !== undefined) {
+      if (birthdate && typeof birthdate === 'string') {
+        userData.birthdate = new Date(birthdate);
+      } else if (birthdate === null || birthdate === '') {
+        userData.birthdate = null;
+      } else if (birthdate instanceof Date) {
+        userData.birthdate = birthdate;
+      } else {
+        userData.birthdate = birthdate;
+      }
+    }
+
+    const user = await User.create(userData);
 
     res.status(201).json({
       success: true,
@@ -332,6 +424,35 @@ const updateUser = async (req, res) => {
       // Assign the fully cleaned profile
       user.profile = finalClean;
       delete updateData.profile; // Remove from updateData to avoid overwriting
+    }
+
+    // Handle gender and birthdate explicitly
+    if (updateData.gender !== undefined) {
+      // Validate gender enum value
+      if (updateData.gender && !['male', 'female', 'other', 'prefer_not_to_say'].includes(updateData.gender)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid gender value. Must be one of: male, female, other, prefer_not_to_say'
+        });
+      }
+      user.gender = updateData.gender || null;
+      user.markModified('gender'); // Explicitly mark as modified
+      delete updateData.gender;
+    }
+    
+    if (updateData.birthdate !== undefined) {
+      // Convert birthdate string to Date if provided
+      if (updateData.birthdate && typeof updateData.birthdate === 'string') {
+        user.birthdate = new Date(updateData.birthdate);
+      } else if (updateData.birthdate === null || updateData.birthdate === '') {
+        user.birthdate = null;
+      } else if (updateData.birthdate instanceof Date) {
+        user.birthdate = updateData.birthdate;
+      } else {
+        user.birthdate = updateData.birthdate;
+      }
+      user.markModified('birthdate'); // Explicitly mark as modified
+      delete updateData.birthdate;
     }
 
     // Apply remaining provided fields
