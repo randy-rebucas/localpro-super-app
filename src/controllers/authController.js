@@ -128,8 +128,22 @@ const sendVerificationCode = async (req, res) => {
     // Update user's last verification sent time
     if (existingUser) {
       existingUser.lastVerificationSent = new Date();
-      if (typeof existingUser.save === 'function') {
-        await existingUser.save();
+      try {
+        // Set flag to skip related document creation in post-save hook
+        existingUser._skipRelatedDocumentsCreation = true;
+        await existingUser.save({ validateBeforeSave: false });
+        existingUser._skipRelatedDocumentsCreation = false;
+      } catch (saveError) {
+        existingUser._skipRelatedDocumentsCreation = false;
+        logger.error('Failed to update lastVerificationSent', {
+          error: saveError.message,
+          stack: saveError.stack,
+          userId: existingUser._id,
+          phoneNumber: phoneNumber.substring(0, 5) + '***',
+          clientInfo,
+          duration: Date.now() - startTime
+        });
+        // Continue even if save fails - verification code was already sent
       }
     }
 
@@ -149,12 +163,15 @@ const sendVerificationCode = async (req, res) => {
     logger.error('Send verification code error', {
       error: error.message,
       stack: error.stack,
-      clientInfo
+      phoneNumber: phoneNumber ? phoneNumber.substring(0, 5) + '***' : 'unknown',
+      clientInfo,
+      duration: Date.now() - startTime
     });
     res.status(500).json({
       success: false,
       message: 'Server error',
-      code: 'INTERNAL_SERVER_ERROR'
+      code: 'INTERNAL_SERVER_ERROR',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -270,39 +287,18 @@ const verifyCode = async (req, res) => {
     if (user) {
       // Existing user - update verification status and login info
       user.isVerified = true;
-      if (user.verification) {
-        user.verification.phoneVerified = true;
-      }
+      await user.verify('phone');
       user.verificationCode = undefined;
-      user.lastLoginAt = new Date();
-      user.lastLoginIP = clientInfo.ip;
-      if (typeof user.loginCount === 'number') user.loginCount += 1;
-      user.status = 'active';
+      // Update login info and status via management
+      await user.updateLoginInfo(clientInfo.ip, clientInfo.userAgent);
+      await user.updateStatus('active', null, null);
       
-      if (user.activity) {
-        user.activity.lastActiveAt = new Date();
-        if (typeof user.activity.totalSessions === 'number') {
-          user.activity.totalSessions += 1;
-        }
-        if (Array.isArray(user.activity.deviceInfo) && typeof user.getDeviceType === 'function') {
-          const deviceType = user.getDeviceType(clientInfo.userAgent);
-          const existingDevice = user.activity.deviceInfo.find(device => 
-            device.deviceType === deviceType && device.userAgent === clientInfo.userAgent
-          );
-          if (existingDevice) {
-            existingDevice.lastUsed = new Date();
-          } else {
-            user.activity.deviceInfo.push({
-              deviceType,
-              userAgent: clientInfo.userAgent,
-              lastUsed: new Date()
-            });
-          }
-        }
-      }
-      
-      if (typeof user.save === 'function') {
-        await user.save();
+      // Set flag to skip related document creation in post-save hook
+      user._skipRelatedDocumentsCreation = true;
+      try {
+        await user.save({ validateBeforeSave: false });
+      } finally {
+        user._skipRelatedDocumentsCreation = false;
       }
 
       // Generate token
@@ -327,8 +323,8 @@ const verifyCode = async (req, res) => {
           email: user.email,
           roles: user.roles || ['client'],
           isVerified: user.isVerified,
-          subscription: user.subscription,
-          trustScore: user.trustScore,
+          subscription: user.localProPlusSubscription || null,
+          trustScore: (await user.ensureTrust()).trustScore,
           profile: {
             avatar: user.profile?.avatar,
             bio: user.profile?.bio
@@ -338,28 +334,19 @@ const verifyCode = async (req, res) => {
       });
     } else {
       // New user - create minimal user record with required fields
+      // Note: status, lastLoginAt, lastLoginIP, loginCount are now in UserManagement
+      // activity is now a reference to UserActivity (created via post-save hook)
       user = await User.create({
         phoneNumber,
         firstName: null,
         lastName: null,
-        isVerified: true,
-        verification: {
-          phoneVerified: true
-        },
-        status: 'pending_verification',
-        lastLoginAt: new Date(),
-        lastLoginIP: clientInfo.ip,
-        loginCount: 1,
-        activity: {
-          lastActiveAt: new Date(),
-          totalSessions: 1,
-          deviceInfo: [{
-            deviceType: 'mobile', // Default for new users
-            userAgent: clientInfo.userAgent,
-            lastUsed: new Date()
-          }]
-        }
+        isVerified: true
+        // Note: Trust, Activity, Management, Wallet, and Referral documents will be created automatically via post-save hook
       });
+      
+      // Update login info and status after user is created
+      await user.updateLoginInfo(clientInfo.ip, clientInfo.userAgent);
+      await user.updateStatus('active', null, null);
 
       // Generate token
       const token = generateToken(user);
@@ -384,8 +371,8 @@ const verifyCode = async (req, res) => {
           email: user.email,
           roles: user.roles || ['client'],
           isVerified: user.isVerified,
-          subscription: user.subscription,
-          trustScore: user.trustScore
+          subscription: user.localProPlusSubscription || null,
+          trustScore: (await user.ensureTrust()).trustScore
         },
         isNewUser: true
       });
@@ -394,13 +381,15 @@ const verifyCode = async (req, res) => {
     logger.error('Verify code error', {
       error: error.message,
       stack: error.stack,
+      phoneNumber: phoneNumber ? phoneNumber.substring(0, 5) + '***' : 'unknown',
       clientInfo,
       duration: Date.now() - startTime
     });
     res.status(500).json({
       success: false,
       message: 'Server error',
-      code: 'INTERNAL_SERVER_ERROR'
+      code: 'INTERNAL_SERVER_ERROR',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -679,11 +668,11 @@ const completeOnboarding = async (req, res) => {
         email: user.email,
         roles: user.roles || ['client'],
         isVerified: user.isVerified,
-        subscription: user.subscription,
-        trustScore: user.trustScore,
-        referral: {
+        subscription: user.localProPlusSubscription || null,
+        trustScore: (await user.ensureTrust()).trustScore,
+        referral: user.referral && typeof user.referral === 'object' && user.referral.referralCode ? {
           referralCode: user.referral.referralCode
-        },
+        } : null,
         profile: {
           avatar: user.profile.avatar,
           bio: user.profile.bio
@@ -944,7 +933,7 @@ const getProfileCompleteness = async (req, res) => {
           email: user.email,
           roles: user.roles || ['client'],
           isVerified: user.isVerified,
-          trustScore: user.trustScore
+          trustScore: (await user.ensureTrust()).trustScore
         }
       }
     });

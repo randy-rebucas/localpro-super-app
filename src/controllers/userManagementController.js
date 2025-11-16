@@ -97,7 +97,10 @@ const getAllUsers = async (req, res) => {
     const usersQuery = User.find(filter)
       .select('-verificationCode')
       .populate('agency.agencyId', 'name type')
-      .populate('referral.referredBy', 'firstName lastName')
+      .populate({
+        path: 'referral',
+        populate: { path: 'referredBy', select: 'firstName lastName' }
+      })
       .sort(sort)
       .skip(skip)
       .limit(parseInt(limit));
@@ -124,7 +127,13 @@ const getAllUsers = async (req, res) => {
       if (providerUserIds.length > 0) {
         try {
           const providers = await Provider.find({ userId: { $in: providerUserIds } })
-            .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+            .populate('professionalInfo')
+            .populate('professionalInfo.specialties.skills', 'name description category metadata')
+            .populate('businessInfo')
+            .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+            .populate('preferences')
+            .populate('performance')
+            .select('-financialInfo -onboarding')
             .lean();
 
           // Create a map of userId to provider data for quick lookup
@@ -187,7 +196,10 @@ const getUserById = async (req, res) => {
     const user = await User.findById(id)
       .select('-verificationCode')
       .populate('agency.agencyId', 'name type address')
-      .populate('referral.referredBy', 'firstName lastName email')
+      .populate({
+        path: 'referral',
+        populate: { path: 'referredBy', select: 'firstName lastName email' }
+      })
       .populate('settings');
 
     if (!user) {
@@ -202,7 +214,13 @@ const getUserById = async (req, res) => {
     if (userObj.roles && userObj.roles.includes('provider')) {
       try {
         const provider = await Provider.findOne({ userId: id })
-          .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+          .populate('professionalInfo')
+          .populate('professionalInfo.specialties.skills', 'name description category metadata')
+          .populate('businessInfo')
+          .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+          .populate('preferences')
+          .populate('performance')
+          .select('-financialInfo -onboarding')
           .lean();
         
         if (provider) {
@@ -574,16 +592,27 @@ const updateUserVerification = async (req, res) => {
       });
     }
 
-    // Update verification status
-    user.verification = { ...user.verification, ...verification };
+    // Update verification statuses
+    const trust = await user.ensureTrust();
+    if (verification.phoneVerified) await user.verify('phone');
+    if (verification.emailVerified) await user.verify('email');
+    if (verification.identityVerified) await user.verify('identity');
+    if (verification.businessVerified) await user.verify('business');
+    if (verification.addressVerified) await user.verify('address');
+    if (verification.bankAccountVerified) await user.verify('bankAccount');
     
     // Update overall verification status
-    user.isVerified = Object.values(user.verification).some(status => status === true);
+    await user.populate('trust');
+    const verificationSummary = trust.getVerificationSummary();
+    user.isVerified = verificationSummary.verifiedCount > 0;
     
     // Recalculate trust score
-    user.calculateTrustScore();
+    await user.calculateTrustScore();
     
     await user.save();
+
+    // Get trust summary for response
+    const trustSummary = await user.getTrustSummary();
 
     // Audit log
     await auditLogger.logUser('user_verify', req, { type: 'user', id: id, name: 'User' }, {}, { verification });
@@ -592,9 +621,9 @@ const updateUserVerification = async (req, res) => {
       success: true,
       message: 'User verification updated successfully',
       data: {
-        verification: user.verification,
+        verification: trustSummary.verification,
         isVerified: user.isVerified,
-        trustScore: user.trustScore
+        trustScore: trustSummary.trustScore
       }
     });
   } catch (error) {
@@ -637,12 +666,12 @@ const addUserBadge = async (req, res) => {
     }
 
     // Add badge
-    user.addBadge(type, description);
-    
-    // Recalculate trust score
-    user.calculateTrustScore();
+    await user.addBadge(type, description);
     
     await user.save();
+
+    // Get trust summary for response
+    const trustSummary = await user.getTrustSummary();
 
     // Audit log
     await auditLogger.logUser('user_update', req, { type: 'user', id: id, name: 'User' }, {}, { type, description });
@@ -651,8 +680,8 @@ const addUserBadge = async (req, res) => {
       success: true,
       message: 'Badge added successfully',
       data: {
-        badges: user.badges,
-        trustScore: user.trustScore
+        badges: trustSummary.badges,
+        trustScore: trustSummary.trustScore
       }
     });
   } catch (error) {

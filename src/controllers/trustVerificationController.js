@@ -249,8 +249,16 @@ const reviewVerificationRequestRequest = async (req, res) => {
     if (status === 'approved') {
       const user = await User.findById(request.user);
       if (user) {
-        user.trustScore = trustScore || user.trustScore + 10;
-        user.verificationStatus = 'verified';
+        const currentTrust = await user.ensureTrust();
+        if (trustScore) {
+          // If specific trust score provided, set it directly (admin override)
+          currentTrust.trustScore = trustScore;
+        } else {
+          // Otherwise recalculate
+          currentTrust.calculateTrustScore();
+        }
+        await currentTrust.save();
+        // Note: verificationStatus field doesn't exist in User model, may need to be added if required
         await user.save();
       }
     }

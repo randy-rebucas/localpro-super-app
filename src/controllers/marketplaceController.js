@@ -1596,11 +1596,14 @@ const getCategoryDetails = async (req, res) => {
     ]);
 
     // Get provider count for this category
+    const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
+    const matchingProfessionalInfos = await ProviderProfessionalInfo.find({
+      'specialties.category': category
+    });
+    const providerIds = matchingProfessionalInfos.map(pi => pi.provider);
     const providerCount = await Provider.countDocuments({
-      status: 'active',
-      'professionalInfo.specialties': {
-        $elemMatch: { category }
-      }
+      _id: { $in: providerIds },
+      status: 'active'
     });
 
     // Get services if requested
@@ -1724,19 +1727,43 @@ const getProvidersForService = async (req, res) => {
     }
 
     // Build query to find providers who offer this service category/subcategory
-    const providerQuery = {
-      status: 'active',
-      'professionalInfo.specialties': {
+    // First, find matching professionalInfo documents
+    const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
+    const professionalInfoQuery = {
+      'specialties': {
         $elemMatch: {
-          category: service.category,
-          ...(service.subcategory ? { subcategories: service.subcategory } : {})
+          // Match providers by service category through their skills
         }
       }
+    };
+    
+    const matchingProfessionalInfos = await ProviderProfessionalInfo.find(professionalInfoQuery);
+    const providerIds = matchingProfessionalInfos.map(pi => pi.provider);
+    
+    const providerQuery = {
+      _id: { $in: providerIds.length > 0 ? providerIds : [] },
+      status: 'active'
     };
 
     // Add rating filter if provided
     if (minRating) {
-      providerQuery['performance.rating'] = { $gte: parseFloat(minRating) };
+      const ProviderPerformance = require('../models/ProviderPerformance');
+      const matchingPerformances = await ProviderPerformance.find({
+        rating: { $gte: parseFloat(minRating) }
+      });
+      const performanceProviderIds = matchingPerformances.map(p => p.provider);
+      if (performanceProviderIds.length > 0) {
+        if (providerQuery._id && providerQuery._id.$in) {
+          // Combine with existing _id filter
+          providerQuery._id.$in = providerQuery._id.$in.filter(id => 
+            performanceProviderIds.some(pid => pid.toString() === id.toString())
+          );
+        } else {
+          providerQuery._id = { $in: performanceProviderIds };
+        }
+      } else {
+        providerQuery._id = { $in: [] };
+      }
     }
 
     // Build sort object
@@ -1748,7 +1775,13 @@ const getProvidersForService = async (req, res) => {
     // Find providers matching the service category
     const providers = await Provider.find(providerQuery)
       .populate('userId', 'firstName lastName email phone profile.avatar')
-      .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+      .populate('professionalInfo')
+      .populate('professionalInfo.specialties.skills', 'name description category metadata')
+      .populate('businessInfo')
+      .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+      .populate('preferences')
+      .populate('performance')
+      .select('-financialInfo -onboarding')
       .sort(sort)
       .skip(skip)
       .limit(parseInt(limit))
@@ -1766,16 +1799,12 @@ const getProvidersForService = async (req, res) => {
 
     // Enhance providers with service-specific information
     const enhancedProviders = filteredProviders.map(provider => {
-      // Find the matching specialty for this service
-      const matchingSpecialty = provider.professionalInfo?.specialties?.find(
-        specialty => specialty.category === service.category
-      );
+      // Find the first specialty (or match by skills if needed)
+      const matchingSpecialty = provider.professionalInfo?.specialties?.[0];
 
       return {
         ...provider,
         matchingSpecialty: {
-          category: matchingSpecialty?.category,
-          subcategories: matchingSpecialty?.subcategories || [],
           experience: matchingSpecialty?.experience || 0,
           hourlyRate: matchingSpecialty?.hourlyRate || null,
           certifications: matchingSpecialty?.certifications || [],
@@ -1913,7 +1942,13 @@ const getProviderDetails = async (req, res) => {
 
       provider = await Provider.findOne({ userId: userIdForLookup })
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
-        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+        .populate('professionalInfo')
+        .populate('professionalInfo.specialties.skills', 'name description category metadata')
+        .populate('businessInfo')
+        .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+        .populate('preferences')
+        .populate('performance')
+        .select('-financialInfo -onboarding')
         .lean();
       
       if (provider) {
@@ -1932,7 +1967,13 @@ const getProviderDetails = async (req, res) => {
 
       provider = await Provider.findById(providerId)
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
-        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+        .populate('professionalInfo')
+        .populate('professionalInfo.specialties.skills', 'name description category metadata')
+        .populate('businessInfo')
+        .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+        .populate('preferences')
+        .populate('performance')
+        .select('-financialInfo -onboarding')
         .lean();
 
       if (provider && provider.userId) {
@@ -1993,6 +2034,19 @@ const getProviderDetails = async (req, res) => {
       });
     }
 
+    // Get verification, preferences, businessInfo, professionalInfo, and performance data in parallel
+    const [verification, preferences, businessInfo, professionalInfo, performance] = await Promise.all([
+      provider.ensureVerification(),
+      provider.ensurePreferences(),
+      provider.providerType !== 'individual' ? provider.ensureBusinessInfo() : Promise.resolve(null),
+      provider.ensureProfessionalInfo(),
+      provider.ensurePerformance()
+    ]);
+    
+    const verificationSummary = verification ? verification.getVerificationSummary() : null;
+    const preferencesSummary = preferences ? preferences.getSummary() : null;
+    const businessInfoSummary = businessInfo ? businessInfo.getSummary() : null;
+    
     // Initialize response data
     const providerDetails = {
       provider: {
@@ -2002,28 +2056,28 @@ const getProviderDetails = async (req, res) => {
         userProfile: user || provider.userId, // Alias for user data
         providerType: provider.providerType,
         status: provider.status,
-        businessInfo: provider.businessInfo,
-        professionalInfo: provider.professionalInfo,
+        businessInfo: businessInfoSummary,
+        professionalInfo: professionalInfo || null,
         verification: {
-          identityVerified: provider.verification?.identityVerified || false,
-          businessVerified: provider.verification?.businessVerified || false,
+          identityVerified: verification?.identityVerified || false,
+          businessVerified: verification?.businessVerified || false,
           backgroundCheck: {
-            status: provider.verification?.backgroundCheck?.status || 'pending'
+            status: verification?.backgroundCheck?.status || 'pending'
           },
           insurance: {
-            hasInsurance: provider.verification?.insurance?.hasInsurance || false,
-            coverageAmount: provider.verification?.insurance?.coverageAmount || null
+            hasInsurance: verification?.insurance?.hasInsurance || false,
+            coverageAmount: verification?.insurance?.coverageAmount || null
           },
-          licenses: provider.verification?.licenses?.map(license => ({
+          licenses: verification?.licenses?.map(license => ({
             type: license.type,
             number: license.number,
             issuingAuthority: license.issuingAuthority,
             expiryDate: license.expiryDate
           })) || [],
-          portfolio: provider.verification?.portfolio || null
+          portfolio: verification?.portfolio || null
         },
-        performance: provider.performance || {},
-        preferences: provider.preferences || {},
+        performance: performance?.getSummary() || {},
+        preferences: preferencesSummary || {},
         settings: provider.settings || {},
         metadata: {
           profileViews: provider.metadata?.profileViews || 0,
@@ -2088,10 +2142,10 @@ const getProviderDetails = async (req, res) => {
           cancelled: 0,
           totalEarnings: 0
         },
-        averageRating: provider.performance?.rating || 0,
-        totalReviews: provider.performance?.reviewsCount || 0,
-        responseRate: provider.performance?.responseRate || 0,
-        averageResponseTime: provider.performance?.averageResponseTime || null
+        averageRating: performance?.rating || 0,
+        totalReviews: performance?.totalReviews || 0,
+        responseRate: performance?.completionRate || 0,
+        averageResponseTime: performance?.responseTime || null
       };
 
       bookingStats.forEach(stat => {

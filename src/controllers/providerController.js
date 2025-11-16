@@ -19,7 +19,12 @@ const getProviderSkills = async (req, res) => {
       id: skill._id.toString(),
       name: skill.name,
       description: skill.description,
-      category: skill.category,
+      category: skill.category ? {
+        id: skill.category._id.toString(),
+        name: skill.category.name,
+        description: skill.category.description,
+        metadata: skill.category.metadata
+      } : null,
       displayOrder: skill.displayOrder,
       metadata: skill.metadata
     }));
@@ -74,18 +79,47 @@ const getProviders = async (req, res) => {
     if (providerType) query.providerType = providerType;
     if (featured) query['metadata.featured'] = featured === 'true';
     if (promoted) query['metadata.promoted'] = promoted === 'true';
-    if (minRating) query['performance.rating'] = { $gte: parseFloat(minRating) };
-
-    // Category filter
-    if (category) {
-      query['professionalInfo.specialties.category'] = category;
+    // Rating filter needs to query ProviderPerformance first
+    if (minRating) {
+      const ProviderPerformance = require('../models/ProviderPerformance');
+      const matchingPerformances = await ProviderPerformance.find({
+        rating: { $gte: parseFloat(minRating) }
+      });
+      const providerIds = matchingPerformances.map(p => p.provider);
+      if (providerIds.length > 0) {
+        if (query._id) {
+          // Combine with existing _id filter
+          query._id = { $in: providerIds.filter(id => query._id.$in.includes(id)) };
+        } else {
+          query._id = { $in: providerIds };
+        }
+      } else {
+        query._id = { $in: [] };
+      }
     }
 
-    // Location filter
-    if (city && state) {
-      query['professionalInfo.specialties.serviceAreas'] = {
-        $elemMatch: { city, state }
-      };
+    // Category and location filters need to query ProviderProfessionalInfo first
+    // We'll handle this after the initial query by filtering results
+    let professionalInfoFilter = null;
+    if (category || (city && state)) {
+      const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
+      const professionalInfoQuery = {};
+      if (category) {
+        professionalInfoQuery['specialties.category'] = category;
+      }
+      if (city && state) {
+        professionalInfoQuery['specialties.serviceAreas'] = {
+          $elemMatch: { city, state }
+        };
+      }
+      const matchingProfessionalInfos = await ProviderProfessionalInfo.find(professionalInfoQuery);
+      const providerIds = matchingProfessionalInfos.map(pi => pi.provider);
+      if (providerIds.length > 0) {
+        query._id = { $in: providerIds };
+      } else {
+        // No providers match, return empty result
+        query._id = { $in: [] };
+      }
     }
 
     // Distance filter (if coordinates provided)
@@ -100,10 +134,16 @@ const getProviders = async (req, res) => {
     const skip = (page - 1) * limit;
     const providers = await Provider.find(query)
       .populate('userId', 'firstName lastName email phone profileImage')
+      .populate('professionalInfo')
+      .populate('professionalInfo.specialties.skills', 'name description category metadata')
+      .populate('businessInfo')
+      .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+      .populate('preferences')
+      .populate('performance')
       .sort(sort)
       .skip(skip)
       .limit(parseInt(limit))
-      .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents');
+      .select('-financialInfo');
 
     const total = await Provider.countDocuments(query);
 
@@ -168,7 +208,13 @@ const getProvider = async (req, res) => {
 
       provider = await Provider.findOne({ userId: objectId })
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
-        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents')
+        .populate('professionalInfo')
+        .populate('professionalInfo.specialties.skills', 'name description category metadata')
+        .populate('businessInfo')
+        .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+        .populate('preferences')
+        .populate('performance')
+        .select('-financialInfo')
         .lean();
 
       if (!provider) {
@@ -198,7 +244,13 @@ const getProvider = async (req, res) => {
 
       provider = await Provider.findById(objectId)
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
-        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents')
+        .populate('professionalInfo')
+        .populate('professionalInfo.specialties.skills', 'name description category metadata')
+        .populate('businessInfo')
+        .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+        .populate('preferences')
+        .populate('performance')
+        .select('-financialInfo')
         .lean();
 
       if (provider && provider.userId) {
@@ -263,7 +315,13 @@ const getProvider = async (req, res) => {
 const getMyProviderProfile = async (req, res) => {
   try {
     const provider = await Provider.findOne({ userId: req.user.id })
-      .populate('userId', 'firstName lastName email phone profileImage');
+      .populate('userId', 'firstName lastName email phone profileImage')
+      .populate('professionalInfo')
+      .populate('professionalInfo.specialties.skills', 'name description category metadata')
+      .populate('verification')
+      .populate('preferences')
+      .populate('businessInfo')
+      .populate('performance');
 
     if (!provider) {
       return res.status(404).json({
@@ -337,7 +395,6 @@ const createProviderProfile = async (req, res) => {
     const providerData = {
       userId: req.user.id,
       providerType,
-      businessInfo,
       professionalInfo,
       verification,
       preferences,
@@ -355,6 +412,40 @@ const createProviderProfile = async (req, res) => {
 
     const provider = new Provider(providerData);
     await provider.save();
+    
+    // Handle businessInfo separately if provided (for business/agency providers)
+    if (businessInfo && (providerType === 'business' || providerType === 'agency')) {
+      const businessInfoDoc = await provider.ensureBusinessInfo();
+      await businessInfoDoc.updateBusinessInfo(businessInfo);
+    }
+    
+    // Handle professionalInfo separately if provided
+    if (professionalInfo) {
+      const professionalInfoDoc = await provider.ensureProfessionalInfo();
+      // Update professionalInfo fields
+      if (professionalInfo.specialties) {
+        professionalInfoDoc.specialties = professionalInfo.specialties;
+      }
+      if (professionalInfo.languages) {
+        professionalInfoDoc.languages = professionalInfo.languages;
+      }
+      if (professionalInfo.availability) {
+        professionalInfoDoc.availability = professionalInfo.availability;
+      }
+      if (professionalInfo.emergencyServices !== undefined) {
+        professionalInfoDoc.emergencyServices = professionalInfo.emergencyServices;
+      }
+      if (professionalInfo.travelDistance !== undefined) {
+        professionalInfoDoc.travelDistance = professionalInfo.travelDistance;
+      }
+      if (professionalInfo.minimumJobValue !== undefined) {
+        professionalInfoDoc.minimumJobValue = professionalInfo.minimumJobValue;
+      }
+      if (professionalInfo.maximumJobValue !== undefined) {
+        professionalInfoDoc.maximumJobValue = professionalInfo.maximumJobValue;
+      }
+      await professionalInfoDoc.save();
+    }
 
     // Update user role to include provider (multi-role support)
     const user = await User.findById(req.user.id);
@@ -417,12 +508,50 @@ const updateProviderProfile = async (req, res) => {
       });
     }
 
-    const updateData = req.body;
+    const updateData = { ...req.body };
     const oldData = { ...provider.toObject() };
+    
+    // Extract businessInfo if present (handle separately)
+    const businessInfoData = updateData.businessInfo;
+    delete updateData.businessInfo;
 
-    // Update provider
+    // Update provider (excluding businessInfo)
     Object.assign(provider, updateData);
     await provider.save();
+    
+    // Handle businessInfo separately if provided
+    if (businessInfoData && (provider.providerType === 'business' || provider.providerType === 'agency')) {
+      const businessInfo = await provider.ensureBusinessInfo();
+      await businessInfo.updateBusinessInfo(businessInfoData);
+    }
+    
+    // Handle professionalInfo separately if provided
+    const professionalInfoData = req.body.professionalInfo;
+    if (professionalInfoData) {
+      const professionalInfo = await provider.ensureProfessionalInfo();
+      if (professionalInfoData.specialties) {
+        professionalInfo.specialties = professionalInfoData.specialties;
+      }
+      if (professionalInfoData.languages) {
+        professionalInfo.languages = professionalInfoData.languages;
+      }
+      if (professionalInfoData.availability) {
+        professionalInfo.availability = professionalInfoData.availability;
+      }
+      if (professionalInfoData.emergencyServices !== undefined) {
+        professionalInfo.emergencyServices = professionalInfoData.emergencyServices;
+      }
+      if (professionalInfoData.travelDistance !== undefined) {
+        professionalInfo.travelDistance = professionalInfoData.travelDistance;
+      }
+      if (professionalInfoData.minimumJobValue !== undefined) {
+        professionalInfo.minimumJobValue = professionalInfoData.minimumJobValue;
+      }
+      if (professionalInfoData.maximumJobValue !== undefined) {
+        professionalInfo.maximumJobValue = professionalInfoData.maximumJobValue;
+      }
+      await professionalInfo.save();
+    }
 
     // Log audit event
     await auditLogger.logUser('user_update', req, {
@@ -496,6 +625,8 @@ const updateOnboardingStep = async (req, res) => {
     if (provider.onboarding.progress >= 100) {
       provider.onboarding.completed = true;
       provider.status = 'pending'; // Ready for review
+      
+      // Note: Subscription is now managed through User model (localProPlusSubscription)
     }
 
     await provider.save();
@@ -553,27 +684,26 @@ const uploadDocuments = async (req, res) => {
     const fileUrls = files.map(file => file.path);
 
     // Update verification documents based on type
+    const verification = await provider.ensureVerification();
+    
     switch (documentType) {
       case 'insurance':
-        if (!provider.verification.insurance.documents) {
-          provider.verification.insurance.documents = [];
+        if (!verification.insurance.documents) {
+          verification.insurance.documents = [];
         }
-        provider.verification.insurance.documents.push(...fileUrls);
+        verification.insurance.documents.push(...fileUrls);
+        await verification.save();
         break;
       case 'license':
-        if (!provider.verification.licenses) {
-          provider.verification.licenses = [];
-        }
-        provider.verification.licenses.push({
+        await verification.addLicense({
           type: category,
           documents: fileUrls
         });
         break;
       case 'portfolio':
-        if (!provider.verification.portfolio.images) {
-          provider.verification.portfolio.images = [];
+        for (const imageUrl of fileUrls) {
+          await verification.addPortfolioImage(imageUrl);
         }
-        provider.verification.portfolio.images.push(...fileUrls);
         break;
       default:
         return res.status(400).json({
@@ -581,8 +711,6 @@ const uploadDocuments = async (req, res) => {
           message: 'Invalid document type'
         });
     }
-
-    await provider.save();
 
     // Log audit event
     await auditLogger.logUser('document_upload', req, {
@@ -637,14 +765,15 @@ const getProviderDashboard = async (req, res) => {
 
     // Get recent bookings, earnings, reviews, etc.
     // This would integrate with other services
+    const performance = await provider.ensurePerformance();
     const dashboardData = {
       profile: {
         status: provider.status,
-        rating: provider.performance.rating,
-        totalJobs: provider.performance.totalJobs,
-        completionRate: provider.performance.completionRate
+        rating: performance.rating,
+        totalJobs: performance.totalJobs,
+        completionRate: performance.completionRate
       },
-      earnings: provider.performance.earnings,
+      earnings: performance.earnings,
       recentActivity: {
         // This would come from other services
         recentBookings: [],
@@ -659,13 +788,13 @@ const getProviderDashboard = async (req, res) => {
       performance: {
         thisMonth: {
           jobs: 0,
-          earnings: provider.performance.earnings.thisMonth,
-          rating: provider.performance.rating
+          earnings: performance.earnings.thisMonth,
+          rating: performance.rating
         },
         lastMonth: {
           jobs: 0,
-          earnings: provider.performance.earnings.lastMonth,
-          rating: provider.performance.rating
+          earnings: performance.earnings.lastMonth,
+          rating: performance.rating
         }
       }
     };
@@ -705,13 +834,14 @@ const getProviderAnalytics = async (req, res) => {
     }
 
     // Calculate analytics based on timeframe
+    const performance = await provider.ensurePerformance();
     const analytics = {
       overview: {
-        totalJobs: provider.performance.totalJobs,
-        completedJobs: provider.performance.completedJobs,
-        rating: provider.performance.rating,
-        totalReviews: provider.performance.totalReviews,
-        earnings: provider.performance.earnings.total
+        totalJobs: performance.totalJobs,
+        completedJobs: performance.completedJobs,
+        rating: performance.rating,
+        totalReviews: performance.totalReviews,
+        earnings: performance.earnings.total
       },
       trends: {
         // This would come from actual data analysis
@@ -725,9 +855,9 @@ const getProviderAnalytics = async (req, res) => {
         earningsByCategory: []
       },
       performance: {
-        responseTime: provider.performance.responseTime,
-        completionRate: provider.performance.completionRate,
-        repeatCustomerRate: provider.performance.repeatCustomerRate
+        responseTime: performance.responseTime,
+        completionRate: performance.completionRate,
+        repeatCustomerRate: performance.repeatCustomerRate
       }
     };
 
@@ -849,6 +979,12 @@ const getProvidersForAdmin = async (req, res) => {
     const skip = (page - 1) * limit;
     const providers = await Provider.find(query)
       .populate('userId', 'firstName lastName email phone')
+      .populate('professionalInfo')
+      .populate('professionalInfo.specialties.skills', 'name description category metadata')
+      .populate('businessInfo')
+      .populate('verification')
+      .populate('preferences')
+      .populate('performance')
       .sort(sort)
       .skip(skip)
       .limit(parseInt(limit));

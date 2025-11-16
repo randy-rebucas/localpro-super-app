@@ -43,7 +43,7 @@ const serviceCategorySchema = new mongoose.Schema({
 
 // Indexes
 serviceCategorySchema.index({ isActive: 1, displayOrder: 1 });
-serviceCategorySchema.index({ key: 1 });
+// Note: key already has unique: true which creates an index
 
 // Static method to get active categories ordered by displayOrder
 serviceCategorySchema.statics.getActiveCategories = function() {

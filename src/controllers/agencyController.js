@@ -598,7 +598,12 @@ const getAgencyAnalytics = async (req, res) => {
         userId: provider.user,
         status: provider.status,
         commissionRate: provider.commissionRate,
-        performance: provider.performance
+        performance: provider.performance || {
+          rating: 0,
+          totalJobs: 0,
+          completedJobs: 0,
+          cancellationRate: 0
+        }
       }))
     };
 

@@ -9,7 +9,12 @@ const processServiceBookingReferral = async (req, res, next) => {
     const booking = req.booking || res.locals.booking;
     const user = req.user;
 
-    if (booking && user && user.referral.referredBy) {
+    // Ensure referral is populated
+    if (booking && user) {
+      await user.populate('referral');
+      if (!user.referral || !user.referral.referredBy) {
+        return next();
+      }
       // Find the active referral for this user
       const referral = await Referral.findOne({
         referee: user._id,
@@ -46,7 +51,12 @@ const processSuppliesOrderReferral = async (req, res, next) => {
     const order = req.order || res.locals.order;
     const user = req.user;
 
-    if (order && user && user.referral.referredBy) {
+    // Ensure referral is populated
+    if (order && user) {
+      await user.populate('referral');
+      if (!user.referral || !user.referral.referredBy) {
+        return next();
+      }
       // Find the active referral for this user
       const referral = await Referral.findOne({
         referee: user._id,
@@ -83,7 +93,12 @@ const processCourseEnrollmentReferral = async (req, res, next) => {
     const enrollment = req.enrollment || res.locals.enrollment;
     const user = req.user;
 
-    if (enrollment && user && user.referral.referredBy) {
+    // Ensure referral is populated
+    if (enrollment && user) {
+      await user.populate('referral');
+      if (!user.referral || !user.referral.referredBy) {
+        return next();
+      }
       // Find the active referral for this user
       const referral = await Referral.findOne({
         referee: user._id,
@@ -120,7 +135,12 @@ const processLoanApplicationReferral = async (req, res, next) => {
     const loan = req.loan || res.locals.loan;
     const user = req.user;
 
-    if (loan && user && user.referral.referredBy) {
+    // Ensure referral is populated
+    if (loan && user) {
+      await user.populate('referral');
+      if (!user.referral || !user.referral.referredBy) {
+        return next();
+      }
       // Find the active referral for this user
       const referral = await Referral.findOne({
         referee: user._id,
@@ -157,7 +177,12 @@ const processRentalBookingReferral = async (req, res, next) => {
     const rental = req.rental || res.locals.rental;
     const user = req.user;
 
-    if (rental && user && user.referral.referredBy) {
+    // Ensure referral is populated
+    if (rental && user) {
+      await user.populate('referral');
+      if (!user.referral || !user.referral.referredBy) {
+        return next();
+      }
       // Find the active referral for this user
       const referral = await Referral.findOne({
         referee: user._id,
@@ -194,7 +219,12 @@ const processSubscriptionUpgradeReferral = async (req, res, next) => {
     const subscription = req.subscription || res.locals.subscription;
     const user = req.user;
 
-    if (subscription && user && user.referral.referredBy) {
+    // Ensure referral is populated
+    if (subscription && user) {
+      await user.populate('referral');
+      if (!user.referral || !user.referral.referredBy) {
+        return next();
+      }
       // Find the active referral for this user
       const referral = await Referral.findOne({
         referee: user._id,
@@ -250,8 +280,10 @@ const processSignupReferral = async (req, res, next) => {
         });
 
         // Update user's referral information
-        user.referral.referredBy = validation.referrer.id;
-        user.referral.referralSource = 'direct_link';
+        const referral = await user.ensureReferral();
+        referral.referredBy = validation.referrer.id;
+        referral.referralSource = 'direct_link';
+        await referral.save();
         await user.save();
       }
     }

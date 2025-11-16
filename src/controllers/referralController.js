@@ -260,18 +260,21 @@ const updateReferralPreferences = async (req, res) => {
       });
     }
 
+    // Ensure referral is populated
+    const referral = await user.ensureReferral();
+    
     // Update preferences
-    if (autoShare !== undefined) user.referral.referralPreferences.autoShare = autoShare;
-    if (shareOnSocial !== undefined) user.referral.referralPreferences.shareOnSocial = shareOnSocial;
-    if (emailNotifications !== undefined) user.referral.referralPreferences.emailNotifications = emailNotifications;
-    if (smsNotifications !== undefined) user.referral.referralPreferences.smsNotifications = smsNotifications;
+    if (autoShare !== undefined) referral.referralPreferences.autoShare = autoShare;
+    if (shareOnSocial !== undefined) referral.referralPreferences.shareOnSocial = shareOnSocial;
+    if (emailNotifications !== undefined) referral.referralPreferences.emailNotifications = emailNotifications;
+    if (smsNotifications !== undefined) referral.referralPreferences.smsNotifications = smsNotifications;
 
-    await user.save();
+    await referral.save();
 
     res.status(200).json({
       success: true,
       message: 'Referral preferences updated successfully',
-      data: user.referral.referralPreferences
+      data: referral.referralPreferences
     });
   } catch (error) {
     console.error('Update referral preferences error:', error);

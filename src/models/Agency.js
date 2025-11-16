@@ -289,6 +289,8 @@ agencySchema.methods.updateProviderPerformance = function(userId, performanceDat
     throw new Error('Provider not found in this agency');
   }
   
+  // Agency stores its own performance metrics for providers
+  // This is separate from the Provider model's performance
   Object.assign(provider.performance, performanceData);
   return this.save();
 };
