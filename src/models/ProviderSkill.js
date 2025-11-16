@@ -52,7 +52,7 @@ providerSkillSchema.statics.getActiveSkills = function(category = null) {
     }
   }
   return this.find(query)
-    .populate('category', 'name description metadata')
+    .populate('category', 'key name description metadata')
     .sort({ displayOrder: 1, name: 1 })
     .select('-__v -createdAt -updatedAt');
 };

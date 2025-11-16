@@ -4,6 +4,7 @@ const UserActivity = require('./UserActivity');
 const UserWallet = require('./UserWallet');
 const UserTrust = require('./UserTrust');
 const UserManagement = require('./UserManagement');
+const UserAgency = require('./UserAgency');
 
 const userSchema = new mongoose.Schema({
   phoneNumber: {
@@ -111,6 +112,11 @@ const userSchema = new mongoose.Schema({
   activity: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'UserActivity'
+  },
+  // Agency relationship (for agency_owner and agency_admin roles)
+  agency: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserAgency'
   }
 }, {
   timestamps: true
@@ -120,6 +126,7 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ roles: 1 }); // Multi-role index
 // Note: Status indexes are now in UserManagement model
 userSchema.index({ management: 1 });
+userSchema.index({ agency: 1 }); // Agency relationship index
 // Note: Referral indexes are now in UserReferral model
 userSchema.index({ referral: 1 });
 userSchema.index({ wallet: 1 });
@@ -223,6 +230,13 @@ userSchema.post('save', async function() {
       if (!this.management) {
         const management = await UserManagement.findOrCreateForUser(this._id);
         this.management = management._id;
+        needsSave = true;
+      }
+      
+      // Create agency document if it doesn't exist
+      if (!this.agency) {
+        const agency = await UserAgency.findOrCreateForUser(this._id);
+        this.agency = agency._id;
         needsSave = true;
       }
       
@@ -539,6 +553,38 @@ userSchema.methods.ensureActivity = async function(options = {}) {
   return this.activity;
 };
 
+// Helper method to ensure agency is populated
+userSchema.methods.ensureAgency = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  
+  // If agency doesn't exist, create it
+  if (!this.agency) {
+    const agency = await UserAgency.findOrCreateForUser(this._id);
+    this.agency = agency._id;
+    await this.save({ validateBeforeSave: false });
+    return agency;
+  }
+  
+  // Check if agency is populated by checking for a property that exists when populated
+  const isPopulated = this.agency && 
+    typeof this.agency === 'object' && 
+    this.agency._id && 
+    this.agency.agencyId !== undefined;
+  
+  // Populate if not already populated or if force refresh requested
+  if (!isPopulated || forceRefresh) {
+    await this.populate({
+      path: 'agency',
+      populate: {
+        path: 'agencyId',
+        select: 'name type contact.address'
+      }
+    });
+  }
+  
+  return this.agency;
+};
+
 // Helper method to ensure management is populated
 userSchema.methods.ensureManagement = async function(options = {}) {
   const { forceRefresh = false } = options;
@@ -716,6 +762,7 @@ userSchema.statics.populateRelated = function(query) {
     .populate('wallet')
     .populate('trust')
     .populate('management')
+    .populate('agency')
     .populate('settings')
     .populate('localProPlusSubscription')
     .populate({
@@ -724,6 +771,13 @@ userSchema.statics.populateRelated = function(query) {
         { path: 'statusUpdatedBy', select: 'firstName lastName' },
         { path: 'deletedBy', select: 'firstName lastName' }
       ]
+    })
+    .populate({
+      path: 'agency',
+      populate: {
+        path: 'agencyId',
+        select: 'name type contact.address'
+      }
     });
 };
 
@@ -735,8 +789,16 @@ userSchema.statics.findByIdWithRelated = function(userId) {
     .populate('wallet')
     .populate('trust')
     .populate('management')
+    .populate('agency')
     .populate('settings')
-    .populate('localProPlusSubscription');
+    .populate('localProPlusSubscription')
+    .populate({
+      path: 'agency',
+      populate: {
+        path: 'agencyId',
+        select: 'name type contact.address'
+      }
+    });
 };
 
 // Method to populate all related documents
@@ -752,6 +814,13 @@ userSchema.methods.populateAll = async function() {
         { path: 'statusUpdatedBy', select: 'firstName lastName email' },
         { path: 'deletedBy', select: 'firstName lastName email' }
       ]
+    },
+    {
+      path: 'agency',
+      populate: {
+        path: 'agencyId',
+        select: 'name type contact.address'
+      }
     },
     { path: 'settings' },
     { path: 'localProPlusSubscription' }

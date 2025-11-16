@@ -117,7 +117,7 @@ userTrustSchema.methods.hasBadge = function(badgeType) {
 
 // Method to update response time
 userTrustSchema.methods.updateResponseTime = function(responseTimeMinutes) {
-  if (!this.responseTime) {
+  if (!this.responseTime || !this.responseTime.average || !this.responseTime.totalResponses) {
     this.responseTime = {
       average: responseTimeMinutes,
       totalResponses: 1

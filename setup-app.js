@@ -693,19 +693,14 @@ class AppSetup {
       this.logSuccess(`Agency owner created: ${agencyOwner.email}`);
 
       // Create agency admin user
+      // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const agencyAdmin = new User({
         phoneNumber: '+639171234573',
         email: 'admin@devcom.com',
         firstName: 'Lisa',
         lastName: 'Admin',
-        role: 'agency_admin',
+        roles: ['client', 'agency_admin'], // Multi-role support
         isVerified: true,
-        verification: {
-          phoneVerified: true,
-          emailVerified: true,
-          identityVerified: true,
-          verifiedAt: new Date()
-        },
         profile: {
           bio: 'Agency administrator managing daily operations',
           address: {
@@ -721,30 +716,39 @@ class AppSetup {
           yearsInBusiness: 5,
           serviceAreas: ['Quezon City', 'Manila'],
           specialties: ['Administration', 'Operations Management', 'Team Coordination']
-        },
-        wallet: {
-          balance: 20000,
-          currency: 'PHP'
-        },
-        trustScore: 90,
-        badges: [
-          { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Administrator' }
-        ],
-        lastLoginAt: new Date(),
-        loginCount: 1,
-        status: 'active',
-        activity: {
-          lastActiveAt: new Date(),
-          totalSessions: 1,
-          deviceInfo: [{
-            deviceType: 'desktop',
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            lastUsed: new Date()
-          }]
         }
       });
 
+      // Save user first to trigger post-save hook for related documents
       await agencyAdmin.save();
+
+      // Set up verification status
+      await agencyAdmin.verify('phone');
+      await agencyAdmin.verify('email');
+      await agencyAdmin.verify('identity');
+
+      // Add badges
+      await agencyAdmin.addBadge('verified_provider', 'Verified Administrator');
+
+      // Update login info and status
+      await agencyAdmin.updateLoginInfo('127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+      await agencyAdmin.updateStatus('active', null, null);
+
+      // Generate referral code
+      await agencyAdmin.generateReferralCode();
+
+      // Set up wallet with initial balance
+      const agencyAdminWallet = await agencyAdmin.ensureWallet();
+      if (agencyAdminWallet.balance === 0) {
+        await agencyAdminWallet.addCredit({
+          category: 'initial_deposit',
+          amount: 20000,
+          currency: 'PHP',
+          description: 'Initial wallet balance'
+        });
+      }
+
+      // Create user settings
       const agencyAdminSettings = new UserSettings({
         userId: agencyAdmin._id,
         preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: true, push: true } }

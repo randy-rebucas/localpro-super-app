@@ -626,14 +626,87 @@
                 {
                   "key": "includeStats",
                   "value": "true",
-                  "description": "Include statistics for each category (service counts, pricing, ratings). Default: true",
+                  "description": "Include statistics for each category (service counts, pricing, ratings). Default: true. Set to 'false' to get only category definitions.",
                   "disabled": false
                 }
               ]
             },
-            "description": "Get all service categories with optional statistics. Returns all active service categories from the database. When includeStats=true (default), includes service counts, pricing statistics, ratings, and popular subcategories for each category."
+            "description": "Get all service categories with optional statistics. Returns all active service categories from the database. When includeStats=true (default), includes service counts, pricing statistics, ratings, and popular subcategories for each category. When includeStats=false, returns only category definitions without statistics."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success - With Statistics",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/marketplace/services/categories?includeStats=true",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "marketplace",
+                    "services",
+                    "categories"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeStats",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Service categories retrieved successfully\",\n  \"data\": [\n    {\n      \"key\": \"cleaning\",\n      \"name\": \"Cleaning Services\",\n      \"description\": \"Professional cleaning services for homes and businesses\",\n      \"icon\": \"🧹\",\n      \"subcategories\": [\n        \"residential_cleaning\",\n        \"commercial_cleaning\",\n        \"deep_cleaning\",\n        \"window_cleaning\"\n      ],\n      \"displayOrder\": 1,\n      \"metadata\": {\n        \"color\": \"#4CAF50\",\n        \"tags\": [\"cleaning\", \"maintenance\"]\n      },\n      \"statistics\": {\n        \"totalServices\": 150,\n        \"pricing\": {\n          \"average\": 75,\n          \"min\": 25,\n          \"max\": 200\n        },\n        \"rating\": {\n          \"average\": 4.5,\n          \"totalRatings\": 1200\n        },\n        \"popularSubcategories\": [\n          {\n            \"subcategory\": \"residential_cleaning\",\n            \"count\": 80\n          },\n          {\n            \"subcategory\": \"deep_cleaning\",\n            \"count\": 45\n          }\n        ]\n      }\n    },\n    {\n      \"key\": \"plumbing\",\n      \"name\": \"Plumbing Services\",\n      \"description\": \"Professional plumbing and pipe services\",\n      \"icon\": \"🔧\",\n      \"subcategories\": [\n        \"repair\",\n        \"installation\",\n        \"maintenance\"\n      ],\n      \"displayOrder\": 2,\n      \"metadata\": {\n        \"color\": \"#2196F3\",\n        \"tags\": [\"plumbing\", \"repair\"]\n      },\n      \"statistics\": {\n        \"totalServices\": 95,\n        \"pricing\": {\n          \"average\": 120,\n          \"min\": 50,\n          \"max\": 300\n        },\n        \"rating\": {\n          \"average\": 4.7,\n          \"totalRatings\": 850\n        },\n        \"popularSubcategories\": [\n          {\n            \"subcategory\": \"repair\",\n            \"count\": 60\n          }\n        ]\n      }\n    }\n  ],\n  \"summary\": {\n    \"totalCategories\": 22,\n    \"totalServices\": 1500,\n    \"totalProviders\": 300,\n    \"categoriesWithServices\": 20\n  }\n}"
+            },
+            {
+              "name": "Success - Without Statistics",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/marketplace/services/categories?includeStats=false",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "marketplace",
+                    "services",
+                    "categories"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeStats",
+                      "value": "false"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Service categories retrieved successfully\",\n  \"data\": [\n    {\n      \"key\": \"cleaning\",\n      \"name\": \"Cleaning Services\",\n      \"description\": \"Professional cleaning services for homes and businesses\",\n      \"icon\": \"🧹\",\n      \"subcategories\": [\n        \"residential_cleaning\",\n        \"commercial_cleaning\",\n        \"deep_cleaning\",\n        \"window_cleaning\"\n      ],\n      \"displayOrder\": 1,\n      \"metadata\": {\n        \"color\": \"#4CAF50\",\n        \"tags\": [\"cleaning\", \"maintenance\"]\n      }\n    },\n    {\n      \"key\": \"plumbing\",\n      \"name\": \"Plumbing Services\",\n      \"description\": \"Professional plumbing and pipe services\",\n      \"icon\": \"🔧\",\n      \"subcategories\": [\n        \"repair\",\n        \"installation\",\n        \"maintenance\"\n      ],\n      \"displayOrder\": 2,\n      \"metadata\": {\n        \"color\": \"#2196F3\",\n        \"tags\": [\"plumbing\", \"repair\"]\n      }\n    }\n  ]\n}"
+            }
+          ]
         },
         {
           "name": "GET /api/marketplace/services/categories/:category",

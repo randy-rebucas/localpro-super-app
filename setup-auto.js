@@ -22,6 +22,8 @@ require('dotenv').config();
 const User = require('./src/models/User');
 const AppSettings = require('./src/models/AppSettings');
 const UserSettings = require('./src/models/UserSettings');
+const UserWallet = require('./src/models/UserWallet');
+const WalletTransaction = require('./src/models/WalletTransaction');
 const Agency = require('./src/models/Agency');
 const { Service, Booking } = require('./src/models/Marketplace');
 const Job = require('./src/models/Job');
@@ -299,7 +301,7 @@ class AutoSetup {
     
     try {
       // Check if admin users already exist
-      const existingAdmin = await User.findOne({ roles: 'admin' });
+      const existingAdmin = await User.findOne({ roles: { $in: ['admin'] } });
       if (existingAdmin) {
         this.logWarning('Admin users already exist, skipping...');
         this.setupResults.adminUsers = true;
@@ -311,6 +313,7 @@ class AutoSetup {
       const hashedPassword = await bcrypt.hash(this.args.adminPassword, saltRounds);
 
       // Create super admin
+      // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const superAdmin = new User({
         phoneNumber: this.args.adminPhone,
         email: this.args.adminEmail,
@@ -319,15 +322,6 @@ class AutoSetup {
         password: hashedPassword,
         roles: ['client', 'admin'], // Multi-role support: admin also has client role
         isVerified: true,
-        verification: {
-          phoneVerified: true,
-          emailVerified: true,
-          identityVerified: true,
-          businessVerified: true,
-          addressVerified: true,
-          bankAccountVerified: true,
-          verifiedAt: new Date()
-        },
         profile: {
           bio: 'System Administrator for LocalPro Super App',
           address: {
@@ -354,70 +348,37 @@ class AutoSetup {
             timezone: 'Asia/Manila',
             emergencyService: true
           }
-        },
-        preferences: {
-          notifications: {
-            sms: true,
-            email: true,
-            push: true
-          },
-          language: 'en'
-        },
-        trustScore: 100,
-        badges: [
-          { type: 'verified_provider', earnedAt: new Date(), description: 'System Administrator' },
-          { type: 'expert', earnedAt: new Date(), description: 'Platform Expert' }
-        ],
-        responseTime: {
-          average: 5,
-          totalResponses: 100
-        },
-        completionRate: 100,
-        cancellationRate: 0,
-        referral: {
-          referralCode: '',
-          referredBy: null,
-          referralSource: 'direct_link',
-          referralStats: {
-            totalReferrals: 0,
-            successfulReferrals: 0,
-            totalRewardsEarned: 0,
-            totalRewardsPaid: 0,
-            lastReferralAt: null,
-            referralTier: 'bronze'
-          },
-          referralPreferences: {
-            autoShare: true,
-            shareOnSocial: false,
-            emailNotifications: true,
-            smsNotifications: false
-          }
-        },
-        wallet: {
-          balance: 0,
-          currency: 'PHP'
-        },
-        isActive: true,
-        status: 'active',
-        lastLoginAt: new Date(),
-        lastLoginIP: '127.0.0.1',
-        loginCount: 1,
-        activity: {
-          lastActiveAt: new Date(),
-          totalSessions: 1,
-          averageSessionDuration: 30,
-          preferredLoginTime: '09:00',
-          deviceInfo: [{
-            deviceType: 'desktop',
-            userAgent: 'LocalPro-Setup-Script',
-            lastUsed: new Date()
-          }]
         }
       });
 
-      // Generate referral code for admin
-      superAdmin.generateReferralCode();
+      // Save user first to trigger post-save hook for related documents
       await superAdmin.save();
+
+      // Set up verification status (all verified for admin)
+      await superAdmin.verify('phone');
+      await superAdmin.verify('email');
+      await superAdmin.verify('identity');
+      await superAdmin.verify('business');
+      await superAdmin.verify('address');
+      await superAdmin.verify('bankAccount');
+
+      // Add badges
+      await superAdmin.addBadge('verified_provider', 'System Administrator');
+      await superAdmin.addBadge('expert', 'Platform Expert');
+
+      // Update trust metrics
+      const trust = await superAdmin.ensureTrust();
+      trust.updateResponseTime(5);
+      trust.updateCompletionRate(100, 100);
+      trust.updateCancellationRate(0, 100);
+      await trust.save();
+
+      // Update login info and status
+      await superAdmin.updateLoginInfo('127.0.0.1', 'LocalPro-Setup-Script');
+      await superAdmin.updateStatus('active', null, null);
+
+      // Generate referral code
+      await superAdmin.generateReferralCode();
 
       // Create user settings for admin
       const adminSettings = new UserSettings({
@@ -471,9 +432,56 @@ class AutoSetup {
         const userData = this.getUserDataByRole(roleData, hashedPassword);
         const user = new User(userData);
 
-        // Generate referral code
-        user.generateReferralCode();
+        // Save user first to trigger post-save hook for related documents
         await user.save();
+
+        // Set up verification status (basic verifications for all roles)
+        await user.verify('phone');
+        await user.verify('email');
+        
+        // Additional verifications for business roles
+        if (['provider', 'supplier', 'instructor', 'agency_owner'].includes(roleData.role)) {
+          await user.verify('identity');
+          if (['supplier', 'agency_owner'].includes(roleData.role)) {
+            await user.verify('business');
+          }
+        }
+
+        // Add badges based on role
+        if (roleData.role === 'client') {
+          await user.addBadge('newcomer', 'New Client');
+        } else if (roleData.role === 'provider') {
+          await user.addBadge('verified_provider', 'Verified Service Provider');
+          await user.addBadge('top_rated', 'Top Rated Provider');
+        } else if (roleData.role === 'supplier') {
+          await user.addBadge('verified_provider', 'Verified Supplier');
+          await user.addBadge('reliable', 'Reliable Supplier');
+        } else if (roleData.role === 'instructor') {
+          await user.addBadge('expert', 'Training Expert');
+          await user.addBadge('verified_provider', 'Verified Instructor');
+        } else if (roleData.role === 'agency_owner') {
+          await user.addBadge('verified_provider', 'Verified Agency Owner');
+          await user.addBadge('top_rated', 'Top Rated Agency');
+        } else if (roleData.role === 'agency_admin') {
+          await user.addBadge('verified_provider', 'Verified Agency Admin');
+          await user.addBadge('reliable', 'Reliable Administrator');
+        }
+
+        // Update trust metrics for providers
+        if (['provider', 'agency_owner'].includes(roleData.role)) {
+          const trust = await user.ensureTrust();
+          trust.updateResponseTime(15);
+          trust.updateCompletionRate(95, 100);
+          trust.updateCancellationRate(2, 100);
+          await trust.save();
+        }
+
+        // Update login info and status
+        await user.updateLoginInfo('127.0.0.1', 'LocalPro-Setup-Script');
+        await user.updateStatus('active', null, null);
+
+        // Generate referral code
+        await user.generateReferralCode();
 
         // Create user settings
         const userSettings = new UserSettings({
@@ -496,75 +504,15 @@ class AutoSetup {
   }
 
   getUserDataByRole(roleData, hashedPassword) {
+    // Base data - only include fields that exist directly on User model
+    // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
     const baseData = {
       phoneNumber: roleData.phone,
       email: roleData.email,
       password: hashedPassword,
       roles: roleData.role === 'client' ? ['client'] : ['client', roleData.role], // Multi-role support: all users have client role + their specific role (except pure client)
-      isVerified: true,
-      verification: {
-        phoneVerified: true,
-        emailVerified: true,
-        identityVerified: true,
-        businessVerified: true,
-        addressVerified: true,
-        bankAccountVerified: true,
-        verifiedAt: new Date()
-      },
-      preferences: {
-        notifications: {
-          sms: true,
-          email: true,
-          push: true
-        },
-        language: 'en'
-      },
-      trustScore: 85,
-      responseTime: {
-        average: 15,
-        totalResponses: 10
-      },
-      completionRate: 95,
-      cancellationRate: 2,
-      referral: {
-        referralCode: '',
-        referredBy: null,
-        referralSource: 'direct_link',
-        referralStats: {
-          totalReferrals: 0,
-          successfulReferrals: 0,
-          totalRewardsEarned: 0,
-          totalRewardsPaid: 0,
-          lastReferralAt: null,
-          referralTier: 'bronze'
-        },
-        referralPreferences: {
-          autoShare: true,
-          shareOnSocial: false,
-          emailNotifications: true,
-          smsNotifications: false
-        }
-      },
-      wallet: {
-        balance: 0,
-        currency: 'PHP'
-      },
-      isActive: true,
-      status: 'active',
-      lastLoginAt: new Date(),
-      lastLoginIP: '127.0.0.1',
-      loginCount: 1,
-      activity: {
-        lastActiveAt: new Date(),
-        totalSessions: 1,
-        averageSessionDuration: 25,
-        preferredLoginTime: '09:00',
-        deviceInfo: [{
-          deviceType: 'mobile',
-          userAgent: 'LocalPro-Setup-Script',
-          lastUsed: new Date()
-        }]
-      }
+      isVerified: true
+      // verification, trustScore, badges, responseTime, completionRate, cancellationRate, referral, wallet, status, lastLoginAt, activity are now in separate models
     };
 
     switch (roleData.role) {
@@ -594,9 +542,7 @@ class AutoSetup {
               emergencyService: false
             }
           },
-          badges: [
-            { type: 'newcomer', earnedAt: new Date(), description: 'New Client' }
-          ]
+          // badges are now in UserTrust model, will be added after user creation
         };
 
       case 'provider':
@@ -632,10 +578,7 @@ class AutoSetup {
               emergencyService: true
             }
           },
-          badges: [
-            { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Service Provider' },
-            { type: 'top_rated', earnedAt: new Date(), description: 'Top Rated Provider' }
-          ]
+          // badges are now in UserTrust model, will be added after user creation
         };
 
       case 'supplier':
@@ -670,10 +613,7 @@ class AutoSetup {
               emergencyService: false
             }
           },
-          badges: [
-            { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Supplier' },
-            { type: 'reliable', earnedAt: new Date(), description: 'Reliable Supplier' }
-          ]
+          // badges are now in UserTrust model, will be added after user creation
         };
 
       case 'instructor':
@@ -708,10 +648,7 @@ class AutoSetup {
               emergencyService: false
             }
           },
-          badges: [
-            { type: 'expert', earnedAt: new Date(), description: 'Training Expert' },
-            { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Instructor' }
-          ]
+          // badges are now in UserTrust model, will be added after user creation
         };
 
       case 'agency_owner':
@@ -746,11 +683,8 @@ class AutoSetup {
               timezone: 'Asia/Manila',
               emergencyService: true
             }
-          },
-          badges: [
-            { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Agency Owner' },
-            { type: 'top_rated', earnedAt: new Date(), description: 'Top Rated Agency' }
-          ]
+          }
+          // badges are now in UserTrust model, will be added after user creation
         };
 
       case 'agency_admin':
@@ -784,11 +718,8 @@ class AutoSetup {
               timezone: 'Asia/Manila',
               emergencyService: false
             }
-          },
-          badges: [
-            { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Agency Admin' },
-            { type: 'reliable', earnedAt: new Date(), description: 'Reliable Administrator' }
-          ]
+          }
+          // badges are now in UserTrust model, will be added after user creation
         };
 
       default:

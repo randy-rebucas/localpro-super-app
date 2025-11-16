@@ -96,7 +96,13 @@ const getAllUsers = async (req, res) => {
     // Execute query
     const usersQuery = User.find(filter)
       .select('-verificationCode')
-      .populate('agency.agencyId', 'name type')
+      .populate({
+        path: 'agency',
+        populate: {
+          path: 'agencyId',
+          select: 'name type'
+        }
+      })
       .populate({
         path: 'referral',
         populate: { path: 'referredBy', select: 'firstName lastName' }
@@ -195,7 +201,13 @@ const getUserById = async (req, res) => {
     const { id } = req.params;
     const user = await User.findById(id)
       .select('-verificationCode')
-      .populate('agency.agencyId', 'name type address')
+      .populate({
+        path: 'agency',
+        populate: {
+          path: 'agencyId',
+          select: 'name type contact.address'
+        }
+      })
       .populate({
         path: 'referral',
         populate: { path: 'referredBy', select: 'firstName lastName email' }
@@ -519,8 +531,13 @@ const updateUserStatus = async (req, res) => {
     const userRoles = req.user.roles || [];
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
+    
+    // Ensure agency is populated for both users
+    const userAgency = await user.ensureAgency();
+    const reqUserAgency = await req.user.ensureAgency();
+    
     const canUpdateStatus = isAdmin || 
-                           (isAgencyAdmin && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
+                           (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
 
     if (!canUpdateStatus) {
       return res.status(403).json({
@@ -582,8 +599,13 @@ const updateUserVerification = async (req, res) => {
     const userRoles = req.user.roles || [];
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
+    
+    // Ensure agency is populated for both users
+    const userAgency = await user.ensureAgency();
+    const reqUserAgency = await req.user.ensureAgency();
+    
     const canUpdateVerification = isAdmin || 
-                                 (isAgencyAdmin && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
+                                 (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
 
     if (!canUpdateVerification) {
       return res.status(403).json({
@@ -655,8 +677,13 @@ const addUserBadge = async (req, res) => {
     const userRoles = req.user.roles || [];
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
+    
+    // Ensure agency is populated for both users
+    const userAgency = await user.ensureAgency();
+    const reqUserAgency = await req.user.ensureAgency();
+    
     const canAddBadge = isAdmin || 
-                       (isAgencyAdmin && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
+                       (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
 
     if (!canAddBadge) {
       return res.status(403).json({
@@ -705,7 +732,11 @@ const getUserStats = async (req, res) => {
     const userRoles = req.user.roles || [];
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     if (agencyId && !isAdmin) {
-      filter['agency.agencyId'] = agencyId;
+      // Filter by agency - need to find users with matching agencyId in UserAgency
+      const UserAgency = require('../models/UserAgency');
+      const matchingAgencies = await UserAgency.find({ agencyId: agencyId });
+      const userIds = matchingAgencies.map(ua => ua.user);
+      filter._id = { $in: userIds };
     }
 
     const [

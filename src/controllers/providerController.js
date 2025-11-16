@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Provider = require('../models/Provider');
 const ProviderSkill = require('../models/ProviderSkill');
+const ServiceCategory = require('../models/ServiceCategory');
 const User = require('../models/User');
 const { logger } = require('../utils/logger');
 const { auditLogger } = require('../utils/auditLogger');
@@ -12,15 +13,39 @@ const { validationResult } = require('express-validator');
 const getProviderSkills = async (req, res) => {
   try {
     const { category } = req.query;
-    const skills = await ProviderSkill.getActiveSkills(category);
+    let categoryId = null;
+    let categoryKey = null;
+
+    // If category is provided, determine if it's an ObjectId or a category key
+    if (category) {
+      if (mongoose.Types.ObjectId.isValid(category)) {
+        // It's a valid ObjectId, use it directly
+        categoryId = category;
+      } else {
+        // Treat it as a category key (e.g., "cleaning", "plumbing")
+        const serviceCategory = await ServiceCategory.getByKey(category);
+        if (!serviceCategory) {
+          return res.status(400).json({
+            success: false,
+            message: `Service category with key "${category}" not found`,
+            code: 'CATEGORY_NOT_FOUND'
+          });
+        }
+        categoryId = serviceCategory._id;
+        categoryKey = serviceCategory.key;
+      }
+    }
+
+    const skills = await ProviderSkill.getActiveSkills(categoryId);
     
-    // Transform to include id field (using _id)
+    // Transform to include id field (using _id) and category key
     const formattedSkills = skills.map((skill) => ({
       id: skill._id.toString(),
       name: skill.name,
       description: skill.description,
       category: skill.category ? {
         id: skill.category._id.toString(),
+        key: skill.category.key || categoryKey,
         name: skill.category.name,
         description: skill.category.description,
         metadata: skill.category.metadata
@@ -31,7 +56,7 @@ const getProviderSkills = async (req, res) => {
 
     logger.info('Provider skills retrieved', {
       skillCount: formattedSkills.length,
-      category: category || 'all'
+      category: categoryKey || category || 'all'
     });
 
     res.json({
@@ -46,7 +71,8 @@ const getProviderSkills = async (req, res) => {
     
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve provider skills'
+      message: 'Failed to retrieve provider skills',
+      code: 'SKILLS_RETRIEVAL_ERROR'
     });
   }
 };
@@ -58,6 +84,8 @@ const getProviders = async (req, res) => {
       status,
       providerType,
       category,
+      skills, // Filter by skill IDs (comma-separated ObjectIds) - matches providers with ANY of the skills
+      skillsMatch, // 'any' (default) or 'all' - whether to match ANY or ALL specified skills
       city,
       state,
       minRating,
@@ -98,24 +126,79 @@ const getProviders = async (req, res) => {
       }
     }
 
-    // Category and location filters need to query ProviderProfessionalInfo first
+    // Category, skills, and location filters need to query ProviderProfessionalInfo first
     // We'll handle this after the initial query by filtering results
     let professionalInfoFilter = null;
-    if (category || (city && state)) {
+    if (category || skills || (city && state)) {
       const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
       const professionalInfoQuery = {};
+      
       if (category) {
         professionalInfoQuery['specialties.category'] = category;
       }
+      
+      // Filter by skills - skill IDs (comma-separated ObjectIds)
+      // Skills are found in professionalInfo.specialties[].skills[]
+      // Supports filtering by multiple skills - matches providers who have ANY of the specified skills
+      if (skills) {
+        const skillArray = skills.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const skillIds = [];
+        
+        // Validate and convert to ObjectIds
+        for (const skill of skillArray) {
+          if (mongoose.Types.ObjectId.isValid(skill)) {
+            skillIds.push(new mongoose.Types.ObjectId(skill));
+          } else {
+            // Invalid ObjectId format
+            return res.status(400).json({
+              success: false,
+              message: `Invalid skill ID format: "${skill}". Skill IDs must be valid MongoDB ObjectIds.`,
+              code: 'INVALID_SKILL_ID'
+            });
+          }
+        }
+        
+        if (skillIds.length > 0) {
+          const matchAll = skillsMatch === 'all';
+          
+          if (matchAll && skillIds.length > 1) {
+            // Match providers who have ALL specified skills (across any specialties)
+            // Use $and to ensure each skill exists in specialties
+            professionalInfoQuery['$and'] = skillIds.map(skillId => ({
+              'specialties.skills': skillId
+            }));
+          } else {
+            // Match providers who have ANY of the specified skills (default behavior)
+            // Use $elemMatch to find providers where any specialty contains any of the specified skills
+            professionalInfoQuery['specialties'] = {
+              $elemMatch: {
+                skills: { $in: skillIds }
+              }
+            };
+          }
+        } else {
+          // No valid skills found, return empty result
+          query._id = { $in: [] };
+        }
+      }
+      
       if (city && state) {
         professionalInfoQuery['specialties.serviceAreas'] = {
           $elemMatch: { city, state }
         };
       }
+      
       const matchingProfessionalInfos = await ProviderProfessionalInfo.find(professionalInfoQuery);
       const providerIds = matchingProfessionalInfos.map(pi => pi.provider);
       if (providerIds.length > 0) {
-        query._id = { $in: providerIds };
+        if (query._id && query._id.$in) {
+          // Combine with existing _id filter (e.g., from rating filter)
+          query._id.$in = query._id.$in.filter(id => 
+            providerIds.some(pid => pid.toString() === id.toString())
+          );
+        } else {
+          query._id = { $in: providerIds };
+        }
       } else {
         // No providers match, return empty result
         query._id = { $in: [] };
@@ -149,7 +232,7 @@ const getProviders = async (req, res) => {
 
     logger.info('Providers retrieved', {
       userId: req.user?.id,
-      filters: { status, providerType, category, city, state },
+      filters: { status, providerType, category, skills, city, state },
       resultCount: providers.length,
       totalCount: total
     });
