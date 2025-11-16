@@ -135,6 +135,7 @@ userWalletSchema.methods.addCredit = async function(data) {
     throw new Error(`Cannot add credit to wallet with status: ${this.status}`);
   }
   
+  const WalletTransaction = mongoose.model('WalletTransaction');
   const transaction = await WalletTransaction.createCredit({
     walletId: this._id,
     userId: this.user,
@@ -168,6 +169,7 @@ userWalletSchema.methods.addDebit = async function(data) {
     throw new Error('Insufficient available balance');
   }
   
+  const WalletTransaction = mongoose.model('WalletTransaction');
   const transaction = await WalletTransaction.createDebit({
     walletId: this._id,
     userId: this.user,
@@ -187,7 +189,7 @@ userWalletSchema.methods.addDebit = async function(data) {
 };
 
 // Method to hold balance (for pending withdrawals, etc.)
-userWalletSchema.methods.holdBalance = async function(amount, reason) {
+userWalletSchema.methods.holdBalance = async function(amount, _reason) {
   const currentBalance = await this.getCurrentBalance();
   const availableBalance = Math.max(0, currentBalance - this.pendingBalance);
   

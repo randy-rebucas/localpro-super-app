@@ -96,6 +96,16 @@ const providerSchema = new mongoose.Schema({
     promoted: { type: Boolean, default: false },
     tags: [String],
     notes: String // admin notes
+  },
+  
+  // Soft delete fields
+  deleted: {
+    type: Boolean,
+    default: false
+  },
+  deletedOn: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
@@ -115,6 +125,7 @@ providerSchema.index({ preferences: 1 });
 providerSchema.index({ financialInfo: 1 });
 providerSchema.index({ businessInfo: 1 });
 providerSchema.index({ professionalInfo: 1 });
+providerSchema.index({ deleted: 1 }); // Index for soft delete queries
 
 // Virtual for full name
 providerSchema.virtual('fullName').get(function() {

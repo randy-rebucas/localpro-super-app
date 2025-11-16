@@ -71,7 +71,7 @@ userManagementSchema.index({ status: 1, deletedAt: 1 });
 userManagementSchema.index({ status: 1, lastLoginAt: -1 });
 
 // Method to update login information
-userManagementSchema.methods.updateLoginInfo = function(ip, userAgent) {
+userManagementSchema.methods.updateLoginInfo = function(ip, _userAgent) {
   this.lastLoginAt = new Date();
   this.lastLoginIP = ip;
   this.loginCount += 1;

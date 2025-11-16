@@ -62,8 +62,8 @@ const validateProviderUpdate = [
     .withMessage('Invalid provider type'),
   body('professionalInfo.specialties.*.category')
     .optional()
-    .isIn(['cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 'pest_control', 'handyman', 'painting', 'carpentry', 'other'])
-    .withMessage('Invalid specialty category')
+    .isIn(['cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 'pest_control', 'handyman', 'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 'appliance_repair', 'locksmith', 'home_security', 'pool_maintenance', 'carpet_cleaning', 'window_cleaning', 'gutter_cleaning', 'power_washing', 'snow_removal', 'other'])
+    .withMessage('Invalid specialty category. Must be a valid ServiceCategory key.')
 ];
 
 const validateOnboardingStep = [

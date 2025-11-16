@@ -100,10 +100,17 @@ const getProviders = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    const query = { status: 'active' };
+    const query = { 
+      deleted: { $ne: true } // Exclude soft-deleted providers
+    };
 
     // Apply filters
-    if (status) query.status = status;
+    // Default to 'active' status if no status is specified
+    if (status) {
+      query.status = status;
+    } else {
+      query.status = 'active'; // Default to active providers
+    }
     if (providerType) query.providerType = providerType;
     if (featured) query['metadata.featured'] = featured === 'true';
     if (promoted) query['metadata.promoted'] = promoted === 'true';
@@ -128,7 +135,6 @@ const getProviders = async (req, res) => {
 
     // Category, skills, and location filters need to query ProviderProfessionalInfo first
     // We'll handle this after the initial query by filtering results
-    let professionalInfoFilter = null;
     if (category || skills || (city && state)) {
       const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
       const professionalInfoQuery = {};
@@ -289,7 +295,10 @@ const getProvider = async (req, res) => {
         userEmail: user.email
       });
 
-      provider = await Provider.findOne({ userId: objectId })
+      provider = await Provider.findOne({ 
+        userId: objectId,
+        deleted: { $ne: true } // Exclude soft-deleted providers
+      })
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
         .populate('professionalInfo')
         .populate('professionalInfo.specialties.skills', 'name description category metadata')
@@ -325,7 +334,10 @@ const getProvider = async (req, res) => {
         id: id
       });
 
-      provider = await Provider.findById(objectId)
+      provider = await Provider.findOne({ 
+        _id: objectId,
+        deleted: { $ne: true } // Exclude soft-deleted providers
+      })
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
         .populate('professionalInfo')
         .populate('professionalInfo.specialties.skills', 'name description category metadata')

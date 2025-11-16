@@ -5,6 +5,7 @@ const UserWallet = require('./UserWallet');
 const UserTrust = require('./UserTrust');
 const UserManagement = require('./UserManagement');
 const UserAgency = require('./UserAgency');
+const Provider = require('./Provider');
 
 const userSchema = new mongoose.Schema({
   phoneNumber: {
@@ -249,6 +250,59 @@ userSchema.post('save', async function() {
     } catch (error) {
       console.error('Error creating referral/activity/wallet documents:', error);
       // Don't throw - allow user save to succeed even if related docs fail
+    }
+  }
+  
+  // Create provider profile if user has provider role and profile doesn't exist
+  if (this.roles && this.roles.includes('provider')) {
+    try {
+      // Check for existing provider (including soft-deleted ones)
+      const existingProvider = await Provider.findOne({ userId: this._id });
+      if (!existingProvider) {
+        // Create a basic provider profile with default values
+        const providerData = {
+          userId: this._id,
+          providerType: 'individual', // Default to individual, can be updated later
+          status: 'pending',
+          onboarding: {
+            completed: false,
+            currentStep: 'profile_setup',
+            progress: 10,
+            steps: [
+              { step: 'profile_setup', completed: true, completedAt: new Date() }
+            ]
+          }
+        };
+        
+        const provider = new Provider(providerData);
+        await provider.save();
+        
+        console.log('Provider profile created automatically for user:', this._id);
+      } else if (existingProvider.deleted) {
+        // Restore soft-deleted provider profile
+        existingProvider.deleted = false;
+        existingProvider.deletedOn = null;
+        await existingProvider.save();
+        
+        console.log('Provider profile restored automatically for user:', this._id);
+      }
+    } catch (error) {
+      console.error('Error creating/restoring provider profile:', error);
+      // Don't throw - allow user save to succeed even if provider creation fails
+    }
+  } else {
+    // Soft delete provider profile if user does not have provider role
+    try {
+      const existingProvider = await Provider.findOne({ userId: this._id, deleted: { $ne: true } });
+      if (existingProvider) {
+        existingProvider.deleted = true;
+        existingProvider.deletedOn = new Date();
+        await existingProvider.save();
+        console.log('Provider profile soft deleted automatically for user:', this._id);
+      }
+    } catch (error) {
+      console.error('Error soft deleting provider profile:', error);
+      // Don't throw - allow user save to succeed even if provider removal fails
     }
   }
 });

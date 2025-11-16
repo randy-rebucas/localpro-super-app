@@ -163,7 +163,7 @@ const sendVerificationCode = async (req, res) => {
     logger.error('Send verification code error', {
       error: error.message,
       stack: error.stack,
-      phoneNumber: phoneNumber ? phoneNumber.substring(0, 5) + '***' : 'unknown',
+      phoneNumber: req.body?.phoneNumber ? req.body.phoneNumber.substring(0, 5) + '***' : 'unknown',
       clientInfo,
       duration: Date.now() - startTime
     });
@@ -381,7 +381,7 @@ const verifyCode = async (req, res) => {
     logger.error('Verify code error', {
       error: error.message,
       stack: error.stack,
-      phoneNumber: phoneNumber ? phoneNumber.substring(0, 5) + '***' : 'unknown',
+      phoneNumber: req.body?.phoneNumber ? req.body.phoneNumber.substring(0, 5) + '***' : 'unknown',
       clientInfo,
       duration: Date.now() - startTime
     });

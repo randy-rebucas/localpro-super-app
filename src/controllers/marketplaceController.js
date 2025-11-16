@@ -2043,7 +2043,6 @@ const getProviderDetails = async (req, res) => {
       provider.ensurePerformance()
     ]);
     
-    const verificationSummary = verification ? verification.getVerificationSummary() : null;
     const preferencesSummary = preferences ? preferences.getSummary() : null;
     const businessInfoSummary = businessInfo ? businessInfo.getSummary() : null;
     

@@ -193,14 +193,14 @@ class ReferralService {
 
       // Process referrer reward
       if (referrerReward.amount > 0) {
-        await this.applyReward(referral.referrer, referrerReward);
+        await this.applyReward(referral.referrer, referrerReward, referral);
         referrerReward.status = 'processed';
         referrerReward.processedAt = new Date();
       }
 
       // Process referee reward
       if (refereeReward.amount > 0) {
-        await this.applyReward(referral.referee, refereeReward);
+        await this.applyReward(referral.referee, refereeReward, referral);
         refereeReward.status = 'processed';
         refereeReward.processedAt = new Date();
       }
@@ -217,9 +217,10 @@ class ReferralService {
    * Apply reward to user
    * @param {string} userId - User ID
    * @param {Object} reward - Reward object
+   * @param {Object} referral - Referral object (optional, for metadata)
    * @returns {Promise<void>}
    */
-  async applyReward(userId, reward) {
+  async applyReward(userId, reward, referral = null) {
     try {
       const user = await User.findById(userId);
       if (!user) {
@@ -232,15 +233,15 @@ class ReferralService {
             category: 'referral_reward',
             amount: reward.amount,
             description: `Referral reward: ${reward.description || 'Referral bonus'}`,
-            reference: {
+            reference: referral ? {
               type: 'Referral',
               id: referral._id
-            },
+            } : undefined,
             paymentMethod: 'internal',
-            metadata: {
+            metadata: referral ? {
               referralId: referral._id,
               referralType: referral.referralType
-            }
+            } : undefined
           });
           break;
         case 'discount':
