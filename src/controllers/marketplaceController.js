@@ -2239,6 +2239,117 @@ const getProviderDetails = async (req, res) => {
   }
 };
 
+// @desc    Get all services of a provider
+// @route   GET /api/marketplace/providers/:providerId/services
+// @access  Public
+const getProviderServices = async (req, res) => {
+  try {
+    const { providerId } = req.params;
+    const {
+      category,
+      status = 'all', // all, active, inactive
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    // Validate ObjectId format
+    if (!mongoose.isValidObjectId(providerId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid provider ID format'
+      });
+    }
+
+    // Convert to ObjectId for consistent querying
+    const providerObjectId = new mongoose.Types.ObjectId(providerId);
+
+    // Build filter object
+    const filter = { provider: providerObjectId };
+
+    if (category) filter.category = category;
+    
+    if (status === 'active') {
+      filter.isActive = true;
+    } else if (status === 'inactive') {
+      filter.isActive = false;
+    }
+    // If status is 'all', don't add isActive filter
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const services = await Service.find(filter)
+      .populate('provider', 'firstName lastName profile.avatar profile.rating profile.experience')
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+
+    const total = await Service.countDocuments(filter);
+
+    // Get provider info for response
+    const provider = await User.findById(providerObjectId)
+      .select('firstName lastName profile.avatar profile.rating')
+      .lean();
+
+    // Get additional statistics for the provider
+    const stats = await Service.aggregate([
+      { $match: { provider: providerObjectId } },
+      {
+        $group: {
+          _id: null,
+          totalServices: { $sum: 1 },
+          activeServices: {
+            $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
+          },
+          inactiveServices: {
+            $sum: { $cond: [{ $eq: ['$isActive', false] }, 1, 0] }
+          },
+          averageRating: { $avg: '$rating.average' },
+          totalBookings: { $sum: '$rating.count' }
+        }
+      }
+    ]);
+
+    const providerStats = stats.length > 0 ? stats[0] : {
+      totalServices: 0,
+      activeServices: 0,
+      inactiveServices: 0,
+      averageRating: 0,
+      totalBookings: 0
+    };
+
+    const pagination = createPagination(parseInt(page), parseInt(limit), total);
+
+    logger.info('Provider services retrieved', {
+      providerId,
+      totalServices: total,
+      returnedServices: services.length
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Provider services retrieved successfully',
+      data: {
+        services,
+        provider: provider || null,
+        pagination,
+        stats: providerStats
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get provider services', error, {
+      providerId: req.params.providerId
+    });
+    return sendServerError(res, error, 'Failed to retrieve provider services', 'PROVIDER_SERVICES_ERROR');
+  }
+};
+
 module.exports = {
   getServices,
   getService,
@@ -2260,5 +2371,6 @@ module.exports = {
   getMyServices,
   getMyBookings,
   getProvidersForService,
-  getProviderDetails
+  getProviderDetails,
+  getProviderServices
 };

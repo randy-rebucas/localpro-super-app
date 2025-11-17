@@ -26,7 +26,8 @@ const {
   getMyServices,
   getMyBookings,
   getProvidersForService,
-  getProviderDetails
+  getProviderDetails,
+  getProviderServices
 } = require('../controllers/marketplaceController');
 const { uploaders } = require('../config/cloudinary');
 
@@ -53,6 +54,13 @@ router.get('/services/:id/providers',
   validateObjectIdParam('id'),
   validatePaginationParams,
   getProvidersForService
+);
+
+// Provider routes - specific routes must come before parameterized routes
+router.get('/providers/:providerId/services',
+  validateObjectIdParam('providerId'),
+  validatePaginationParams,
+  getProviderServices
 );
 
 // Provider details route
