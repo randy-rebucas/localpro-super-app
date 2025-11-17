@@ -10513,16 +10513,57 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/users",
+              "raw": "{{baseUrl}}/api/users?page=1&limit=10&includeDeleted=false",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page (default: 10)"
+                },
+                {
+                  "key": "includeDeleted",
+                  "value": "false",
+                  "description": "Include soft-deleted users (default: false)"
+                },
+                {
+                  "key": "role",
+                  "value": "",
+                  "description": "Filter by role (e.g., provider, client)",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "",
+                  "description": "Filter by active status (true/false)",
+                  "disabled": true
+                },
+                {
+                  "key": "isVerified",
+                  "value": "",
+                  "description": "Filter by verification status (true/false)",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term (searches firstName, lastName, email, phoneNumber, businessName)",
+                  "disabled": true
+                }
               ]
             },
-            "description": "Get all users"
+            "description": "Get all users with filtering and pagination. Soft-deleted users are excluded by default unless includeDeleted=true is specified."
           },
           "response": []
         },
@@ -10564,7 +10605,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/users/:id",
+              "raw": "{{baseUrl}}/api/users/:id?includeDeleted=false",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -10572,9 +10613,16 @@
                 "api",
                 "users",
                 ":id"
+              ],
+              "query": [
+                {
+                  "key": "includeDeleted",
+                  "value": "false",
+                  "description": "Include soft-deleted users (default: false)"
+                }
               ]
             },
-            "description": "Get user by ID"
+            "description": "Get user by ID. Soft-deleted users are excluded by default unless includeDeleted=true is specified."
           },
           "response": []
         },
@@ -10821,6 +10869,33 @@
           "response": []
         },
         {
+          "name": "PATCH /api/users/:id/restore",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/restore",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id",
+                "restore"
+              ]
+            },
+            "description": "Restore a soft-deleted user. This will restore the user account and set their status back to active. Only admin users can restore deleted users."
+          },
+          "response": []
+        },
+        {
           "name": "DELETE /api/users/:id",
           "request": {
             "method": "DELETE",
@@ -10842,7 +10917,7 @@
                 ":id"
               ]
             },
-            "description": "Delete user"
+            "description": "Soft delete a user. This marks the user as deleted (sets deletedAt timestamp) but does not permanently remove the user from the database. The user will be excluded from queries by default. Use the restore endpoint to restore a deleted user. Admin users cannot be deleted."
           },
           "response": []
         }

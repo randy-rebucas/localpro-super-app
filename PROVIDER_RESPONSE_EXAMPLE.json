@@ -1,0 +1,357 @@
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "userId": {
+        "_id": "507f191e810c19729de860ea",
+        "phoneNumber": "+1234567890",
+        "email": "john.doe@example.com",
+        "firstName": "John",
+        "lastName": "Doe",
+        "phone": "+1234567890",
+        "profileImage": "https://example.com/profile.jpg",
+        "gender": "male",
+        "birthdate": "1990-01-01T00:00:00.000Z",
+        "roles": ["client", "provider"],
+        "isActive": true,
+        "isVerified": true,
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "updatedAt": "2024-01-15T00:00:00.000Z",
+        "profile": {
+          "_id": "507f1f77bcf86cd799439012",
+          "avatar": {
+            "url": "https://example.com/avatar.jpg",
+            "publicId": "avatar_123",
+            "thumbnail": "https://example.com/avatar_thumb.jpg"
+          },
+          "bio": "Experienced professional with 10+ years in the industry",
+          "address": {
+            "street": "123 Main St",
+            "city": "New York",
+            "state": "NY",
+            "zipCode": "10001",
+            "country": "USA",
+            "coordinates": {
+              "lat": 40.7128,
+              "lng": -74.0060
+            }
+          }
+        },
+        "settings": {
+          "_id": "507f1f77bcf86cd799439013",
+          "notifications": {
+            "email": true,
+            "sms": true,
+            "push": true
+          },
+          "privacy": {
+            "profileVisibility": "public",
+            "showEmail": true,
+            "showPhone": false
+          }
+        },
+        "agency": {
+          "_id": "507f1f77bcf86cd799439014",
+          "agencyId": {
+            "_id": "507f1f77bcf86cd799439015",
+            "name": "Elite Services Agency",
+            "type": "agency",
+            "contact": {
+              "address": {
+                "street": "456 Business Ave",
+                "city": "New York",
+                "state": "NY",
+                "zipCode": "10002"
+              }
+            }
+          }
+        },
+        "referral": {
+          "_id": "507f1f77bcf86cd799439016",
+          "referralCode": "JOHN2024",
+          "referralStats": {
+            "totalReferrals": 15,
+            "successfulReferrals": 12,
+            "referralTier": "gold"
+          }
+        },
+        "trust": {
+          "_id": "507f1f77bcf86cd799439017",
+          "trustScore": 85,
+          "verification": {
+            "phoneVerified": true,
+            "emailVerified": true,
+            "identityVerified": true,
+            "businessVerified": false,
+            "addressVerified": true,
+            "bankAccountVerified": true
+          },
+          "badges": [
+            {
+              "type": "verified_provider",
+              "description": "Verified Professional",
+              "earnedAt": "2024-01-10T00:00:00.000Z"
+            }
+          ]
+        }
+      },
+      "status": "active",
+      "providerType": "individual",
+      "onboarding": {
+        "completed": true,
+        "currentStep": "review",
+        "progress": 100,
+        "steps": [
+          {
+            "step": "profile_setup",
+            "completed": true,
+            "completedAt": "2024-01-02T00:00:00.000Z",
+            "data": {}
+          },
+          {
+            "step": "professional_info",
+            "completed": true,
+            "completedAt": "2024-01-03T00:00:00.000Z",
+            "data": {}
+          },
+          {
+            "step": "verification",
+            "completed": true,
+            "completedAt": "2024-01-05T00:00:00.000Z",
+            "data": {}
+          }
+        ]
+      },
+      "settings": {
+        "profileVisibility": "public",
+        "showContactInfo": true,
+        "showPricing": true,
+        "showReviews": true,
+        "allowDirectBooking": true,
+        "requireApproval": false
+      },
+      "metadata": {
+        "lastActive": "2024-01-20T10:30:00.000Z",
+        "profileViews": 1250,
+        "searchRanking": 8.5,
+        "featured": true,
+        "promoted": false,
+        "tags": ["experienced", "verified", "top-rated"],
+        "notes": null
+      },
+      "deleted": false,
+      "deletedOn": null,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-20T10:30:00.000Z",
+      "professionalInfo": {
+        "_id": "507f1f77bcf86cd799439018",
+        "provider": "507f1f77bcf86cd799439011",
+        "specialties": [
+          {
+            "category": "plumbing",
+            "description": "Expert plumbing services",
+            "yearsOfExperience": 10,
+            "serviceAreas": [
+              {
+                "city": "New York",
+                "state": "NY",
+                "zipCode": "10001",
+                "radius": 25
+              }
+            ],
+            "skills": [
+              {
+                "_id": "507f1f77bcf86cd799439019",
+                "name": "Pipe Repair",
+                "description": "Expert in pipe repair and replacement",
+                "category": "plumbing",
+                "metadata": {
+                  "level": "expert",
+                  "certified": true
+                }
+              },
+              {
+                "_id": "507f1f77bcf86cd799439020",
+                "name": "Leak Detection",
+                "description": "Advanced leak detection services",
+                "category": "plumbing",
+                "metadata": {
+                  "level": "expert",
+                  "certified": true
+                }
+              }
+            ],
+            "pricing": {
+              "hourlyRate": 75,
+              "minimumCharge": 100,
+              "currency": "USD"
+            }
+          }
+        ],
+        "languages": ["en", "es"],
+        "availability": {
+          "monday": { "available": true, "start": "09:00", "end": "17:00" },
+          "tuesday": { "available": true, "start": "09:00", "end": "17:00" },
+          "wednesday": { "available": true, "start": "09:00", "end": "17:00" },
+          "thursday": { "available": true, "start": "09:00", "end": "17:00" },
+          "friday": { "available": true, "start": "09:00", "end": "17:00" },
+          "saturday": { "available": false, "start": null, "end": null },
+          "sunday": { "available": false, "start": null, "end": null }
+        },
+        "emergencyServices": true,
+        "travelDistance": 50,
+        "minimumJobValue": 50,
+        "maximumJobValue": 10000
+      },
+      "businessInfo": null,
+      "verification": {
+        "_id": "507f1f77bcf86cd799439021",
+        "provider": "507f1f77bcf86cd799439011",
+        "identityVerified": true,
+        "identityVerifiedAt": "2024-01-05T00:00:00.000Z",
+        "businessVerified": false,
+        "businessVerifiedAt": null,
+        "backgroundCheck": {
+          "status": "passed",
+          "completedAt": "2024-01-05T00:00:00.000Z",
+          "reportId": "BC-12345",
+          "expiresAt": "2025-01-05T00:00:00.000Z"
+        },
+        "insurance": {
+          "liability": {
+            "active": true,
+            "amount": 1000000,
+            "expiresAt": "2025-01-01T00:00:00.000Z",
+            "documents": [
+              {
+                "url": "https://example.com/insurance.pdf",
+                "publicId": "insurance_123",
+                "uploadedAt": "2024-01-01T00:00:00.000Z"
+              }
+            ]
+          },
+          "workersComp": {
+            "active": true,
+            "amount": 500000,
+            "expiresAt": "2025-01-01T00:00:00.000Z",
+            "documents": []
+          }
+        },
+        "licenses": [
+          {
+            "type": "plumbing_license",
+            "number": "PL-12345",
+            "state": "NY",
+            "expiresAt": "2025-12-31T00:00:00.000Z",
+            "document": {
+              "url": "https://example.com/license.pdf",
+              "publicId": "license_123"
+            }
+          }
+        ],
+        "certifications": [
+          {
+            "name": "Master Plumber",
+            "issuer": "NY State Board",
+            "issuedAt": "2020-01-01T00:00:00.000Z",
+            "expiresAt": "2025-01-01T00:00:00.000Z",
+            "document": {
+              "url": "https://example.com/cert.pdf",
+              "publicId": "cert_123"
+            }
+          }
+        ]
+      },
+      "preferences": {
+        "_id": "507f1f77bcf86cd799439022",
+        "provider": "507f1f77bcf86cd799439011",
+        "communicationPreferences": {
+          "preferredMethod": "email",
+          "allowSms": true,
+          "allowCalls": true,
+          "responseTime": "within_24_hours"
+        },
+        "jobPreferences": {
+          "preferredJobTypes": ["repair", "installation"],
+          "preferredJobSizes": ["medium", "large"],
+          "preferredDistance": 25,
+          "acceptEmergencyJobs": true
+        },
+        "pricingPreferences": {
+          "negotiable": true,
+          "showPricing": true,
+          "acceptBids": true
+        },
+        "availabilityPreferences": {
+          "advanceBookingDays": 30,
+          "sameDayBooking": true,
+          "weekendAvailability": false
+        }
+      },
+      "performance": {
+        "_id": "507f1f77bcf86cd799439023",
+        "provider": "507f1f77bcf86cd799439011",
+        "rating": 4.8,
+        "totalReviews": 125,
+        "totalJobs": 450,
+        "completedJobs": 435,
+        "cancelledJobs": 10,
+        "pendingJobs": 5,
+        "completionRate": 96.7,
+        "cancellationRate": 2.2,
+        "averageResponseTime": 2.5,
+        "totalEarnings": 125000,
+        "averageJobValue": 278,
+        "responseTimeMinutes": 2.5,
+        "lastUpdated": "2024-01-20T10:30:00.000Z"
+      },
+      "financialInfo": {
+        "_id": "507f1f77bcf86cd799439024",
+        "provider": "507f1f77bcf86cd799439011",
+        "bankAccount": {
+          "accountHolderName": "John Doe",
+          "accountType": "checking",
+          "last4": "1234",
+          "bankName": "Chase Bank",
+          "verified": true,
+          "verifiedAt": "2024-01-05T00:00:00.000Z"
+        },
+        "taxInformation": {
+          "taxId": "12-3456789",
+          "taxIdType": "SSN",
+          "verified": true
+        },
+        "paymentMethods": [
+          {
+            "type": "bank_transfer",
+            "isDefault": true,
+            "verified": true
+          }
+        ],
+        "payoutSettings": {
+          "frequency": "weekly",
+          "minimumPayout": 100,
+          "autoPayout": true
+        },
+        "earnings": {
+          "totalEarnings": 125000,
+          "pendingEarnings": 500,
+          "availableBalance": 124500,
+          "lastPayout": {
+            "amount": 2500,
+            "date": "2024-01-15T00:00:00.000Z",
+            "status": "completed"
+          }
+        }
+      }
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 150,
+    "pages": 8
+  }
+}
+

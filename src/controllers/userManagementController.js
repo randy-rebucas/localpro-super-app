@@ -16,11 +16,22 @@ const getAllUsers = async (req, res) => {
       isVerified,
       search,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      includeDeleted = false
     } = req.query;
 
     // Build filter object
     const baseFilters = {};
+    
+    // Exclude soft-deleted users unless explicitly requested
+    if (includeDeleted !== 'true') {
+      const UserManagement = require('../models/UserManagement');
+      const deletedUserManagements = await UserManagement.find({ deletedAt: { $ne: null } }).select('user');
+      const deletedUserIds = deletedUserManagements.map(um => um.user);
+      if (deletedUserIds.length > 0) {
+        baseFilters._id = { $nin: deletedUserIds };
+      }
+    }
     
     // Role filter - only add if not empty (multi-role support)
     // Since roles is an array field, we need to use $in operator to check if role exists in array
@@ -199,6 +210,8 @@ const getAllUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
+    const { includeDeleted = false } = req.query;
+    
     const user = await User.findById(id)
       .select('-verificationCode')
       .populate({
@@ -219,6 +232,17 @@ const getUserById = async (req, res) => {
         success: true,
         data: {}
       });
+    }
+    
+    // Check if user is soft-deleted (unless explicitly requested)
+    if (includeDeleted !== 'true') {
+      const management = await user.ensureManagement();
+      if (management.deletedAt) {
+        return res.status(200).json({
+          success: true,
+          data: {}
+        });
+      }
     }
 
     // Fetch provider data if user has provider role
@@ -345,6 +369,15 @@ const updateUser = async (req, res) => {
     const user = await User.findById(id);
     if (!user) {
       return res.status(200).json({ success: true, data: {} });
+    }
+    
+    // Check if user is soft-deleted
+    const management = await user.ensureManagement();
+    if (management.deletedAt) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot update a deleted user'
+      });
     }
 
     // Handle nested profile merge with undefined filtering
@@ -738,6 +771,21 @@ const getUserStats = async (req, res) => {
       const userIds = matchingAgencies.map(ua => ua.user);
       filter._id = { $in: userIds };
     }
+    
+    // Exclude soft-deleted users
+    const UserManagement = require('../models/UserManagement');
+    const deletedUserManagements = await UserManagement.find({ deletedAt: { $ne: null } }).select('user');
+    const deletedUserIds = deletedUserManagements.map(um => um.user);
+    if (deletedUserIds.length > 0) {
+      if (filter._id && filter._id.$in) {
+        // If we already have an $in filter, combine with $nin
+        filter._id = { 
+          $in: filter._id.$in.filter(id => !deletedUserIds.some(did => did.toString() === id.toString()))
+        };
+      } else {
+        filter._id = { $nin: deletedUserIds };
+      }
+    }
 
     const [
       totalUsers,
@@ -860,18 +908,79 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    if (typeof user.remove === 'function') {
-      await user.remove();
-    } else {
-      await user.deleteOne();
+    // Check if user is already soft-deleted
+    const management = await user.ensureManagement();
+    if (management.deletedAt) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is already deleted'
+      });
     }
+
+    // Soft delete the user
+    const deletedBy = req.user?._id || null;
+    await user.softDelete(deletedBy);
+
+    // Audit log
+    await auditLogger.logUser('user_delete', req, { type: 'user', id: id, name: 'User' }, {}, { softDelete: true });
 
     res.status(200).json({
       success: true,
       message: 'User deleted successfully'
     });
-  } catch (_error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Restore soft-deleted user
+// @route   PATCH /api/users/:id/restore
+// @access  Admin
+const restoreUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Check if user is soft-deleted
+    const management = await user.ensureManagement();
+    if (!management.deletedAt) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not deleted'
+      });
+    }
+
+    // Restore the user
+    const restoredBy = req.user?._id || null;
+    await user.restore(restoredBy);
+
+    // Audit log
+    await auditLogger.logUser('user_restore', req, { type: 'user', id: id, name: 'User' }, {}, { restore: true });
+
+    res.status(200).json({
+      success: true,
+      message: 'User restored successfully',
+      data: user
+    });
+  } catch (error) {
+    console.error('Restore user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -885,5 +994,6 @@ module.exports = {
   addUserBadge,
   getUserStats,
   bulkUpdateUsers,
-  deleteUser
+  deleteUser,
+  restoreUser
 };

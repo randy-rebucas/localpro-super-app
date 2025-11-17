@@ -105,12 +105,8 @@ const getProviders = async (req, res) => {
     };
 
     // Apply filters
-    // Default to 'active' status if no status is specified
-    if (status) {
-      query.status = status;
-    } else {
-      query.status = 'active'; // Default to active providers
-    }
+    // Note: If status is not provided, all providers (regardless of status) are returned
+    if (status) query.status = status;
     if (providerType) query.providerType = providerType;
     if (featured) query['metadata.featured'] = featured === 'true';
     if (promoted) query['metadata.promoted'] = promoted === 'true';
@@ -221,18 +217,89 @@ const getProviders = async (req, res) => {
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const skip = (page - 1) * limit;
-    const providers = await Provider.find(query)
-      .populate('userId', 'firstName lastName email phone profileImage')
-      .populate('professionalInfo')
-      .populate('professionalInfo.specialties.skills', 'name description category metadata')
-      .populate('businessInfo')
-      .populate('verification', '-backgroundCheck.reportId -insurance.documents')
-      .populate('preferences')
-      .populate('performance')
-      .sort(sort)
-      .skip(skip)
-      .limit(parseInt(limit))
-      .select('-financialInfo');
+    
+    // Build populate options - handle agency population errors gracefully
+    const userIdPopulateOptions = [
+      { path: 'profile' },
+      { path: 'settings' },
+      {
+        path: 'agency',
+        populate: {
+          path: 'agencyId',
+          select: 'name type contact.address'
+        }
+      },
+      {
+        path: 'referral',
+        select: 'referralCode referralStats'
+      },
+      {
+        path: 'trust',
+        select: 'trustScore verification badges'
+      }
+    ];
+
+    let providers;
+    try {
+      providers = await Provider.find(query)
+        .populate({
+          path: 'userId',
+          select: '-verificationCode -password',
+          populate: userIdPopulateOptions
+        })
+        .populate({
+          path: 'professionalInfo',
+          populate: {
+            path: 'specialties.skills'
+          }
+        })
+        .populate('businessInfo')
+        .populate('verification')
+        .populate('preferences')
+        .populate('performance')
+        .populate('financialInfo')
+        .sort(sort)
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean();
+    } catch (populateError) {
+      // If population fails due to invalid agency data (e.g., number instead of ObjectId)
+      // Retry without agency population to prevent the entire query from failing
+      if (populateError.message && populateError.message.includes('Cast to ObjectId') && populateError.message.includes('UserAgency')) {
+        logger.warn('Agency population failed due to invalid data, retrying without agency population', {
+          error: populateError.message,
+          userId: req.user?.id
+        });
+        
+        // Remove agency from populate options
+        const userIdPopulateWithoutAgency = userIdPopulateOptions.filter(p => p.path !== 'agency');
+        
+        providers = await Provider.find(query)
+          .populate({
+            path: 'userId',
+            select: '-verificationCode -password',
+            populate: userIdPopulateWithoutAgency
+          })
+          .populate({
+            path: 'professionalInfo',
+            populate: {
+              path: 'specialties.skills'
+            }
+          })
+          .populate('businessInfo')
+          .populate('verification')
+          .populate('preferences')
+          .populate('performance')
+          .populate('financialInfo')
+          .sort(sort)
+          .skip(skip)
+          .limit(parseInt(limit))
+          .lean();
+      } else {
+        // Re-throw if it's a different error
+        throw populateError;
+      }
+    }
 
     const total = await Provider.countDocuments(query);
 
