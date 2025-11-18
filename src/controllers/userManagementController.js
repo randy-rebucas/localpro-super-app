@@ -16,11 +16,22 @@ const getAllUsers = async (req, res) => {
       isVerified,
       search,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      includeDeleted = false
     } = req.query;
 
     // Build filter object
     const baseFilters = {};
+    
+    // Exclude soft-deleted users unless explicitly requested
+    if (includeDeleted !== 'true') {
+      const UserManagement = require('../models/UserManagement');
+      const deletedUserManagements = await UserManagement.find({ deletedAt: { $ne: null } }).select('user');
+      const deletedUserIds = deletedUserManagements.map(um => um.user);
+      if (deletedUserIds.length > 0) {
+        baseFilters._id = { $nin: deletedUserIds };
+      }
+    }
     
     // Role filter - only add if not empty (multi-role support)
     // Since roles is an array field, we need to use $in operator to check if role exists in array
@@ -96,8 +107,17 @@ const getAllUsers = async (req, res) => {
     // Execute query
     const usersQuery = User.find(filter)
       .select('-verificationCode')
-      .populate('agency.agencyId', 'name type')
-      .populate('referral.referredBy', 'firstName lastName')
+      .populate({
+        path: 'agency',
+        populate: {
+          path: 'agencyId',
+          select: 'name type'
+        }
+      })
+      .populate({
+        path: 'referral',
+        populate: { path: 'referredBy', select: 'firstName lastName' }
+      })
       .sort(sort)
       .skip(skip)
       .limit(parseInt(limit));
@@ -123,9 +143,27 @@ const getAllUsers = async (req, res) => {
       // Fetch provider data for these users
       if (providerUserIds.length > 0) {
         try {
-          const providers = await Provider.find({ userId: { $in: providerUserIds } })
-            .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+          let providers = await Provider.find({ userId: { $in: providerUserIds } })
+            .populate('professionalInfo')
+            .populate('professionalInfo.specialties.skills', 'name description category metadata')
+            .populate('businessInfo')
+            .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+            .populate('preferences')
+            .populate('performance')
+            .select('-financialInfo -onboarding')
             .lean();
+
+          // Exclude category from specialties in response
+          providers = providers.map(provider => {
+            if (provider.professionalInfo && provider.professionalInfo.specialties && Array.isArray(provider.professionalInfo.specialties)) {
+              provider.professionalInfo.specialties = provider.professionalInfo.specialties.map(specialty => {
+                // eslint-disable-next-line no-unused-vars
+                const { category: _category, ...specialtyWithoutCategory } = specialty;
+                return specialtyWithoutCategory;
+              });
+            }
+            return provider;
+          });
 
           // Create a map of userId to provider data for quick lookup
           const providerMap = new Map();
@@ -184,10 +222,21 @@ const getAllUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
+    const { includeDeleted = false } = req.query;
+    
     const user = await User.findById(id)
       .select('-verificationCode')
-      .populate('agency.agencyId', 'name type address')
-      .populate('referral.referredBy', 'firstName lastName email')
+      .populate({
+        path: 'agency',
+        populate: {
+          path: 'agencyId',
+          select: 'name type contact.address'
+        }
+      })
+      .populate({
+        path: 'referral',
+        populate: { path: 'referredBy', select: 'firstName lastName email' }
+      })
       .populate('settings');
 
     if (!user) {
@@ -196,13 +245,35 @@ const getUserById = async (req, res) => {
         data: {}
       });
     }
+    
+    // Check if user is soft-deleted (unless explicitly requested)
+    if (includeDeleted !== 'true') {
+      const management = await user.ensureManagement();
+      if (management.deletedAt) {
+        return res.status(200).json({
+          success: true,
+          data: {}
+        });
+      }
+    }
 
     // Fetch provider data if user has provider role
     const userObj = user.toObject ? user.toObject() : user;
     if (userObj.roles && userObj.roles.includes('provider')) {
       try {
         const provider = await Provider.findOne({ userId: id })
-          .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+          .populate({
+            path: 'professionalInfo',
+            populate: {
+              path: 'specialties.skills',
+              select: 'name description category metadata'
+            }
+          })
+          .populate('businessInfo')
+          .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+          .populate('preferences')
+          .populate('performance')
+          .select('-financialInfo -onboarding')
           .lean();
         
         if (provider) {
@@ -315,6 +386,15 @@ const updateUser = async (req, res) => {
     const user = await User.findById(id);
     if (!user) {
       return res.status(200).json({ success: true, data: {} });
+    }
+    
+    // Check if user is soft-deleted
+    const management = await user.ensureManagement();
+    if (management.deletedAt) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot update a deleted user'
+      });
     }
 
     // Handle nested profile merge with undefined filtering
@@ -501,8 +581,13 @@ const updateUserStatus = async (req, res) => {
     const userRoles = req.user.roles || [];
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
+    
+    // Ensure agency is populated for both users
+    const userAgency = await user.ensureAgency();
+    const reqUserAgency = await req.user.ensureAgency();
+    
     const canUpdateStatus = isAdmin || 
-                           (isAgencyAdmin && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
+                           (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
 
     if (!canUpdateStatus) {
       return res.status(403).json({
@@ -564,8 +649,13 @@ const updateUserVerification = async (req, res) => {
     const userRoles = req.user.roles || [];
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
+    
+    // Ensure agency is populated for both users
+    const userAgency = await user.ensureAgency();
+    const reqUserAgency = await req.user.ensureAgency();
+    
     const canUpdateVerification = isAdmin || 
-                                 (isAgencyAdmin && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
+                                 (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
 
     if (!canUpdateVerification) {
       return res.status(403).json({
@@ -574,16 +664,27 @@ const updateUserVerification = async (req, res) => {
       });
     }
 
-    // Update verification status
-    user.verification = { ...user.verification, ...verification };
+    // Update verification statuses
+    const trust = await user.ensureTrust();
+    if (verification.phoneVerified) await user.verify('phone');
+    if (verification.emailVerified) await user.verify('email');
+    if (verification.identityVerified) await user.verify('identity');
+    if (verification.businessVerified) await user.verify('business');
+    if (verification.addressVerified) await user.verify('address');
+    if (verification.bankAccountVerified) await user.verify('bankAccount');
     
     // Update overall verification status
-    user.isVerified = Object.values(user.verification).some(status => status === true);
+    await user.populate('trust');
+    const verificationSummary = trust.getVerificationSummary();
+    user.isVerified = verificationSummary.verifiedCount > 0;
     
     // Recalculate trust score
-    user.calculateTrustScore();
+    await user.calculateTrustScore();
     
     await user.save();
+
+    // Get trust summary for response
+    const trustSummary = await user.getTrustSummary();
 
     // Audit log
     await auditLogger.logUser('user_verify', req, { type: 'user', id: id, name: 'User' }, {}, { verification });
@@ -592,9 +693,9 @@ const updateUserVerification = async (req, res) => {
       success: true,
       message: 'User verification updated successfully',
       data: {
-        verification: user.verification,
+        verification: trustSummary.verification,
         isVerified: user.isVerified,
-        trustScore: user.trustScore
+        trustScore: trustSummary.trustScore
       }
     });
   } catch (error) {
@@ -626,8 +727,13 @@ const addUserBadge = async (req, res) => {
     const userRoles = req.user.roles || [];
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
+    
+    // Ensure agency is populated for both users
+    const userAgency = await user.ensureAgency();
+    const reqUserAgency = await req.user.ensureAgency();
+    
     const canAddBadge = isAdmin || 
-                       (isAgencyAdmin && user.agency.agencyId?.toString() === req.user.agency?.agencyId?.toString());
+                       (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
 
     if (!canAddBadge) {
       return res.status(403).json({
@@ -637,12 +743,12 @@ const addUserBadge = async (req, res) => {
     }
 
     // Add badge
-    user.addBadge(type, description);
-    
-    // Recalculate trust score
-    user.calculateTrustScore();
+    await user.addBadge(type, description);
     
     await user.save();
+
+    // Get trust summary for response
+    const trustSummary = await user.getTrustSummary();
 
     // Audit log
     await auditLogger.logUser('user_update', req, { type: 'user', id: id, name: 'User' }, {}, { type, description });
@@ -651,8 +757,8 @@ const addUserBadge = async (req, res) => {
       success: true,
       message: 'Badge added successfully',
       data: {
-        badges: user.badges,
-        trustScore: user.trustScore
+        badges: trustSummary.badges,
+        trustScore: trustSummary.trustScore
       }
     });
   } catch (error) {
@@ -676,7 +782,26 @@ const getUserStats = async (req, res) => {
     const userRoles = req.user.roles || [];
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     if (agencyId && !isAdmin) {
-      filter['agency.agencyId'] = agencyId;
+      // Filter by agency - need to find users with matching agencyId in UserAgency
+      const UserAgency = require('../models/UserAgency');
+      const matchingAgencies = await UserAgency.find({ agencyId: agencyId });
+      const userIds = matchingAgencies.map(ua => ua.user);
+      filter._id = { $in: userIds };
+    }
+    
+    // Exclude soft-deleted users
+    const UserManagement = require('../models/UserManagement');
+    const deletedUserManagements = await UserManagement.find({ deletedAt: { $ne: null } }).select('user');
+    const deletedUserIds = deletedUserManagements.map(um => um.user);
+    if (deletedUserIds.length > 0) {
+      if (filter._id && filter._id.$in) {
+        // If we already have an $in filter, combine with $nin
+        filter._id = { 
+          $in: filter._id.$in.filter(id => !deletedUserIds.some(did => did.toString() === id.toString()))
+        };
+      } else {
+        filter._id = { $nin: deletedUserIds };
+      }
     }
 
     const [
@@ -800,18 +925,79 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    if (typeof user.remove === 'function') {
-      await user.remove();
-    } else {
-      await user.deleteOne();
+    // Check if user is already soft-deleted
+    const management = await user.ensureManagement();
+    if (management.deletedAt) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is already deleted'
+      });
     }
+
+    // Soft delete the user
+    const deletedBy = req.user?._id || null;
+    await user.softDelete(deletedBy);
+
+    // Audit log
+    await auditLogger.logUser('user_delete', req, { type: 'user', id: id, name: 'User' }, {}, { softDelete: true });
 
     res.status(200).json({
       success: true,
       message: 'User deleted successfully'
     });
-  } catch (_error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Restore soft-deleted user
+// @route   PATCH /api/users/:id/restore
+// @access  Admin
+const restoreUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Check if user is soft-deleted
+    const management = await user.ensureManagement();
+    if (!management.deletedAt) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not deleted'
+      });
+    }
+
+    // Restore the user
+    const restoredBy = req.user?._id || null;
+    await user.restore(restoredBy);
+
+    // Audit log
+    await auditLogger.logUser('user_restore', req, { type: 'user', id: id, name: 'User' }, {}, { restore: true });
+
+    res.status(200).json({
+      success: true,
+      message: 'User restored successfully',
+      data: user
+    });
+  } catch (error) {
+    console.error('Restore user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -825,5 +1011,6 @@ module.exports = {
   addUserBadge,
   getUserStats,
   bulkUpdateUsers,
-  deleteUser
+  deleteUser,
+  restoreUser
 };

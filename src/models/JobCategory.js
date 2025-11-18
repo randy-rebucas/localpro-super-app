@@ -30,7 +30,7 @@ const jobCategorySchema = new mongoose.Schema({
 
 // Indexes
 jobCategorySchema.index({ isActive: 1, displayOrder: 1 });
-jobCategorySchema.index({ name: 1 });
+// Note: name already has unique: true which creates an index
 
 // Static method to get active categories ordered by displayOrder
 jobCategorySchema.statics.getActiveCategories = function() {

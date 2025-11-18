@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 const Provider = require('../models/Provider');
 const ProviderSkill = require('../models/ProviderSkill');
+const ServiceCategory = require('../models/ServiceCategory');
 const User = require('../models/User');
+// Note: ProviderBusinessInfo, ProviderProfessionalInfo, ProviderVerification, 
+// ProviderFinancialInfo, ProviderPreferences, and ProviderPerformance are 
+// required dynamically inside functions where needed
 const { logger } = require('../utils/logger');
 const { auditLogger } = require('../utils/auditLogger');
 const { validationResult } = require('express-validator');
@@ -12,21 +16,50 @@ const { validationResult } = require('express-validator');
 const getProviderSkills = async (req, res) => {
   try {
     const { category } = req.query;
-    const skills = await ProviderSkill.getActiveSkills(category);
+    let categoryId = null;
+    let categoryKey = null;
+
+    // If category is provided, determine if it's an ObjectId or a category key
+    if (category) {
+      if (mongoose.Types.ObjectId.isValid(category)) {
+        // It's a valid ObjectId, use it directly
+        categoryId = category;
+      } else {
+        // Treat it as a category key (e.g., "cleaning", "plumbing")
+        const serviceCategory = await ServiceCategory.getByKey(category);
+        if (!serviceCategory) {
+          return res.status(400).json({
+            success: false,
+            message: `Service category with key "${category}" not found`,
+            code: 'CATEGORY_NOT_FOUND'
+          });
+        }
+        categoryId = serviceCategory._id;
+        categoryKey = serviceCategory.key;
+      }
+    }
+
+    const skills = await ProviderSkill.getActiveSkills(categoryId);
     
-    // Transform to include id field (using _id)
+    // Transform to include id field (using _id) and category key
     const formattedSkills = skills.map((skill) => ({
       id: skill._id.toString(),
       name: skill.name,
       description: skill.description,
-      category: skill.category,
+      category: skill.category ? {
+        id: skill.category._id.toString(),
+        key: skill.category.key || categoryKey,
+        name: skill.category.name,
+        description: skill.category.description,
+        metadata: skill.category.metadata
+      } : null,
       displayOrder: skill.displayOrder,
       metadata: skill.metadata
     }));
 
     logger.info('Provider skills retrieved', {
       skillCount: formattedSkills.length,
-      category: category || 'all'
+      category: categoryKey || category || 'all'
     });
 
     res.json({
@@ -41,7 +74,8 @@ const getProviderSkills = async (req, res) => {
     
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve provider skills'
+      message: 'Failed to retrieve provider skills',
+      code: 'SKILLS_RETRIEVAL_ERROR'
     });
   }
 };
@@ -53,6 +87,8 @@ const getProviders = async (req, res) => {
       status,
       providerType,
       category,
+      skills, // Filter by skill IDs (comma-separated ObjectIds) - matches providers with ANY of the skills
+      skillsMatch, // 'any' (default) or 'all' - whether to match ANY or ALL specified skills
       city,
       state,
       minRating,
@@ -67,25 +103,132 @@ const getProviders = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    const query = { status: 'active' };
+    const query = { 
+      deleted: { $ne: true } // Exclude soft-deleted providers
+    };
 
     // Apply filters
+    // Note: If status is not provided, all providers (regardless of status) are returned
     if (status) query.status = status;
     if (providerType) query.providerType = providerType;
     if (featured) query['metadata.featured'] = featured === 'true';
     if (promoted) query['metadata.promoted'] = promoted === 'true';
-    if (minRating) query['performance.rating'] = { $gte: parseFloat(minRating) };
-
-    // Category filter
-    if (category) {
-      query['professionalInfo.specialties.category'] = category;
+    // Rating filter needs to query ProviderPerformance first
+    if (minRating) {
+      const ProviderPerformance = require('../models/ProviderPerformance');
+      const matchingPerformances = await ProviderPerformance.find({
+        rating: { $gte: parseFloat(minRating) }
+      });
+      const providerIds = matchingPerformances.map(p => p.provider);
+      if (providerIds.length > 0) {
+        if (query._id) {
+          // Combine with existing _id filter
+          query._id = { $in: providerIds.filter(id => query._id.$in.includes(id)) };
+        } else {
+          query._id = { $in: providerIds };
+        }
+      } else {
+        query._id = { $in: [] };
+      }
     }
 
-    // Location filter
-    if (city && state) {
-      query['professionalInfo.specialties.serviceAreas'] = {
-        $elemMatch: { city, state }
-      };
+    // Category, skills, and location filters need to query ProviderProfessionalInfo first
+    // We'll handle this after the initial query by filtering results
+    if (category || skills || (city && state)) {
+      const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
+      const professionalInfoQuery = {};
+      
+      // Validate and convert category to ObjectId
+      let categoryObjectId = null;
+      if (category) {
+        if (mongoose.Types.ObjectId.isValid(category)) {
+          categoryObjectId = new mongoose.Types.ObjectId(category);
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid category ID format: "${category}". Category ID must be a valid MongoDB ObjectId.`,
+            code: 'INVALID_CATEGORY_ID'
+          });
+        }
+      }
+      
+      // Validate and convert skills to ObjectIds
+      let skillIds = [];
+      if (skills) {
+        const skillArray = skills.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        
+        // Validate and convert to ObjectIds
+        for (const skill of skillArray) {
+          if (mongoose.Types.ObjectId.isValid(skill)) {
+            skillIds.push(new mongoose.Types.ObjectId(skill));
+          } else {
+            // Invalid ObjectId format
+            return res.status(400).json({
+              success: false,
+              message: `Invalid skill ID format: "${skill}". Skill IDs must be valid MongoDB ObjectIds.`,
+              code: 'INVALID_SKILL_ID'
+            });
+          }
+        }
+      }
+      
+      // Build the specialties query using $elemMatch
+      // When both category and skills are provided, they must match in the same specialty
+      const specialtyMatchConditions = {};
+      
+      if (categoryObjectId) {
+        specialtyMatchConditions.category = categoryObjectId;
+      }
+      
+      if (skillIds.length > 0) {
+        const matchAll = skillsMatch === 'all';
+        
+        if (matchAll && skillIds.length > 1) {
+          // Match providers who have ALL specified skills in the same specialty
+          specialtyMatchConditions.skills = { $all: skillIds };
+        } else {
+          // Match providers who have ANY of the specified skills (default behavior)
+          specialtyMatchConditions.skills = { $in: skillIds };
+        }
+      }
+      
+      // If we have category or skills filters, use $elemMatch
+      if (categoryObjectId || skillIds.length > 0) {
+        professionalInfoQuery.specialties = {
+          $elemMatch: specialtyMatchConditions
+        };
+      }
+      
+      // Location filter (serviceAreas)
+      if (city && state) {
+        if (professionalInfoQuery.specialties && professionalInfoQuery.specialties.$elemMatch) {
+          // Combine with existing $elemMatch conditions
+          professionalInfoQuery.specialties.$elemMatch.serviceAreas = {
+            $elemMatch: { city, state }
+          };
+        } else {
+          // Only location filter
+          professionalInfoQuery['specialties.serviceAreas'] = {
+            $elemMatch: { city, state }
+          };
+        }
+      }
+      
+      const matchingProfessionalInfos = await ProviderProfessionalInfo.find(professionalInfoQuery);
+      const providerIds = matchingProfessionalInfos.map(pi => pi.provider);
+      if (providerIds.length > 0) {
+        if (query._id && query._id.$in) {
+          // Combine with existing _id filter (e.g., from rating filter)
+          query._id.$in = query._id.$in.filter(id => 
+            providerIds.some(pid => pid.toString() === id.toString())
+          );
+        } else {
+          query._id = { $in: providerIds };
+        }
+      } else {
+        // No providers match, return empty result
+        query._id = { $in: [] };
+      }
     }
 
     // Distance filter (if coordinates provided)
@@ -98,18 +241,131 @@ const getProviders = async (req, res) => {
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const skip = (page - 1) * limit;
-    const providers = await Provider.find(query)
-      .populate('userId', 'firstName lastName email phone profileImage')
-      .sort(sort)
-      .skip(skip)
-      .limit(parseInt(limit))
-      .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents');
+    
+    // Build populate options - handle agency population errors gracefully
+    const userIdPopulateOptions = [
+      { path: 'profile' },
+      { path: 'settings' },
+      {
+        path: 'agency',
+        populate: {
+          path: 'agencyId',
+          select: 'name type contact.address'
+        }
+      },
+      {
+        path: 'referral',
+        select: 'referralCode referralStats'
+      },
+      {
+        path: 'trust',
+        select: 'trustScore verification badges'
+      }
+    ];
+
+    let providers;
+    try {
+      providers = await Provider.find(query)
+        .populate({
+          path: 'userId',
+          select: '-verificationCode -password',
+          populate: userIdPopulateOptions
+        })
+        .populate({
+          path: 'professionalInfo',
+          populate: {
+            path: 'specialties.skills',
+            select: 'name description category metadata'
+          }
+        })
+        .populate('businessInfo')
+        .populate('verification')
+        .populate('preferences')
+        .populate('performance')
+        .populate('financialInfo')
+        .sort(sort)
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean();
+    } catch (populateError) {
+      // If population fails due to invalid agency data (e.g., number instead of ObjectId)
+      // Retry without agency population to prevent the entire query from failing
+      if (populateError.message && populateError.message.includes('Cast to ObjectId') && populateError.message.includes('UserAgency')) {
+        logger.warn('Agency population failed due to invalid data, retrying without agency population', {
+          error: populateError.message,
+          userId: req.user?.id
+        });
+        
+        // Remove agency from populate options
+        const userIdPopulateWithoutAgency = userIdPopulateOptions.filter(p => p.path !== 'agency');
+        
+        providers = await Provider.find(query)
+          .populate({
+            path: 'userId',
+            select: '-verificationCode -password',
+            populate: userIdPopulateWithoutAgency
+          })
+          .populate({
+            path: 'professionalInfo',
+            populate: {
+              path: 'specialties.skills',
+              select: 'name description category metadata'
+            }
+          })
+          .populate('businessInfo')
+          .populate('verification')
+          .populate('preferences')
+          .populate('performance')
+          .populate('financialInfo')
+          .sort(sort)
+          .skip(skip)
+          .limit(parseInt(limit))
+          .lean();
+      } else {
+        // Re-throw if it's a different error
+        throw populateError;
+      }
+    }
 
     const total = await Provider.countDocuments(query);
 
+    // Normalize skills arrays and ensure they're populated - ensure they're always arrays (never undefined)
+    providers = await Promise.all(providers.map(async (provider) => {
+      if (provider.professionalInfo && provider.professionalInfo.specialties && Array.isArray(provider.professionalInfo.specialties)) {
+        provider.professionalInfo.specialties = await Promise.all(provider.professionalInfo.specialties.map(async (specialty) => {
+          let skills = Array.isArray(specialty.skills) ? specialty.skills : [];
+          
+          // If skills are still ObjectIds (strings), manually populate them
+          if (skills.length > 0 && (typeof skills[0] === 'string' || (typeof skills[0] === 'object' && skills[0]._id && !skills[0].name))) {
+            const ProviderSkill = require('../models/ProviderSkill');
+            const skillIds = skills.map(s => typeof s === 'string' ? s : (s._id || s).toString());
+            const populatedSkills = await ProviderSkill.find({ _id: { $in: skillIds } })
+              .select('name description category metadata')
+              .populate('category', 'name key description')
+              .lean();
+            
+            // Map back to original order
+            skills = skillIds.map(id => {
+              const skill = populatedSkills.find(s => s._id.toString() === id.toString());
+              return skill || id;
+            });
+          }
+          
+          // Exclude category from response
+          // eslint-disable-next-line no-unused-vars
+          const { category: _category, ...specialtyWithoutCategory } = specialty;
+          return {
+            ...specialtyWithoutCategory,
+            skills: skills
+          };
+        }));
+      }
+      return provider;
+    }));
+
     logger.info('Providers retrieved', {
       userId: req.user?.id,
-      filters: { status, providerType, category, city, state },
+      filters: { status, providerType, category, skills, city, state },
       resultCount: providers.length,
       totalCount: total
     });
@@ -166,9 +422,23 @@ const getProvider = async (req, res) => {
         userEmail: user.email
       });
 
-      provider = await Provider.findOne({ userId: objectId })
+      provider = await Provider.findOne({ 
+        userId: objectId,
+        deleted: { $ne: true } // Exclude soft-deleted providers
+      })
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
-        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents')
+        .populate({
+          path: 'professionalInfo',
+          populate: {
+            path: 'specialties.skills',
+            select: 'name description category metadata'
+          }
+        })
+        .populate('businessInfo')
+        .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+        .populate('preferences')
+        .populate('performance')
+        .select('-financialInfo')
         .lean();
 
       if (!provider) {
@@ -196,9 +466,23 @@ const getProvider = async (req, res) => {
         id: id
       });
 
-      provider = await Provider.findById(objectId)
+      provider = await Provider.findOne({ 
+        _id: objectId,
+        deleted: { $ne: true } // Exclude soft-deleted providers
+      })
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
-        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents')
+        .populate({
+          path: 'professionalInfo',
+          populate: {
+            path: 'specialties.skills',
+            select: 'name description category metadata'
+          }
+        })
+        .populate('businessInfo')
+        .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+        .populate('preferences')
+        .populate('performance')
+        .select('-financialInfo')
         .lean();
 
       if (provider && provider.userId) {
@@ -224,6 +508,37 @@ const getProvider = async (req, res) => {
     if (providerDoc) {
       providerDoc.metadata.profileViews += 1;
       await providerDoc.save();
+    }
+
+    // Normalize skills arrays and ensure they're populated - ensure they're always arrays (never undefined)
+    if (provider.professionalInfo && provider.professionalInfo.specialties && Array.isArray(provider.professionalInfo.specialties)) {
+      provider.professionalInfo.specialties = await Promise.all(provider.professionalInfo.specialties.map(async (specialty) => {
+        let skills = Array.isArray(specialty.skills) ? specialty.skills : [];
+        
+        // If skills are still ObjectIds (strings), manually populate them
+        if (skills.length > 0 && (typeof skills[0] === 'string' || (typeof skills[0] === 'object' && skills[0]._id && !skills[0].name))) {
+          const ProviderSkill = require('../models/ProviderSkill');
+          const skillIds = skills.map(s => typeof s === 'string' ? s : (s._id || s).toString());
+          const populatedSkills = await ProviderSkill.find({ _id: { $in: skillIds } })
+            .select('name description category metadata')
+            .populate('category', 'name key description')
+            .lean();
+          
+          // Map back to original order
+          skills = skillIds.map(id => {
+            const skill = populatedSkills.find(s => s._id.toString() === id.toString());
+            return skill || id;
+          });
+        }
+        
+        // Exclude category from response
+        // eslint-disable-next-line no-unused-vars
+        const { category: _category, ...specialtyWithoutCategory } = specialty;
+        return {
+          ...specialtyWithoutCategory,
+          skills: skills
+        };
+      }));
     }
 
     // Build extended response with User and Provider data
@@ -263,13 +578,55 @@ const getProvider = async (req, res) => {
 const getMyProviderProfile = async (req, res) => {
   try {
     const provider = await Provider.findOne({ userId: req.user.id })
-      .populate('userId', 'firstName lastName email phone profileImage');
+      .populate('userId', 'firstName lastName email phone profileImage')
+      .populate({
+        path: 'professionalInfo',
+        populate: {
+          path: 'specialties.skills',
+          select: 'name description category metadata'
+        }
+      })
+      .populate('verification')
+      .populate('preferences')
+      .populate('businessInfo')
+      .populate('performance');
 
     if (!provider) {
       return res.status(404).json({
         success: false,
         message: 'Provider profile not found. Please complete your provider registration.'
       });
+    }
+
+    // Normalize skills arrays and ensure they're populated - ensure they're always arrays (never undefined)
+    if (provider.professionalInfo && provider.professionalInfo.specialties && Array.isArray(provider.professionalInfo.specialties)) {
+      provider.professionalInfo.specialties = await Promise.all(provider.professionalInfo.specialties.map(async (specialty) => {
+        let skills = Array.isArray(specialty.skills) ? specialty.skills : [];
+        
+        // If skills are still ObjectIds (strings), manually populate them
+        if (skills.length > 0 && (typeof skills[0] === 'string' || (typeof skills[0] === 'object' && skills[0]._id && !skills[0].name))) {
+          const ProviderSkill = require('../models/ProviderSkill');
+          const skillIds = skills.map(s => typeof s === 'string' ? s : (s._id || s).toString());
+          const populatedSkills = await ProviderSkill.find({ _id: { $in: skillIds } })
+            .select('name description category metadata')
+            .populate('category', 'name key description')
+            .lean();
+          
+          // Map back to original order
+          skills = skillIds.map(id => {
+            const skill = populatedSkills.find(s => s._id.toString() === id.toString());
+            return skill || id;
+          });
+        }
+        
+        // Exclude category from response
+        // eslint-disable-next-line no-unused-vars
+        const { category: _category, ...specialtyWithoutCategory } = specialty;
+        return {
+          ...specialtyWithoutCategory,
+          skills: skills
+        };
+      }));
     }
 
     logger.info('Provider profile retrieved', {
@@ -337,7 +694,6 @@ const createProviderProfile = async (req, res) => {
     const providerData = {
       userId: req.user.id,
       providerType,
-      businessInfo,
       professionalInfo,
       verification,
       preferences,
@@ -355,6 +711,40 @@ const createProviderProfile = async (req, res) => {
 
     const provider = new Provider(providerData);
     await provider.save();
+    
+    // Handle businessInfo separately if provided (for business/agency providers)
+    if (businessInfo && (providerType === 'business' || providerType === 'agency')) {
+      const businessInfoDoc = await provider.ensureBusinessInfo();
+      await businessInfoDoc.updateBusinessInfo(businessInfo);
+    }
+    
+    // Handle professionalInfo separately if provided
+    if (professionalInfo) {
+      const professionalInfoDoc = await provider.ensureProfessionalInfo();
+      // Update professionalInfo fields
+      if (professionalInfo.specialties) {
+        professionalInfoDoc.specialties = professionalInfo.specialties;
+      }
+      if (professionalInfo.languages) {
+        professionalInfoDoc.languages = professionalInfo.languages;
+      }
+      if (professionalInfo.availability) {
+        professionalInfoDoc.availability = professionalInfo.availability;
+      }
+      if (professionalInfo.emergencyServices !== undefined) {
+        professionalInfoDoc.emergencyServices = professionalInfo.emergencyServices;
+      }
+      if (professionalInfo.travelDistance !== undefined) {
+        professionalInfoDoc.travelDistance = professionalInfo.travelDistance;
+      }
+      if (professionalInfo.minimumJobValue !== undefined) {
+        professionalInfoDoc.minimumJobValue = professionalInfo.minimumJobValue;
+      }
+      if (professionalInfo.maximumJobValue !== undefined) {
+        professionalInfoDoc.maximumJobValue = professionalInfo.maximumJobValue;
+      }
+      await professionalInfoDoc.save();
+    }
 
     // Update user role to include provider (multi-role support)
     const user = await User.findById(req.user.id);
@@ -417,12 +807,50 @@ const updateProviderProfile = async (req, res) => {
       });
     }
 
-    const updateData = req.body;
+    const updateData = { ...req.body };
     const oldData = { ...provider.toObject() };
+    
+    // Extract businessInfo if present (handle separately)
+    const businessInfoData = updateData.businessInfo;
+    delete updateData.businessInfo;
 
-    // Update provider
+    // Update provider (excluding businessInfo)
     Object.assign(provider, updateData);
     await provider.save();
+    
+    // Handle businessInfo separately if provided
+    if (businessInfoData && (provider.providerType === 'business' || provider.providerType === 'agency')) {
+      const businessInfo = await provider.ensureBusinessInfo();
+      await businessInfo.updateBusinessInfo(businessInfoData);
+    }
+    
+    // Handle professionalInfo separately if provided
+    const professionalInfoData = req.body.professionalInfo;
+    if (professionalInfoData) {
+      const professionalInfo = await provider.ensureProfessionalInfo();
+      if (professionalInfoData.specialties) {
+        professionalInfo.specialties = professionalInfoData.specialties;
+      }
+      if (professionalInfoData.languages) {
+        professionalInfo.languages = professionalInfoData.languages;
+      }
+      if (professionalInfoData.availability) {
+        professionalInfo.availability = professionalInfoData.availability;
+      }
+      if (professionalInfoData.emergencyServices !== undefined) {
+        professionalInfo.emergencyServices = professionalInfoData.emergencyServices;
+      }
+      if (professionalInfoData.travelDistance !== undefined) {
+        professionalInfo.travelDistance = professionalInfoData.travelDistance;
+      }
+      if (professionalInfoData.minimumJobValue !== undefined) {
+        professionalInfo.minimumJobValue = professionalInfoData.minimumJobValue;
+      }
+      if (professionalInfoData.maximumJobValue !== undefined) {
+        professionalInfo.maximumJobValue = professionalInfoData.maximumJobValue;
+      }
+      await professionalInfo.save();
+    }
 
     // Log audit event
     await auditLogger.logUser('user_update', req, {
@@ -496,6 +924,8 @@ const updateOnboardingStep = async (req, res) => {
     if (provider.onboarding.progress >= 100) {
       provider.onboarding.completed = true;
       provider.status = 'pending'; // Ready for review
+      
+      // Note: Subscription is now managed through User model (localProPlusSubscription)
     }
 
     await provider.save();
@@ -553,27 +983,26 @@ const uploadDocuments = async (req, res) => {
     const fileUrls = files.map(file => file.path);
 
     // Update verification documents based on type
+    const verification = await provider.ensureVerification();
+    
     switch (documentType) {
       case 'insurance':
-        if (!provider.verification.insurance.documents) {
-          provider.verification.insurance.documents = [];
+        if (!verification.insurance.documents) {
+          verification.insurance.documents = [];
         }
-        provider.verification.insurance.documents.push(...fileUrls);
+        verification.insurance.documents.push(...fileUrls);
+        await verification.save();
         break;
       case 'license':
-        if (!provider.verification.licenses) {
-          provider.verification.licenses = [];
-        }
-        provider.verification.licenses.push({
+        await verification.addLicense({
           type: category,
           documents: fileUrls
         });
         break;
       case 'portfolio':
-        if (!provider.verification.portfolio.images) {
-          provider.verification.portfolio.images = [];
+        for (const imageUrl of fileUrls) {
+          await verification.addPortfolioImage(imageUrl);
         }
-        provider.verification.portfolio.images.push(...fileUrls);
         break;
       default:
         return res.status(400).json({
@@ -581,8 +1010,6 @@ const uploadDocuments = async (req, res) => {
           message: 'Invalid document type'
         });
     }
-
-    await provider.save();
 
     // Log audit event
     await auditLogger.logUser('document_upload', req, {
@@ -637,14 +1064,15 @@ const getProviderDashboard = async (req, res) => {
 
     // Get recent bookings, earnings, reviews, etc.
     // This would integrate with other services
+    const performance = await provider.ensurePerformance();
     const dashboardData = {
       profile: {
         status: provider.status,
-        rating: provider.performance.rating,
-        totalJobs: provider.performance.totalJobs,
-        completionRate: provider.performance.completionRate
+        rating: performance.rating,
+        totalJobs: performance.totalJobs,
+        completionRate: performance.completionRate
       },
-      earnings: provider.performance.earnings,
+      earnings: performance.earnings,
       recentActivity: {
         // This would come from other services
         recentBookings: [],
@@ -659,13 +1087,13 @@ const getProviderDashboard = async (req, res) => {
       performance: {
         thisMonth: {
           jobs: 0,
-          earnings: provider.performance.earnings.thisMonth,
-          rating: provider.performance.rating
+          earnings: performance.earnings.thisMonth,
+          rating: performance.rating
         },
         lastMonth: {
           jobs: 0,
-          earnings: provider.performance.earnings.lastMonth,
-          rating: provider.performance.rating
+          earnings: performance.earnings.lastMonth,
+          rating: performance.rating
         }
       }
     };
@@ -705,13 +1133,14 @@ const getProviderAnalytics = async (req, res) => {
     }
 
     // Calculate analytics based on timeframe
+    const performance = await provider.ensurePerformance();
     const analytics = {
       overview: {
-        totalJobs: provider.performance.totalJobs,
-        completedJobs: provider.performance.completedJobs,
-        rating: provider.performance.rating,
-        totalReviews: provider.performance.totalReviews,
-        earnings: provider.performance.earnings.total
+        totalJobs: performance.totalJobs,
+        completedJobs: performance.completedJobs,
+        rating: performance.rating,
+        totalReviews: performance.totalReviews,
+        earnings: performance.earnings.total
       },
       trends: {
         // This would come from actual data analysis
@@ -725,9 +1154,9 @@ const getProviderAnalytics = async (req, res) => {
         earningsByCategory: []
       },
       performance: {
-        responseTime: provider.performance.responseTime,
-        completionRate: provider.performance.completionRate,
-        repeatCustomerRate: provider.performance.repeatCustomerRate
+        responseTime: performance.responseTime,
+        completionRate: performance.completionRate,
+        repeatCustomerRate: performance.repeatCustomerRate
       }
     };
 
@@ -847,13 +1276,31 @@ const getProvidersForAdmin = async (req, res) => {
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const skip = (page - 1) * limit;
-    const providers = await Provider.find(query)
+    let providers = await Provider.find(query)
       .populate('userId', 'firstName lastName email phone')
+      .populate('professionalInfo')
+      .populate('professionalInfo.specialties.skills', 'name description category metadata')
+      .populate('businessInfo')
+      .populate('verification')
+      .populate('preferences')
+      .populate('performance')
       .sort(sort)
       .skip(skip)
       .limit(parseInt(limit));
 
     const total = await Provider.countDocuments(query);
+
+    // Exclude category from specialties in response
+    providers = providers.map(provider => {
+      if (provider.professionalInfo && provider.professionalInfo.specialties && Array.isArray(provider.professionalInfo.specialties)) {
+        provider.professionalInfo.specialties = provider.professionalInfo.specialties.map(specialty => {
+          // eslint-disable-next-line no-unused-vars
+          const { category: _category, ...specialtyWithoutCategory } = specialty;
+          return specialtyWithoutCategory;
+        });
+      }
+      return provider;
+    });
 
     logger.info('Providers retrieved for admin', {
       adminId: req.user.id,
@@ -885,6 +1332,292 @@ const getProvidersForAdmin = async (req, res) => {
   }
 };
 
+// Admin: Update provider with all data (including all referenced collections)
+const adminUpdateProvider = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const updateData = { ...req.body };
+    const oldData = {};
+
+    // Find provider
+    const provider = await Provider.findById(id);
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: 'Provider not found'
+      });
+    }
+
+    // Store old data for audit
+    const oldProviderData = provider.toObject();
+
+    // Extract referenced collection data
+    const businessInfoData = updateData.businessInfo;
+    const professionalInfoData = updateData.professionalInfo;
+    const verificationData = updateData.verification;
+    const financialInfoData = updateData.financialInfo;
+    const preferencesData = updateData.preferences;
+    const performanceData = updateData.performance;
+
+    // Remove referenced collections from updateData (handle separately)
+    delete updateData.businessInfo;
+    delete updateData.professionalInfo;
+    delete updateData.verification;
+    delete updateData.financialInfo;
+    delete updateData.preferences;
+    delete updateData.performance;
+
+    // Update direct provider fields
+    if (Object.keys(updateData).length > 0) {
+      Object.assign(provider, updateData);
+      await provider.save();
+    }
+
+    // Handle businessInfo
+    if (businessInfoData) {
+      const businessInfo = await provider.ensureBusinessInfo();
+      oldData.businessInfo = businessInfo.toObject();
+      Object.assign(businessInfo, businessInfoData);
+      await businessInfo.save();
+    }
+
+    // Handle professionalInfo
+    if (professionalInfoData) {
+      const professionalInfo = await provider.ensureProfessionalInfo();
+      oldData.professionalInfo = professionalInfo.toObject();
+      
+      if (professionalInfoData.specialties !== undefined) {
+        professionalInfo.specialties = professionalInfoData.specialties;
+      }
+      if (professionalInfoData.languages !== undefined) {
+        professionalInfo.languages = professionalInfoData.languages;
+      }
+      if (professionalInfoData.availability !== undefined) {
+        professionalInfo.availability = professionalInfoData.availability;
+      }
+      if (professionalInfoData.emergencyServices !== undefined) {
+        professionalInfo.emergencyServices = professionalInfoData.emergencyServices;
+      }
+      if (professionalInfoData.travelDistance !== undefined) {
+        professionalInfo.travelDistance = professionalInfoData.travelDistance;
+      }
+      if (professionalInfoData.minimumJobValue !== undefined) {
+        professionalInfo.minimumJobValue = professionalInfoData.minimumJobValue;
+      }
+      if (professionalInfoData.maximumJobValue !== undefined) {
+        professionalInfo.maximumJobValue = professionalInfoData.maximumJobValue;
+      }
+      
+      await professionalInfo.save();
+    }
+
+    // Handle verification
+    if (verificationData) {
+      const verification = await provider.ensureVerification();
+      oldData.verification = verification.toObject();
+      
+      if (verificationData.identityVerified !== undefined) {
+        verification.identityVerified = verificationData.identityVerified;
+      }
+      if (verificationData.businessVerified !== undefined) {
+        verification.businessVerified = verificationData.businessVerified;
+      }
+      if (verificationData.backgroundCheck !== undefined) {
+        verification.backgroundCheck = {
+          ...verification.backgroundCheck,
+          ...verificationData.backgroundCheck
+        };
+      }
+      if (verificationData.insurance !== undefined) {
+        verification.insurance = {
+          ...verification.insurance,
+          ...verificationData.insurance
+        };
+      }
+      if (verificationData.licenses !== undefined) {
+        verification.licenses = verificationData.licenses;
+      }
+      if (verificationData.references !== undefined) {
+        verification.references = verificationData.references;
+      }
+      if (verificationData.portfolio !== undefined) {
+        verification.portfolio = {
+          ...verification.portfolio,
+          ...verificationData.portfolio
+        };
+      }
+      
+      await verification.save();
+    }
+
+    // Handle financialInfo
+    if (financialInfoData) {
+      const financialInfo = await provider.ensureFinancialInfo();
+      oldData.financialInfo = financialInfo.toObject();
+      
+      if (financialInfoData.bankAccount !== undefined) {
+        financialInfo.bankAccount = {
+          ...financialInfo.bankAccount,
+          ...financialInfoData.bankAccount
+        };
+      }
+      if (financialInfoData.taxInfo !== undefined) {
+        financialInfo.taxInfo = {
+          ...financialInfo.taxInfo,
+          ...financialInfoData.taxInfo
+        };
+      }
+      if (financialInfoData.paymentMethods !== undefined) {
+        financialInfo.paymentMethods = financialInfoData.paymentMethods;
+      }
+      if (financialInfoData.commissionRate !== undefined) {
+        financialInfo.commissionRate = financialInfoData.commissionRate;
+      }
+      if (financialInfoData.minimumPayout !== undefined) {
+        financialInfo.minimumPayout = financialInfoData.minimumPayout;
+      }
+      
+      await financialInfo.save();
+    }
+
+    // Handle preferences
+    if (preferencesData) {
+      const preferences = await provider.ensurePreferences();
+      oldData.preferences = preferences.toObject();
+      
+      if (preferencesData.notificationSettings !== undefined) {
+        preferences.notificationSettings = {
+          ...preferences.notificationSettings,
+          ...preferencesData.notificationSettings
+        };
+      }
+      if (preferencesData.jobPreferences !== undefined) {
+        preferences.jobPreferences = {
+          ...preferences.jobPreferences,
+          ...preferencesData.jobPreferences
+        };
+      }
+      if (preferencesData.communicationPreferences !== undefined) {
+        preferences.communicationPreferences = {
+          ...preferences.communicationPreferences,
+          ...preferencesData.communicationPreferences
+        };
+      }
+      
+      await preferences.save();
+    }
+
+    // Handle performance (admin can update certain fields)
+    if (performanceData) {
+      const performance = await provider.ensurePerformance();
+      oldData.performance = performance.toObject();
+      
+      if (performanceData.rating !== undefined) {
+        performance.rating = performanceData.rating;
+      }
+      if (performanceData.totalReviews !== undefined) {
+        performance.totalReviews = performanceData.totalReviews;
+      }
+      if (performanceData.totalJobs !== undefined) {
+        performance.totalJobs = performanceData.totalJobs;
+      }
+      if (performanceData.completedJobs !== undefined) {
+        performance.completedJobs = performanceData.completedJobs;
+      }
+      if (performanceData.cancelledJobs !== undefined) {
+        performance.cancelledJobs = performanceData.cancelledJobs;
+      }
+      if (performanceData.responseTime !== undefined) {
+        performance.responseTime = performanceData.responseTime;
+      }
+      if (performanceData.completionRate !== undefined) {
+        performance.completionRate = performanceData.completionRate;
+      }
+      if (performanceData.repeatCustomerRate !== undefined) {
+        performance.repeatCustomerRate = performanceData.repeatCustomerRate;
+      }
+      if (performanceData.earnings !== undefined) {
+        performance.earnings = {
+          ...performance.earnings,
+          ...performanceData.earnings
+        };
+      }
+      if (performanceData.badges !== undefined) {
+        performance.badges = performanceData.badges;
+      }
+      
+      await performance.save();
+    }
+
+    // Reload provider with all populated data
+    const updatedProvider = await Provider.findById(id)
+      .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
+      .populate('professionalInfo')
+      .populate('professionalInfo.specialties.skills', 'name description category metadata')
+      .populate('businessInfo')
+      .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+      .populate('preferences')
+      .populate('performance')
+      .populate('financialInfo')
+      .lean();
+
+    // Exclude category from specialties in response
+    if (updatedProvider.professionalInfo && updatedProvider.professionalInfo.specialties && Array.isArray(updatedProvider.professionalInfo.specialties)) {
+      updatedProvider.professionalInfo.specialties = updatedProvider.professionalInfo.specialties.map(specialty => {
+        // eslint-disable-next-line no-unused-vars
+        const { category: _category, ...specialtyWithoutCategory } = specialty;
+        return specialtyWithoutCategory;
+      });
+    }
+
+    // Log audit event
+    await auditLogger.logSystem('admin_action', req, {
+      type: 'provider',
+      id: provider._id,
+      name: 'Provider Full Update'
+    }, {
+      before: oldProviderData,
+      after: updateData,
+      updatedCollections: Object.keys(oldData),
+      fields: Object.keys(updateData)
+    });
+
+    logger.info('Provider updated by admin', {
+      adminId: req.user.id,
+      providerId: id,
+      updatedFields: Object.keys(updateData),
+      updatedCollections: Object.keys(oldData)
+    });
+
+    res.json({
+      success: true,
+      message: 'Provider updated successfully',
+      data: updatedProvider
+    });
+  } catch (error) {
+    logger.error('Failed to update provider (admin)', error, {
+      adminId: req.user.id,
+      providerId: req.params.id,
+      body: req.body
+    });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update provider',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   getProviders,
   getProvider,
@@ -897,5 +1630,6 @@ module.exports = {
   getProviderAnalytics,
   updateProviderStatus,
   getProvidersForAdmin,
-  getProviderSkills
+  getProviderSkills,
+  adminUpdateProvider
 };

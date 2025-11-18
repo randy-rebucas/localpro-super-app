@@ -11,7 +11,8 @@ const {
   addUserBadge,
   getUserStats,
   bulkUpdateUsers,
-  deleteUser
+  deleteUser,
+  restoreUser
 } = require('../controllers/userManagementController');
 
 const router = express.Router();
@@ -89,6 +90,14 @@ router.post('/:id/badges',
 router.patch('/bulk',
   authorize(['admin']),
   bulkUpdateUsers
+);
+
+// @desc    Restore soft-deleted user
+// @route   PATCH /api/users/:id/restore
+// @access  Admin - [ADMIN ONLY]
+router.patch('/:id/restore',
+  authorize(['admin']),
+  restoreUser
 );
 
 // @desc    Delete user (soft delete)

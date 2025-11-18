@@ -254,19 +254,24 @@ class ProviderVerificationService {
       if (!requirements) return false;
 
       // Validate required fields
-      if (!provider.professionalInfo || !provider.professionalInfo.specialties || provider.professionalInfo.specialties.length === 0) {
+      const professionalInfo = await provider.ensureProfessionalInfo();
+      if (!professionalInfo || !professionalInfo.specialties || professionalInfo.specialties.length === 0) {
         return false;
       }
 
-      if (provider.providerType !== 'individual' && (!provider.businessInfo || !provider.businessInfo.businessName)) {
+      if (provider.providerType !== 'individual') {
+        const businessInfo = await provider.ensureBusinessInfo();
+        if (!businessInfo || !businessInfo.businessName) {
+          return false;
+        }
+      }
+
+      const verification = await provider.ensureVerification();
+      if (!verification.identityVerified) {
         return false;
       }
 
-      if (!provider.verification.identityVerified) {
-        return false;
-      }
-
-      if (provider.providerType !== 'individual' && !provider.verification.businessVerified) {
+      if (provider.providerType !== 'individual' && !verification.businessVerified) {
         return false;
       }
 
@@ -341,12 +346,14 @@ class ProviderVerificationService {
       const oldStatus = provider.status;
       let newStatus;
 
+      const verification = await provider.ensureVerification();
+      
       switch (decision) {
         case 'approve':
           newStatus = 'active';
-          provider.verification.identityVerified = true;
+          await verification.verifyIdentity();
           if (provider.providerType !== 'individual') {
-            provider.verification.businessVerified = true;
+            await verification.verifyBusiness();
           }
           break;
         case 'reject':
@@ -446,27 +453,29 @@ class ProviderVerificationService {
   }
 
   // Calculate verification progress
-  calculateVerificationProgress(provider) {
+  async calculateVerificationProgress(provider) {
     const requirements = this.getVerificationRequirements(provider.providerType);
     const totalRequirements = requirements.required.length;
     let completedRequirements = 0;
 
+    const verification = await provider.ensureVerification();
+    
     requirements.required.forEach(req => {
       switch (req) {
         case 'identity':
-          if (provider.verification.identityVerified) completedRequirements++;
+          if (verification.identityVerified) completedRequirements++;
           break;
         case 'business_registration':
-          if (provider.verification.businessVerified) completedRequirements++;
+          if (verification.businessVerified) completedRequirements++;
           break;
         case 'insurance':
-          if (provider.verification.insurance.hasInsurance) completedRequirements++;
+          if (verification.insurance.hasInsurance) completedRequirements++;
           break;
         case 'background_check':
-          if (provider.verification.backgroundCheck.status === 'passed') completedRequirements++;
+          if (verification.backgroundCheck.status === 'passed') completedRequirements++;
           break;
         case 'agency_license':
-          if (provider.verification.licenses && provider.verification.licenses.length > 0) completedRequirements++;
+          if (verification.licenses && verification.licenses.length > 0) completedRequirements++;
           break;
       }
     });

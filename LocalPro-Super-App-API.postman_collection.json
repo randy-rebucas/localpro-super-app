@@ -86,6 +86,11 @@
       "key": "notificationId",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "providerId",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -626,14 +631,87 @@
                 {
                   "key": "includeStats",
                   "value": "true",
-                  "description": "Include statistics for each category (service counts, pricing, ratings). Default: true",
+                  "description": "Include statistics for each category (service counts, pricing, ratings). Default: true. Set to 'false' to get only category definitions.",
                   "disabled": false
                 }
               ]
             },
-            "description": "Get all service categories with optional statistics. Returns all active service categories from the database. When includeStats=true (default), includes service counts, pricing statistics, ratings, and popular subcategories for each category."
+            "description": "Get all service categories with optional statistics. Returns all active service categories from the database. When includeStats=true (default), includes service counts, pricing statistics, ratings, and popular subcategories for each category. When includeStats=false, returns only category definitions without statistics."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success - With Statistics",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/marketplace/services/categories?includeStats=true",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "marketplace",
+                    "services",
+                    "categories"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeStats",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Service categories retrieved successfully\",\n  \"data\": [\n    {\n      \"key\": \"cleaning\",\n      \"name\": \"Cleaning Services\",\n      \"description\": \"Professional cleaning services for homes and businesses\",\n      \"icon\": \"🧹\",\n      \"subcategories\": [\n        \"residential_cleaning\",\n        \"commercial_cleaning\",\n        \"deep_cleaning\",\n        \"window_cleaning\"\n      ],\n      \"displayOrder\": 1,\n      \"metadata\": {\n        \"color\": \"#4CAF50\",\n        \"tags\": [\"cleaning\", \"maintenance\"]\n      },\n      \"statistics\": {\n        \"totalServices\": 150,\n        \"pricing\": {\n          \"average\": 75,\n          \"min\": 25,\n          \"max\": 200\n        },\n        \"rating\": {\n          \"average\": 4.5,\n          \"totalRatings\": 1200\n        },\n        \"popularSubcategories\": [\n          {\n            \"subcategory\": \"residential_cleaning\",\n            \"count\": 80\n          },\n          {\n            \"subcategory\": \"deep_cleaning\",\n            \"count\": 45\n          }\n        ]\n      }\n    },\n    {\n      \"key\": \"plumbing\",\n      \"name\": \"Plumbing Services\",\n      \"description\": \"Professional plumbing and pipe services\",\n      \"icon\": \"🔧\",\n      \"subcategories\": [\n        \"repair\",\n        \"installation\",\n        \"maintenance\"\n      ],\n      \"displayOrder\": 2,\n      \"metadata\": {\n        \"color\": \"#2196F3\",\n        \"tags\": [\"plumbing\", \"repair\"]\n      },\n      \"statistics\": {\n        \"totalServices\": 95,\n        \"pricing\": {\n          \"average\": 120,\n          \"min\": 50,\n          \"max\": 300\n        },\n        \"rating\": {\n          \"average\": 4.7,\n          \"totalRatings\": 850\n        },\n        \"popularSubcategories\": [\n          {\n            \"subcategory\": \"repair\",\n            \"count\": 60\n          }\n        ]\n      }\n    }\n  ],\n  \"summary\": {\n    \"totalCategories\": 22,\n    \"totalServices\": 1500,\n    \"totalProviders\": 300,\n    \"categoriesWithServices\": 20\n  }\n}"
+            },
+            {
+              "name": "Success - Without Statistics",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/marketplace/services/categories?includeStats=false",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "marketplace",
+                    "services",
+                    "categories"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeStats",
+                      "value": "false"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Service categories retrieved successfully\",\n  \"data\": [\n    {\n      \"key\": \"cleaning\",\n      \"name\": \"Cleaning Services\",\n      \"description\": \"Professional cleaning services for homes and businesses\",\n      \"icon\": \"🧹\",\n      \"subcategories\": [\n        \"residential_cleaning\",\n        \"commercial_cleaning\",\n        \"deep_cleaning\",\n        \"window_cleaning\"\n      ],\n      \"displayOrder\": 1,\n      \"metadata\": {\n        \"color\": \"#4CAF50\",\n        \"tags\": [\"cleaning\", \"maintenance\"]\n      }\n    },\n    {\n      \"key\": \"plumbing\",\n      \"name\": \"Plumbing Services\",\n      \"description\": \"Professional plumbing and pipe services\",\n      \"icon\": \"🔧\",\n      \"subcategories\": [\n        \"repair\",\n        \"installation\",\n        \"maintenance\"\n      ],\n      \"displayOrder\": 2,\n      \"metadata\": {\n        \"color\": \"#2196F3\",\n        \"tags\": [\"plumbing\", \"repair\"]\n      }\n    }\n  ]\n}"
+            }
+          ]
         },
         {
           "name": "GET /api/marketplace/services/categories/:category",
@@ -9534,16 +9612,102 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/providers",
+              "raw": "{{baseUrl}}/api/providers?status=active&page=1&limit=20&sortBy=rating&sortOrder=desc",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "providers"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "Filter by status: pending, active, suspended, inactive, rejected. Default: active",
+                  "disabled": false
+                },
+                {
+                  "key": "providerType",
+                  "value": "",
+                  "description": "Filter by provider type: individual, business, agency",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "Filter by service category (e.g., cleaning, plumbing, electrical)",
+                  "disabled": true
+                },
+                {
+                  "key": "skills",
+                  "value": "",
+                  "description": "Comma-separated skill IDs (ObjectIds) - matches providers with ANY of the skills",
+                  "disabled": true
+                },
+                {
+                  "key": "skillsMatch",
+                  "value": "",
+                  "description": "Match mode: 'any' (default) or 'all' - whether to match ANY or ALL specified skills",
+                  "disabled": true
+                },
+                {
+                  "key": "city",
+                  "value": "",
+                  "description": "Filter by city (requires state)",
+                  "disabled": true
+                },
+                {
+                  "key": "state",
+                  "value": "",
+                  "description": "Filter by state (requires city)",
+                  "disabled": true
+                },
+                {
+                  "key": "minRating",
+                  "value": "",
+                  "description": "Minimum rating (number)",
+                  "disabled": true
+                },
+                {
+                  "key": "featured",
+                  "value": "",
+                  "description": "Filter featured providers: true or false",
+                  "disabled": true
+                },
+                {
+                  "key": "promoted",
+                  "value": "",
+                  "description": "Filter promoted providers: true or false",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)",
+                  "disabled": false
+                },
+                {
+                  "key": "sortBy",
+                  "value": "rating",
+                  "description": "Sort field: rating, createdAt, etc. (default: rating)",
+                  "disabled": false
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order: asc or desc (default: desc)",
+                  "disabled": false
+                }
               ]
             },
-            "description": "Get all providers"
+            "description": "Get all providers with filtering and pagination. Returns paginated list of active providers (by default) with populated related data. Excludes soft-deleted providers and financialInfo."
           },
           "response": []
         },
@@ -9581,17 +9745,24 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/providers/:id",
+              "raw": "{{baseUrl}}/api/providers/{{providerId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "providers",
-                ":id"
+                "{{providerId}}"
+              ],
+              "variable": [
+                {
+                  "key": "providerId",
+                  "value": "507f1f77bcf86cd799439015",
+                  "description": "Provider ID or User ID (MongoDB ObjectId)"
+                }
               ]
             },
-            "description": "Get single provider"
+            "description": "Get single provider by ID. Accepts either Provider ID or User ID. Returns provider profile with populated related data (user, professionalInfo, businessInfo, verification, preferences, performance). Excludes financialInfo and soft-deleted providers. Increments profileViews on each request."
           },
           "response": []
         },
@@ -9649,10 +9820,10 @@
                 "profile"
               ]
             },
-            "description": "Create provider profile",
+            "description": "Create provider profile (upgrade from client). User must have 'client' role. Creates provider profile with status 'pending' and initializes onboarding. Automatically adds 'provider' role to user.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"providerType\": \"individual\",\n  \"professionalInfo\": {\n    \"specialties\": [\n      {\n        \"category\": \"cleaning\",\n        \"serviceAreas\": [\n          \"Manila\",\n          \"Makati\"\n        ],\n        \"experience\": \"5 years\",\n        \"certifications\": [\n          \"Professional Cleaning Certificate\"\n        ]\n      }\n    ],\n    \"experience\": 5,\n    \"languages\": [\n      \"en\",\n      \"fil\"\n    ]\n  },\n  \"businessInfo\": {\n    \"businessName\": \"John's Cleaning Services\",\n    \"registrationNumber\": \"REG-123456\"\n  }\n}",
+              "raw": "{\n  \"providerType\": \"individual\",\n  \"professionalInfo\": {\n    \"specialties\": [\n      {\n        \"category\": \"plumbing\",\n        \"serviceAreas\": [\n          {\n            \"city\": \"New York\",\n            \"state\": \"NY\",\n            \"radius\": 25\n          }\n        ],\n        \"skills\": [\"507f1f77bcf86cd799439020\"],\n        \"hourlyRate\": 75,\n        \"experience\": 5,\n        \"certifications\": [\n          {\n            \"name\": \"Licensed Plumber\",\n            \"issuer\": \"State Board\",\n            \"dateIssued\": \"2020-01-15T00:00:00.000Z\",\n            \"expiryDate\": \"2025-01-15T00:00:00.000Z\",\n            \"certificateNumber\": \"PL-12345\"\n          }\n        ]\n      }\n    ],\n    \"languages\": [\"en\", \"es\"],\n    \"availability\": {\n      \"monday\": { \"start\": \"08:00\", \"end\": \"18:00\", \"available\": true },\n      \"tuesday\": { \"start\": \"08:00\", \"end\": \"18:00\", \"available\": true },\n      \"wednesday\": { \"start\": \"08:00\", \"end\": \"18:00\", \"available\": true },\n      \"thursday\": { \"start\": \"08:00\", \"end\": \"18:00\", \"available\": true },\n      \"friday\": { \"start\": \"08:00\", \"end\": \"18:00\", \"available\": true },\n      \"saturday\": { \"start\": \"09:00\", \"end\": \"15:00\", \"available\": true },\n      \"sunday\": { \"available\": false }\n    },\n    \"emergencyServices\": true,\n    \"travelDistance\": 50,\n    \"minimumJobValue\": 100,\n    \"maximumJobValue\": 5000\n  },\n  \"settings\": {\n    \"profileVisibility\": \"public\",\n    \"showContactInfo\": true,\n    \"showPricing\": true,\n    \"showReviews\": true,\n    \"allowDirectBooking\": true,\n    \"requireApproval\": false\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -9689,10 +9860,10 @@
                 "profile"
               ]
             },
-            "description": "Update provider profile",
+            "description": "Update provider profile. Supports partial updates. All fields are optional.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"professionalInfo\": {\n    \"experience\": 6,\n    \"specialties\": [\n      {\n        \"category\": \"cleaning\",\n        \"serviceAreas\": [\n          \"Manila\",\n          \"Makati\",\n          \"Quezon City\"\n        ]\n      }\n    ]\n  }\n}",
+              "raw": "{\n  \"providerType\": \"business\",\n  \"professionalInfo\": {\n    \"specialties\": [\n      {\n        \"category\": \"plumbing\",\n        \"hourlyRate\": 90,\n        \"serviceAreas\": [\n          {\n            \"city\": \"New York\",\n            \"state\": \"NY\",\n            \"radius\": 35\n          }\n        ]\n      }\n    ],\n    \"emergencyServices\": true,\n    \"travelDistance\": 60\n  },\n  \"settings\": {\n    \"profileVisibility\": \"public\",\n    \"showPricing\": true,\n    \"allowDirectBooking\": false\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -9730,10 +9901,10 @@
                 "step"
               ]
             },
-            "description": "Update onboarding step",
+            "description": "Update onboarding step. Valid steps: profile_setup, business_info, professional_info, verification, documents, portfolio, preferences, review. Marks step as completed and updates progress.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"step\": \"professional_info\",\n  \"data\": {\n    \"specialties\": [\n      \"cleaning\"\n    ],\n    \"experience\": 5\n  }\n}",
+              "raw": "{\n  \"step\": \"professional_info\",\n  \"data\": {\n    \"specialties\": [\n      {\n        \"category\": \"plumbing\",\n        \"serviceAreas\": [\n          {\n            \"city\": \"New York\",\n            \"state\": \"NY\",\n            \"radius\": 30\n          }\n        ],\n        \"skills\": [\"507f1f77bcf86cd799439020\"],\n        \"hourlyRate\": 85,\n        \"experience\": 10\n      }\n    ],\n    \"languages\": [\"en\", \"es\"],\n    \"emergencyServices\": true,\n    \"travelDistance\": 50\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -9771,15 +9942,29 @@
                 "upload"
               ]
             },
-            "description": "Upload documents",
+            "description": "Upload provider documents. Supports multipart/form-data. Max 5 files, 10MB each. Allowed types: images and PDFs. Document types: insurance, license, portfolio.",
             "body": {
-              "mode": "raw",
-              "raw": "{}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "documents",
+                  "type": "file",
+                  "src": [],
+                  "description": "Files to upload (max 5, images or PDFs, 10MB each)"
+                },
+                {
+                  "key": "documentType",
+                  "value": "license",
+                  "type": "text",
+                  "description": "Document type: insurance, license, or portfolio"
+                },
+                {
+                  "key": "category",
+                  "value": "plumbing",
+                  "type": "text",
+                  "description": "Category for license documents (optional)"
                 }
-              }
+              ]
             }
           },
           "response": []
@@ -9823,7 +10008,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/providers/analytics/performance",
+              "raw": "{{baseUrl}}/api/providers/analytics/performance?timeframe=30d",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -9832,9 +10017,17 @@
                 "providers",
                 "analytics",
                 "performance"
+              ],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "30d",
+                  "description": "Timeframe for analytics: 7d, 30d, 90d, 1y (default: 30d)",
+                  "disabled": false
+                }
               ]
             },
-            "description": "Get provider analytics"
+            "description": "Get provider analytics. Returns performance analytics snapshot for the authenticated provider."
           },
           "response": []
         },
@@ -9850,7 +10043,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/providers/admin/all",
+              "raw": "{{baseUrl}}/api/providers/admin/all?status=&providerType=&page=1&limit=20&sortBy=createdAt&sortOrder=desc",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -9859,9 +10052,47 @@
                 "providers",
                 "admin",
                 "all"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by status: pending, active, suspended, inactive, rejected",
+                  "disabled": true
+                },
+                {
+                  "key": "providerType",
+                  "value": "",
+                  "description": "Filter by provider type: individual, business, agency",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20, max: 100)",
+                  "disabled": false
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Sort field (default: createdAt)",
+                  "disabled": false
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order: asc or desc (default: desc)",
+                  "disabled": false
+                }
               ]
             },
-            "description": "Get all providers for admin"
+            "description": "Get all providers for admin management. Admin only. Returns paginated providers with all statuses."
           },
           "response": []
         },
@@ -9882,7 +10113,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/providers/admin/:id/status",
+              "raw": "{{baseUrl}}/api/providers/admin/{{providerId}}/status",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -9890,14 +10121,69 @@
                 "api",
                 "providers",
                 "admin",
-                ":id",
+                "{{providerId}}",
                 "status"
+              ],
+              "variable": [
+                {
+                  "key": "providerId",
+                  "value": "507f1f77bcf86cd799439015",
+                  "description": "Provider ID (MongoDB ObjectId)"
+                }
               ]
             },
-            "description": "Update provider status",
+            "description": "Update provider status. Admin only. Updates provider status and optionally adds admin notes. Valid statuses: pending, active, suspended, inactive, rejected.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"active\",\n  \"notes\": \"Provider verified and activated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/providers/admin/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/admin/{{providerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "admin",
+                "{{providerId}}"
+              ],
+              "variable": [
+                {
+                  "key": "providerId",
+                  "value": "507f1f77bcf86cd799439015",
+                  "description": "Provider ID (MongoDB ObjectId)"
+                }
+              ]
+            },
+            "description": "Update provider with all data (including all referenced collections). Admin only. Allows updating provider fields, businessInfo, professionalInfo, verification, financialInfo, preferences, and performance. Supports partial updates - only include fields you want to update. Nested objects are merged, not replaced.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\",\n  \"providerType\": \"business\",\n  \"settings\": {\n    \"profileVisibility\": \"public\",\n    \"showContactInfo\": true,\n    \"showPricing\": true,\n    \"showReviews\": true,\n    \"allowDirectBooking\": true,\n    \"requireApproval\": false\n  },\n  \"businessInfo\": {\n    \"businessName\": \"Updated Business Name\",\n    \"businessType\": \"small_business\",\n    \"businessPhone\": \"+1234567890\",\n    \"businessEmail\": \"business@example.com\",\n    \"website\": \"https://example.com\",\n    \"businessDescription\": \"Professional service provider\",\n    \"numberOfEmployees\": 10\n  },\n  \"professionalInfo\": {\n    \"specialties\": [{\n      \"experience\": 12,\n      \"hourlyRate\": 80,\n      \"serviceAreas\": [{\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"radius\": 35\n      }]\n    }],\n    \"languages\": [\"English\", \"Spanish\"],\n    \"emergencyServices\": true,\n    \"travelDistance\": 50,\n    \"minimumJobValue\": 100,\n    \"maximumJobValue\": 10000\n  },\n  \"verification\": {\n    \"identityVerified\": true,\n    \"businessVerified\": true,\n    \"backgroundCheck\": {\n      \"status\": \"passed\",\n      \"dateCompleted\": \"2024-01-01T00:00:00.000Z\"\n    },\n    \"insurance\": {\n      \"hasInsurance\": true,\n      \"insuranceProvider\": \"ABC Insurance\",\n      \"policyNumber\": \"POL-12345\",\n      \"coverageAmount\": 1000000,\n      \"expiryDate\": \"2025-12-31T00:00:00.000Z\"\n    }\n  },\n  \"financialInfo\": {\n    \"commissionRate\": 0.15,\n    \"minimumPayout\": 100,\n    \"bankAccount\": {\n      \"accountHolder\": \"John Doe\",\n      \"bankName\": \"Example Bank\",\n      \"accountType\": \"checking\"\n    },\n    \"taxInfo\": {\n      \"taxClassification\": \"sole_proprietor\",\n      \"w9Submitted\": true\n    }\n  },\n  \"preferences\": {\n    \"notificationSettings\": {\n      \"newJobAlerts\": true,\n      \"messageNotifications\": true,\n      \"paymentNotifications\": true,\n      \"reviewNotifications\": true,\n      \"marketingEmails\": false\n    },\n    \"jobPreferences\": {\n      \"preferredJobTypes\": [\"cleaning\", \"plumbing\"],\n      \"maxJobsPerDay\": 5,\n      \"advanceBookingDays\": 30\n    },\n    \"communicationPreferences\": {\n      \"preferredContactMethod\": \"app\",\n      \"responseTimeExpectation\": 60,\n      \"autoAcceptJobs\": false\n    }\n  },\n  \"performance\": {\n    \"rating\": 4.5,\n    \"totalReviews\": 50,\n    \"totalJobs\": 100,\n    \"completedJobs\": 95,\n    \"completionRate\": 95,\n    \"repeatCustomerRate\": 80\n  },\n  \"metadata\": {\n    \"featured\": false,\n    \"promoted\": false,\n    \"tags\": [\"verified\", \"top-rated\"],\n    \"notes\": \"Admin notes about this provider\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -10275,16 +10561,57 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/users",
+              "raw": "{{baseUrl}}/api/users?page=1&limit=10&includeDeleted=false",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page (default: 10)"
+                },
+                {
+                  "key": "includeDeleted",
+                  "value": "false",
+                  "description": "Include soft-deleted users (default: false)"
+                },
+                {
+                  "key": "role",
+                  "value": "",
+                  "description": "Filter by role (e.g., provider, client)",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "",
+                  "description": "Filter by active status (true/false)",
+                  "disabled": true
+                },
+                {
+                  "key": "isVerified",
+                  "value": "",
+                  "description": "Filter by verification status (true/false)",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term (searches firstName, lastName, email, phoneNumber, businessName)",
+                  "disabled": true
+                }
               ]
             },
-            "description": "Get all users"
+            "description": "Get all users with filtering and pagination. Soft-deleted users are excluded by default unless includeDeleted=true is specified."
           },
           "response": []
         },
@@ -10326,7 +10653,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/users/:id",
+              "raw": "{{baseUrl}}/api/users/:id?includeDeleted=false",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -10334,9 +10661,16 @@
                 "api",
                 "users",
                 ":id"
+              ],
+              "query": [
+                {
+                  "key": "includeDeleted",
+                  "value": "false",
+                  "description": "Include soft-deleted users (default: false)"
+                }
               ]
             },
-            "description": "Get user by ID"
+            "description": "Get user by ID. Soft-deleted users are excluded by default unless includeDeleted=true is specified."
           },
           "response": []
         },
@@ -10583,6 +10917,33 @@
           "response": []
         },
         {
+          "name": "PATCH /api/users/:id/restore",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/restore",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id",
+                "restore"
+              ]
+            },
+            "description": "Restore a soft-deleted user. This will restore the user account and set their status back to active. Only admin users can restore deleted users."
+          },
+          "response": []
+        },
+        {
           "name": "DELETE /api/users/:id",
           "request": {
             "method": "DELETE",
@@ -10604,7 +10965,7 @@
                 ":id"
               ]
             },
-            "description": "Delete user"
+            "description": "Soft delete a user. This marks the user as deleted (sets deletedAt timestamp) but does not permanently remove the user from the database. The user will be excluded from queries by default. Use the restore endpoint to restore a deleted user. Admin users cannot be deleted."
           },
           "response": []
         }

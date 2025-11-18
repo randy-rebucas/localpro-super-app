@@ -351,7 +351,7 @@ class SetupInstaller {
     
     try {
       // Check if admin users already exist
-      const existingAdmin = await User.findOne({ roles: 'admin' });
+      const existingAdmin = await User.findOne({ roles: { $in: ['admin'] } });
       if (existingAdmin) {
         this.logWarning('Admin users already exist');
         const update = await this.question('Do you want to create additional admin users? (y/N): ');
@@ -392,23 +392,15 @@ class SetupInstaller {
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       // Create super admin
+      // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const superAdmin = new User({
         phoneNumber: phoneNumber,
         email: email,
         firstName: firstName,
         lastName: lastName,
-        password: hashedPassword, // Add password field
-        roles: ['client', 'admin'],
+        password: hashedPassword,
+        roles: ['client', 'admin'], // Multi-role support
         isVerified: true,
-        verification: {
-          phoneVerified: true,
-          emailVerified: true,
-          identityVerified: true,
-          businessVerified: true,
-          addressVerified: true,
-          bankAccountVerified: true,
-          verifiedAt: new Date()
-        },
         profile: {
           bio: 'System Administrator for LocalPro Super App',
           address: {
@@ -435,27 +427,30 @@ class SetupInstaller {
             timezone: 'Asia/Manila',
             emergencyService: true
           }
-        },
-        trustScore: 100,
-        badges: [
-          { type: 'verified_provider', earnedAt: new Date(), description: 'System Administrator' },
-          { type: 'expert', earnedAt: new Date(), description: 'Platform Expert' }
-        ],
-        subscription: {
-          type: 'enterprise',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
-          isActive: true
-        },
-        wallet: {
-          balance: 0,
-          currency: 'PHP'
         }
       });
 
-      // Generate referral code for admin
-      superAdmin.generateReferralCode();
+      // Save user first to trigger post-save hook for related documents
       await superAdmin.save();
+
+      // Set up verification status (all verified for admin)
+      await superAdmin.verify('phone');
+      await superAdmin.verify('email');
+      await superAdmin.verify('identity');
+      await superAdmin.verify('business');
+      await superAdmin.verify('address');
+      await superAdmin.verify('bankAccount');
+
+      // Add badges
+      await superAdmin.addBadge('verified_provider', 'System Administrator');
+      await superAdmin.addBadge('expert', 'Platform Expert');
+
+      // Update login info and status
+      await superAdmin.updateLoginInfo('127.0.0.1', 'LocalPro-Setup-Script');
+      await superAdmin.updateStatus('active', null, null);
+
+      // Generate referral code
+      await superAdmin.generateReferralCode();
 
       // Create user settings for admin
       const adminSettings = new UserSettings({
@@ -522,12 +517,60 @@ class SetupInstaller {
         const hashedPassword = await bcrypt.hash(roleData.password, saltRounds);
 
         // Create user based on role
+        // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
         const userData = this.getUserDataByRole(roleData, hashedPassword);
         const user = new User(userData);
 
-        // Generate referral code
-        user.generateReferralCode();
+        // Save user first to trigger post-save hook for related documents
         await user.save();
+
+        // Set up verification status based on role
+        await user.verify('phone');
+        await user.verify('email');
+        if (roleData.role === 'provider' || roleData.role === 'agency_owner' || roleData.role === 'agency_admin') {
+          await user.verify('identity');
+          await user.verify('business');
+          await user.verify('address');
+          await user.verify('bankAccount');
+        } else if (roleData.role === 'instructor') {
+          await user.verify('identity');
+        }
+
+        // Add badges based on role
+        if (roleData.role === 'client') {
+          await user.addBadge('newcomer', 'New Client');
+        } else if (roleData.role === 'provider') {
+          await user.addBadge('verified_provider', 'Verified Service Provider');
+          await user.addBadge('top_rated', 'Top Rated Provider');
+        } else if (roleData.role === 'supplier') {
+          await user.addBadge('verified_provider', 'Verified Supplier');
+          await user.addBadge('reliable', 'Reliable Supplier');
+        } else if (roleData.role === 'instructor') {
+          await user.addBadge('expert', 'Training Expert');
+          await user.addBadge('verified_provider', 'Verified Instructor');
+        } else if (roleData.role === 'agency_owner') {
+          await user.addBadge('verified_provider', 'Verified Agency Owner');
+          await user.addBadge('top_rated', 'Top Rated Agency');
+        } else if (roleData.role === 'agency_admin') {
+          await user.addBadge('verified_provider', 'Verified Agency Admin');
+          await user.addBadge('reliable', 'Reliable Administrator');
+        }
+
+        // Update trust metrics for provider and agency roles
+        if (roleData.role === 'provider' || roleData.role === 'agency_owner') {
+          const trust = await user.ensureTrust();
+          trust.updateResponseTime(20);
+          trust.updateCompletionRate(95, 100);
+          trust.updateCancellationRate(5, 100);
+          await trust.save();
+        }
+
+        // Update login info and status
+        await user.updateLoginInfo('127.0.0.1', 'LocalPro-Setup-Script');
+        await user.updateStatus('active', null, null);
+
+        // Generate referral code
+        await user.generateReferralCode();
 
         // Create user settings
         const userSettings = new UserSettings({
@@ -555,27 +598,8 @@ class SetupInstaller {
       email: roleData.email,
       password: hashedPassword,
       roles: ['client', roleData.role], // Multi-role support: all users have client role + their specific role
-      isVerified: true,
-      verification: {
-        phoneVerified: true,
-        emailVerified: true,
-        identityVerified: true,
-        businessVerified: true,
-        addressVerified: true,
-        bankAccountVerified: true,
-        verifiedAt: new Date()
-      },
-      trustScore: 85,
-      subscription: {
-        type: 'premium',
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-        isActive: true
-      },
-      wallet: {
-        balance: 0,
-        currency: 'PHP'
-      }
+      isVerified: true
+      // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
     };
 
     switch (roleData.role) {
@@ -605,9 +629,6 @@ class SetupInstaller {
               emergencyService: false
             }
           },
-          badges: [
-            { type: 'newcomer', earnedAt: new Date(), description: 'New Client' }
-          ]
         };
 
       case 'provider':
@@ -643,10 +664,6 @@ class SetupInstaller {
               emergencyService: true
             }
           },
-          badges: [
-            { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Service Provider' },
-            { type: 'top_rated', earnedAt: new Date(), description: 'Top Rated Provider' }
-          ]
         };
 
       case 'supplier':
@@ -681,10 +698,6 @@ class SetupInstaller {
               emergencyService: false
             }
           },
-          badges: [
-            { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Supplier' },
-            { type: 'reliable', earnedAt: new Date(), description: 'Reliable Supplier' }
-          ]
         };
 
       case 'instructor':
@@ -719,10 +732,6 @@ class SetupInstaller {
               emergencyService: false
             }
           },
-          badges: [
-            { type: 'expert', earnedAt: new Date(), description: 'Training Expert' },
-            { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Instructor' }
-          ]
         };
 
       case 'agency_owner':
@@ -758,10 +767,6 @@ class SetupInstaller {
               emergencyService: true
             }
           },
-          badges: [
-            { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Agency Owner' },
-            { type: 'top_rated', earnedAt: new Date(), description: 'Top Rated Agency' }
-          ]
         };
 
       case 'agency_admin':
@@ -796,10 +801,6 @@ class SetupInstaller {
               emergencyService: false
             }
           },
-          badges: [
-            { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Agency Admin' },
-            { type: 'reliable', earnedAt: new Date(), description: 'Reliable Administrator' }
-          ]
         };
 
       default:
@@ -838,23 +839,15 @@ class SetupInstaller {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Create agency owner
+    // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
     const agencyOwner = new User({
       phoneNumber: phoneNumber,
       email: email,
       firstName: firstName,
       lastName: lastName,
       password: hashedPassword,
-      role: 'agency_owner',
+      roles: ['client', 'agency_owner'], // Multi-role support
       isVerified: true,
-      verification: {
-        phoneVerified: true,
-        emailVerified: true,
-        identityVerified: true,
-        businessVerified: true,
-        addressVerified: true,
-        bankAccountVerified: true,
-        verifiedAt: new Date()
-      },
       profile: {
         bio: 'Professional cleaning services agency owner',
         address: {
@@ -882,26 +875,37 @@ class SetupInstaller {
           timezone: 'Asia/Manila',
           emergencyService: true
         }
-      },
-      trustScore: 95,
-      badges: [
-        { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Business Owner' },
-        { type: 'top_rated', earnedAt: new Date(), description: 'Top Rated Agency' }
-      ],
-      subscription: {
-        type: 'premium',
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-        isActive: true
-      },
-      wallet: {
-        balance: 0,
-        currency: 'PHP'
       }
     });
 
-    agencyOwner.generateReferralCode();
+    // Save user first to trigger post-save hook for related documents
     await agencyOwner.save();
+
+    // Set up verification status
+    await agencyOwner.verify('phone');
+    await agencyOwner.verify('email');
+    await agencyOwner.verify('identity');
+    await agencyOwner.verify('business');
+    await agencyOwner.verify('address');
+    await agencyOwner.verify('bankAccount');
+
+    // Add badges
+    await agencyOwner.addBadge('verified_provider', 'Verified Business Owner');
+    await agencyOwner.addBadge('top_rated', 'Top Rated Agency');
+
+    // Update trust metrics
+    const agencyOwnerTrust = await agencyOwner.ensureTrust();
+    agencyOwnerTrust.updateResponseTime(15);
+    agencyOwnerTrust.updateCompletionRate(98, 100);
+    agencyOwnerTrust.updateCancellationRate(2, 100);
+    await agencyOwnerTrust.save();
+
+    // Update login info and status
+    await agencyOwner.updateLoginInfo('127.0.0.1', 'LocalPro-Setup-Script');
+    await agencyOwner.updateStatus('active', null, null);
+
+    // Generate referral code
+    await agencyOwner.generateReferralCode();
 
     // Create user settings for agency owner
     const agencyOwnerSettings = new UserSettings({

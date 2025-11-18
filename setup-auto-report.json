@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-11-10T04:02:00.783Z",
+  "timestamp": "2025-11-16T02:13:38.583Z",
   "environment": "development",
   "database": {
-    "uri": "mongodb+srv://admin_db_user:yVpOf6aRwMFMkwsI@master.e2kwbyc.mongodb.net/localpro-super-app?retryWrites=true&w=majority&appName=Master",
+    "uri": "mongodb+srv://admin_db_user:yVpOf6aRwMFMkwsI@master.e2kwbyc.mongodb.net/test-localpro-super-app?retryWrites=true&w=majority&appName=Master",
     "connected": true,
     "host": "ac-mlhiqvj-shard-00-00.e2kwbyc.mongodb.net",
-    "name": "localpro-super-app"
+    "name": "test-localpro-super-app"
   },
   "setupResults": {
     "database": true,

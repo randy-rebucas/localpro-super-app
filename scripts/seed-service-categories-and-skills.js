@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Job Categories and Provider Skills Seeder
- * Seeds the database with default job categories and provider skills
+ * Service Categories and Provider Skills Seeder
+ * Seeds the database with default service categories and provider skills
  */
 
 const mongoose = require('mongoose');
@@ -10,11 +10,10 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // Import models to ensure they're registered
-require('../src/models/JobCategory');
-require('../src/models/ProviderSkill');
 require('../src/models/ServiceCategory');
+require('../src/models/ProviderSkill');
 
-const { seedAll, clearAll } = require('../src/seeders/jobCategoriesAndSkillsSeeder');
+const { seedAll, clearAll } = require('../src/seeders/serviceCategoriesAndSkillsSeeder');
 
 const runSeeder = async () => {
   try {

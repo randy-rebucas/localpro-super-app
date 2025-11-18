@@ -1,4 +1,11 @@
 const mongoose = require('mongoose');
+const UserReferral = require('./UserReferral');
+const UserActivity = require('./UserActivity');
+const UserWallet = require('./UserWallet');
+const UserTrust = require('./UserTrust');
+const UserManagement = require('./UserManagement');
+const UserAgency = require('./UserAgency');
+const Provider = require('./Provider');
 
 const userSchema = new mongoose.Schema({
   phoneNumber: {
@@ -64,98 +71,6 @@ const userSchema = new mongoose.Schema({
         lat: Number,
         lng: Number
       }
-    },
-    skills: [String],
-    experience: Number,
-    rating: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5
-    },
-    totalReviews: {
-      type: Number,
-      default: 0
-    },
-    // Enhanced profile features inspired by LocalPro
-    businessName: String,
-    businessType: {
-      type: String,
-      enum: ['individual', 'small_business', 'enterprise', 'franchise']
-    },
-    yearsInBusiness: Number,
-    serviceAreas: [String], // Cities/regions served
-    specialties: [String], // Specific service specialties
-    certifications: [{
-      name: String,
-      issuer: String,
-      issueDate: Date,
-      expiryDate: Date,
-      document: {
-        url: String,
-        publicId: String,
-        filename: String
-      }
-    }],
-    insurance: {
-      hasInsurance: { type: Boolean, default: false },
-      provider: String,
-      policyNumber: String,
-      coverageAmount: Number,
-      expiryDate: Date,
-      document: {
-        url: String,
-        publicId: String,
-        filename: String
-      }
-    },
-    backgroundCheck: {
-      status: {
-        type: String,
-        enum: ['pending', 'approved', 'rejected', 'not_required'],
-        default: 'pending'
-      },
-      completedAt: Date,
-      document: {
-        url: String,
-        publicId: String,
-        filename: String
-      }
-    },
-    portfolio: [{
-      title: String,
-      description: String,
-      images: [{
-        url: String,
-        publicId: String,
-        thumbnail: String
-      }],
-      category: String,
-      completedAt: Date
-    }],
-    availability: {
-      schedule: [{
-        day: {
-          type: String,
-          enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-        },
-        startTime: String,
-        endTime: String,
-        isAvailable: { type: Boolean, default: true }
-      }],
-      timezone: { type: String, default: 'UTC' },
-      emergencyService: { type: Boolean, default: false }
-    }
-  },
-  preferences: {
-    notifications: {
-      sms: { type: Boolean, default: true },
-      email: { type: Boolean, default: true },
-      push: { type: Boolean, default: true }
-    },
-    language: {
-      type: String,
-      default: 'en'
     }
   },
   // LocalPro Plus subscription reference
@@ -164,119 +79,22 @@ const userSchema = new mongoose.Schema({
     ref: 'UserSubscription'
   },
   wallet: {
-    balance: {
-      type: Number,
-      default: 0
-    },
-    currency: {
-      type: String,
-      default: 'USD'
-    }
-  },
-  // Agency relationship
-  agency: {
-    agencyId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Agency'
-    },
-    role: {
-      type: String,
-      enum: ['owner', 'admin', 'manager', 'supervisor', 'provider'],
-      default: 'provider'
-    },
-    joinedAt: {
-      type: Date,
-      default: Date.now
-    },
-    status: {
-      type: String,
-      enum: ['active', 'inactive', 'suspended', 'pending'],
-      default: 'pending'
-    },
-    commissionRate: {
-      type: Number,
-      min: 0,
-      max: 100,
-      default: 10
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserWallet'
   },
   isActive: {
     type: Boolean,
     default: true
   },
-  // Trust and verification system inspired by LocalPro
-  trustScore: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 100
-  },
-  verification: {
-    phoneVerified: { type: Boolean, default: false },
-    emailVerified: { type: Boolean, default: false },
-    identityVerified: { type: Boolean, default: false },
-    businessVerified: { type: Boolean, default: false },
-    addressVerified: { type: Boolean, default: false },
-    bankAccountVerified: { type: Boolean, default: false },
-    verifiedAt: Date
-  },
-  badges: [{
-    type: {
-      type: String,
-      enum: ['verified_provider', 'top_rated', 'fast_response', 'reliable', 'expert', 'newcomer']
-    },
-    earnedAt: Date,
-    description: String
-  }],
-  responseTime: {
-    average: Number, // in minutes
-    totalResponses: { type: Number, default: 0 }
-  },
-  completionRate: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 100
-  },
-  cancellationRate: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 100
+  // Trust and verification system reference
+  trust: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserTrust'
   },
   // Referral system integration
   referral: {
-    referralCode: {
-      type: String,
-      unique: true,
-      sparse: true
-    },
-    referredBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    referralSource: {
-      type: String,
-      enum: ['email', 'sms', 'social_media', 'direct_link', 'qr_code', 'app_share']
-    },
-    referralStats: {
-      totalReferrals: { type: Number, default: 0 },
-      successfulReferrals: { type: Number, default: 0 },
-      totalRewardsEarned: { type: Number, default: 0 },
-      totalRewardsPaid: { type: Number, default: 0 },
-      lastReferralAt: Date,
-      referralTier: {
-        type: String,
-        enum: ['bronze', 'silver', 'gold', 'platinum'],
-        default: 'bronze'
-      }
-    },
-    referralPreferences: {
-      autoShare: { type: Boolean, default: true },
-      shareOnSocial: { type: Boolean, default: false },
-      emailNotifications: { type: Boolean, default: true },
-      smsNotifications: { type: Boolean, default: false }
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserReferral'
   },
   
   // Settings reference
@@ -285,56 +103,21 @@ const userSchema = new mongoose.Schema({
     ref: 'UserSettings'
   },
   
-  // User management fields
-  lastLoginAt: Date,
-  lastLoginIP: String,
-  loginCount: {
-    type: Number,
-    default: 0
-  },
-  status: {
-    type: String,
-    enum: ['active', 'inactive', 'suspended', 'pending_verification', 'banned'],
-    default: 'pending_verification'
-  },
-  statusReason: String,
-  statusUpdatedAt: Date,
-  statusUpdatedBy: {
+  // User management reference
+  management: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'UserManagement'
   },
-  deletedAt: Date,
-  deletedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  notes: [{
-    note: String,
-    addedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    addedAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  tags: [String], // For categorizing users (e.g., 'vip', 'high_risk', 'new_user')
   
   // Activity tracking
   activity: {
-    lastActiveAt: Date,
-    totalSessions: {
-      type: Number,
-      default: 0
-    },
-    averageSessionDuration: Number, // in minutes
-    preferredLoginTime: String, // time of day
-    deviceInfo: [{
-      deviceType: String,
-      userAgent: String,
-      lastUsed: Date
-    }]
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserActivity'
+  },
+  // Agency relationship (for agency_owner and agency_admin roles)
+  agency: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserAgency'
   }
 }, {
   timestamps: true
@@ -342,45 +125,34 @@ const userSchema = new mongoose.Schema({
 
 // Index for better performance (phoneNumber and email already have unique indexes)
 userSchema.index({ roles: 1 }); // Multi-role index
-userSchema.index({ 'agency.agencyId': 1, 'agency.status': 1 });
-userSchema.index({ status: 1, isActive: 1 });
-userSchema.index({ 'referral.referredBy': 1, 'referral.referralStats.referralTier': 1 });
-userSchema.index({ trustScore: -1, 'profile.rating': -1 });
+// Note: Status indexes are now in UserManagement model
+userSchema.index({ management: 1 });
+userSchema.index({ agency: 1 }); // Agency relationship index
+// Note: Referral indexes are now in UserReferral model
+userSchema.index({ referral: 1 });
+userSchema.index({ wallet: 1 });
+userSchema.index({ activity: 1 });
+userSchema.index({ trust: 1 });
+// Note: Trust score indexes are now in UserTrust model
 
 // Additional performance indexes
-userSchema.index({ roles: 1, isActive: 1, status: 1 }); // Compound index for common queries
+userSchema.index({ roles: 1, isActive: 1 }); // Compound index for common queries
 userSchema.index({ 'profile.address.city': 1, 'profile.address.state': 1, roles: 1 }); // Location-based queries
-userSchema.index({ 'profile.rating': -1, 'profile.totalReviews': -1, isActive: 1 }); // Rating-based sorting
-userSchema.index({ 'profile.businessName': 1, roles: 1 }); // Business name search
-// Note: Cannot create compound indexes with multiple arrays (roles + skills/specialties/serviceAreas)
-// Using separate indexes instead
-userSchema.index({ 'profile.skills': 1, isActive: 1 }); // Skills-based filtering
-userSchema.index({ 'profile.specialties': 1, isActive: 1 }); // Specialties filtering
-userSchema.index({ 'profile.serviceAreas': 1, isActive: 1 }); // Service areas filtering
-userSchema.index({ roles: 1, isActive: 1 }); // Roles filtering (separate index)
-// Note: Cannot index certifications.name (array field) with roles (array field)
-userSchema.index({ 'profile.certifications.name': 1 }); // Certification filtering (separate index)
-userSchema.index({ 'profile.insurance.hasInsurance': 1, roles: 1 }); // Insurance status
-userSchema.index({ 'profile.backgroundCheck.status': 1, roles: 1 }); // Background check status
-userSchema.index({ 'activity.lastActiveAt': -1, isActive: 1 }); // Recent activity
+// Note: roles: 1, isActive: 1 index already defined above
+// Note: Activity indexes are now in UserActivity model
+userSchema.index({ activity: 1, isActive: 1 }); // Recent activity
 userSchema.index({ createdAt: -1, roles: 1 }); // Registration date with roles
 userSchema.index({ updatedAt: -1, isActive: 1 }); // Last updated
-userSchema.index({ 'profile.experience': -1, roles: 1, isActive: 1 }); // Experience-based sorting
-userSchema.index({ 'profile.availability.isAvailable': 1, roles: 1, isActive: 1 }); // Availability status
 
 // Text search index for comprehensive search
 userSchema.index({
   firstName: 'text',
   lastName: 'text',
-  'profile.businessName': 'text',
-  'profile.skills': 'text',
-  'profile.specialties': 'text',
   'profile.bio': 'text'
 });
 
 // Sparse indexes for optional fields
 // Note: email already has unique: true, sparse: true which creates an index
-userSchema.index({ 'profile.businessName': 1 }, { sparse: true });
 userSchema.index({ 'profile.website': 1 }, { sparse: true });
 
 // Pre-validate hook to clean undefined values before validation and validate birthdate
@@ -407,11 +179,132 @@ userSchema.pre('validate', function(next) {
       // If field is undefined, remove it to prevent Mongoose casting errors
       if (this.profile[field] === undefined) {
         // Use unset to properly remove the field
-        this.unset(`profile.${field}`);
+        delete this.profile[field];
       }
     });
   }
   next();
+});
+
+// Post-save hook to ensure referral, activity, and wallet documents exist
+// Use a flag to prevent infinite loops
+userSchema.post('save', async function() {
+  // Skip if this is a save triggered by the hook itself
+  if (this._skipRelatedDocumentsCreation) {
+    return;
+  }
+  
+  // Only create referral/activity/wallet for new users or if missing
+  if (this.isNew || !this.referral || !this.activity || !this.wallet) {
+    try {
+      let needsSave = false;
+      
+      // Create referral document if it doesn't exist
+      if (!this.referral) {
+        const referral = await UserReferral.findOrCreateForUser(this._id);
+        this.referral = referral._id;
+        needsSave = true;
+      }
+      
+      // Create activity document if it doesn't exist
+      if (!this.activity) {
+        const activity = await UserActivity.findOrCreateForUser(this._id);
+        this.activity = activity._id;
+        needsSave = true;
+      }
+      
+      // Create wallet document if it doesn't exist
+      if (!this.wallet) {
+        const wallet = await UserWallet.findOrCreateForUser(this._id);
+        this.wallet = wallet._id;
+        needsSave = true;
+      }
+      
+      // Create trust document if it doesn't exist
+      if (!this.trust) {
+        const trust = await UserTrust.findOrCreateForUser(this._id);
+        this.trust = trust._id;
+        needsSave = true;
+      }
+      
+      // Create management document if it doesn't exist
+      if (!this.management) {
+        const management = await UserManagement.findOrCreateForUser(this._id);
+        this.management = management._id;
+        needsSave = true;
+      }
+      
+      // Create agency document if it doesn't exist
+      if (!this.agency) {
+        const agency = await UserAgency.findOrCreateForUser(this._id);
+        this.agency = agency._id;
+        needsSave = true;
+      }
+      
+      // Save once if any documents were created
+      if (needsSave) {
+        this._skipRelatedDocumentsCreation = true;
+        await this.save({ validateBeforeSave: false });
+        this._skipRelatedDocumentsCreation = false;
+      }
+    } catch (error) {
+      console.error('Error creating referral/activity/wallet documents:', error);
+      // Don't throw - allow user save to succeed even if related docs fail
+    }
+  }
+  
+  // Create provider profile if user has provider role and profile doesn't exist
+  if (this.roles && this.roles.includes('provider')) {
+    try {
+      // Check for existing provider (including soft-deleted ones)
+      const existingProvider = await Provider.findOne({ userId: this._id });
+      if (!existingProvider) {
+        // Create a basic provider profile with default values
+        const providerData = {
+          userId: this._id,
+          providerType: 'individual', // Default to individual, can be updated later
+          status: 'pending',
+          onboarding: {
+            completed: false,
+            currentStep: 'profile_setup',
+            progress: 10,
+            steps: [
+              { step: 'profile_setup', completed: true, completedAt: new Date() }
+            ]
+          }
+        };
+        
+        const provider = new Provider(providerData);
+        await provider.save();
+        
+        console.log('Provider profile created automatically for user:', this._id);
+      } else if (existingProvider.deleted) {
+        // Restore soft-deleted provider profile
+        existingProvider.deleted = false;
+        existingProvider.deletedOn = null;
+        await existingProvider.save();
+        
+        console.log('Provider profile restored automatically for user:', this._id);
+      }
+    } catch (error) {
+      console.error('Error creating/restoring provider profile:', error);
+      // Don't throw - allow user save to succeed even if provider creation fails
+    }
+  } else {
+    // Soft delete provider profile if user does not have provider role
+    try {
+      const existingProvider = await Provider.findOne({ userId: this._id, deleted: { $ne: true } });
+      if (existingProvider) {
+        existingProvider.deleted = true;
+        existingProvider.deletedOn = new Date();
+        await existingProvider.save();
+        console.log('Provider profile soft deleted automatically for user:', this._id);
+      }
+    } catch (error) {
+      console.error('Error soft deleting provider profile:', error);
+      // Don't throw - allow user save to succeed even if provider removal fails
+    }
+  }
 });
 
 
@@ -530,174 +423,283 @@ userSchema.methods.verifyCode = function(code) {
   return this.verificationCode === code;
 };
 
-// Method to calculate trust score
-userSchema.methods.calculateTrustScore = function() {
-  let score = 0;
+// Helper method to ensure trust is populated
+userSchema.methods.ensureTrust = async function(options = {}) {
+  const { forceRefresh = false } = options;
   
-  // Base verification points
-  if (this.verification.phoneVerified) score += 10;
-  if (this.verification.emailVerified) score += 10;
-  if (this.verification.identityVerified) score += 20;
-  if (this.verification.businessVerified) score += 15;
-  if (this.verification.addressVerified) score += 10;
-  if (this.verification.bankAccountVerified) score += 15;
-  
-  // Rating points (up to 20 points)
-  score += Math.round(this.profile.rating * 4);
-  
-  // Review count bonus (up to 10 points)
-  if (this.profile.totalReviews > 0) {
-    score += Math.min(10, Math.floor(this.profile.totalReviews / 5));
+  // If trust doesn't exist, create it
+  if (!this.trust) {
+    const trust = await UserTrust.findOrCreateForUser(this._id);
+    this.trust = trust._id;
+    await this.save({ validateBeforeSave: false });
+    return trust;
   }
   
-  // Completion rate bonus (up to 10 points)
-  score += Math.round(this.completionRate / 10);
+  // Check if trust is populated by checking for a property that exists when populated
+  const isPopulated = this.trust && 
+    typeof this.trust === 'object' && 
+    this.trust._id && 
+    this.trust.trustScore !== undefined;
   
-  // Badge bonus (up to 10 points)
-  score += Math.min(10, this.badges.length * 2);
+  // Populate if not already populated or if force refresh requested
+  if (!isPopulated || forceRefresh) {
+    await this.populate('trust');
+  }
   
-  this.trustScore = Math.min(100, score);
-  return this.trustScore;
+  return this.trust;
+};
+
+// Method to calculate trust score
+userSchema.methods.calculateTrustScore = async function() {
+  const trust = await this.ensureTrust();
+  trust.calculateTrustScore();
+  await trust.save();
+  return trust.trustScore;
 };
 
 // Method to add badge
-userSchema.methods.addBadge = function(badgeType, description) {
-  const existingBadge = this.badges.find(badge => badge.type === badgeType);
-  if (!existingBadge) {
-    this.badges.push({
-      type: badgeType,
-      earnedAt: new Date(),
-      description: description
-    });
-  }
+userSchema.methods.addBadge = async function(badgeType, description) {
+  const trust = await this.ensureTrust();
+  trust.addBadge(badgeType, description);
+  await trust.save();
+  return this;
+};
+
+// Method to remove badge
+userSchema.methods.removeBadge = async function(badgeType) {
+  const trust = await this.ensureTrust();
+  trust.removeBadge(badgeType);
+  await trust.save();
+  return this;
+};
+
+// Method to check if user has badge
+userSchema.methods.hasBadge = async function(badgeType) {
+  const trust = await this.ensureTrust();
+  return trust.hasBadge(badgeType);
 };
 
 // Method to update response time
-userSchema.methods.updateResponseTime = function(responseTimeMinutes) {
-  if (!this.responseTime.average) {
-    this.responseTime.average = responseTimeMinutes;
-  } else {
-    const totalTime = this.responseTime.average * this.responseTime.totalResponses;
-    this.responseTime.totalResponses += 1;
-    this.responseTime.average = (totalTime + responseTimeMinutes) / this.responseTime.totalResponses;
+userSchema.methods.updateResponseTime = async function(responseTimeMinutes) {
+  const trust = await this.ensureTrust();
+  trust.updateResponseTime(responseTimeMinutes);
+  await trust.save();
+  return this;
+};
+
+// Method to update completion rate
+userSchema.methods.updateCompletionRate = async function(completed, total) {
+  const trust = await this.ensureTrust();
+  trust.updateCompletionRate(completed, total);
+  await trust.save();
+  return this;
+};
+
+// Method to update cancellation rate
+userSchema.methods.updateCancellationRate = async function(cancelled, total) {
+  const trust = await this.ensureTrust();
+  trust.updateCancellationRate(cancelled, total);
+  await trust.save();
+  return this;
+};
+
+// Method to verify a verification type
+userSchema.methods.verify = async function(verificationType) {
+  const trust = await this.ensureTrust();
+  trust.verify(verificationType);
+  await trust.save();
+  return this;
+};
+
+// Method to unverify a verification type
+userSchema.methods.unverify = async function(verificationType) {
+  const trust = await this.ensureTrust();
+  trust.unverify(verificationType);
+  await trust.save();
+  return this;
+};
+
+// Method to get trust summary
+userSchema.methods.getTrustSummary = async function() {
+  const trust = await this.ensureTrust();
+  return trust.getTrustSummary();
+};
+
+// Helper method to ensure referral is populated
+userSchema.methods.ensureReferral = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  
+  // If referral doesn't exist, create it
+  if (!this.referral) {
+    const referral = await UserReferral.findOrCreateForUser(this._id);
+    this.referral = referral._id;
+    await this.save({ validateBeforeSave: false });
+    return referral;
   }
+  
+  // Check if referral is populated by checking for a property that exists when populated
+  const isPopulated = this.referral && 
+    typeof this.referral === 'object' && 
+    this.referral._id && 
+    this.referral.referralCode !== undefined;
+  
+  // Populate if not already populated or if force refresh requested
+  if (!isPopulated || forceRefresh) {
+    await this.populate('referral');
+  }
+  
+  return this.referral;
 };
 
 // Method to generate referral code
-userSchema.methods.generateReferralCode = function() {
-  if (!this.referral.referralCode) {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    
-    // Generate 8-character code with user initials
-    const initials = (this.firstName.charAt(0) + this.lastName.charAt(0)).toUpperCase();
-    result = initials;
-    
-    // Add 6 random characters
-    for (let i = 0; i < 6; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    
-    this.referral.referralCode = result;
-  }
-  return this.referral.referralCode;
+userSchema.methods.generateReferralCode = async function() {
+  const referral = await this.ensureReferral();
+  const initials = (this.firstName?.charAt(0) || '') + (this.lastName?.charAt(0) || '');
+  return referral.generateReferralCode(initials);
 };
 
 // Method to update referral stats
-userSchema.methods.updateReferralStats = function(type, amount = 0) {
-  if (type === 'referral_made') {
-    this.referral.referralStats.totalReferrals += 1;
-    this.referral.referralStats.lastReferralAt = new Date();
-  } else if (type === 'referral_completed') {
-    this.referral.referralStats.successfulReferrals += 1;
-  } else if (type === 'reward_earned') {
-    this.referral.referralStats.totalRewardsEarned += amount;
-  } else if (type === 'reward_paid') {
-    this.referral.referralStats.totalRewardsPaid += amount;
-  }
-  
-  // Update referral tier based on successful referrals
-  const successfulReferrals = this.referral.referralStats.successfulReferrals;
-  if (successfulReferrals >= 50) {
-    this.referral.referralStats.referralTier = 'platinum';
-  } else if (successfulReferrals >= 20) {
-    this.referral.referralStats.referralTier = 'gold';
-  } else if (successfulReferrals >= 5) {
-    this.referral.referralStats.referralTier = 'silver';
-  } else {
-    this.referral.referralStats.referralTier = 'bronze';
-  }
-  
-  return this.save();
+userSchema.methods.updateReferralStats = async function(type, amount = 0) {
+  const referral = await this.ensureReferral();
+  await referral.updateReferralStats(type, amount);
+  return this;
 };
 
 // Method to get referral link
-userSchema.methods.getReferralLink = function(baseUrl = process.env.FRONTEND_URL) {
-  const referralCode = this.generateReferralCode();
-  return `${baseUrl}/signup?ref=${referralCode}`;
+userSchema.methods.getReferralLink = async function(baseUrl = process.env.FRONTEND_URL) {
+  const referral = await this.ensureReferral();
+  if (!referral.referralCode) {
+    await this.generateReferralCode();
+    await this.populate('referral');
+  }
+  return referral.getReferralLink(baseUrl);
 };
 
 // Method to check if user was referred
-userSchema.methods.wasReferred = function() {
-  return !!this.referral.referredBy;
+userSchema.methods.wasReferred = async function() {
+  const referral = await this.ensureReferral();
+  return referral.wasReferred();
+};
+
+// Helper method to ensure activity is populated
+userSchema.methods.ensureActivity = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  
+  // If activity doesn't exist, create it
+  if (!this.activity) {
+    const activity = await UserActivity.findOrCreateForUser(this._id);
+    this.activity = activity._id;
+    await this.save({ validateBeforeSave: false });
+    return activity;
+  }
+  
+  // Check if activity is populated by checking for a property that exists when populated
+  const isPopulated = this.activity && 
+    typeof this.activity === 'object' && 
+    this.activity._id && 
+    this.activity.lastActiveAt !== undefined;
+  
+  // Populate if not already populated or if force refresh requested
+  if (!isPopulated || forceRefresh) {
+    await this.populate('activity');
+  }
+  
+  return this.activity;
+};
+
+// Helper method to ensure agency is populated
+userSchema.methods.ensureAgency = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  
+  // If agency doesn't exist, create it
+  if (!this.agency) {
+    const agency = await UserAgency.findOrCreateForUser(this._id);
+    this.agency = agency._id;
+    await this.save({ validateBeforeSave: false });
+    return agency;
+  }
+  
+  // Check if agency is populated by checking for a property that exists when populated
+  const isPopulated = this.agency && 
+    typeof this.agency === 'object' && 
+    this.agency._id && 
+    this.agency.agencyId !== undefined;
+  
+  // Populate if not already populated or if force refresh requested
+  if (!isPopulated || forceRefresh) {
+    await this.populate({
+      path: 'agency',
+      populate: {
+        path: 'agencyId',
+        select: 'name type contact.address'
+      }
+    });
+  }
+  
+  return this.agency;
+};
+
+// Helper method to ensure management is populated
+userSchema.methods.ensureManagement = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  
+  // If management doesn't exist, create it
+  if (!this.management) {
+    const management = await UserManagement.findOrCreateForUser(this._id);
+    this.management = management._id;
+    await this.save({ validateBeforeSave: false });
+    return management;
+  }
+  
+  // Check if management is populated by checking for a property that exists when populated
+  const isPopulated = this.management && 
+    typeof this.management === 'object' && 
+    this.management._id && 
+    this.management.status !== undefined;
+  
+  // Populate if not already populated or if force refresh requested
+  if (!isPopulated || forceRefresh) {
+    await this.populate('management');
+  }
+  
+  return this.management;
 };
 
 // Method to update login information
-userSchema.methods.updateLoginInfo = function(ip, userAgent) {
-  this.lastLoginAt = new Date();
-  this.lastLoginIP = ip;
-  this.loginCount += 1;
-  this.activity.lastActiveAt = new Date();
-  this.activity.totalSessions += 1;
+userSchema.methods.updateLoginInfo = async function(ip, userAgent) {
+  const management = await this.ensureManagement();
+  await management.updateLoginInfo(ip);
   
-  // Update device info
-  const deviceType = this.getDeviceType(userAgent);
-  const existingDevice = this.activity.deviceInfo.find(device => 
-    device.deviceType === deviceType && device.userAgent === userAgent
-  );
-  
-  if (existingDevice) {
-    existingDevice.lastUsed = new Date();
-  } else {
-    this.activity.deviceInfo.push({
-      deviceType,
-      userAgent,
-      lastUsed: new Date()
-    });
-  }
+  const activity = await this.ensureActivity();
+  await activity.updateActivity(userAgent);
   
   return this.save();
 };
 
 // Method to get device type from user agent
-userSchema.methods.getDeviceType = function(userAgent) {
+userSchema.methods.getDeviceType = async function(userAgent) {
   if (!userAgent) return 'unknown';
-  
-  if (/mobile|android|iphone|ipad/i.test(userAgent)) {
-    return 'mobile';
-  } else if (/tablet|ipad/i.test(userAgent)) {
-    return 'tablet';
-  } else {
-    return 'desktop';
-  }
+  const activity = await this.ensureActivity();
+  return activity.getDeviceType(userAgent);
 };
 
 // Method to add note to user
-userSchema.methods.addNote = function(note, addedBy) {
-  this.notes.push({
-    note,
-    addedBy,
-    addedAt: new Date()
-  });
-  return this.save();
+userSchema.methods.addNote = async function(note, addedBy) {
+  const management = await this.ensureManagement();
+  await management.addNote(note, addedBy);
+  return this;
 };
 
 // Method to update user status
-userSchema.methods.updateStatus = function(status, reason, updatedBy) {
-  this.status = status;
-  this.statusReason = reason;
-  this.statusUpdatedAt = new Date();
-  this.statusUpdatedBy = updatedBy;
+userSchema.methods.updateStatus = async function(status, reason, updatedBy) {
+  const management = await this.ensureManagement();
+  
+  // Don't allow status update if user is deleted
+  if (management.deletedAt) {
+    throw new Error('Cannot update status of deleted user');
+  }
+  
+  await management.updateStatus(status, reason, updatedBy);
   
   // Update isActive based on status
   this.isActive = ['active', 'pending_verification'].includes(status);
@@ -706,43 +708,73 @@ userSchema.methods.updateStatus = function(status, reason, updatedBy) {
 };
 
 // Method to add tag to user
-userSchema.methods.addTag = function(tag) {
-  if (!this.tags.includes(tag)) {
-    this.tags.push(tag);
-  }
-  return this.save();
+userSchema.methods.addTag = async function(tag) {
+  const management = await this.ensureManagement();
+  await management.addTag(tag);
+  return this;
 };
 
 // Method to remove tag from user
-userSchema.methods.removeTag = function(tag) {
-  this.tags = this.tags.filter(t => t !== tag);
-  return this.save();
+userSchema.methods.removeTag = async function(tag) {
+  const management = await this.ensureManagement();
+  await management.removeTag(tag);
+  return this;
 };
 
 // Method to check if user has tag
-userSchema.methods.hasTag = function(tag) {
-  return this.tags.includes(tag);
+userSchema.methods.hasTag = async function(tag) {
+  const management = await this.ensureManagement();
+  return management.hasTag(tag);
+};
+
+// Method to set tags (replaces all existing tags)
+userSchema.methods.setTags = async function(tags) {
+  const management = await this.ensureManagement();
+  await management.setTags(tags);
+  return this;
+};
+
+// Method to soft delete user
+userSchema.methods.softDelete = async function(deletedBy) {
+  const management = await this.ensureManagement();
+  await management.softDelete(deletedBy);
+  this.isActive = false;
+  return this.save();
+};
+
+// Method to restore user
+userSchema.methods.restore = async function(restoredBy) {
+  const management = await this.ensureManagement();
+  await management.restore(restoredBy);
+  this.isActive = true;
+  return this.save();
 };
 
 // Method to get user activity summary
-userSchema.methods.getActivitySummary = function() {
+userSchema.methods.getActivitySummary = async function() {
+  const activity = await this.ensureActivity();
+  const management = await this.ensureManagement();
+  const trust = await this.ensureTrust();
+  
+  const activitySummary = activity ? activity.getSummary() : {};
+  const managementSummary = management ? management.getSummary() : {};
+  const trustSummary = trust ? trust.getTrustSummary() : {};
+  
   return {
-    lastLoginAt: this.lastLoginAt,
-    loginCount: this.loginCount,
-    lastActiveAt: this.activity.lastActiveAt,
-    totalSessions: this.activity.totalSessions,
-    averageSessionDuration: this.activity.averageSessionDuration,
-    deviceCount: this.activity.deviceInfo.length,
-    status: this.status,
+    ...activitySummary,
+    ...managementSummary,
     isActive: this.isActive,
-    trustScore: this.trustScore,
-    verification: this.verification
+    trustScore: trustSummary.trustScore,
+    verification: trustSummary.verification
   };
 };
 
 // Static method to get users by status
-userSchema.statics.getUsersByStatus = function(status) {
-  return this.find({ status });
+userSchema.statics.getUsersByStatus = async function(status) {
+  const UserManagement = mongoose.model('UserManagement');
+  const managementDocs = await UserManagement.find({ status, deletedAt: null });
+  const userIds = managementDocs.map(m => m.user);
+  return this.find({ _id: { $in: userIds } });
 };
 
 // Static method to get users by role (supports both single role and array)
@@ -754,13 +786,19 @@ userSchema.statics.getUsersByRole = function(role) {
 };
 
 // Static method to get active users
-userSchema.statics.getActiveUsers = function() {
-  return this.find({ isActive: true, status: 'active' });
+userSchema.statics.getActiveUsers = async function() {
+  const UserManagement = mongoose.model('UserManagement');
+  const managementDocs = await UserManagement.find({ status: 'active', deletedAt: null });
+  const userIds = managementDocs.map(m => m.user);
+  return this.find({ _id: { $in: userIds }, isActive: true });
 };
 
 // Static method to get users with low trust score
-userSchema.statics.getLowTrustUsers = function(threshold = 30) {
-  return this.find({ trustScore: { $lt: threshold } });
+userSchema.statics.getLowTrustUsers = async function(threshold = 30) {
+  const UserTrust = mongoose.model('UserTrust');
+  const trustDocs = await UserTrust.find({ trustScore: { $lt: threshold } });
+  const userIds = trustDocs.map(t => t.user);
+  return this.find({ _id: { $in: userIds } });
 };
 
 // Static method to get recently registered users
@@ -768,6 +806,181 @@ userSchema.statics.getRecentUsers = function(days = 7) {
   const date = new Date();
   date.setDate(date.getDate() - days);
   return this.find({ createdAt: { $gte: date } });
+};
+
+// Static method to populate all related documents
+userSchema.statics.populateRelated = function(query) {
+  return query
+    .populate('referral')
+    .populate('activity')
+    .populate('wallet')
+    .populate('trust')
+    .populate('management')
+    .populate('agency')
+    .populate('settings')
+    .populate('localProPlusSubscription')
+    .populate({
+      path: 'management',
+      populate: [
+        { path: 'statusUpdatedBy', select: 'firstName lastName' },
+        { path: 'deletedBy', select: 'firstName lastName' }
+      ]
+    })
+    .populate({
+      path: 'agency',
+      populate: {
+        path: 'agencyId',
+        select: 'name type contact.address'
+      }
+    });
+};
+
+// Static method to find user with all related documents
+userSchema.statics.findByIdWithRelated = function(userId) {
+  return this.findById(userId)
+    .populate('referral')
+    .populate('activity')
+    .populate('wallet')
+    .populate('trust')
+    .populate('management')
+    .populate('agency')
+    .populate('settings')
+    .populate('localProPlusSubscription')
+    .populate({
+      path: 'agency',
+      populate: {
+        path: 'agencyId',
+        select: 'name type contact.address'
+      }
+    });
+};
+
+// Method to populate all related documents
+userSchema.methods.populateAll = async function() {
+  await this.populate([
+    { path: 'referral' },
+    { path: 'activity' },
+    { path: 'wallet' },
+    { path: 'trust' },
+    { 
+      path: 'management',
+      populate: [
+        { path: 'statusUpdatedBy', select: 'firstName lastName email' },
+        { path: 'deletedBy', select: 'firstName lastName email' }
+      ]
+    },
+    {
+      path: 'agency',
+      populate: {
+        path: 'agencyId',
+        select: 'name type contact.address'
+      }
+    },
+    { path: 'settings' },
+    { path: 'localProPlusSubscription' }
+  ]);
+  return this;
+};
+
+// Method to get comprehensive user summary
+userSchema.methods.getSummary = async function() {
+  await this.populateAll();
+  
+  const walletSummary = this.wallet ? await this.wallet.getBalanceSummary() : null;
+  const activitySummary = this.activity ? this.activity.getSummary() : null;
+  const managementSummary = this.management ? this.management.getSummary() : null;
+  const trustSummary = this.trust ? await this.trust.getTrustSummary() : null;
+  const referralSummary = this.referral ? {
+    referralCode: this.referral.referralCode,
+    wasReferred: this.referral.wasReferred(),
+    tier: this.referral.referralStats.referralTier,
+    totalReferrals: this.referral.referralStats.totalReferrals,
+    successfulReferrals: this.referral.referralStats.successfulReferrals
+  } : null;
+  
+  return {
+    id: this._id,
+    phoneNumber: this.phoneNumber,
+    email: this.email,
+    firstName: this.firstName,
+    lastName: this.lastName,
+    fullName: this.fullName,
+    roles: this.roles,
+    status: managementSummary?.status,
+    isActive: this.isActive,
+    isVerified: this.isVerified,
+    trust: trustSummary,
+    wallet: walletSummary,
+    activity: activitySummary,
+    management: managementSummary,
+    referral: referralSummary,
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt
+  };
+};
+
+// Pre-remove hook to handle cleanup of related documents
+userSchema.pre('remove', async function(next) {
+  try {
+    // Mark user as deleted instead of actually removing
+    this.deletedAt = new Date();
+    this.isActive = false;
+    this.status = 'banned';
+    await this.save();
+    
+    // Note: We don't delete related documents (referral, activity, wallet)
+    // as they may be needed for historical records and financial audits
+    // Instead, we mark the user as deleted
+    
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Helper method to ensure wallet is populated
+userSchema.methods.ensureWallet = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  
+  // If wallet doesn't exist, create it
+  if (!this.wallet) {
+    const wallet = await UserWallet.findOrCreateForUser(this._id);
+    this.wallet = wallet._id;
+    await this.save({ validateBeforeSave: false });
+    return wallet;
+  }
+  
+  // Check if wallet is populated by checking for a property that exists when populated
+  const isPopulated = this.wallet && 
+    typeof this.wallet === 'object' && 
+    this.wallet._id && 
+    this.wallet.balance !== undefined;
+  
+  // Populate if not already populated or if force refresh requested
+  if (!isPopulated || forceRefresh) {
+    await this.populate('wallet');
+  }
+  
+  return this.wallet;
+};
+
+// Method to get wallet balance
+userSchema.methods.getWalletBalance = async function() {
+  const wallet = await this.ensureWallet();
+  await wallet.updateBalance();
+  return wallet.getBalanceSummary();
+};
+
+// Method to add wallet credit
+userSchema.methods.addWalletCredit = async function(data) {
+  const wallet = await this.ensureWallet();
+  return wallet.addCredit(data);
+};
+
+// Method to add wallet debit
+userSchema.methods.addWalletDebit = async function(data) {
+  const wallet = await this.ensureWallet();
+  return wallet.addDebit(data);
 };
 
 module.exports = mongoose.model('User', userSchema);

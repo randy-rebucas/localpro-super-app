@@ -1,4 +1,10 @@
 const mongoose = require('mongoose');
+const ProviderVerification = require('./ProviderVerification');
+const ProviderPreferences = require('./ProviderPreferences');
+const ProviderFinancialInfo = require('./ProviderFinancialInfo');
+const ProviderBusinessInfo = require('./ProviderBusinessInfo');
+const ProviderProfessionalInfo = require('./ProviderProfessionalInfo');
+const ProviderPerformance = require('./ProviderPerformance');
 
 const providerSchema = new mongoose.Schema({
   // Basic Information
@@ -8,7 +14,6 @@ const providerSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  
   // Provider Status
   status: {
     type: String,
@@ -23,204 +28,40 @@ const providerSchema = new mongoose.Schema({
     required: true
   },
   
-  // Business Information (for business/agency providers)
+  // Business Information reference (for business/agency providers)
   businessInfo: {
-    businessName: String,
-    businessType: String,
-    businessRegistration: String,
-    taxId: String,
-    businessAddress: {
-      street: String,
-      city: String,
-      state: String,
-      zipCode: String,
-      country: String,
-      coordinates: {
-        lat: Number,
-        lng: Number
-      }
-    },
-    businessPhone: String,
-    businessEmail: String,
-    website: String,
-    businessDescription: String,
-    yearEstablished: Number,
-    numberOfEmployees: Number
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProviderBusinessInfo'
   },
   
-  // Professional Information
+  // Professional Information reference
   professionalInfo: {
-    specialties: [{
-      category: {
-        type: String,
-        enum: ['cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 'pest_control', 'handyman', 'painting', 'carpentry', 'other']
-      },
-      subcategories: [String],
-      experience: Number, // years of experience
-      certifications: [{
-        name: String,
-        issuer: String,
-        dateIssued: Date,
-        expiryDate: Date,
-        certificateNumber: String
-      }],
-      skills: [String],
-      hourlyRate: Number,
-      serviceAreas: [{
-        city: String,
-        state: String,
-        radius: Number // in miles/km
-      }]
-    }],
-    languages: [String],
-    availability: {
-      monday: { start: String, end: String, available: Boolean },
-      tuesday: { start: String, end: String, available: Boolean },
-      wednesday: { start: String, end: String, available: Boolean },
-      thursday: { start: String, end: String, available: Boolean },
-      friday: { start: String, end: String, available: Boolean },
-      saturday: { start: String, end: String, available: Boolean },
-      sunday: { start: String, end: String, available: Boolean }
-    },
-    emergencyServices: Boolean,
-    travelDistance: Number, // maximum travel distance
-    minimumJobValue: Number,
-    maximumJobValue: Number
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProviderProfessionalInfo'
   },
   
-  // Verification & Documentation
+  // Verification & Documentation reference
   verification: {
-    identityVerified: { type: Boolean, default: false },
-    businessVerified: { type: Boolean, default: false },
-    backgroundCheck: {
-      status: { type: String, enum: ['pending', 'passed', 'failed', 'not_required'], default: 'pending' },
-      dateCompleted: Date,
-      reportId: String
-    },
-    insurance: {
-      hasInsurance: { type: Boolean, default: false },
-      insuranceProvider: String,
-      policyNumber: String,
-      coverageAmount: Number,
-      expiryDate: Date,
-      documents: [String] // URLs to insurance documents
-    },
-    licenses: [{
-      type: String,
-      number: String,
-      issuingAuthority: String,
-      issueDate: Date,
-      expiryDate: Date,
-      documents: [String]
-    }],
-    references: [{
-      name: String,
-      relationship: String,
-      phone: String,
-      email: String,
-      company: String,
-      verified: { type: Boolean, default: false }
-    }],
-    portfolio: {
-      images: [String],
-      videos: [String],
-      descriptions: [String],
-      beforeAfter: [{
-        before: String,
-        after: String,
-        description: String
-      }]
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProviderVerification'
   },
   
-  // Financial Information
+  // Financial Information reference
   financialInfo: {
-    bankAccount: {
-      accountHolder: String,
-      accountNumber: String, // encrypted
-      routingNumber: String, // encrypted
-      bankName: String,
-      accountType: { type: String, enum: ['checking', 'savings'] }
-    },
-    taxInfo: {
-      ssn: String, // encrypted
-      ein: String, // encrypted
-      taxClassification: String,
-      w9Submitted: { type: Boolean, default: false }
-    },
-    paymentMethods: [{
-      type: { type: String, enum: ['bank_transfer', 'paypal', 'paymaya', 'check'] },
-      details: mongoose.Schema.Types.Mixed,
-      isDefault: { type: Boolean, default: false }
-    }],
-    commissionRate: { type: Number, default: 0.1 }, // 10% default
-    minimumPayout: { type: Number, default: 50 }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProviderFinancialInfo'
   },
   
-  // Performance Metrics
+  // Performance Metrics reference
   performance: {
-    rating: { type: Number, default: 0, min: 0, max: 5 },
-    totalReviews: { type: Number, default: 0 },
-    totalJobs: { type: Number, default: 0 },
-    completedJobs: { type: Number, default: 0 },
-    cancelledJobs: { type: Number, default: 0 },
-    responseTime: { type: Number, default: 0 }, // average response time in minutes
-    completionRate: { type: Number, default: 0 },
-    repeatCustomerRate: { type: Number, default: 0 },
-    earnings: {
-      total: { type: Number, default: 0 },
-      thisMonth: { type: Number, default: 0 },
-      lastMonth: { type: Number, default: 0 },
-      pending: { type: Number, default: 0 }
-    },
-    badges: [{
-      name: String,
-      description: String,
-      earnedDate: Date,
-      category: String
-    }]
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProviderPerformance'
   },
   
-  // Provider Preferences
+  // Provider Preferences reference
   preferences: {
-    notificationSettings: {
-      newJobAlerts: { type: Boolean, default: true },
-      messageNotifications: { type: Boolean, default: true },
-      paymentNotifications: { type: Boolean, default: true },
-      reviewNotifications: { type: Boolean, default: true },
-      marketingEmails: { type: Boolean, default: false }
-    },
-    jobPreferences: {
-      preferredJobTypes: [String],
-      avoidJobTypes: [String],
-      preferredTimeSlots: [String],
-      maxJobsPerDay: { type: Number, default: 5 },
-      advanceBookingDays: { type: Number, default: 30 }
-    },
-    communicationPreferences: {
-      preferredContactMethod: { type: String, enum: ['phone', 'email', 'sms', 'app'], default: 'app' },
-      responseTimeExpectation: { type: Number, default: 60 }, // minutes
-      autoAcceptJobs: { type: Boolean, default: false }
-    }
-  },
-  
-  // Subscription & Plans
-  subscription: {
-    plan: {
-      type: String,
-      enum: ['basic', 'professional', 'premium', 'enterprise'],
-      default: 'basic'
-    },
-    features: [String],
-    limits: {
-      maxServices: { type: Number, default: 5 },
-      maxBookingsPerMonth: { type: Number, default: 50 },
-      prioritySupport: { type: Boolean, default: false },
-      advancedAnalytics: { type: Boolean, default: false }
-    },
-    billingCycle: { type: String, enum: ['monthly', 'yearly'], default: 'monthly' },
-    nextBillingDate: Date,
-    autoRenew: { type: Boolean, default: true }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProviderPreferences'
   },
   
   // Onboarding Progress
@@ -255,6 +96,16 @@ const providerSchema = new mongoose.Schema({
     promoted: { type: Boolean, default: false },
     tags: [String],
     notes: String // admin notes
+  },
+  
+  // Soft delete fields
+  deleted: {
+    type: Boolean,
+    default: false
+  },
+  deletedOn: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
@@ -264,34 +115,62 @@ const providerSchema = new mongoose.Schema({
 // userId already has unique: true which creates an index
 providerSchema.index({ status: 1 });
 providerSchema.index({ providerType: 1 });
-providerSchema.index({ 'professionalInfo.specialties.category': 1 });
 providerSchema.index({ 'professionalInfo.serviceAreas.city': 1, 'professionalInfo.serviceAreas.state': 1 });
-providerSchema.index({ 'performance.rating': -1 });
-providerSchema.index({ 'performance.totalJobs': -1 });
+providerSchema.index({ performance: 1 });
 providerSchema.index({ 'metadata.featured': 1 });
 providerSchema.index({ 'metadata.promoted': 1 });
 providerSchema.index({ createdAt: -1 });
+providerSchema.index({ verification: 1 });
+providerSchema.index({ preferences: 1 });
+providerSchema.index({ financialInfo: 1 });
+providerSchema.index({ businessInfo: 1 });
+providerSchema.index({ professionalInfo: 1 });
+providerSchema.index({ deleted: 1 }); // Index for soft delete queries
 
 // Virtual for full name
 providerSchema.virtual('fullName').get(function() {
-  if (this.businessInfo && this.businessInfo.businessName) {
+  // Note: This virtual may not work correctly if businessInfo is not populated
+  // Use ensureBusinessInfo() or populate('businessInfo') before accessing
+  if (this.businessInfo && typeof this.businessInfo === 'object' && this.businessInfo.businessName) {
     return this.businessInfo.businessName;
   }
-  return `${this.userId.firstName} ${this.userId.lastName}`;
+  return `${this.userId?.firstName || ''} ${this.userId?.lastName || ''}`.trim();
 });
 
-// Virtual for completion rate
+// Virtual for completion rate (deprecated - use ensurePerformance() instead)
 providerSchema.virtual('completionRate').get(function() {
-  if (this.performance.totalJobs === 0) return 0;
-  return (this.performance.completedJobs / this.performance.totalJobs) * 100;
+  // Note: This virtual may not work correctly if performance is not populated
+  // Use ensurePerformance() or populate('performance') before accessing
+  if (this.performance && typeof this.performance === 'object' && this.performance.totalJobs) {
+    if (this.performance.totalJobs === 0) return 0;
+    return (this.performance.completedJobs / this.performance.totalJobs) * 100;
+  }
+  return 0;
 });
 
-// Pre-save middleware to update performance metrics
-providerSchema.pre('save', function(next) {
-  // Update completion rate
-  if (this.performance.totalJobs > 0) {
-    this.performance.completionRate = (this.performance.completedJobs / this.performance.totalJobs) * 100;
+// Pre-save middleware to update performance metrics and validate businessInfo
+providerSchema.pre('save', async function(next) {
+  // Validate businessInfo is required for business/agency providers
+  if (this.providerType === 'business' || this.providerType === 'agency') {
+    // If businessInfo is populated, check it directly
+    if (this.businessInfo && typeof this.businessInfo === 'object' && this.businessInfo.businessName) {
+      // Already populated and has businessName - good
+    } else if (this.businessInfo) {
+      // businessInfo is an ObjectId, need to check if it exists and has businessName
+      try {
+        const businessInfo = await ProviderBusinessInfo.findById(this.businessInfo);
+        if (!businessInfo || !businessInfo.businessName) {
+          return next(new Error('Business information (businessName) is required for business and agency providers'));
+        }
+      } catch (error) {
+        return next(new Error('Business information (businessName) is required for business and agency providers'));
+      }
+    } else {
+      return next(new Error('Business information (businessName) is required for business and agency providers'));
+    }
   }
+  
+  // Note: Subscription is now managed through User model (localProPlusSubscription)
   
   // Update last active
   this.metadata.lastActive = new Date();
@@ -299,77 +178,317 @@ providerSchema.pre('save', function(next) {
   next();
 });
 
-// Methods
-providerSchema.methods.updateRating = function(newRating) {
-  const totalRating = (this.performance.rating * this.performance.totalReviews) + newRating;
-  this.performance.totalReviews += 1;
-  this.performance.rating = totalRating / this.performance.totalReviews;
-  return this.save();
-};
-
-providerSchema.methods.addJob = function(status) {
-  this.performance.totalJobs += 1;
-  if (status === 'completed') {
-    this.performance.completedJobs += 1;
-  } else if (status === 'cancelled') {
-    this.performance.cancelledJobs += 1;
+// Post-save hook to ensure verification document exists
+providerSchema.post('save', async function() {
+  if (this._skipVerificationCreation) {
+    return;
   }
-  return this.save();
+  
+  let needsSave = false;
+  
+  // Create verification document if it doesn't exist
+  if (!this.verification) {
+    const verification = await ProviderVerification.findOrCreateForProvider(this._id);
+    this.verification = verification._id;
+    needsSave = true;
+  }
+  
+  // Create preferences document if it doesn't exist
+  if (!this.preferences) {
+    const preferences = await ProviderPreferences.findOrCreateForProvider(this._id);
+    this.preferences = preferences._id;
+    needsSave = true;
+  }
+  
+  // Create financialInfo document if it doesn't exist
+  if (!this.financialInfo) {
+    const financialInfo = await ProviderFinancialInfo.findOrCreateForProvider(this._id);
+    this.financialInfo = financialInfo._id;
+    needsSave = true;
+  }
+  
+  // Create businessInfo document if it doesn't exist (for business/agency providers)
+  if ((this.providerType === 'business' || this.providerType === 'agency') && !this.businessInfo) {
+    const businessInfo = await ProviderBusinessInfo.findOrCreateForProvider(this._id);
+    this.businessInfo = businessInfo._id;
+    needsSave = true;
+  }
+  
+  // Create professionalInfo document if it doesn't exist
+  if (!this.professionalInfo) {
+    const professionalInfo = await ProviderProfessionalInfo.findOrCreateForProvider(this._id);
+    this.professionalInfo = professionalInfo._id;
+    needsSave = true;
+  }
+  
+  // Create performance document if it doesn't exist
+  if (!this.performance) {
+    const performance = await ProviderPerformance.findOrCreateForProvider(this._id);
+    this.performance = performance._id;
+    needsSave = true;
+  }
+  
+  if (needsSave) {
+    this._skipVerificationCreation = true;
+    await this.save({ validateBeforeSave: false });
+    this._skipVerificationCreation = false;
+  }
+});
+
+// Validation method
+providerSchema.methods.validateBusinessInfo = async function() {
+  if (this.providerType === 'business' || this.providerType === 'agency') {
+    const businessInfo = await this.ensureBusinessInfo();
+    if (!businessInfo || !businessInfo.businessName) {
+      throw new Error('Business information (businessName) is required for business and agency providers');
+    }
+  }
+  return true;
 };
 
-providerSchema.methods.updateEarnings = function(amount) {
-  this.performance.earnings.total += amount;
-  this.performance.earnings.thisMonth += amount;
-  return this.save();
+providerSchema.methods.ensureBusinessInfo = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  if (!this.businessInfo) {
+    const businessInfo = await ProviderBusinessInfo.findOrCreateForProvider(this._id);
+    this.businessInfo = businessInfo._id;
+    await this.save({ validateBeforeSave: false });
+    return businessInfo;
+  }
+  const isPopulated = this.businessInfo && 
+    typeof this.businessInfo === 'object' && 
+    this.businessInfo._id && 
+    this.businessInfo.businessName !== undefined;
+  if (!isPopulated || forceRefresh) {
+    await this.populate('businessInfo');
+  }
+  return this.businessInfo;
 };
 
-providerSchema.methods.isVerified = function() {
-  return this.verification.identityVerified && 
-         (this.providerType === 'individual' || this.verification.businessVerified);
+providerSchema.methods.ensurePerformance = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  if (!this.performance) {
+    const performance = await ProviderPerformance.findOrCreateForProvider(this._id);
+    this.performance = performance._id;
+    await this.save({ validateBeforeSave: false });
+    return performance;
+  }
+  const isPopulated = this.performance && 
+    typeof this.performance === 'object' && 
+    this.performance._id && 
+    this.performance.rating !== undefined;
+  if (!isPopulated || forceRefresh) {
+    await this.populate('performance');
+  }
+  return this.performance;
 };
 
-providerSchema.methods.canAcceptJobs = function() {
+// Methods
+providerSchema.methods.updateRating = async function(newRating) {
+  const performance = await this.ensurePerformance();
+  await performance.updateRating(newRating);
+  return this;
+};
+
+providerSchema.methods.addJob = async function(status) {
+  const performance = await this.ensurePerformance();
+  await performance.addJob(status);
+  return this;
+};
+
+providerSchema.methods.updateEarnings = async function(amount) {
+  const performance = await this.ensurePerformance();
+  await performance.updateEarnings(amount);
+  return this;
+};
+
+providerSchema.methods.ensureVerification = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  if (!this.verification) {
+    const verification = await ProviderVerification.findOrCreateForProvider(this._id);
+    this.verification = verification._id;
+    await this.save({ validateBeforeSave: false });
+    return verification;
+  }
+  const isPopulated = this.verification && 
+    typeof this.verification === 'object' && 
+    this.verification._id && 
+    this.verification.identityVerified !== undefined;
+  if (!isPopulated || forceRefresh) {
+    await this.populate('verification');
+  }
+  return this.verification;
+};
+
+providerSchema.methods.isVerified = async function() {
+  const verification = await this.ensureVerification();
+  return verification.identityVerified && 
+         (this.providerType === 'individual' || verification.businessVerified);
+};
+
+providerSchema.methods.canAcceptJobs = async function() {
+  const verification = await this.ensureVerification();
   return this.status === 'active' && 
-         this.verification.identityVerified &&
-         (this.providerType === 'individual' || this.verification.businessVerified);
+         verification.identityVerified &&
+         (this.providerType === 'individual' || verification.businessVerified);
 };
 
-providerSchema.methods.getServiceAreas = function() {
-  return this.professionalInfo.specialties.flatMap(specialty => 
-    specialty.serviceAreas.map(area => ({
-      ...area,
-      category: specialty.category
-    }))
-  );
+providerSchema.methods.ensurePreferences = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  if (!this.preferences) {
+    const preferences = await ProviderPreferences.findOrCreateForProvider(this._id);
+    this.preferences = preferences._id;
+    await this.save({ validateBeforeSave: false });
+    return preferences;
+  }
+  const isPopulated = this.preferences && 
+    typeof this.preferences === 'object' && 
+    this.preferences._id && 
+    this.preferences.notificationSettings !== undefined;
+  if (!isPopulated || forceRefresh) {
+    await this.populate('preferences');
+  }
+  return this.preferences;
+};
+
+providerSchema.methods.ensureFinancialInfo = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  if (!this.financialInfo) {
+    const financialInfo = await ProviderFinancialInfo.findOrCreateForProvider(this._id);
+    this.financialInfo = financialInfo._id;
+    await this.save({ validateBeforeSave: false });
+    return financialInfo;
+  }
+  const isPopulated = this.financialInfo && 
+    typeof this.financialInfo === 'object' && 
+    this.financialInfo._id && 
+    this.financialInfo.commissionRate !== undefined;
+  if (!isPopulated || forceRefresh) {
+    await this.populate('financialInfo');
+  }
+  return this.financialInfo;
+};
+
+providerSchema.methods.ensureProfessionalInfo = async function(options = {}) {
+  const { forceRefresh = false } = options;
+  if (!this.professionalInfo) {
+    const professionalInfo = await ProviderProfessionalInfo.findOrCreateForProvider(this._id);
+    this.professionalInfo = professionalInfo._id;
+    await this.save({ validateBeforeSave: false });
+    // Populate skills when returning newly created professionalInfo
+    await professionalInfo.populate('specialties.skills', 'name description category metadata');
+    return professionalInfo;
+  }
+  const isPopulated = this.professionalInfo && 
+    typeof this.professionalInfo === 'object' && 
+    this.professionalInfo._id && 
+    this.professionalInfo.specialties !== undefined;
+  if (!isPopulated || forceRefresh) {
+    await this.populate({
+      path: 'professionalInfo',
+      populate: {
+        path: 'specialties.skills',
+        select: 'name description category metadata'
+      }
+    });
+  }
+  return this.professionalInfo;
+};
+
+providerSchema.methods.getServiceAreas = async function() {
+  const professionalInfo = await this.ensureProfessionalInfo();
+  return professionalInfo.getServiceAreas();
 };
 
 // Static methods
-providerSchema.statics.findByLocation = function(city, state, category) {
-  const query = {
-    status: 'active',
-    'professionalInfo.specialties.serviceAreas': {
+providerSchema.statics.findByLocation = async function(city, state) {
+  // Find providers with professionalInfo that has matching service areas
+  const ProviderProfessionalInfo = mongoose.model('ProviderProfessionalInfo');
+  const professionalInfos = await ProviderProfessionalInfo.find({
+    'specialties.serviceAreas': {
       $elemMatch: { city, state }
     }
-  };
+  });
   
-  if (category) {
-    query['professionalInfo.specialties.category'] = category;
+  const providerIds = professionalInfos.map(pi => pi.provider);
+  
+  if (providerIds.length === 0) {
+    return [];
   }
   
-  return this.find(query);
+  return this.find({
+    _id: { $in: providerIds },
+    status: 'active'
+  })
+    .populate({
+      path: 'professionalInfo',
+      populate: {
+        path: 'specialties.skills',
+        select: 'name description category metadata'
+      }
+    })
+    .populate('businessInfo')
+    .populate('verification')
+    .populate('performance');
 };
 
-providerSchema.statics.findTopRated = function(limit = 10) {
-  return this.find({ status: 'active' })
-    .sort({ 'performance.rating': -1, 'performance.totalReviews': -1 })
+providerSchema.statics.findTopRated = async function(limit = 10) {
+  // Find top rated providers by querying ProviderPerformance first
+  const topPerformances = await ProviderPerformance.find()
+    .sort({ rating: -1, totalReviews: -1 })
+    .limit(limit * 2) // Get more to account for filtering
+    .populate({
+      path: 'provider',
+      match: { status: 'active' }
+    });
+  
+  const providerIds = topPerformances
+    .filter(p => p.provider && p.provider.status === 'active')
+    .map(p => p.provider._id)
+    .slice(0, limit); // Take only the requested limit
+  
+  if (providerIds.length === 0) {
+    return [];
+  }
+  
+  return this.find({
+    _id: { $in: providerIds },
+    status: 'active'
+  })
+    .populate({
+      path: 'professionalInfo',
+      populate: {
+        path: 'specialties.skills',
+        select: 'name description category metadata'
+      }
+    })
+    .populate('businessInfo')
+    .populate('verification')
+    .populate('performance')
     .limit(limit);
 };
 
-providerSchema.statics.findFeatured = function() {
-  return this.find({ 
+providerSchema.statics.findFeatured = async function() {
+  const featuredProviders = await this.find({ 
     status: 'active', 
     'metadata.featured': true 
-  }).sort({ 'performance.rating': -1 });
+  })
+    .populate({
+      path: 'professionalInfo',
+      populate: {
+        path: 'specialties.skills',
+        select: 'name description category metadata'
+      }
+    })
+    .populate('businessInfo')
+    .populate('verification')
+    .populate('performance');
+  
+  // Sort by rating
+  return featuredProviders.sort((a, b) => {
+    const ratingA = a.performance?.rating || 0;
+    const ratingB = b.performance?.rating || 0;
+    return ratingB - ratingA;
+  });
 };
 
 module.exports = mongoose.model('Provider', providerSchema);

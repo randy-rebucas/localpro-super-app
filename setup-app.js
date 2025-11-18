@@ -15,6 +15,8 @@ require('dotenv').config();
 const User = require('./src/models/User');
 const AppSettings = require('./src/models/AppSettings');
 const UserSettings = require('./src/models/UserSettings');
+const UserWallet = require('./src/models/UserWallet');
+const WalletTransaction = require('./src/models/WalletTransaction');
 const Agency = require('./src/models/Agency');
 const { Service, Booking } = require('./src/models/Marketplace');
 const { Course, Enrollment, Certification } = require('./src/models/Academy');
@@ -252,22 +254,14 @@ class AppSetup {
       }
 
       // Create super admin
+      // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const superAdmin = new User({
         phoneNumber: '+639179157515',
         email: 'admin@localpro.asia',
         firstName: 'Super',
         lastName: 'Admin',
-        role: 'admin',
+        roles: ['client', 'admin'], // Multi-role support
         isVerified: true,
-        verification: {
-          phoneVerified: true,
-          emailVerified: true,
-          identityVerified: true,
-          businessVerified: true,
-          addressVerified: true,
-          bankAccountVerified: true,
-          verifiedAt: new Date()
-        },
         profile: {
           bio: 'System Administrator for LocalPro Super App',
           address: {
@@ -294,27 +288,30 @@ class AppSetup {
             timezone: 'Asia/Manila',
             emergencyService: true
           }
-        },
-        trustScore: 100,
-        badges: [
-          { type: 'verified_provider', earnedAt: new Date(), description: 'System Administrator' },
-          { type: 'expert', earnedAt: new Date(), description: 'Platform Expert' }
-        ],
-        subscription: {
-          type: 'enterprise',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
-          isActive: true
-        },
-        wallet: {
-          balance: 0,
-          currency: 'PHP'
         }
       });
 
-      // Generate referral code for admin
-      superAdmin.generateReferralCode();
+      // Save user first to trigger post-save hook for related documents
       await superAdmin.save();
+
+      // Set up verification status (all verified for admin)
+      await superAdmin.verify('phone');
+      await superAdmin.verify('email');
+      await superAdmin.verify('identity');
+      await superAdmin.verify('business');
+      await superAdmin.verify('address');
+      await superAdmin.verify('bankAccount');
+
+      // Add badges
+      await superAdmin.addBadge('verified_provider', 'System Administrator');
+      await superAdmin.addBadge('expert', 'Platform Expert');
+
+      // Update login info and status
+      await superAdmin.updateLoginInfo('127.0.0.1', 'LocalPro-Setup-Script');
+      await superAdmin.updateStatus('active', null, null);
+
+      // Generate referral code
+      await superAdmin.generateReferralCode();
 
       // Create user settings for admin
       const adminSettings = new UserSettings({
@@ -331,18 +328,14 @@ class AppSetup {
       this.logSuccess(`Super admin created: ${superAdmin.email}`);
 
       // Create client user
+      // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const client = new User({
         phoneNumber: '+639171234569',
         email: 'client@localpro.com',
         firstName: 'John',
         lastName: 'Client',
-        role: 'client',
+        roles: ['client'],
         isVerified: true,
-        verification: {
-          phoneVerified: true,
-          emailVerified: true,
-          verifiedAt: new Date()
-        },
         profile: {
           bio: 'Regular client looking for quality services',
           address: {
@@ -353,26 +346,29 @@ class AppSetup {
             country: 'Philippines',
             coordinates: { lat: 14.5995, lng: 120.9842 }
           }
-        },
-        wallet: {
-          balance: 5000,
-          currency: 'PHP'
-        },
-        lastLoginAt: new Date(),
-        loginCount: 1,
-        status: 'active',
-        activity: {
-          lastActiveAt: new Date(),
-          totalSessions: 1,
-          deviceInfo: [{
-            deviceType: 'mobile',
-            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)',
-            lastUsed: new Date()
-          }]
         }
       });
 
       await client.save();
+      
+      // Set up verification status
+      await client.verify('phone');
+      await client.verify('email');
+      
+      // Update login info and status
+      await client.updateLoginInfo('127.0.0.1', 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)');
+      await client.updateStatus('active', null, null);
+      
+      // Add initial wallet balance (if needed, use wallet methods)
+      const wallet = await client.ensureWallet();
+      if (wallet.balance === 0) {
+        await wallet.addCredit({
+          category: 'initial_deposit',
+          amount: 5000,
+          currency: 'PHP',
+          description: 'Initial wallet balance'
+        });
+      }
       const clientSettings = new UserSettings({
         userId: client._id,
         preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: true, push: true } }
@@ -384,19 +380,14 @@ class AppSetup {
       this.logSuccess(`Client created: ${client.email}`);
 
       // Create provider user
+      // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const provider = new User({
         phoneNumber: '+639171234570',
         email: 'provider@localpro.com',
         firstName: 'Maria',
         lastName: 'Provider',
-        role: 'provider',
+        roles: ['client', 'provider'],
         isVerified: true,
-        verification: {
-          phoneVerified: true,
-          emailVerified: true,
-          identityVerified: true,
-          verifiedAt: new Date()
-        },
         profile: {
           bio: 'Professional cleaning service provider with 5 years experience',
           address: {
@@ -424,37 +415,41 @@ class AppSetup {
             timezone: 'Asia/Manila',
             emergencyService: true
           }
-        },
-        trustScore: 95,
-        badges: [
-          { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Service Provider' },
-          { type: 'top_rated', earnedAt: new Date(), description: 'Top Rated Provider' }
-        ],
-        responseTime: {
-          average: 10,
-          totalResponses: 150
-        },
-        completionRate: 98,
-        cancellationRate: 2,
-        wallet: {
-          balance: 15000,
-          currency: 'PHP'
-        },
-        lastLoginAt: new Date(),
-        loginCount: 1,
-        status: 'active',
-        activity: {
-          lastActiveAt: new Date(),
-          totalSessions: 1,
-          deviceInfo: [{
-            deviceType: 'mobile',
-            userAgent: 'Mozilla/5.0 (Android 11; Mobile; rv:68.0) Gecko/68.0 Firefox/88.0',
-            lastUsed: new Date()
-          }]
         }
       });
 
       await provider.save();
+      
+      // Set up verification status
+      await provider.verify('phone');
+      await provider.verify('email');
+      await provider.verify('identity');
+      
+      // Add badges
+      await provider.addBadge('verified_provider', 'Verified Service Provider');
+      await provider.addBadge('top_rated', 'Top Rated Provider');
+      
+      // Update trust metrics
+      const trust = await provider.ensureTrust();
+      trust.updateResponseTime(10);
+      trust.updateCompletionRate(98, 100);
+      trust.updateCancellationRate(2, 100);
+      await trust.save();
+      
+      // Update login info and status
+      await provider.updateLoginInfo('127.0.0.1', 'Mozilla/5.0 (Android 11; Mobile; rv:68.0) Gecko/68.0 Firefox/88.0');
+      await provider.updateStatus('active', null, null);
+      
+      // Add initial wallet balance
+      const providerWallet = await provider.ensureWallet();
+      if (providerWallet.balance === 0) {
+        await providerWallet.addCredit({
+          category: 'initial_deposit',
+          amount: 15000,
+          currency: 'PHP',
+          description: 'Initial wallet balance'
+        });
+      }
       const providerSettings = new UserSettings({
         userId: provider._id,
         preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: true, push: true } }
@@ -466,19 +461,14 @@ class AppSetup {
       this.logSuccess(`Provider created: ${provider.email}`);
 
       // Create supplier user
+      // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const supplier = new User({
         phoneNumber: '+639171234571',
         email: 'supplier@localpro.com',
         firstName: 'Carlos',
         lastName: 'Supplier',
-        role: 'supplier',
+        roles: ['client', 'supplier'],
         isVerified: true,
-        verification: {
-          phoneVerified: true,
-          emailVerified: true,
-          businessVerified: true,
-          verifiedAt: new Date()
-        },
         profile: {
           bio: 'Wholesale supplier of cleaning supplies and equipment',
           address: {
@@ -494,26 +484,30 @@ class AppSetup {
           yearsInBusiness: 10,
           serviceAreas: ['Metro Manila', 'Philippines'],
           specialties: ['Cleaning Supplies', 'Equipment', 'Wholesale Distribution']
-        },
-        wallet: {
-          balance: 50000,
-          currency: 'PHP'
-        },
-        lastLoginAt: new Date(),
-        loginCount: 1,
-        status: 'active',
-        activity: {
-          lastActiveAt: new Date(),
-          totalSessions: 1,
-          deviceInfo: [{
-            deviceType: 'desktop',
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            lastUsed: new Date()
-          }]
         }
       });
 
       await supplier.save();
+      
+      // Set up verification status
+      await supplier.verify('phone');
+      await supplier.verify('email');
+      await supplier.verify('business');
+      
+      // Update login info and status
+      await supplier.updateLoginInfo('127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+      await supplier.updateStatus('active', null, null);
+      
+      // Add initial wallet balance
+      const supplierWallet = await supplier.ensureWallet();
+      if (supplierWallet.balance === 0) {
+        await supplierWallet.addCredit({
+          category: 'initial_deposit',
+          amount: 50000,
+          currency: 'PHP',
+          description: 'Initial wallet balance'
+        });
+      }
       const supplierSettings = new UserSettings({
         userId: supplier._id,
         preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: false, push: true } }
@@ -525,19 +519,14 @@ class AppSetup {
       this.logSuccess(`Supplier created: ${supplier.email}`);
 
       // Create instructor user
+      // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const instructor = new User({
         phoneNumber: '+639171234572',
         email: 'instructor@localpro.com',
         firstName: 'Dr. Sarah',
         lastName: 'Instructor',
-        role: 'instructor',
+        roles: ['client', 'instructor'],
         isVerified: true,
-        verification: {
-          phoneVerified: true,
-          emailVerified: true,
-          identityVerified: true,
-          verifiedAt: new Date()
-        },
         profile: {
           bio: 'Professional instructor specializing in cleaning techniques and safety protocols',
           address: {
@@ -565,31 +554,34 @@ class AppSetup {
             timezone: 'Asia/Manila',
             emergencyService: false
           }
-        },
-        trustScore: 98,
-        badges: [
-          { type: 'verified_provider', earnedAt: new Date(), description: 'Certified Instructor' },
-          { type: 'expert', earnedAt: new Date(), description: 'Training Expert' }
-        ],
-        wallet: {
-          balance: 25000,
-          currency: 'PHP'
-        },
-        lastLoginAt: new Date(),
-        loginCount: 1,
-        status: 'active',
-        activity: {
-          lastActiveAt: new Date(),
-          totalSessions: 1,
-          deviceInfo: [{
-            deviceType: 'desktop',
-            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-            lastUsed: new Date()
-          }]
         }
       });
 
       await instructor.save();
+      
+      // Set up verification status
+      await instructor.verify('phone');
+      await instructor.verify('email');
+      await instructor.verify('identity');
+      
+      // Add badges
+      await instructor.addBadge('verified_provider', 'Certified Instructor');
+      await instructor.addBadge('expert', 'Training Expert');
+      
+      // Update login info and status
+      await instructor.updateLoginInfo('127.0.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
+      await instructor.updateStatus('active', null, null);
+      
+      // Add initial wallet balance
+      const instructorWallet = await instructor.ensureWallet();
+      if (instructorWallet.balance === 0) {
+        await instructorWallet.addCredit({
+          category: 'initial_deposit',
+          amount: 25000,
+          currency: 'PHP',
+          description: 'Initial wallet balance'
+        });
+      }
       const instructorSettings = new UserSettings({
         userId: instructor._id,
         preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: false, push: true } }
@@ -601,22 +593,14 @@ class AppSetup {
       this.logSuccess(`Instructor created: ${instructor.email}`);
 
       // Create agency owner user
+      // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const agencyOwner = new User({
         phoneNumber: '+639171234567',
         email: 'owner@devcom.com',
         firstName: 'John',
         lastName: 'Smith',
-        role: 'agency_owner',
+        roles: ['client', 'agency_owner'],
         isVerified: true,
-        verification: {
-          phoneVerified: true,
-          emailVerified: true,
-          identityVerified: true,
-          businessVerified: true,
-          addressVerified: true,
-          bankAccountVerified: true,
-          verifiedAt: new Date()
-        },
         profile: {
           bio: 'Owner of Devcom Digital Marketing Services',
           address: {
@@ -645,55 +629,59 @@ class AppSetup {
             timezone: 'Asia/Manila',
             emergencyService: true
           }
-        },
-        wallet: {
-          balance: 50000,
-          currency: 'PHP'
-        },
-        trustScore: 95,
-        badges: [
-          { type: 'verified_provider', earnedAt: new Date(), description: 'Verified business owner' },
-          { type: 'expert', earnedAt: new Date(), description: 'Digital marketing expert' }
-        ],
-        responseTime: {
-          average: 15,
-          totalResponses: 150
-        },
-        completionRate: 98,
-        cancellationRate: 2,
-        referral: {
-          referralCode: 'DEVCOM001',
-          referralStats: {
-            totalReferrals: 25,
-            successfulReferrals: 20,
-            totalRewardsEarned: 5000,
-            totalRewardsPaid: 4500,
-            lastReferralAt: new Date(),
-            referralTier: 'gold'
-          },
-          referralPreferences: {
-            autoShare: true,
-            shareOnSocial: true,
-            emailNotifications: true,
-            smsNotifications: false
-          }
-        },
-        lastLoginAt: new Date(),
-        lastLoginIP: '127.0.0.1',
-        loginCount: 1,
-        status: 'active',
-        activity: {
-          lastActiveAt: new Date(),
-          totalSessions: 1,
-          deviceInfo: [{
-            deviceType: 'desktop',
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            lastUsed: new Date()
-          }]
         }
       });
 
       await agencyOwner.save();
+      
+      // Set up verification status (all verified for agency owner)
+      await agencyOwner.verify('phone');
+      await agencyOwner.verify('email');
+      await agencyOwner.verify('identity');
+      await agencyOwner.verify('business');
+      await agencyOwner.verify('address');
+      await agencyOwner.verify('bankAccount');
+      
+      // Add badges
+      await agencyOwner.addBadge('verified_provider', 'Verified business owner');
+      await agencyOwner.addBadge('expert', 'Digital marketing expert');
+      
+      // Update trust metrics
+      const agencyOwnerTrust = await agencyOwner.ensureTrust();
+      agencyOwnerTrust.updateResponseTime(15);
+      agencyOwnerTrust.updateCompletionRate(98, 100);
+      agencyOwnerTrust.updateCancellationRate(2, 100);
+      await agencyOwnerTrust.save();
+      
+      // Set up referral data
+      const referral = await agencyOwner.ensureReferral();
+      referral.referralCode = 'DEVCOM001';
+      referral.referralStats.totalReferrals = 25;
+      referral.referralStats.successfulReferrals = 20;
+      referral.referralStats.totalRewardsEarned = 5000;
+      referral.referralStats.totalRewardsPaid = 4500;
+      referral.referralStats.lastReferralAt = new Date();
+      referral.referralStats.referralTier = 'gold';
+      referral.referralPreferences.autoShare = true;
+      referral.referralPreferences.shareOnSocial = true;
+      referral.referralPreferences.emailNotifications = true;
+      referral.referralPreferences.smsNotifications = false;
+      await referral.save();
+      
+      // Update login info and status
+      await agencyOwner.updateLoginInfo('127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+      await agencyOwner.updateStatus('active', null, null);
+      
+      // Add initial wallet balance
+      const agencyOwnerWallet = await agencyOwner.ensureWallet();
+      if (agencyOwnerWallet.balance === 0) {
+        await agencyOwnerWallet.addCredit({
+          category: 'initial_deposit',
+          amount: 50000,
+          currency: 'PHP',
+          description: 'Initial wallet balance'
+        });
+      }
       const agencyOwnerSettings = new UserSettings({
         userId: agencyOwner._id,
         preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: false, push: true } }
@@ -705,19 +693,14 @@ class AppSetup {
       this.logSuccess(`Agency owner created: ${agencyOwner.email}`);
 
       // Create agency admin user
+      // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const agencyAdmin = new User({
         phoneNumber: '+639171234573',
         email: 'admin@devcom.com',
         firstName: 'Lisa',
         lastName: 'Admin',
-        role: 'agency_admin',
+        roles: ['client', 'agency_admin'], // Multi-role support
         isVerified: true,
-        verification: {
-          phoneVerified: true,
-          emailVerified: true,
-          identityVerified: true,
-          verifiedAt: new Date()
-        },
         profile: {
           bio: 'Agency administrator managing daily operations',
           address: {
@@ -733,30 +716,39 @@ class AppSetup {
           yearsInBusiness: 5,
           serviceAreas: ['Quezon City', 'Manila'],
           specialties: ['Administration', 'Operations Management', 'Team Coordination']
-        },
-        wallet: {
-          balance: 20000,
-          currency: 'PHP'
-        },
-        trustScore: 90,
-        badges: [
-          { type: 'verified_provider', earnedAt: new Date(), description: 'Verified Administrator' }
-        ],
-        lastLoginAt: new Date(),
-        loginCount: 1,
-        status: 'active',
-        activity: {
-          lastActiveAt: new Date(),
-          totalSessions: 1,
-          deviceInfo: [{
-            deviceType: 'desktop',
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            lastUsed: new Date()
-          }]
         }
       });
 
+      // Save user first to trigger post-save hook for related documents
       await agencyAdmin.save();
+
+      // Set up verification status
+      await agencyAdmin.verify('phone');
+      await agencyAdmin.verify('email');
+      await agencyAdmin.verify('identity');
+
+      // Add badges
+      await agencyAdmin.addBadge('verified_provider', 'Verified Administrator');
+
+      // Update login info and status
+      await agencyAdmin.updateLoginInfo('127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+      await agencyAdmin.updateStatus('active', null, null);
+
+      // Generate referral code
+      await agencyAdmin.generateReferralCode();
+
+      // Set up wallet with initial balance
+      const agencyAdminWallet = await agencyAdmin.ensureWallet();
+      if (agencyAdminWallet.balance === 0) {
+        await agencyAdminWallet.addCredit({
+          category: 'initial_deposit',
+          amount: 20000,
+          currency: 'PHP',
+          description: 'Initial wallet balance'
+        });
+      }
+
+      // Create user settings
       const agencyAdminSettings = new UserSettings({
         userId: agencyAdmin._id,
         preferences: { theme: 'light', language: 'en', notifications: { email: true, sms: true, push: true } }
@@ -780,7 +772,7 @@ class AppSetup {
     
     try {
       // Get agency owner from created users
-      const agencyOwner = this.createdData.users.find(u => u.role === 'agency_owner');
+      const agencyOwner = this.createdData.users.find(u => u.roles && u.roles.includes('agency_owner'));
       
       if (!agencyOwner) {
         this.logWarning('No agency owner found, skipping agency creation');
@@ -893,14 +885,25 @@ class AppSetup {
     this.logStep('SEED DATA', 'Creating sample data for all modules...');
     
     try {
-      const admin = this.createdData.users.find(u => u.role === 'admin');
-      const agencyOwner = this.createdData.users.find(u => u.role === 'agency_owner');
+      const admin = this.createdData.users.find(u => u.roles && u.roles.includes('admin'));
+      const agencyOwner = this.createdData.users.find(u => u.roles && u.roles.includes('agency_owner'));
       const agency = this.createdData.agencies[0];
 
-      console.log('Debug - createdData.users:', this.createdData.users.map(u => ({ role: u.role, email: u.email })));
+      console.log('Debug - createdData.users:', this.createdData.users.map(u => ({ roles: u.roles, email: u.email })));
       console.log('Debug - admin:', admin ? 'found' : 'not found');
       console.log('Debug - agencyOwner:', agencyOwner ? 'found' : 'not found');
       console.log('Debug - agency:', agency ? 'found' : 'not found');
+
+      // Check if required users exist
+      if (!admin) {
+        this.logWarning('Admin user not found, skipping seed data creation');
+        return true;
+      }
+      
+      if (!agencyOwner) {
+        this.logWarning('Agency owner user not found, skipping seed data creation');
+        return true;
+      }
 
       // Create sample services
       const services = [

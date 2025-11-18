@@ -1,29 +1,29 @@
 {
-  "timestamp": "2025-10-27T04:36:00.103Z",
+  "timestamp": "2025-11-16T01:59:36.208Z",
   "environment": "development",
   "database": {
-    "uri": "mongodb+srv://admin_db_user:yVpOf6aRwMFMkwsI@master.e2kwbyc.mongodb.net/localpro-super-app?retryWrites=true&w=majority&appName=Master",
+    "uri": "mongodb+srv://admin_db_user:yVpOf6aRwMFMkwsI@master.e2kwbyc.mongodb.net/test-localpro-super-app?retryWrites=true&w=majority&appName=Master",
     "connected": true,
-    "host": "ac-mlhiqvj-shard-00-01.e2kwbyc.mongodb.net",
-    "name": "localpro-super-app"
+    "host": "ac-mlhiqvj-shard-00-02.e2kwbyc.mongodb.net",
+    "name": "test-localpro-super-app"
   },
   "setupResults": {
     "database": true,
     "appSettings": true,
     "adminUsers": false,
-    "seedData": true,
+    "seedData": false,
     "validation": true,
     "allUsers": true
   },
   "createdData": {
-    "users": 7,
-    "agencies": 1,
-    "services": 2,
-    "courses": 1,
-    "jobs": 1,
-    "products": 2,
-    "rentalItems": 1,
-    "certifications": 1
+    "users": 2,
+    "agencies": 0,
+    "services": 0,
+    "courses": 0,
+    "jobs": 0,
+    "products": 0,
+    "rentalItems": 0,
+    "certifications": 0
   },
   "adminCredentials": {
     "superAdmin": {

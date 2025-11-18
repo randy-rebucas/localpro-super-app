@@ -1596,11 +1596,26 @@ const getCategoryDetails = async (req, res) => {
     ]);
 
     // Get provider count for this category
-    const providerCount = await Provider.countDocuments({
-      status: 'active',
-      'professionalInfo.specialties': {
-        $elemMatch: { category }
+    const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
+    // Validate category ObjectId
+    if (!mongoose.Types.ObjectId.isValid(category)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid category ID format'
+      });
+    }
+    const categoryObjectId = new mongoose.Types.ObjectId(category);
+    const matchingProfessionalInfos = await ProviderProfessionalInfo.find({
+      'specialties': {
+        $elemMatch: {
+          category: categoryObjectId
+        }
       }
+    });
+    const providerIds = matchingProfessionalInfos.map(pi => pi.provider);
+    const providerCount = await Provider.countDocuments({
+      _id: { $in: providerIds },
+      status: 'active'
     });
 
     // Get services if requested
@@ -1724,19 +1739,65 @@ const getProvidersForService = async (req, res) => {
     }
 
     // Build query to find providers who offer this service category/subcategory
-    const providerQuery = {
-      status: 'active',
-      'professionalInfo.specialties': {
-        $elemMatch: {
-          category: service.category,
-          ...(service.subcategory ? { subcategories: service.subcategory } : {})
-        }
+    // First, find matching professionalInfo documents
+    const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
+    const professionalInfoQuery = {};
+    
+    // Match providers by service category - find providers whose specialties.category matches the service category
+    if (service.category) {
+      // Validate category ObjectId if it's provided as string
+      let categoryObjectId;
+      if (typeof service.category === 'string' && mongoose.Types.ObjectId.isValid(service.category)) {
+        categoryObjectId = new mongoose.Types.ObjectId(service.category);
+      } else if (service.category._id) {
+        categoryObjectId = service.category._id;
+      } else {
+        categoryObjectId = service.category;
       }
+      
+      professionalInfoQuery.specialties = {
+        $elemMatch: {
+          category: categoryObjectId
+        }
+      };
+    }
+    
+    // If no category match, return empty result
+    if (!professionalInfoQuery.specialties) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: createPagination(parseInt(page), parseInt(limit), 0)
+      });
+    }
+    
+    const matchingProfessionalInfos = await ProviderProfessionalInfo.find(professionalInfoQuery);
+    const providerIds = matchingProfessionalInfos.map(pi => pi.provider);
+    
+    const providerQuery = {
+      _id: { $in: providerIds.length > 0 ? providerIds : [] },
+      status: 'active'
     };
 
     // Add rating filter if provided
     if (minRating) {
-      providerQuery['performance.rating'] = { $gte: parseFloat(minRating) };
+      const ProviderPerformance = require('../models/ProviderPerformance');
+      const matchingPerformances = await ProviderPerformance.find({
+        rating: { $gte: parseFloat(minRating) }
+      });
+      const performanceProviderIds = matchingPerformances.map(p => p.provider);
+      if (performanceProviderIds.length > 0) {
+        if (providerQuery._id && providerQuery._id.$in) {
+          // Combine with existing _id filter
+          providerQuery._id.$in = providerQuery._id.$in.filter(id => 
+            performanceProviderIds.some(pid => pid.toString() === id.toString())
+          );
+        } else {
+          providerQuery._id = { $in: performanceProviderIds };
+        }
+      } else {
+        providerQuery._id = { $in: [] };
+      }
     }
 
     // Build sort object
@@ -1748,7 +1809,13 @@ const getProvidersForService = async (req, res) => {
     // Find providers matching the service category
     const providers = await Provider.find(providerQuery)
       .populate('userId', 'firstName lastName email phone profile.avatar')
-      .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+      .populate('professionalInfo')
+      .populate('professionalInfo.specialties.skills', 'name description category metadata')
+      .populate('businessInfo')
+      .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+      .populate('preferences')
+      .populate('performance')
+      .select('-financialInfo -onboarding')
       .sort(sort)
       .skip(skip)
       .limit(parseInt(limit))
@@ -1766,16 +1833,21 @@ const getProvidersForService = async (req, res) => {
 
     // Enhance providers with service-specific information
     const enhancedProviders = filteredProviders.map(provider => {
-      // Find the matching specialty for this service
-      const matchingSpecialty = provider.professionalInfo?.specialties?.find(
-        specialty => specialty.category === service.category
-      );
+      // Exclude category from specialties in response
+      if (provider.professionalInfo && provider.professionalInfo.specialties && Array.isArray(provider.professionalInfo.specialties)) {
+        provider.professionalInfo.specialties = provider.professionalInfo.specialties.map(specialty => {
+          // eslint-disable-next-line no-unused-vars
+          const { category: _category, ...specialtyWithoutCategory } = specialty;
+          return specialtyWithoutCategory;
+        });
+      }
+
+      // Find the first specialty (or match by skills if needed)
+      const matchingSpecialty = provider.professionalInfo?.specialties?.[0];
 
       return {
         ...provider,
         matchingSpecialty: {
-          category: matchingSpecialty?.category,
-          subcategories: matchingSpecialty?.subcategories || [],
           experience: matchingSpecialty?.experience || 0,
           hourlyRate: matchingSpecialty?.hourlyRate || null,
           certifications: matchingSpecialty?.certifications || [],
@@ -1913,7 +1985,18 @@ const getProviderDetails = async (req, res) => {
 
       provider = await Provider.findOne({ userId: userIdForLookup })
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
-        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+        .populate({
+          path: 'professionalInfo',
+          populate: {
+            path: 'specialties.skills',
+            select: 'name description category metadata'
+          }
+        })
+        .populate('businessInfo')
+        .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+        .populate('preferences')
+        .populate('performance')
+        .select('-financialInfo -onboarding')
         .lean();
       
       if (provider) {
@@ -1932,7 +2015,18 @@ const getProviderDetails = async (req, res) => {
 
       provider = await Provider.findById(providerId)
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
-        .select('-financialInfo -verification.backgroundCheck -verification.insurance.documents -onboarding')
+        .populate({
+          path: 'professionalInfo',
+          populate: {
+            path: 'specialties.skills',
+            select: 'name description category metadata'
+          }
+        })
+        .populate('businessInfo')
+        .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+        .populate('preferences')
+        .populate('performance')
+        .select('-financialInfo -onboarding')
         .lean();
 
       if (provider && provider.userId) {
@@ -1993,6 +2087,144 @@ const getProviderDetails = async (req, res) => {
       });
     }
 
+    // Get verification, preferences, businessInfo, professionalInfo, and performance data
+    // Since provider is fetched with .lean(), populated references are plain objects (not Mongoose documents)
+    // We use the populated data directly, or fetch if not populated
+    const ProviderVerification = require('../models/ProviderVerification');
+    const ProviderPreferences = require('../models/ProviderPreferences');
+    const ProviderBusinessInfo = require('../models/ProviderBusinessInfo');
+    const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
+    const ProviderPerformance = require('../models/ProviderPerformance');
+
+    // Helper function to check if a reference is populated (has expected fields) or is just an ObjectId
+    const isPopulated = (ref, expectedField) => {
+      return ref && typeof ref === 'object' && ref[expectedField] !== undefined;
+    };
+
+    // Get verification - use populated if available, otherwise fetch
+    let verification = isPopulated(provider.verification, 'identityVerified') 
+      ? provider.verification 
+      : await ProviderVerification.findOne({ provider: provider._id }).lean();
+
+    // Get preferences - use populated if available, otherwise fetch
+    let preferences = isPopulated(provider.preferences, 'notificationSettings')
+      ? provider.preferences
+      : await ProviderPreferences.findOne({ provider: provider._id }).lean();
+
+    // Get businessInfo - only for business/agency providers
+    let businessInfo = null;
+    if (provider.providerType !== 'individual') {
+      businessInfo = isPopulated(provider.businessInfo, 'businessName')
+        ? provider.businessInfo
+        : await ProviderBusinessInfo.findOne({ provider: provider._id }).lean();
+    }
+
+    // Get professionalInfo - use populated if available, otherwise fetch
+    let professionalInfo = isPopulated(provider.professionalInfo, 'specialties')
+      ? provider.professionalInfo
+      : await ProviderProfessionalInfo.findOne({ provider: provider._id })
+          .populate({
+            path: 'specialties.skills',
+            select: 'name description category metadata',
+            populate: {
+              path: 'category',
+              select: 'name key description'
+            }
+          })
+          .lean();
+    
+    // Ensure skills are populated even if professionalInfo was already populated from provider query
+    if (professionalInfo && professionalInfo.specialties && Array.isArray(professionalInfo.specialties)) {
+      // Check if any specialty has skills that are not populated (ObjectIds instead of objects)
+      const hasUnpopulatedSkills = professionalInfo.specialties.some(specialty => {
+        if (!specialty.skills || !Array.isArray(specialty.skills) || specialty.skills.length === 0) {
+          return false;
+        }
+        // Check if first skill is an ObjectId (string) or empty object without name
+        const firstSkill = specialty.skills[0];
+        return typeof firstSkill === 'string' || 
+               (typeof firstSkill === 'object' && firstSkill._id && !firstSkill.name);
+      });
+      
+      if (hasUnpopulatedSkills) {
+        // Skills are ObjectIds, need to populate them
+        const professionalInfoId = professionalInfo._id || (typeof professionalInfo === 'string' ? professionalInfo : null);
+        if (professionalInfoId) {
+          const professionalInfoDoc = await ProviderProfessionalInfo.findById(professionalInfoId)
+            .populate({
+              path: 'specialties.skills',
+              select: 'name description category metadata',
+              populate: {
+                path: 'category',
+                select: 'name key description'
+              }
+            })
+            .lean();
+          if (professionalInfoDoc) {
+            professionalInfo = professionalInfoDoc;
+          }
+        }
+      }
+      
+      // Normalize skills arrays - ensure they're always arrays (never undefined) and populate if needed
+      professionalInfo.specialties = await Promise.all(professionalInfo.specialties.map(async (specialty) => {
+        let skills = Array.isArray(specialty.skills) ? specialty.skills : [];
+        
+        // If skills are still ObjectIds, manually populate them
+        if (skills.length > 0 && (typeof skills[0] === 'string' || (typeof skills[0] === 'object' && skills[0]._id && !skills[0].name))) {
+          const ProviderSkill = require('../models/ProviderSkill');
+          const skillIds = skills.map(s => typeof s === 'string' ? s : s._id || s);
+          const populatedSkills = await ProviderSkill.find({ _id: { $in: skillIds } })
+            .select('name description category metadata')
+            .populate('category', 'name key description')
+            .lean();
+          
+          // Map back to original order
+          skills = skillIds.map(id => {
+            const skill = populatedSkills.find(s => s._id.toString() === id.toString());
+            return skill || id;
+          });
+        }
+        
+        // Exclude category from response
+        // eslint-disable-next-line no-unused-vars
+        const { category: _category, ...specialtyWithoutCategory } = specialty;
+        return {
+          ...specialtyWithoutCategory,
+          skills: skills
+        };
+      }));
+    }
+
+    // Get performance - use populated if available, otherwise fetch
+    let performance = isPopulated(provider.performance, 'rating')
+      ? provider.performance
+      : await ProviderPerformance.findOne({ provider: provider._id }).lean();
+
+    // Create summary objects for preferences and businessInfo (since they're plain objects now)
+    const preferencesSummary = preferences ? {
+      notificationSettings: preferences.notificationSettings || {},
+      jobPreferences: preferences.jobPreferences || {},
+      communicationPreferences: preferences.communicationPreferences || {}
+    } : null;
+    
+    const businessInfoSummary = businessInfo ? {
+      businessName: businessInfo.businessName,
+      businessType: businessInfo.businessType,
+      businessAddress: businessInfo.businessAddress ? {
+        city: businessInfo.businessAddress.city,
+        state: businessInfo.businessAddress.state,
+        country: businessInfo.businessAddress.country,
+        coordinates: businessInfo.businessAddress.coordinates
+      } : null,
+      businessPhone: businessInfo.businessPhone,
+      businessEmail: businessInfo.businessEmail,
+      website: businessInfo.website,
+      yearEstablished: businessInfo.yearEstablished,
+      numberOfEmployees: businessInfo.numberOfEmployees,
+      isComplete: !!(businessInfo.businessName && businessInfo.businessAddress && businessInfo.businessAddress.city && businessInfo.businessAddress.state)
+    } : null;
+    
     // Initialize response data
     const providerDetails = {
       provider: {
@@ -2002,28 +2234,44 @@ const getProviderDetails = async (req, res) => {
         userProfile: user || provider.userId, // Alias for user data
         providerType: provider.providerType,
         status: provider.status,
-        businessInfo: provider.businessInfo,
-        professionalInfo: provider.professionalInfo,
+        businessInfo: businessInfoSummary,
+        professionalInfo: professionalInfo || null,
         verification: {
-          identityVerified: provider.verification?.identityVerified || false,
-          businessVerified: provider.verification?.businessVerified || false,
+          identityVerified: verification?.identityVerified || false,
+          businessVerified: verification?.businessVerified || false,
           backgroundCheck: {
-            status: provider.verification?.backgroundCheck?.status || 'pending'
+            status: verification?.backgroundCheck?.status || 'pending'
           },
           insurance: {
-            hasInsurance: provider.verification?.insurance?.hasInsurance || false,
-            coverageAmount: provider.verification?.insurance?.coverageAmount || null
+            hasInsurance: verification?.insurance?.hasInsurance || false,
+            coverageAmount: verification?.insurance?.coverageAmount || null
           },
-          licenses: provider.verification?.licenses?.map(license => ({
+          licenses: verification?.licenses?.map(license => ({
             type: license.type,
             number: license.number,
             issuingAuthority: license.issuingAuthority,
             expiryDate: license.expiryDate
           })) || [],
-          portfolio: provider.verification?.portfolio || null
+          portfolio: verification?.portfolio || null
         },
-        performance: provider.performance || {},
-        preferences: provider.preferences || {},
+        performance: performance ? {
+          rating: performance.rating || 0,
+          totalReviews: performance.totalReviews || 0,
+          totalJobs: performance.totalJobs || 0,
+          completedJobs: performance.completedJobs || 0,
+          cancelledJobs: performance.cancelledJobs || 0,
+          responseTime: performance.responseTime || 0,
+          completionRate: performance.completionRate || 0,
+          repeatCustomerRate: performance.repeatCustomerRate || 0,
+          earnings: performance.earnings || {
+            total: 0,
+            thisMonth: 0,
+            lastMonth: 0,
+            pending: 0
+          },
+          badges: performance.badges || []
+        } : {},
+        preferences: preferencesSummary || {},
         settings: provider.settings || {},
         metadata: {
           profileViews: provider.metadata?.profileViews || 0,
@@ -2088,10 +2336,10 @@ const getProviderDetails = async (req, res) => {
           cancelled: 0,
           totalEarnings: 0
         },
-        averageRating: provider.performance?.rating || 0,
-        totalReviews: provider.performance?.reviewsCount || 0,
-        responseRate: provider.performance?.responseRate || 0,
-        averageResponseTime: provider.performance?.averageResponseTime || null
+        averageRating: performance?.rating || 0,
+        totalReviews: performance?.totalReviews || 0,
+        responseRate: performance?.completionRate || 0,
+        averageResponseTime: performance?.responseTime || null
       };
 
       bookingStats.forEach(stat => {
@@ -2186,6 +2434,117 @@ const getProviderDetails = async (req, res) => {
   }
 };
 
+// @desc    Get all services of a provider
+// @route   GET /api/marketplace/providers/:providerId/services
+// @access  Public
+const getProviderServices = async (req, res) => {
+  try {
+    const { providerId } = req.params;
+    const {
+      category,
+      status = 'all', // all, active, inactive
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    // Validate ObjectId format
+    if (!mongoose.isValidObjectId(providerId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid provider ID format'
+      });
+    }
+
+    // Convert to ObjectId for consistent querying
+    const providerObjectId = new mongoose.Types.ObjectId(providerId);
+
+    // Build filter object
+    const filter = { provider: providerObjectId };
+
+    if (category) filter.category = category;
+    
+    if (status === 'active') {
+      filter.isActive = true;
+    } else if (status === 'inactive') {
+      filter.isActive = false;
+    }
+    // If status is 'all', don't add isActive filter
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const services = await Service.find(filter)
+      .populate('provider', 'firstName lastName profile.avatar profile.rating profile.experience')
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+
+    const total = await Service.countDocuments(filter);
+
+    // Get provider info for response
+    const provider = await User.findById(providerObjectId)
+      .select('firstName lastName profile.avatar profile.rating')
+      .lean();
+
+    // Get additional statistics for the provider
+    const stats = await Service.aggregate([
+      { $match: { provider: providerObjectId } },
+      {
+        $group: {
+          _id: null,
+          totalServices: { $sum: 1 },
+          activeServices: {
+            $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
+          },
+          inactiveServices: {
+            $sum: { $cond: [{ $eq: ['$isActive', false] }, 1, 0] }
+          },
+          averageRating: { $avg: '$rating.average' },
+          totalBookings: { $sum: '$rating.count' }
+        }
+      }
+    ]);
+
+    const providerStats = stats.length > 0 ? stats[0] : {
+      totalServices: 0,
+      activeServices: 0,
+      inactiveServices: 0,
+      averageRating: 0,
+      totalBookings: 0
+    };
+
+    const pagination = createPagination(parseInt(page), parseInt(limit), total);
+
+    logger.info('Provider services retrieved', {
+      providerId,
+      totalServices: total,
+      returnedServices: services.length
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Provider services retrieved successfully',
+      data: {
+        services,
+        provider: provider || null,
+        pagination,
+        stats: providerStats
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get provider services', error, {
+      providerId: req.params.providerId
+    });
+    return sendServerError(res, error, 'Failed to retrieve provider services', 'PROVIDER_SERVICES_ERROR');
+  }
+};
+
 module.exports = {
   getServices,
   getService,
@@ -2207,5 +2566,6 @@ module.exports = {
   getMyServices,
   getMyBookings,
   getProvidersForService,
-  getProviderDetails
+  getProviderDetails,
+  getProviderServices
 };

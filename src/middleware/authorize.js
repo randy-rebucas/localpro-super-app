@@ -26,10 +26,14 @@ const authorize = (roles = [], options = {}) => {
         }
 
         // Special case: allow agency members to access each other's data
-        if (allowAgencyMembers && user.agency?.agencyId) {
+        const userAgency = await user.ensureAgency();
+        if (allowAgencyMembers && userAgency?.agencyId) {
           const targetUser = await User.findById(req.params.id);
-          if (targetUser && targetUser.agency?.agencyId?.toString() === user.agency.agencyId.toString()) {
+          if (targetUser) {
+            const targetUserAgency = await targetUser.ensureAgency();
+          if (targetUserAgency?.agencyId?.toString() === userAgency.agencyId.toString()) {
             return next();
+          }
           }
         }
 
@@ -46,11 +50,15 @@ const authorize = (roles = [], options = {}) => {
         // Agency admins and owners can only manage users within their agency
         if (req.params.id && req.params.id !== user.id) {
           const targetUser = await User.findById(req.params.id);
-          if (!targetUser || targetUser.agency?.agencyId?.toString() !== user.agency?.agencyId?.toString()) {
-            return res.status(403).json({
-              success: false,
-              message: 'Can only manage users within your agency'
-            });
+          if (targetUser) {
+            const userAgency = await user.ensureAgency();
+            const targetUserAgency = await targetUser.ensureAgency();
+            if (!targetUserAgency || targetUserAgency?.agencyId?.toString() !== userAgency?.agencyId?.toString()) {
+              return res.status(403).json({
+                success: false,
+                message: 'Can only manage users within your agency'
+              });
+            }
           }
         }
       }

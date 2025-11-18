@@ -208,7 +208,7 @@ class DatabaseOptimizationService {
         { key: { role: 1, isActive: 1, status: 1 } },
         { key: { 'profile.address.city': 1, 'profile.address.state': 1, role: 1 } },
         { key: { 'profile.rating': -1, 'profile.totalReviews': -1 } },
-        { key: { 'agency.agencyId': 1, 'agency.status': 1, role: 1 } },
+        { key: { agency: 1, roles: 1 } },
         { key: { trustScore: -1, 'profile.rating': -1, isActive: 1 } }
       ],
       'jobs': [

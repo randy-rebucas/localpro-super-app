@@ -1,4 +1,5 @@
 const Provider = require('../models/Provider');
+const User = require('../models/User');
 const { logger } = require('../utils/logger');
 
 class ProviderDashboardService {
@@ -55,38 +56,71 @@ class ProviderDashboardService {
 
   // Get overview data
   async getOverviewData(provider) {
+    // Get subscription from User model
+    const user = await User.findById(provider.userId).populate('localProPlusSubscription');
+    let subscription = null;
+    
+    if (user && user.localProPlusSubscription) {
+      const sub = user.localProPlusSubscription;
+      // Populate plan if it's an ObjectId
+      if (sub.plan && typeof sub.plan === 'object' && sub.plan._id) {
+        await sub.populate('plan');
+      }
+      subscription = {
+        plan: sub.plan?.name || sub.plan || 'basic',
+        features: sub.features || {},
+        limits: {
+          maxServices: sub.usage?.services?.limit || 5,
+          maxBookingsPerMonth: sub.usage?.bookings?.limit || 50,
+          prioritySupport: sub.features?.prioritySupport || false,
+          advancedAnalytics: sub.features?.advancedAnalytics || false
+        }
+      };
+    } else {
+      // Default subscription if none exists
+      subscription = {
+        plan: 'basic',
+        features: {},
+        limits: {
+          maxServices: 5,
+          maxBookingsPerMonth: 50,
+          prioritySupport: false,
+          advancedAnalytics: false
+        }
+      };
+    }
+    
+    const performance = await provider.ensurePerformance();
+    
     return {
       status: provider.status,
-      rating: provider.performance.rating,
-      totalReviews: provider.performance.totalReviews,
-      totalJobs: provider.performance.totalJobs,
-      completedJobs: provider.performance.completedJobs,
-      completionRate: provider.performance.completionRate,
-      responseTime: provider.performance.responseTime,
-      repeatCustomerRate: provider.performance.repeatCustomerRate,
+      rating: performance.rating,
+      totalReviews: performance.totalReviews,
+      totalJobs: performance.totalJobs,
+      completedJobs: performance.completedJobs,
+      completionRate: performance.completionRate,
+      responseTime: performance.responseTime,
+      repeatCustomerRate: performance.repeatCustomerRate,
       profileViews: provider.metadata.profileViews,
-      isVerified: provider.isVerified(),
-      canAcceptJobs: provider.canAcceptJobs(),
-      badges: provider.performance.badges,
-      subscription: {
-        plan: provider.subscription.plan,
-        features: provider.subscription.features,
-        limits: provider.subscription.limits
-      }
+      isVerified: await provider.isVerified(),
+      canAcceptJobs: await provider.canAcceptJobs(),
+      badges: performance.badges,
+      subscription
     };
   }
 
   // Get earnings data
   async getEarningsData(provider, since) {
+    const performance = await provider.ensurePerformance();
     return {
-      total: provider.performance.earnings.total,
-      thisMonth: provider.performance.earnings.thisMonth,
-      lastMonth: provider.performance.earnings.lastMonth,
-      pending: provider.performance.earnings.pending,
+      total: performance.earnings.total,
+      thisMonth: performance.earnings.thisMonth,
+      lastMonth: performance.earnings.lastMonth,
+      pending: performance.earnings.pending,
       period: {
-        total: provider.performance.earnings.thisMonth,
-        average: provider.performance.earnings.thisMonth / 30,
-        growth: this.calculateGrowth(provider.performance.earnings.thisMonth, provider.performance.earnings.lastMonth)
+        total: performance.earnings.thisMonth,
+        average: performance.earnings.thisMonth / 30,
+        growth: this.calculateGrowth(performance.earnings.thisMonth, performance.earnings.lastMonth)
       },
       breakdown: {
         byCategory: await this.getEarningsByCategory(provider._id, since),
@@ -98,13 +132,14 @@ class ProviderDashboardService {
 
   // Get performance data
   async getPerformanceData(provider, since) {
+    const performance = await provider.ensurePerformance();
     return {
       metrics: {
-        rating: provider.performance.rating,
-        totalReviews: provider.performance.totalReviews,
-        responseTime: provider.performance.responseTime,
-        completionRate: provider.performance.completionRate,
-        repeatCustomerRate: provider.performance.repeatCustomerRate
+        rating: performance.rating,
+        totalReviews: performance.totalReviews,
+        responseTime: performance.responseTime,
+        completionRate: performance.completionRate,
+        repeatCustomerRate: performance.repeatCustomerRate
       },
       trends: {
         ratingTrend: await this.getRatingTrend(provider._id, since),
@@ -317,7 +352,8 @@ class ProviderDashboardService {
       const insights = [];
 
       // Performance insights
-      if (provider.performance.rating < 4.0) {
+      const performance = await provider.ensurePerformance();
+      if (performance.rating < 4.0) {
         insights.push({
           type: 'warning',
           category: 'performance',
@@ -327,7 +363,7 @@ class ProviderDashboardService {
         });
       }
 
-      if (provider.performance.responseTime > 60) {
+      if (performance.responseTime > 60) {
         insights.push({
           type: 'warning',
           category: 'performance',
@@ -337,7 +373,7 @@ class ProviderDashboardService {
         });
       }
 
-      if (provider.performance.completionRate < 90) {
+      if (performance.completionRate < 90) {
         insights.push({
           type: 'warning',
           category: 'performance',
@@ -358,7 +394,8 @@ class ProviderDashboardService {
         });
       }
 
-      if (!provider.verification.portfolio.images || provider.verification.portfolio.images.length < 3) {
+      const verification = await provider.ensureVerification();
+      if (!verification.portfolio?.images || verification.portfolio.images.length < 3) {
         insights.push({
           type: 'info',
           category: 'profile',
@@ -369,7 +406,7 @@ class ProviderDashboardService {
       }
 
       // Business insights
-      if (provider.performance.earnings.thisMonth < provider.performance.earnings.lastMonth) {
+      if (performance.earnings.thisMonth < performance.earnings.lastMonth) {
         insights.push({
           type: 'warning',
           category: 'business',
