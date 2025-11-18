@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { auth } = require('../middleware/auth');
+const { auth, authorize } = require('../middleware/auth');
 const { body, param, query } = require('express-validator');
 const multer = require('multer');
 const {
@@ -15,7 +15,8 @@ const {
   getProviderAnalytics,
   updateProviderStatus,
   getProvidersForAdmin,
-  getProviderSkills
+  getProviderSkills,
+  adminUpdateProvider
 } = require('../controllers/providerController');
 
 // Configure multer for file uploads
@@ -107,17 +108,32 @@ router.get('/analytics/performance', [
 ], getProviderAnalytics);
 
 // Admin routes
-router.get('/admin/all', [
+router.get('/admin/all', authorize('admin'), [
   query('status').optional().isIn(['pending', 'active', 'suspended', 'inactive', 'rejected']),
   query('providerType').optional().isIn(['individual', 'business', 'agency']),
   query('page').optional().isInt({ min: 1 }),
   query('limit').optional().isInt({ min: 1, max: 100 })
 ], getProvidersForAdmin);
 
-router.put('/admin/:id/status', [
+router.put('/admin/:id/status', authorize('admin'), [
   param('id').isMongoId().withMessage('Invalid provider ID'),
   body('status').isIn(['pending', 'active', 'suspended', 'inactive', 'rejected']).withMessage('Invalid status'),
   body('notes').optional().isString().withMessage('Notes must be a string')
 ], updateProviderStatus);
+
+// Admin: Update provider with all data (including all referenced collections)
+const validateAdminProviderUpdate = [
+  param('id').isMongoId().withMessage('Invalid provider ID'),
+  body('status').optional().isIn(['pending', 'active', 'suspended', 'inactive', 'rejected']).withMessage('Invalid status'),
+  body('providerType').optional().isIn(['individual', 'business', 'agency']).withMessage('Invalid provider type'),
+  body('settings.profileVisibility').optional().isIn(['public', 'private', 'verified_only']).withMessage('Invalid profile visibility'),
+  body('professionalInfo.specialties.*.category').optional().isIn(['cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 'pest_control', 'handyman', 'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 'appliance_repair', 'locksmith', 'home_security', 'pool_maintenance', 'carpet_cleaning', 'window_cleaning', 'gutter_cleaning', 'power_washing', 'snow_removal', 'other']).withMessage('Invalid specialty category'),
+  body('verification.backgroundCheck.status').optional().isIn(['pending', 'passed', 'failed', 'not_required']).withMessage('Invalid background check status'),
+  body('financialInfo.bankAccount.accountType').optional().isIn(['checking', 'savings']).withMessage('Invalid account type'),
+  body('financialInfo.paymentMethods.*.type').optional().isIn(['bank_transfer', 'paypal', 'paymaya', 'check']).withMessage('Invalid payment method type'),
+  body('preferences.communicationPreferences.preferredContactMethod').optional().isIn(['phone', 'email', 'sms', 'app']).withMessage('Invalid preferred contact method')
+];
+
+router.put('/admin/:id', authorize('admin'), validateAdminProviderUpdate, adminUpdateProvider);
 
 module.exports = router;

@@ -10144,6 +10144,54 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "PUT /api/providers/admin/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/admin/{{providerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "admin",
+                "{{providerId}}"
+              ],
+              "variable": [
+                {
+                  "key": "providerId",
+                  "value": "507f1f77bcf86cd799439015",
+                  "description": "Provider ID (MongoDB ObjectId)"
+                }
+              ]
+            },
+            "description": "Update provider with all data (including all referenced collections). Admin only. Allows updating provider fields, businessInfo, professionalInfo, verification, financialInfo, preferences, and performance. Supports partial updates - only include fields you want to update. Nested objects are merged, not replaced.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\",\n  \"providerType\": \"business\",\n  \"settings\": {\n    \"profileVisibility\": \"public\",\n    \"showContactInfo\": true,\n    \"showPricing\": true,\n    \"showReviews\": true,\n    \"allowDirectBooking\": true,\n    \"requireApproval\": false\n  },\n  \"businessInfo\": {\n    \"businessName\": \"Updated Business Name\",\n    \"businessType\": \"small_business\",\n    \"businessPhone\": \"+1234567890\",\n    \"businessEmail\": \"business@example.com\",\n    \"website\": \"https://example.com\",\n    \"businessDescription\": \"Professional service provider\",\n    \"numberOfEmployees\": 10\n  },\n  \"professionalInfo\": {\n    \"specialties\": [{\n      \"experience\": 12,\n      \"hourlyRate\": 80,\n      \"serviceAreas\": [{\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"radius\": 35\n      }]\n    }],\n    \"languages\": [\"English\", \"Spanish\"],\n    \"emergencyServices\": true,\n    \"travelDistance\": 50,\n    \"minimumJobValue\": 100,\n    \"maximumJobValue\": 10000\n  },\n  \"verification\": {\n    \"identityVerified\": true,\n    \"businessVerified\": true,\n    \"backgroundCheck\": {\n      \"status\": \"passed\",\n      \"dateCompleted\": \"2024-01-01T00:00:00.000Z\"\n    },\n    \"insurance\": {\n      \"hasInsurance\": true,\n      \"insuranceProvider\": \"ABC Insurance\",\n      \"policyNumber\": \"POL-12345\",\n      \"coverageAmount\": 1000000,\n      \"expiryDate\": \"2025-12-31T00:00:00.000Z\"\n    }\n  },\n  \"financialInfo\": {\n    \"commissionRate\": 0.15,\n    \"minimumPayout\": 100,\n    \"bankAccount\": {\n      \"accountHolder\": \"John Doe\",\n      \"bankName\": \"Example Bank\",\n      \"accountType\": \"checking\"\n    },\n    \"taxInfo\": {\n      \"taxClassification\": \"sole_proprietor\",\n      \"w9Submitted\": true\n    }\n  },\n  \"preferences\": {\n    \"notificationSettings\": {\n      \"newJobAlerts\": true,\n      \"messageNotifications\": true,\n      \"paymentNotifications\": true,\n      \"reviewNotifications\": true,\n      \"marketingEmails\": false\n    },\n    \"jobPreferences\": {\n      \"preferredJobTypes\": [\"cleaning\", \"plumbing\"],\n      \"maxJobsPerDay\": 5,\n      \"advanceBookingDays\": 30\n    },\n    \"communicationPreferences\": {\n      \"preferredContactMethod\": \"app\",\n      \"responseTimeExpectation\": 60,\n      \"autoAcceptJobs\": false\n    }\n  },\n  \"performance\": {\n    \"rating\": 4.5,\n    \"totalReviews\": 50,\n    \"totalJobs\": 100,\n    \"completedJobs\": 95,\n    \"completionRate\": 95,\n    \"repeatCustomerRate\": 80\n  },\n  \"metadata\": {\n    \"featured\": false,\n    \"promoted\": false,\n    \"tags\": [\"verified\", \"top-rated\"],\n    \"notes\": \"Admin notes about this provider\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
         }
       ]
     },

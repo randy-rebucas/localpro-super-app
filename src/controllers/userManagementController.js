@@ -250,8 +250,13 @@ const getUserById = async (req, res) => {
     if (userObj.roles && userObj.roles.includes('provider')) {
       try {
         const provider = await Provider.findOne({ userId: id })
-          .populate('professionalInfo')
-          .populate('professionalInfo.specialties.skills', 'name description category metadata')
+          .populate({
+            path: 'professionalInfo',
+            populate: {
+              path: 'specialties.skills',
+              select: 'name description category metadata'
+            }
+          })
           .populate('businessInfo')
           .populate('verification', '-backgroundCheck.reportId -insurance.documents')
           .populate('preferences')

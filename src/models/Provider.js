@@ -374,6 +374,8 @@ providerSchema.methods.ensureProfessionalInfo = async function(options = {}) {
     const professionalInfo = await ProviderProfessionalInfo.findOrCreateForProvider(this._id);
     this.professionalInfo = professionalInfo._id;
     await this.save({ validateBeforeSave: false });
+    // Populate skills when returning newly created professionalInfo
+    await professionalInfo.populate('specialties.skills', 'name description category metadata');
     return professionalInfo;
   }
   const isPopulated = this.professionalInfo && 
@@ -381,7 +383,13 @@ providerSchema.methods.ensureProfessionalInfo = async function(options = {}) {
     this.professionalInfo._id && 
     this.professionalInfo.specialties !== undefined;
   if (!isPopulated || forceRefresh) {
-    await this.populate('professionalInfo');
+    await this.populate({
+      path: 'professionalInfo',
+      populate: {
+        path: 'specialties.skills',
+        select: 'name description category metadata'
+      }
+    });
   }
   return this.professionalInfo;
 };
@@ -411,7 +419,13 @@ providerSchema.statics.findByLocation = async function(city, state) {
     _id: { $in: providerIds },
     status: 'active'
   })
-    .populate('professionalInfo')
+    .populate({
+      path: 'professionalInfo',
+      populate: {
+        path: 'specialties.skills',
+        select: 'name description category metadata'
+      }
+    })
     .populate('businessInfo')
     .populate('verification')
     .populate('performance');
@@ -440,7 +454,13 @@ providerSchema.statics.findTopRated = async function(limit = 10) {
     _id: { $in: providerIds },
     status: 'active'
   })
-    .populate('professionalInfo')
+    .populate({
+      path: 'professionalInfo',
+      populate: {
+        path: 'specialties.skills',
+        select: 'name description category metadata'
+      }
+    })
     .populate('businessInfo')
     .populate('verification')
     .populate('performance')
@@ -452,7 +472,13 @@ providerSchema.statics.findFeatured = async function() {
     status: 'active', 
     'metadata.featured': true 
   })
-    .populate('professionalInfo')
+    .populate({
+      path: 'professionalInfo',
+      populate: {
+        path: 'specialties.skills',
+        select: 'name description category metadata'
+      }
+    })
     .populate('businessInfo')
     .populate('verification')
     .populate('performance');

@@ -1942,8 +1942,13 @@ const getProviderDetails = async (req, res) => {
 
       provider = await Provider.findOne({ userId: userIdForLookup })
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
-        .populate('professionalInfo')
-        .populate('professionalInfo.specialties.skills', 'name description category metadata')
+        .populate({
+          path: 'professionalInfo',
+          populate: {
+            path: 'specialties.skills',
+            select: 'name description category metadata'
+          }
+        })
         .populate('businessInfo')
         .populate('verification', '-backgroundCheck.reportId -insurance.documents')
         .populate('preferences')
@@ -1967,8 +1972,13 @@ const getProviderDetails = async (req, res) => {
 
       provider = await Provider.findById(providerId)
         .populate('userId', 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges')
-        .populate('professionalInfo')
-        .populate('professionalInfo.specialties.skills', 'name description category metadata')
+        .populate({
+          path: 'professionalInfo',
+          populate: {
+            path: 'specialties.skills',
+            select: 'name description category metadata'
+          }
+        })
         .populate('businessInfo')
         .populate('verification', '-backgroundCheck.reportId -insurance.documents')
         .populate('preferences')
@@ -2034,17 +2044,140 @@ const getProviderDetails = async (req, res) => {
       });
     }
 
-    // Get verification, preferences, businessInfo, professionalInfo, and performance data in parallel
-    const [verification, preferences, businessInfo, professionalInfo, performance] = await Promise.all([
-      provider.ensureVerification(),
-      provider.ensurePreferences(),
-      provider.providerType !== 'individual' ? provider.ensureBusinessInfo() : Promise.resolve(null),
-      provider.ensureProfessionalInfo(),
-      provider.ensurePerformance()
-    ]);
+    // Get verification, preferences, businessInfo, professionalInfo, and performance data
+    // Since provider is fetched with .lean(), populated references are plain objects (not Mongoose documents)
+    // We use the populated data directly, or fetch if not populated
+    const ProviderVerification = require('../models/ProviderVerification');
+    const ProviderPreferences = require('../models/ProviderPreferences');
+    const ProviderBusinessInfo = require('../models/ProviderBusinessInfo');
+    const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
+    const ProviderPerformance = require('../models/ProviderPerformance');
+
+    // Helper function to check if a reference is populated (has expected fields) or is just an ObjectId
+    const isPopulated = (ref, expectedField) => {
+      return ref && typeof ref === 'object' && ref[expectedField] !== undefined;
+    };
+
+    // Get verification - use populated if available, otherwise fetch
+    let verification = isPopulated(provider.verification, 'identityVerified') 
+      ? provider.verification 
+      : await ProviderVerification.findOne({ provider: provider._id }).lean();
+
+    // Get preferences - use populated if available, otherwise fetch
+    let preferences = isPopulated(provider.preferences, 'notificationSettings')
+      ? provider.preferences
+      : await ProviderPreferences.findOne({ provider: provider._id }).lean();
+
+    // Get businessInfo - only for business/agency providers
+    let businessInfo = null;
+    if (provider.providerType !== 'individual') {
+      businessInfo = isPopulated(provider.businessInfo, 'businessName')
+        ? provider.businessInfo
+        : await ProviderBusinessInfo.findOne({ provider: provider._id }).lean();
+    }
+
+    // Get professionalInfo - use populated if available, otherwise fetch
+    let professionalInfo = isPopulated(provider.professionalInfo, 'specialties')
+      ? provider.professionalInfo
+      : await ProviderProfessionalInfo.findOne({ provider: provider._id })
+          .populate({
+            path: 'specialties.skills',
+            select: 'name description category metadata',
+            populate: {
+              path: 'category',
+              select: 'name key description'
+            }
+          })
+          .lean();
     
-    const preferencesSummary = preferences ? preferences.getSummary() : null;
-    const businessInfoSummary = businessInfo ? businessInfo.getSummary() : null;
+    // Ensure skills are populated even if professionalInfo was already populated from provider query
+    if (professionalInfo && professionalInfo.specialties && Array.isArray(professionalInfo.specialties)) {
+      // Check if any specialty has skills that are not populated (ObjectIds instead of objects)
+      const hasUnpopulatedSkills = professionalInfo.specialties.some(specialty => {
+        if (!specialty.skills || !Array.isArray(specialty.skills) || specialty.skills.length === 0) {
+          return false;
+        }
+        // Check if first skill is an ObjectId (string) or empty object without name
+        const firstSkill = specialty.skills[0];
+        return typeof firstSkill === 'string' || 
+               (typeof firstSkill === 'object' && firstSkill._id && !firstSkill.name);
+      });
+      
+      if (hasUnpopulatedSkills) {
+        // Skills are ObjectIds, need to populate them
+        const professionalInfoId = professionalInfo._id || (typeof professionalInfo === 'string' ? professionalInfo : null);
+        if (professionalInfoId) {
+          const professionalInfoDoc = await ProviderProfessionalInfo.findById(professionalInfoId)
+            .populate({
+              path: 'specialties.skills',
+              select: 'name description category metadata',
+              populate: {
+                path: 'category',
+                select: 'name key description'
+              }
+            })
+            .lean();
+          if (professionalInfoDoc) {
+            professionalInfo = professionalInfoDoc;
+          }
+        }
+      }
+      
+      // Normalize skills arrays - ensure they're always arrays (never undefined) and populate if needed
+      professionalInfo.specialties = await Promise.all(professionalInfo.specialties.map(async (specialty) => {
+        let skills = Array.isArray(specialty.skills) ? specialty.skills : [];
+        
+        // If skills are still ObjectIds, manually populate them
+        if (skills.length > 0 && (typeof skills[0] === 'string' || (typeof skills[0] === 'object' && skills[0]._id && !skills[0].name))) {
+          const ProviderSkill = require('../models/ProviderSkill');
+          const skillIds = skills.map(s => typeof s === 'string' ? s : s._id || s);
+          const populatedSkills = await ProviderSkill.find({ _id: { $in: skillIds } })
+            .select('name description category metadata')
+            .populate('category', 'name key description')
+            .lean();
+          
+          // Map back to original order
+          skills = skillIds.map(id => {
+            const skill = populatedSkills.find(s => s._id.toString() === id.toString());
+            return skill || id;
+          });
+        }
+        
+        return {
+          ...specialty,
+          skills: skills
+        };
+      }));
+    }
+
+    // Get performance - use populated if available, otherwise fetch
+    let performance = isPopulated(provider.performance, 'rating')
+      ? provider.performance
+      : await ProviderPerformance.findOne({ provider: provider._id }).lean();
+
+    // Create summary objects for preferences and businessInfo (since they're plain objects now)
+    const preferencesSummary = preferences ? {
+      notificationSettings: preferences.notificationSettings || {},
+      jobPreferences: preferences.jobPreferences || {},
+      communicationPreferences: preferences.communicationPreferences || {}
+    } : null;
+    
+    const businessInfoSummary = businessInfo ? {
+      businessName: businessInfo.businessName,
+      businessType: businessInfo.businessType,
+      businessAddress: businessInfo.businessAddress ? {
+        city: businessInfo.businessAddress.city,
+        state: businessInfo.businessAddress.state,
+        country: businessInfo.businessAddress.country,
+        coordinates: businessInfo.businessAddress.coordinates
+      } : null,
+      businessPhone: businessInfo.businessPhone,
+      businessEmail: businessInfo.businessEmail,
+      website: businessInfo.website,
+      yearEstablished: businessInfo.yearEstablished,
+      numberOfEmployees: businessInfo.numberOfEmployees,
+      isComplete: !!(businessInfo.businessName && businessInfo.businessAddress && businessInfo.businessAddress.city && businessInfo.businessAddress.state)
+    } : null;
     
     // Initialize response data
     const providerDetails = {
@@ -2075,7 +2208,23 @@ const getProviderDetails = async (req, res) => {
           })) || [],
           portfolio: verification?.portfolio || null
         },
-        performance: performance?.getSummary() || {},
+        performance: performance ? {
+          rating: performance.rating || 0,
+          totalReviews: performance.totalReviews || 0,
+          totalJobs: performance.totalJobs || 0,
+          completedJobs: performance.completedJobs || 0,
+          cancelledJobs: performance.cancelledJobs || 0,
+          responseTime: performance.responseTime || 0,
+          completionRate: performance.completionRate || 0,
+          repeatCustomerRate: performance.repeatCustomerRate || 0,
+          earnings: performance.earnings || {
+            total: 0,
+            thisMonth: 0,
+            lastMonth: 0,
+            pending: 0
+          },
+          badges: performance.badges || []
+        } : {},
         preferences: preferencesSummary || {},
         settings: provider.settings || {},
         metadata: {
