@@ -1,0 +1,205 @@
+{
+  "success": true,
+  "message": "Jobs retrieved successfully",
+  "data": [
+    {
+      "_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "title": "Senior Full Stack Developer",
+      "description": "We are looking for an experienced Full Stack Developer to join our growing team...",
+      "company": {
+        "name": "Tech Innovations Inc.",
+        "logo": {
+          "url": "https://res.cloudinary.com/example/image/upload/v1234567890/company-logo.png",
+          "publicId": "company-logos/tech-innovations"
+        },
+        "size": "medium",
+        "location": {
+          "city": "San Francisco",
+          "state": "California",
+          "country": "United States",
+          "isRemote": true,
+          "remoteType": "fully_remote"
+        }
+      },
+      "employer": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+        "firstName": "John",
+        "lastName": "Smith",
+        "profile": {
+          "avatar": "https://res.cloudinary.com/example/image/upload/v1234567890/avatars/john-smith.jpg",
+          "businessName": "Tech Innovations Inc.",
+          "rating": 4.8
+        }
+      },
+      "category": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k3",
+        "name": "Technology",
+        "description": "Software development, IT support, cybersecurity, and technology-related positions",
+        "metadata": {
+          "icon": "💻",
+          "color": "#3B82F6"
+        }
+      },
+      "subcategory": "Full Stack Development",
+      "jobType": "full_time",
+      "experienceLevel": "senior",
+      "salary": {
+        "min": 120000,
+        "max": 180000,
+        "currency": "USD",
+        "period": "yearly",
+        "isNegotiable": true,
+        "isConfidential": false
+      },
+      "benefits": [
+        "health_insurance",
+        "dental_insurance",
+        "remote_work",
+        "flexible_schedule"
+      ],
+      "status": "active",
+      "visibility": "public",
+      "tags": ["full-stack", "react", "nodejs", "remote"],
+      "isActive": true,
+      "createdAt": "2024-01-15T10:00:00.000Z",
+      "updatedAt": "2024-01-20T14:30:00.000Z"
+    },
+    {
+      "_id": "65a1b2c3d4e5f6g7h8i9j0k6",
+      "title": "Registered Nurse - Emergency Department",
+      "description": "Join our emergency department team as a Registered Nurse. Provide critical care to patients in a fast-paced environment...",
+      "company": {
+        "name": "City General Hospital",
+        "logo": {
+          "url": "https://res.cloudinary.com/example/image/upload/v1234567890/company-logo-hospital.png",
+          "publicId": "company-logos/city-general-hospital"
+        },
+        "size": "large",
+        "location": {
+          "city": "Los Angeles",
+          "state": "California",
+          "country": "United States",
+          "isRemote": false,
+          "remoteType": "on_site"
+        }
+      },
+      "employer": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k7",
+        "firstName": "Sarah",
+        "lastName": "Johnson",
+        "profile": {
+          "avatar": "https://res.cloudinary.com/example/image/upload/v1234567890/avatars/sarah-johnson.jpg",
+          "businessName": "City General Hospital",
+          "rating": 4.9
+        }
+      },
+      "category": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k8",
+        "name": "Healthcare",
+        "description": "Medical, nursing, healthcare administration, and health services positions",
+        "metadata": {
+          "icon": "🏥",
+          "color": "#EF4444"
+        }
+      },
+      "subcategory": "Nursing",
+      "jobType": "full_time",
+      "experienceLevel": "mid",
+      "salary": {
+        "min": 75000,
+        "max": 95000,
+        "currency": "USD",
+        "period": "yearly",
+        "isNegotiable": false,
+        "isConfidential": false
+      },
+      "benefits": [
+        "health_insurance",
+        "dental_insurance",
+        "vision_insurance",
+        "retirement_401k",
+        "paid_time_off",
+        "sick_leave"
+      ],
+      "status": "active",
+      "visibility": "public",
+      "tags": ["nursing", "healthcare", "emergency", "RN"],
+      "isActive": true,
+      "createdAt": "2024-01-18T09:00:00.000Z",
+      "updatedAt": "2024-01-18T09:00:00.000Z"
+    },
+    {
+      "_id": "65a1b2c3d4e5f6g7h8i9j0k9",
+      "title": "Marketing Manager - Digital Marketing",
+      "description": "We're seeking a creative and data-driven Marketing Manager to lead our digital marketing initiatives...",
+      "company": {
+        "name": "Creative Solutions Agency",
+        "logo": {
+          "url": "https://res.cloudinary.com/example/image/upload/v1234567890/company-logo-agency.png",
+          "publicId": "company-logos/creative-solutions"
+        },
+        "size": "small",
+        "location": {
+          "city": "New York",
+          "state": "New York",
+          "country": "United States",
+          "isRemote": true,
+          "remoteType": "hybrid"
+        }
+      },
+      "employer": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k10",
+        "firstName": "Michael",
+        "lastName": "Chen",
+        "profile": {
+          "avatar": "https://res.cloudinary.com/example/image/upload/v1234567890/avatars/michael-chen.jpg",
+          "businessName": "Creative Solutions Agency",
+          "rating": 4.7
+        }
+      },
+      "category": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k11",
+        "name": "Marketing",
+        "description": "Digital marketing, advertising, brand management, and marketing communications",
+        "metadata": {
+          "icon": "📢",
+          "color": "#8B5CF6"
+        }
+      },
+      "subcategory": "Digital Marketing",
+      "jobType": "full_time",
+      "experienceLevel": "mid",
+      "salary": {
+        "min": 80000,
+        "max": 110000,
+        "currency": "USD",
+        "period": "yearly",
+        "isNegotiable": true,
+        "isConfidential": false
+      },
+      "benefits": [
+        "health_insurance",
+        "dental_insurance",
+        "paid_time_off",
+        "flexible_schedule",
+        "remote_work",
+        "professional_development"
+      ],
+      "status": "active",
+      "visibility": "public",
+      "tags": ["marketing", "digital", "SEO", "social-media"],
+      "isActive": true,
+      "createdAt": "2024-01-19T11:00:00.000Z",
+      "updatedAt": "2024-01-19T11:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 45,
+    "pages": 5,
+    "hasNext": true,
+    "hasPrev": false
+  }
+}
+

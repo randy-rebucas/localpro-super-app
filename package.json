@@ -19,6 +19,8 @@
     "setup:monitoring": "node setup-monitoring.js",
     "seed:categories": "node scripts/seed-service-categories-and-skills.js seed",
     "seed:categories:clear": "node scripts/seed-service-categories-and-skills.js clear",
+    "seed:job-categories": "node scripts/seed-job-categories.js seed",
+    "seed:job-categories:clear": "node scripts/seed-job-categories.js clear",
     "verify": "node verify-setup.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
