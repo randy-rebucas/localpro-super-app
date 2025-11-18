@@ -26,7 +26,14 @@ The setup script will:
 - ✅ Create default app settings
 - ✅ Create admin users
 - ✅ Seed all modules with sample data
+- ✅ Seed service categories and provider skills
+- ✅ Create database indexes (including specialties.category index)
 - ✅ Validate the setup
+
+**Additional Setup Scripts:**
+- `node scripts/seed-service-categories-and-skills.js` - Seed service categories and provider skills
+- `node scripts/create-database-indexes.js` - Create all recommended database indexes
+- `node scripts/seed-provider-professional-info-example.js` - Example script for creating provider specialties with category and reference fields
 
 **Admin Credentials:**
 - Super Admin: `admin@localpro.com`

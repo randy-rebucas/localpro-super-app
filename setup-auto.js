@@ -355,7 +355,12 @@ class AutoSetup {
       await superAdmin.save();
 
       // Set up verification status (all verified for admin)
-      await superAdmin.verify('phone');
+      // Note: Phone verification may fail if Twilio is not configured - that's OK for setup
+      try {
+        await superAdmin.verify('phone');
+      } catch (error) {
+        this.logWarning(`Phone verification skipped for admin (Twilio may not be configured): ${error.message}`);
+      }
       await superAdmin.verify('email');
       await superAdmin.verify('identity');
       await superAdmin.verify('business');
@@ -436,7 +441,12 @@ class AutoSetup {
         await user.save();
 
         // Set up verification status (basic verifications for all roles)
-        await user.verify('phone');
+        // Note: Phone verification may fail if Twilio is not configured - that's OK for setup
+        try {
+          await user.verify('phone');
+        } catch (error) {
+          this.logWarning(`Phone verification skipped for ${roleData.name} (Twilio may not be configured): ${error.message}`);
+        }
         await user.verify('email');
         
         // Additional verifications for business roles
@@ -496,10 +506,96 @@ class AutoSetup {
 
         this.createdData.users.push(user);
         this.logSuccess(`${roleData.name} created: ${user.email}`);
+
+        // Populate ProviderProfessionalInfo with sample specialties (if ServiceCategory and ProviderSkill exist)
+        if (roleData.role === 'provider' || roleData.role === 'agency_owner') {
+          await this.populateProviderProfessionalInfo(user);
+        }
         
       } catch (error) {
         this.logError(`Failed to create ${roleData.name}: ${error.message}`);
       }
+    }
+  }
+
+  /**
+   * Populate ProviderProfessionalInfo with sample specialties including category and reference fields
+   * Note: This requires ServiceCategory and ProviderSkill to be seeded first
+   */
+  async populateProviderProfessionalInfo(user) {
+    try {
+      // Only populate for users with provider role
+      if (!user.roles || !user.roles.includes('provider')) {
+        return;
+      }
+
+      // Get Provider document
+      const Provider = require('./src/models/Provider');
+      const provider = await Provider.findOne({ userId: user._id });
+      if (!provider) {
+        this.logWarning(`No Provider document found for user ${user.email}, skipping professional info population`);
+        return;
+      }
+
+      // Get ProviderProfessionalInfo
+      const ProviderProfessionalInfo = require('./src/models/ProviderProfessionalInfo');
+      let professionalInfo = await ProviderProfessionalInfo.findOne({ provider: provider._id });
+      if (!professionalInfo) {
+        // Create if it doesn't exist (should have been created by Provider post-save hook)
+        professionalInfo = new ProviderProfessionalInfo({ provider: provider._id });
+        await professionalInfo.save();
+      }
+
+      // Try to get ServiceCategory and ProviderSkill
+      const ServiceCategory = require('./src/models/ServiceCategory');
+      const ProviderSkill = require('./src/models/ProviderSkill');
+
+      const cleaningCategory = await ServiceCategory.findOne({ key: 'cleaning' });
+      
+      if (!cleaningCategory) {
+        this.logInfo(`ServiceCategory 'cleaning' not found. Skipping professional info population for ${user.email}. Run service categories seeder first.`);
+        return;
+      }
+
+      // Get some skills for the category
+      const skills = await ProviderSkill.find({ 
+        category: cleaningCategory._id,
+        isActive: true 
+      }).limit(3);
+
+      if (skills.length === 0) {
+        this.logInfo(`No ProviderSkill found for category 'cleaning'. Skipping professional info population for ${user.email}. Run provider skills seeder first.`);
+        return;
+      }
+
+      // Add sample specialty with category and reference fields
+      if (!professionalInfo.specialties || professionalInfo.specialties.length === 0) {
+        professionalInfo.specialties = [{
+          category: cleaningCategory._id, // ServiceCategory ObjectId
+          reference: `REF-${user.email.toUpperCase().replace('@', '-').replace('.', '-')}-001`, // Optional reference string
+          experience: 5,
+          hourlyRate: 500,
+          skills: skills.map(skill => skill._id), // Array of ProviderSkill ObjectIds
+          serviceAreas: [
+            {
+              city: 'Manila',
+              state: 'Metro Manila',
+              radius: 25
+            },
+            {
+              city: 'Quezon City',
+              state: 'Metro Manila',
+              radius: 20
+            }
+          ]
+        }];
+
+        await professionalInfo.save();
+        this.logInfo(`Populated ProviderProfessionalInfo for ${user.email} with specialty including category and reference fields`);
+      }
+    } catch (error) {
+      // Don't fail setup if this fails - just log and continue
+      this.logWarning(`Failed to populate ProviderProfessionalInfo for ${user.email}: ${error.message}`);
     }
   }
 

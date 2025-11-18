@@ -295,7 +295,12 @@ class AppSetup {
       await superAdmin.save();
 
       // Set up verification status (all verified for admin)
-      await superAdmin.verify('phone');
+      // Note: Phone verification may fail if Twilio is not configured - that's OK for setup
+      try {
+        await superAdmin.verify('phone');
+      } catch (error) {
+        this.logWarning(`Phone verification skipped for admin (Twilio may not be configured): ${error.message}`);
+      }
       await superAdmin.verify('email');
       await superAdmin.verify('identity');
       await superAdmin.verify('business');
@@ -352,7 +357,12 @@ class AppSetup {
       await client.save();
       
       // Set up verification status
-      await client.verify('phone');
+      // Note: Phone verification may fail if Twilio is not configured - that's OK for setup
+      try {
+        await client.verify('phone');
+      } catch (error) {
+        this.logWarning(`Phone verification skipped for client (Twilio may not be configured): ${error.message}`);
+      }
       await client.verify('email');
       
       // Update login info and status
@@ -421,7 +431,12 @@ class AppSetup {
       await provider.save();
       
       // Set up verification status
-      await provider.verify('phone');
+      // Note: Phone verification may fail if Twilio is not configured - that's OK for setup
+      try {
+        await provider.verify('phone');
+      } catch (error) {
+        this.logWarning(`Phone verification skipped for provider (Twilio may not be configured): ${error.message}`);
+      }
       await provider.verify('email');
       await provider.verify('identity');
       
@@ -460,6 +475,9 @@ class AppSetup {
       this.createdData.users.push(provider);
       this.logSuccess(`Provider created: ${provider.email}`);
 
+      // Populate ProviderProfessionalInfo with sample specialties (if ServiceCategory and ProviderSkill exist)
+      await this.populateProviderProfessionalInfo(provider);
+
       // Create supplier user
       // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const supplier = new User({
@@ -490,7 +508,12 @@ class AppSetup {
       await supplier.save();
       
       // Set up verification status
-      await supplier.verify('phone');
+      // Note: Phone verification may fail if Twilio is not configured - that's OK for setup
+      try {
+        await supplier.verify('phone');
+      } catch (error) {
+        this.logWarning(`Phone verification skipped for supplier (Twilio may not be configured): ${error.message}`);
+      }
       await supplier.verify('email');
       await supplier.verify('business');
       
@@ -560,7 +583,12 @@ class AppSetup {
       await instructor.save();
       
       // Set up verification status
-      await instructor.verify('phone');
+      // Note: Phone verification may fail if Twilio is not configured - that's OK for setup
+      try {
+        await instructor.verify('phone');
+      } catch (error) {
+        this.logWarning(`Phone verification skipped for instructor (Twilio may not be configured): ${error.message}`);
+      }
       await instructor.verify('email');
       await instructor.verify('identity');
       
@@ -635,7 +663,12 @@ class AppSetup {
       await agencyOwner.save();
       
       // Set up verification status (all verified for agency owner)
-      await agencyOwner.verify('phone');
+      // Note: Phone verification may fail if Twilio is not configured - that's OK for setup
+      try {
+        await agencyOwner.verify('phone');
+      } catch (error) {
+        this.logWarning(`Phone verification skipped for agency owner (Twilio may not be configured): ${error.message}`);
+      }
       await agencyOwner.verify('email');
       await agencyOwner.verify('identity');
       await agencyOwner.verify('business');
@@ -692,6 +725,9 @@ class AppSetup {
       this.createdData.users.push(agencyOwner);
       this.logSuccess(`Agency owner created: ${agencyOwner.email}`);
 
+      // Populate ProviderProfessionalInfo with sample specialties (if ServiceCategory and ProviderSkill exist)
+      await this.populateProviderProfessionalInfo(agencyOwner);
+
       // Create agency admin user
       // Note: Related documents (Trust, Activity, Management, Wallet, Referral) will be created automatically via post-save hook
       const agencyAdmin = new User({
@@ -723,7 +759,12 @@ class AppSetup {
       await agencyAdmin.save();
 
       // Set up verification status
-      await agencyAdmin.verify('phone');
+      // Note: Phone verification may fail if Twilio is not configured - that's OK for setup
+      try {
+        await agencyAdmin.verify('phone');
+      } catch (error) {
+        this.logWarning(`Phone verification skipped for agency admin (Twilio may not be configured): ${error.message}`);
+      }
       await agencyAdmin.verify('email');
       await agencyAdmin.verify('identity');
 
@@ -764,6 +805,87 @@ class AppSetup {
     } catch (error) {
       this.logError(`Failed to create all users: ${error.message}`);
       return false;
+    }
+  }
+
+  /**
+   * Populate ProviderProfessionalInfo with sample specialties including category and reference fields
+   * Note: This requires ServiceCategory and ProviderSkill to be seeded first
+   */
+  async populateProviderProfessionalInfo(user) {
+    try {
+      // Only populate for users with provider role
+      if (!user.roles || !user.roles.includes('provider')) {
+        return;
+      }
+
+      // Get Provider document
+      const Provider = require('./src/models/Provider');
+      const provider = await Provider.findOne({ userId: user._id });
+      if (!provider) {
+        this.logWarning(`No Provider document found for user ${user.email}, skipping professional info population`);
+        return;
+      }
+
+      // Get ProviderProfessionalInfo
+      const ProviderProfessionalInfo = require('./src/models/ProviderProfessionalInfo');
+      let professionalInfo = await ProviderProfessionalInfo.findOne({ provider: provider._id });
+      if (!professionalInfo) {
+        // Create if it doesn't exist (should have been created by Provider post-save hook)
+        professionalInfo = new ProviderProfessionalInfo({ provider: provider._id });
+        await professionalInfo.save();
+      }
+
+      // Try to get ServiceCategory and ProviderSkill
+      const ServiceCategory = require('./src/models/ServiceCategory');
+      const ProviderSkill = require('./src/models/ProviderSkill');
+
+      const cleaningCategory = await ServiceCategory.findOne({ key: 'cleaning' });
+      
+      if (!cleaningCategory) {
+        this.logInfo(`ServiceCategory 'cleaning' not found. Skipping professional info population for ${user.email}. Run service categories seeder first.`);
+        return;
+      }
+
+      // Get some skills for the category
+      const skills = await ProviderSkill.find({ 
+        category: cleaningCategory._id,
+        isActive: true 
+      }).limit(3);
+
+      if (skills.length === 0) {
+        this.logInfo(`No ProviderSkill found for category 'cleaning'. Skipping professional info population for ${user.email}. Run provider skills seeder first.`);
+        return;
+      }
+
+      // Add sample specialty with category and reference fields
+      if (!professionalInfo.specialties || professionalInfo.specialties.length === 0) {
+        professionalInfo.specialties = [{
+          category: cleaningCategory._id, // ServiceCategory ObjectId
+          reference: `REF-${user.email.toUpperCase().replace('@', '-').replace('.', '-')}-001`, // Optional reference string
+          experience: 5,
+          hourlyRate: 500,
+          skills: skills.map(skill => skill._id), // Array of ProviderSkill ObjectIds
+          serviceAreas: [
+            {
+              city: 'Manila',
+              state: 'Metro Manila',
+              radius: 25
+            },
+            {
+              city: 'Quezon City',
+              state: 'Metro Manila',
+              radius: 20
+            }
+          ]
+        }];
+
+        await professionalInfo.save();
+        this.logInfo(`Populated ProviderProfessionalInfo for ${user.email} with specialty including category and reference fields`);
+      }
+    } catch (error) {
+      // Don't fail setup if this fails - just log and continue
+      this.logWarning(`Failed to populate ProviderProfessionalInfo for ${user.email}: ${error.message}`);
     }
   }
 

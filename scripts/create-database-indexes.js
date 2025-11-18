@@ -11,6 +11,10 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // Import models to ensure indexes are registered
 require('../src/models/User');
+require('../src/models/Provider');
+require('../src/models/ProviderProfessionalInfo');
+require('../src/models/ProviderSkill');
+require('../src/models/ServiceCategory');
 require('../src/models/Job');
 require('../src/models/Marketplace');
 require('../src/models/Academy');
@@ -177,6 +181,21 @@ function getRecommendedIndexes() {
       { key: { 'delivery.address.city': 1, 'delivery.address.state': 1, status: 1 }, name: 'deliveryAddress_status' },
       { key: { createdAt: -1, status: 1 }, name: 'createdAt_status' },
       { key: { updatedAt: -1, status: 1 }, name: 'updatedAt_status' }
+    ],
+    providerprofessionalinfos: [
+      { key: { provider: 1 }, name: 'provider' },
+      { key: { 'specialties.category': 1 }, name: 'specialties_category' },
+      { key: { 'specialties.skills': 1 }, name: 'specialties_skills' },
+      { key: { 'specialties.serviceAreas.city': 1, 'specialties.serviceAreas.state': 1 }, name: 'specialties_serviceAreas_location' }
+    ],
+    providerskills: [
+      { key: { category: 1, isActive: 1 }, name: 'category_active' },
+      { key: { name: 1, isActive: 1 }, name: 'name_active' },
+      { key: { displayOrder: 1, isActive: 1 }, name: 'displayOrder_active' }
+    ],
+    servicecategories: [
+      { key: { key: 1 }, name: 'key_unique' },
+      { key: { isActive: 1, displayOrder: 1 }, name: 'active_displayOrder' }
     ]
   };
 }

@@ -20,6 +20,10 @@ const { Product, SubscriptionKit, Order } = require('./src/models/Supplies');
 const { RentalItem, Rental } = require('./src/models/Rentals');
 const { Loan, SalaryAdvance, Transaction } = require('./src/models/Finance');
 const Referral = require('./src/models/Referral');
+const Provider = require('./src/models/Provider');
+const ProviderProfessionalInfo = require('./src/models/ProviderProfessionalInfo');
+const ServiceCategory = require('./src/models/ServiceCategory');
+const ProviderSkill = require('./src/models/ProviderSkill');
 
 // Colors for console output
 const colors = {
@@ -45,6 +49,9 @@ class SetupVerifier {
       products: false,
       rentalItems: false,
       certifications: false,
+      providerProfessionalInfo: false,
+      serviceCategories: false,
+      providerSkills: false,
       totalRecords: 0
     };
   }
@@ -279,6 +286,95 @@ class SetupVerifier {
     }
   }
 
+  async verifyProviderProfessionalInfo() {
+    try {
+      const professionalInfos = await ProviderProfessionalInfo.find();
+      if (professionalInfos.length > 0) {
+        this.results.providerProfessionalInfo = true;
+        this.logSuccess(`${professionalInfos.length} ProviderProfessionalInfo document(s) found`);
+        
+        // Check if any have specialties with category and reference fields
+        let withSpecialties = 0;
+        let withCategory = 0;
+        let withReference = 0;
+        
+        for (const info of professionalInfos) {
+          if (info.specialties && info.specialties.length > 0) {
+            withSpecialties++;
+            for (const specialty of info.specialties) {
+              if (specialty.category) {
+                withCategory++;
+              }
+              if (specialty.reference) {
+                withReference++;
+              }
+            }
+          }
+        }
+        
+        if (withSpecialties > 0) {
+          this.logInfo(`${withSpecialties} document(s) have specialties`);
+          if (withCategory > 0) {
+            this.logInfo(`${withCategory} specialty(ies) have category field`);
+          }
+          if (withReference > 0) {
+            this.logInfo(`${withReference} specialty(ies) have reference field`);
+          }
+        } else {
+          this.logWarning('No specialties found in ProviderProfessionalInfo documents');
+        }
+        
+        this.results.totalRecords += professionalInfos.length;
+        return true;
+      } else {
+        this.logWarning('No ProviderProfessionalInfo documents found');
+        return false;
+      }
+    } catch (error) {
+      this.logError(`Error checking ProviderProfessionalInfo: ${error.message}`);
+      return false;
+    }
+  }
+
+  async verifyServiceCategories() {
+    try {
+      const categories = await ServiceCategory.find();
+      if (categories.length > 0) {
+        this.results.serviceCategories = true;
+        this.logSuccess(`${categories.length} ServiceCategory(ies) found`);
+        categories.forEach(cat => {
+          this.logInfo(`Category: ${cat.name} (${cat.key})`);
+        });
+        this.results.totalRecords += categories.length;
+        return true;
+      } else {
+        this.logWarning('No ServiceCategory documents found');
+        return false;
+      }
+    } catch (error) {
+      this.logError(`Error checking ServiceCategory: ${error.message}`);
+      return false;
+    }
+  }
+
+  async verifyProviderSkills() {
+    try {
+      const skills = await ProviderSkill.find();
+      if (skills.length > 0) {
+        this.results.providerSkills = true;
+        this.logSuccess(`${skills.length} ProviderSkill(s) found`);
+        this.results.totalRecords += skills.length;
+        return true;
+      } else {
+        this.logWarning('No ProviderSkill documents found');
+        return false;
+      }
+    } catch (error) {
+      this.logError(`Error checking ProviderSkill: ${error.message}`);
+      return false;
+    }
+  }
+
   async verifyDatabaseIndexes() {
     try {
       this.logInfo('Checking database indexes...');
@@ -378,6 +474,9 @@ class SetupVerifier {
       await this.verifyProducts();
       await this.verifyRentalItems();
       await this.verifyCertifications();
+      await this.verifyProviderProfessionalInfo();
+      await this.verifyServiceCategories();
+      await this.verifyProviderSkills();
       await this.verifyDatabaseIndexes();
 
       // Generate report
