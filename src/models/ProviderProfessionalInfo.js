@@ -8,6 +8,14 @@ const providerProfessionalInfoSchema = new mongoose.Schema({
     unique: true
   },
   specialties: [{
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ServiceCategory'
+    },
+    reference: {
+      type: String,
+      trim: true
+    },
     experience: {
       type: Number, // years of experience
       min: 0
@@ -119,6 +127,7 @@ const providerProfessionalInfoSchema = new mongoose.Schema({
 // Note: provider already has unique: true which creates an index
 providerProfessionalInfoSchema.index({ 'specialties.serviceAreas.city': 1, 'specialties.serviceAreas.state': 1 });
 providerProfessionalInfoSchema.index({ 'specialties.skills': 1 });
+providerProfessionalInfoSchema.index({ 'specialties.category': 1 });
 
 // Methods
 providerProfessionalInfoSchema.methods.addSpecialty = function(specialtyData) {

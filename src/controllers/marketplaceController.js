@@ -1597,8 +1597,20 @@ const getCategoryDetails = async (req, res) => {
 
     // Get provider count for this category
     const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
+    // Validate category ObjectId
+    if (!mongoose.Types.ObjectId.isValid(category)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid category ID format'
+      });
+    }
+    const categoryObjectId = new mongoose.Types.ObjectId(category);
     const matchingProfessionalInfos = await ProviderProfessionalInfo.find({
-      'specialties.category': category
+      'specialties': {
+        $elemMatch: {
+          category: categoryObjectId
+        }
+      }
     });
     const providerIds = matchingProfessionalInfos.map(pi => pi.provider);
     const providerCount = await Provider.countDocuments({
@@ -1729,13 +1741,35 @@ const getProvidersForService = async (req, res) => {
     // Build query to find providers who offer this service category/subcategory
     // First, find matching professionalInfo documents
     const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
-    const professionalInfoQuery = {
-      'specialties': {
-        $elemMatch: {
-          // Match providers by service category through their skills
-        }
+    const professionalInfoQuery = {};
+    
+    // Match providers by service category - find providers whose specialties.category matches the service category
+    if (service.category) {
+      // Validate category ObjectId if it's provided as string
+      let categoryObjectId;
+      if (typeof service.category === 'string' && mongoose.Types.ObjectId.isValid(service.category)) {
+        categoryObjectId = new mongoose.Types.ObjectId(service.category);
+      } else if (service.category._id) {
+        categoryObjectId = service.category._id;
+      } else {
+        categoryObjectId = service.category;
       }
-    };
+      
+      professionalInfoQuery.specialties = {
+        $elemMatch: {
+          category: categoryObjectId
+        }
+      };
+    }
+    
+    // If no category match, return empty result
+    if (!professionalInfoQuery.specialties) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: createPagination(parseInt(page), parseInt(limit), 0)
+      });
+    }
     
     const matchingProfessionalInfos = await ProviderProfessionalInfo.find(professionalInfoQuery);
     const providerIds = matchingProfessionalInfos.map(pi => pi.provider);
@@ -1799,6 +1833,15 @@ const getProvidersForService = async (req, res) => {
 
     // Enhance providers with service-specific information
     const enhancedProviders = filteredProviders.map(provider => {
+      // Exclude category from specialties in response
+      if (provider.professionalInfo && provider.professionalInfo.specialties && Array.isArray(provider.professionalInfo.specialties)) {
+        provider.professionalInfo.specialties = provider.professionalInfo.specialties.map(specialty => {
+          // eslint-disable-next-line no-unused-vars
+          const { category: _category, ...specialtyWithoutCategory } = specialty;
+          return specialtyWithoutCategory;
+        });
+      }
+
       // Find the first specialty (or match by skills if needed)
       const matchingSpecialty = provider.professionalInfo?.specialties?.[0];
 
@@ -2143,8 +2186,11 @@ const getProviderDetails = async (req, res) => {
           });
         }
         
+        // Exclude category from response
+        // eslint-disable-next-line no-unused-vars
+        const { category: _category, ...specialtyWithoutCategory } = specialty;
         return {
-          ...specialty,
+          ...specialtyWithoutCategory,
           skills: skills
         };
       }));

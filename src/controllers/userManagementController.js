@@ -143,7 +143,7 @@ const getAllUsers = async (req, res) => {
       // Fetch provider data for these users
       if (providerUserIds.length > 0) {
         try {
-          const providers = await Provider.find({ userId: { $in: providerUserIds } })
+          let providers = await Provider.find({ userId: { $in: providerUserIds } })
             .populate('professionalInfo')
             .populate('professionalInfo.specialties.skills', 'name description category metadata')
             .populate('businessInfo')
@@ -152,6 +152,18 @@ const getAllUsers = async (req, res) => {
             .populate('performance')
             .select('-financialInfo -onboarding')
             .lean();
+
+          // Exclude category from specialties in response
+          providers = providers.map(provider => {
+            if (provider.professionalInfo && provider.professionalInfo.specialties && Array.isArray(provider.professionalInfo.specialties)) {
+              provider.professionalInfo.specialties = provider.professionalInfo.specialties.map(specialty => {
+                // eslint-disable-next-line no-unused-vars
+                const { category: _category, ...specialtyWithoutCategory } = specialty;
+                return specialtyWithoutCategory;
+              });
+            }
+            return provider;
+          });
 
           // Create a map of userId to provider data for quick lookup
           const providerMap = new Map();

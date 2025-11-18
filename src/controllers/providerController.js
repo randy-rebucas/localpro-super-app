@@ -3,12 +3,9 @@ const Provider = require('../models/Provider');
 const ProviderSkill = require('../models/ProviderSkill');
 const ServiceCategory = require('../models/ServiceCategory');
 const User = require('../models/User');
-const ProviderBusinessInfo = require('../models/ProviderBusinessInfo');
-const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
-const ProviderVerification = require('../models/ProviderVerification');
-const ProviderFinancialInfo = require('../models/ProviderFinancialInfo');
-const ProviderPreferences = require('../models/ProviderPreferences');
-const ProviderPerformance = require('../models/ProviderPerformance');
+// Note: ProviderBusinessInfo, ProviderProfessionalInfo, ProviderVerification, 
+// ProviderFinancialInfo, ProviderPreferences, and ProviderPerformance are 
+// required dynamically inside functions where needed
 const { logger } = require('../utils/logger');
 const { auditLogger } = require('../utils/auditLogger');
 const { validationResult } = require('express-validator');
@@ -141,16 +138,24 @@ const getProviders = async (req, res) => {
       const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
       const professionalInfoQuery = {};
       
+      // Validate and convert category to ObjectId
+      let categoryObjectId = null;
       if (category) {
-        professionalInfoQuery['specialties.category'] = category;
+        if (mongoose.Types.ObjectId.isValid(category)) {
+          categoryObjectId = new mongoose.Types.ObjectId(category);
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid category ID format: "${category}". Category ID must be a valid MongoDB ObjectId.`,
+            code: 'INVALID_CATEGORY_ID'
+          });
+        }
       }
       
-      // Filter by skills - skill IDs (comma-separated ObjectIds)
-      // Skills are found in professionalInfo.specialties[].skills[]
-      // Supports filtering by multiple skills - matches providers who have ANY of the specified skills
+      // Validate and convert skills to ObjectIds
+      let skillIds = [];
       if (skills) {
         const skillArray = skills.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        const skillIds = [];
         
         // Validate and convert to ObjectIds
         for (const skill of skillArray) {
@@ -165,35 +170,48 @@ const getProviders = async (req, res) => {
             });
           }
         }
+      }
+      
+      // Build the specialties query using $elemMatch
+      // When both category and skills are provided, they must match in the same specialty
+      const specialtyMatchConditions = {};
+      
+      if (categoryObjectId) {
+        specialtyMatchConditions.category = categoryObjectId;
+      }
+      
+      if (skillIds.length > 0) {
+        const matchAll = skillsMatch === 'all';
         
-        if (skillIds.length > 0) {
-          const matchAll = skillsMatch === 'all';
-          
-          if (matchAll && skillIds.length > 1) {
-            // Match providers who have ALL specified skills (across any specialties)
-            // Use $and to ensure each skill exists in specialties
-            professionalInfoQuery['$and'] = skillIds.map(skillId => ({
-              'specialties.skills': skillId
-            }));
-          } else {
-            // Match providers who have ANY of the specified skills (default behavior)
-            // Use $elemMatch to find providers where any specialty contains any of the specified skills
-            professionalInfoQuery['specialties'] = {
-              $elemMatch: {
-                skills: { $in: skillIds }
-              }
-            };
-          }
+        if (matchAll && skillIds.length > 1) {
+          // Match providers who have ALL specified skills in the same specialty
+          specialtyMatchConditions.skills = { $all: skillIds };
         } else {
-          // No valid skills found, return empty result
-          query._id = { $in: [] };
+          // Match providers who have ANY of the specified skills (default behavior)
+          specialtyMatchConditions.skills = { $in: skillIds };
         }
       }
       
-      if (city && state) {
-        professionalInfoQuery['specialties.serviceAreas'] = {
-          $elemMatch: { city, state }
+      // If we have category or skills filters, use $elemMatch
+      if (categoryObjectId || skillIds.length > 0) {
+        professionalInfoQuery.specialties = {
+          $elemMatch: specialtyMatchConditions
         };
+      }
+      
+      // Location filter (serviceAreas)
+      if (city && state) {
+        if (professionalInfoQuery.specialties && professionalInfoQuery.specialties.$elemMatch) {
+          // Combine with existing $elemMatch conditions
+          professionalInfoQuery.specialties.$elemMatch.serviceAreas = {
+            $elemMatch: { city, state }
+          };
+        } else {
+          // Only location filter
+          professionalInfoQuery['specialties.serviceAreas'] = {
+            $elemMatch: { city, state }
+          };
+        }
       }
       
       const matchingProfessionalInfos = await ProviderProfessionalInfo.find(professionalInfoQuery);
@@ -333,8 +351,11 @@ const getProviders = async (req, res) => {
             });
           }
           
+          // Exclude category from response
+          // eslint-disable-next-line no-unused-vars
+          const { category: _category, ...specialtyWithoutCategory } = specialty;
           return {
-            ...specialty,
+            ...specialtyWithoutCategory,
             skills: skills
           };
         }));
@@ -510,8 +531,11 @@ const getProvider = async (req, res) => {
           });
         }
         
+        // Exclude category from response
+        // eslint-disable-next-line no-unused-vars
+        const { category: _category, ...specialtyWithoutCategory } = specialty;
         return {
-          ...specialty,
+          ...specialtyWithoutCategory,
           skills: skills
         };
       }));
@@ -595,8 +619,11 @@ const getMyProviderProfile = async (req, res) => {
           });
         }
         
+        // Exclude category from response
+        // eslint-disable-next-line no-unused-vars
+        const { category: _category, ...specialtyWithoutCategory } = specialty;
         return {
-          ...specialty,
+          ...specialtyWithoutCategory,
           skills: skills
         };
       }));
@@ -1249,7 +1276,7 @@ const getProvidersForAdmin = async (req, res) => {
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const skip = (page - 1) * limit;
-    const providers = await Provider.find(query)
+    let providers = await Provider.find(query)
       .populate('userId', 'firstName lastName email phone')
       .populate('professionalInfo')
       .populate('professionalInfo.specialties.skills', 'name description category metadata')
@@ -1262,6 +1289,18 @@ const getProvidersForAdmin = async (req, res) => {
       .limit(parseInt(limit));
 
     const total = await Provider.countDocuments(query);
+
+    // Exclude category from specialties in response
+    providers = providers.map(provider => {
+      if (provider.professionalInfo && provider.professionalInfo.specialties && Array.isArray(provider.professionalInfo.specialties)) {
+        provider.professionalInfo.specialties = provider.professionalInfo.specialties.map(specialty => {
+          // eslint-disable-next-line no-unused-vars
+          const { category: _category, ...specialtyWithoutCategory } = specialty;
+          return specialtyWithoutCategory;
+        });
+      }
+      return provider;
+    });
 
     logger.info('Providers retrieved for admin', {
       adminId: req.user.id,
@@ -1530,6 +1569,15 @@ const adminUpdateProvider = async (req, res) => {
       .populate('performance')
       .populate('financialInfo')
       .lean();
+
+    // Exclude category from specialties in response
+    if (updatedProvider.professionalInfo && updatedProvider.professionalInfo.specialties && Array.isArray(updatedProvider.professionalInfo.specialties)) {
+      updatedProvider.professionalInfo.specialties = updatedProvider.professionalInfo.specialties.map(specialty => {
+        // eslint-disable-next-line no-unused-vars
+        const { category: _category, ...specialtyWithoutCategory } = specialty;
+        return specialtyWithoutCategory;
+      });
+    }
 
     // Log audit event
     await auditLogger.logSystem('admin_action', req, {
