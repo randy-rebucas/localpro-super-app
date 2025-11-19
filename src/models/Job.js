@@ -52,30 +52,9 @@ const jobSchema = new mongoose.Schema({
     required: true
   },
   category: {
-    type: String,
-    required: true,
-    enum: [
-      'technology',
-      'healthcare',
-      'education',
-      'finance',
-      'marketing',
-      'sales',
-      'customer_service',
-      'human_resources',
-      'operations',
-      'design',
-      'engineering',
-      'construction',
-      'maintenance',
-      'cleaning',
-      'security',
-      'transportation',
-      'food_service',
-      'retail',
-      'hospitality',
-      'other'
-    ]
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'JobCategory',
+    required: true
   },
   subcategory: {
     type: String,

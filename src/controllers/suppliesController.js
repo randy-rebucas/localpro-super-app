@@ -116,7 +116,7 @@ const getSupply = async (req, res) => {
       if (!mongoose.isValidObjectId(trimmedId)) {
         throw new Error('Invalid ObjectId format');
       }
-      supplyId = mongoose.Types.ObjectId(trimmedId);
+      supplyId = new mongoose.Types.ObjectId(trimmedId);
     } catch (e) {
       logger.warn('Invalid supply ID format', {
         id: trimmedId,

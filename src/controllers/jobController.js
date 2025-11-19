@@ -4,6 +4,8 @@ const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
+const mongoose = require('mongoose');
+const logger = require('../config/logger');
 const { 
   validatePagination, 
   validateObjectId, 
@@ -17,6 +19,49 @@ const {
   sendServerError,
   createPagination 
 } = require('../utils/responseHelper');
+
+/**
+ * Resolve category identifier (name or ObjectId) to ObjectId
+ * Supports both category names and old enum format (e.g., "cleaning" -> "Cleaning")
+ * @param {string} categoryIdentifier - Category name or ObjectId string
+ * @returns {Promise<string|null>} - ObjectId string or null if not found
+ */
+const resolveCategoryId = async (categoryIdentifier) => {
+  if (!categoryIdentifier) return null;
+  
+  // Check if it's already a valid ObjectId
+  if (mongoose.Types.ObjectId.isValid(categoryIdentifier)) {
+    return categoryIdentifier;
+  }
+  
+  // Normalize the identifier: convert underscores to spaces and title case
+  // e.g., "customer_service" -> "Customer Service", "cleaning" -> "Cleaning"
+  const normalizedName = categoryIdentifier
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+  
+  // Try to find category by name (case-insensitive, exact match)
+  let category = await JobCategory.findOne({ 
+    name: { $regex: new RegExp(`^${normalizedName}$`, 'i') },
+    isActive: true 
+  });
+  
+  // If not found with normalized name, try original identifier (case-insensitive)
+  if (!category) {
+    category = await JobCategory.findOne({ 
+      name: { $regex: new RegExp(`^${categoryIdentifier}$`, 'i') },
+      isActive: true 
+    });
+  }
+  
+  if (category) {
+    return category._id.toString();
+  }
+  
+  // If not found, return null (will cause filter to not match anything)
+  return null;
+};
 
 // @desc    Get all jobs
 // @route   GET /api/jobs
@@ -78,8 +123,16 @@ const getJobs = async (req, res) => {
       filter.$text = { $search: search };
     }
 
-    // Category filters
-    if (category) filter.category = category;
+    // Category filters - resolve category name to ObjectId if needed
+    if (category) {
+      const categoryId = await resolveCategoryId(category);
+      if (categoryId) {
+        filter.category = categoryId;
+      } else {
+        // If category not found, return empty results
+        return sendPaginated(res, [], createPagination(pageNum, limitNum, 0), 'Jobs retrieved successfully');
+      }
+    }
     if (subcategory) filter.subcategory = subcategory;
     if (jobType) filter.jobType = jobType;
     if (experienceLevel) filter.experienceLevel = experienceLevel;
@@ -124,13 +177,89 @@ const getJobs = async (req, res) => {
 
     const skip = (pageNum - 1) * limitNum;
 
-    const jobs = await Job.find(filter)
-      .populate('employer', 'firstName lastName profile.avatar profile.businessName profile.rating')
-      .select('-applications -views -featured -promoted -metadata')
-      .sort(sort)
-      .skip(skip)
-      .limit(limitNum)
-      .lean(); // Use lean() for better performance on read-only operations
+    // Filter out jobs with invalid category ObjectIds before populating
+    // This prevents populate errors when old jobs have string category values
+    // Only query jobs where category field is an ObjectId type
+    const categoryFilterValue = filter.category;
+    if (categoryFilterValue) {
+      // If category filter is provided, ensure it's an ObjectId and combine with type check
+      filter.$and = filter.$and || [];
+      filter.$and.push(
+        { category: categoryFilterValue },
+        { category: { $type: 'objectId' } }
+      );
+      delete filter.category;
+    } else {
+      // If no category filter, just ensure category is an ObjectId type
+      filter.category = {
+        $exists: true,
+        $type: 'objectId'
+      };
+    }
+
+    let jobs;
+    try {
+      jobs = await Job.find(filter)
+        .populate('employer', 'firstName lastName profile.avatar profile.businessName profile.rating')
+        .populate({
+          path: 'category',
+          select: 'name description displayOrder metadata isActive',
+          match: { isActive: true } // Only populate active categories
+        })
+        .select('-applications -views -featured -promoted -metadata')
+        .sort(sort)
+        .skip(skip)
+        .limit(limitNum)
+        .lean(); // Use lean() for better performance on read-only operations
+    } catch (populateError) {
+      // If populate fails due to invalid category data, retry without category population
+      if (populateError.message && populateError.message.includes('Cast to ObjectId')) {
+        logger.warn('Category population failed due to invalid data, retrying without category population', {
+          error: populateError.message
+        });
+        
+        // Filter to only include jobs with valid ObjectId categories
+        const validCategoryFilter = {
+          ...filter,
+          category: {
+            $exists: true,
+            $type: 'objectId'
+          }
+        };
+        
+        jobs = await Job.find(validCategoryFilter)
+          .populate('employer', 'firstName lastName profile.avatar profile.businessName profile.rating')
+          .select('-applications -views -featured -promoted -metadata')
+          .sort(sort)
+          .skip(skip)
+          .limit(limitNum)
+          .lean();
+        
+        // Manually populate categories for valid ObjectIds
+        const categoryIds = [...new Set(jobs.map(job => job.category).filter(Boolean))];
+        if (categoryIds.length > 0) {
+          const categories = await JobCategory.find({ 
+            _id: { $in: categoryIds },
+            isActive: true 
+          }).lean();
+          const categoryMap = {};
+          categories.forEach(cat => {
+            categoryMap[cat._id.toString()] = cat;
+          });
+          
+          jobs = jobs.map(job => {
+            if (job.category && categoryMap[job.category.toString()]) {
+              job.category = categoryMap[job.category.toString()];
+            } else {
+              job.category = null;
+            }
+            return job;
+          });
+        }
+      } else {
+        throw populateError;
+      }
+    }
 
     const total = await Job.countDocuments(filter);
     const pagination = createPagination(pageNum, limitNum, total);
@@ -157,6 +286,7 @@ const getJob = async (req, res) => {
 
     const job = await Job.findById(req.params.id)
       .populate('employer', 'firstName lastName profile.avatar profile.businessName profile.bio profile.rating profile.experience')
+      .populate('category', 'name description displayOrder metadata isActive')
       .populate('applications.applicant', 'firstName lastName profile.avatar profile.rating')
       .select('+views +featured +promoted'); // Include fields needed for this specific view
 
@@ -605,6 +735,7 @@ const getMyApplications = async (req, res) => {
 
     const jobs = await Job.find(filter)
       .populate('employer', 'firstName lastName profile.businessName')
+      .populate('category', 'name description displayOrder metadata isActive')
       .select('title company applications')
       .sort({ 'applications.appliedAt': -1 });
 
@@ -672,6 +803,7 @@ const getMyJobs = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const jobs = await Job.find(filter)
+      .populate('category', 'name description displayOrder metadata isActive')
       .populate('applications.applicant', 'firstName lastName profile.avatar')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -894,8 +1026,25 @@ const searchJobs = async (req, res) => {
       limit = 10
     } = req.query;
 
+    // Resolve category name to ObjectId if needed
+    let categoryId = null;
+    if (category) {
+      categoryId = await resolveCategoryId(category);
+      if (!categoryId) {
+        // If category not found, return empty results
+        return res.status(200).json({
+          success: true,
+          count: 0,
+          total: 0,
+          page: Number(page),
+          pages: 0,
+          data: []
+        });
+      }
+    }
+
     const filters = {
-      category,
+      category: categoryId,
       subcategory,
       jobType,
       experienceLevel,
@@ -908,6 +1057,7 @@ const searchJobs = async (req, res) => {
 
     const jobs = await Job.searchJobs(q, filters)
       .populate('employer', 'firstName lastName profile.avatar profile.businessName')
+      .populate('category', 'name description displayOrder metadata isActive')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));

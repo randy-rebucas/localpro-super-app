@@ -405,8 +405,8 @@ const completeOnboarding = async (req, res) => {
     const { firstName, lastName, email, roles, profile, gender, birthdate } = req.body;
     const userId = req.user.id;
 
-    // Input validation
-    if (!firstName || !lastName || !email) {
+    // Input validation - firstName and lastName are required, email is optional
+    if (!firstName || !lastName) {
       logger.warn('Complete onboarding failed: Missing required fields', {
         userId,
         hasFirstName: !!firstName,
@@ -417,7 +417,7 @@ const completeOnboarding = async (req, res) => {
       });
       return res.status(400).json({
         success: false,
-        message: 'First name, last name, and email are required',
+        message: 'First name and last name are required',
         code: 'MISSING_REQUIRED_FIELDS'
       });
     }
@@ -439,34 +439,36 @@ const completeOnboarding = async (req, res) => {
       });
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid email format',
-        code: 'INVALID_EMAIL_FORMAT'
-      });
-    }
+    // Validate email format only if email is provided
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email format',
+          code: 'INVALID_EMAIL_FORMAT'
+        });
+      }
 
-    // Check if email is already taken by another user
-    const existingUser = await User.findOne({ 
-      email: email.toLowerCase(), 
-      _id: { $ne: userId } 
-    });
+      // Check if email is already taken by another user
+      const existingUser = await User.findOne({ 
+        email: email.toLowerCase(), 
+        _id: { $ne: userId } 
+      });
 
-    if (existingUser) {
-      logger.warn('Complete onboarding failed: Email already exists', {
-        userId,
-        email: email.substring(0, 3) + '***@' + email.split('@')[1],
-        clientInfo,
-        duration: Date.now() - startTime
-      });
-      return res.status(400).json({
-        success: false,
-        message: 'Email is already registered with another account',
-        code: 'EMAIL_ALREADY_EXISTS'
-      });
+      if (existingUser) {
+        logger.warn('Complete onboarding failed: Email already exists', {
+          userId,
+          email: email.substring(0, 3) + '***@' + email.split('@')[1],
+          clientInfo,
+          duration: Date.now() - startTime
+        });
+        return res.status(400).json({
+          success: false,
+          message: 'Email is already registered with another account',
+          code: 'EMAIL_ALREADY_EXISTS'
+        });
+      }
     }
 
     // Get current user to preserve existing data
@@ -521,10 +523,14 @@ const completeOnboarding = async (req, res) => {
     const updateData = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      email: email.toLowerCase().trim(),
       roles: rolesToSet, // Multi-role support
       status: 'active'
     };
+
+    // Only update email if provided
+    if (email) {
+      updateData.email = email.toLowerCase().trim();
+    }
 
     // Handle gender if provided
     if (gender !== undefined) {
@@ -582,34 +588,6 @@ const completeOnboarding = async (req, res) => {
       };
     }
 
-    // Generate referral code if needed
-    let referralCode = currentUser.referral?.referralCode;
-    if (!referralCode) {
-      // Generate referral code using the new firstName and lastName
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-      let result = initials;
-      
-      // Add 6 random characters
-      for (let i = 0; i < 6; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
-      }
-      
-      referralCode = result;
-    }
-    
-    // Handle referral
-    if (currentUser.referral) {
-      updateData.referral = {
-        ...currentUser.referral,
-        referralCode: referralCode
-      };
-    } else {
-      updateData.referral = {
-        referralCode: referralCode
-      };
-    }
-
     // Update user with onboarding information
     const user = await User.findByIdAndUpdate(
       userId,
@@ -625,24 +603,53 @@ const completeOnboarding = async (req, res) => {
       });
     }
 
-    // Send welcome email to new user
+    // Generate referral code if needed (after user is updated with firstName/lastName)
+    // This uses the UserReferral model properly via the user's method
     try {
-      await EmailService.sendWelcomeEmail(email, firstName);
-      logger.info('Welcome email sent successfully', {
+      await user.generateReferralCode();
+    } catch (referralError) {
+      logger.warn('Failed to generate referral code during onboarding', {
         userId: user._id,
-        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        error: referralError.message,
         clientInfo,
         duration: Date.now() - startTime
       });
-    } catch (emailError) {
-      logger.error('Failed to send welcome email', {
+      // Don't fail onboarding if referral code generation fails
+    }
+
+    // Send welcome email to new user only if email is provided
+    if (email) {
+      try {
+        await EmailService.sendWelcomeEmail(email, firstName);
+        logger.info('Welcome email sent successfully', {
+          userId: user._id,
+          email: email.substring(0, 3) + '***@' + email.split('@')[1],
+          clientInfo,
+          duration: Date.now() - startTime
+        });
+      } catch (emailError) {
+        logger.error('Failed to send welcome email', {
+          userId: user._id,
+          email: email.substring(0, 3) + '***@' + email.split('@')[1],
+          error: emailError.message,
+          clientInfo,
+          duration: Date.now() - startTime
+        });
+        // Don't fail the onboarding if email fails
+      }
+    }
+
+    // Get referral code for response (populate referral if needed)
+    let referralCode = null;
+    try {
+      const referral = await user.ensureReferral();
+      referralCode = referral?.referralCode || null;
+    } catch (referralError) {
+      logger.warn('Failed to get referral code for response', {
         userId: user._id,
-        email: email.substring(0, 3) + '***@' + email.split('@')[1],
-        error: emailError.message,
-        clientInfo,
-        duration: Date.now() - startTime
+        error: referralError.message,
+        clientInfo
       });
-      // Don't fail the onboarding if email fails
     }
 
     // Generate new token with updated user info
@@ -651,7 +658,7 @@ const completeOnboarding = async (req, res) => {
     logger.info('Onboarding completed successfully', {
       userId: user._id,
       phoneNumber: user.phoneNumber.substring(0, 5) + '***',
-      email: email.substring(0, 3) + '***@' + email.split('@')[1],
+      email: user.email ? user.email.substring(0, 3) + '***@' + user.email.split('@')[1] : 'not provided',
       clientInfo,
       duration: Date.now() - startTime
     });
@@ -670,8 +677,8 @@ const completeOnboarding = async (req, res) => {
         isVerified: user.isVerified,
         subscription: user.localProPlusSubscription || null,
         trustScore: (await user.ensureTrust()).trustScore,
-        referral: user.referral && typeof user.referral === 'object' && user.referral.referralCode ? {
-          referralCode: user.referral.referralCode
+        referral: referralCode ? {
+          referralCode: referralCode
         } : null,
         profile: {
           avatar: user.profile.avatar,
