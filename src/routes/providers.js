@@ -115,7 +115,15 @@ router.get('/admin/all', authorize('admin'), [
   query('limit').optional().isInt({ min: 1, max: 100 })
 ], getProvidersForAdmin);
 
+// Admin: Update provider status - support both /admin/:id/status and /:id/status
 router.put('/admin/:id/status', authorize('admin'), [
+  param('id').isMongoId().withMessage('Invalid provider ID'),
+  body('status').isIn(['pending', 'active', 'suspended', 'inactive', 'rejected']).withMessage('Invalid status'),
+  body('notes').optional().isString().withMessage('Notes must be a string')
+], updateProviderStatus);
+
+// Alternative route for frontend compatibility: PUT /api/providers/:id/status
+router.put('/:id/status', authorize('admin'), [
   param('id').isMongoId().withMessage('Invalid provider ID'),
   body('status').isIn(['pending', 'active', 'suspended', 'inactive', 'rejected']).withMessage('Invalid status'),
   body('notes').optional().isString().withMessage('Notes must be a string')
