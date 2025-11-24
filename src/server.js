@@ -40,6 +40,7 @@ const searchRoutes = require('./routes/search');
 const announcementsRoutes = require('./routes/announcements');
 const activitiesRoutes = require('./routes/activities');
 const registrationRoutes = require('./routes/registration');
+const broadcasterRoutes = require('./routes/broadcaster');
 const monitoringRoutes = require('./routes/monitoring');
 const alertsRoutes = require('./routes/alerts');
 const databaseMonitoringRoutes = require('./routes/databaseMonitoring');
@@ -356,6 +357,7 @@ function startServer() {
   app.use('/api/announcements', announcementsRoutes);
   app.use('/api/activities', activitiesRoutes);
   app.use('/api/registration', registrationRoutes);
+  app.use('/api/broadcaster', broadcasterRoutes);
   
   // AI Marketplace Routes
   app.use('/api/ai/marketplace', aiMarketplaceRoutes);
