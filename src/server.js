@@ -136,8 +136,48 @@ function startServer() {
   }));
 
   // Body parsing middleware
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true }));
+  // Only parse JSON for requests with JSON content-type
+  app.use((req, res, next) => {
+    const contentType = req.get('content-type') || '';
+    
+    // Skip JSON parsing for multipart/form-data (handled by multer)
+    if (contentType.includes('multipart/form-data')) {
+      return next();
+    }
+    
+    // Only parse JSON if content-type indicates JSON
+    if (contentType.includes('application/json') || contentType.includes('text/json')) {
+      express.json({ limit: '10mb' })(req, res, (err) => {
+        if (err) {
+          // Handle JSON parsing errors gracefully
+          logger.warn('JSON parsing error', {
+            error: err.message,
+            contentType: req.get('content-type'),
+            path: req.path,
+            method: req.method
+          });
+          
+          // If it's a JSON parsing error, return a helpful error
+          if (err instanceof SyntaxError && err.message.includes('JSON')) {
+            return res.status(400).json({
+              success: false,
+              message: 'Invalid JSON in request body',
+              code: 'INVALID_JSON',
+              details: 'This endpoint expects JSON format. Please ensure your request body is valid JSON.'
+            });
+          }
+          
+          return next(err);
+        }
+        next();
+      });
+    } else {
+      // For other content types, continue without JSON parsing
+      next();
+    }
+  });
+  
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
   // Request ID middleware (add unique ID to each request)
   app.use(requestIdMiddleware);

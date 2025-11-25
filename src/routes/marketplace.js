@@ -27,7 +27,9 @@ const {
   getMyBookings,
   getProvidersForService,
   getProviderDetails,
-  getProviderServices
+  getProviderServices,
+  deactivateService,
+  activateService
 } = require('../controllers/marketplaceController');
 const { uploaders } = require('../config/cloudinary');
 
@@ -81,6 +83,8 @@ router.get('/my-bookings', getMyBookings);
 // Service routes
 router.post('/services', authorize('provider', 'admin'), createService);
 router.put('/services/:id', authorize('provider', 'admin'), updateService);
+router.patch('/services/:id/deactivate', authorize('provider', 'admin'), deactivateService);
+router.patch('/services/:id/activate', authorize('provider', 'admin'), activateService);
 router.delete('/services/:id', authorize('provider', 'admin'), deleteService);
 router.post('/services/:id/images', authorize('provider', 'admin'), uploaders.marketplace.array('images', 5), uploadServiceImages);
 

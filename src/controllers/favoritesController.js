@@ -1,5 +1,5 @@
 const Favorite = require('../models/Favorite');
-const Marketplace = require('../models/Marketplace');
+const { Service } = require('../models/Marketplace');
 const Provider = require('../models/Provider');
 const { Course } = require('../models/Academy');
 const { Product } = require('../models/Supplies');
@@ -7,7 +7,7 @@ const { Product } = require('../models/Supplies');
 // Helper function to get the model based on itemType
 const getModelByType = (itemType) => {
   const modelMap = {
-    'service': Marketplace,
+    'service': Service,
     'provider': Provider,
     'course': Course,
     'supply': Product

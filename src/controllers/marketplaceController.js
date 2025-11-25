@@ -152,12 +152,66 @@ const getService = async (req, res) => {
 // @access  Private (Provider)
 const createService = async (req, res) => {
   try {
+    // Log request details for debugging
+    logger.info('Create service request', {
+      userId: req.user.id,
+      contentType: req.get('content-type'),
+      bodyKeys: Object.keys(req.body || {}),
+      hasFiles: !!req.files,
+      filesCount: req.files?.length || 0
+    });
+
+    // Ensure we're receiving JSON, not multipart/form-data
+    const contentType = req.get('content-type') || '';
+    if (contentType.includes('multipart/form-data')) {
+      logger.warn('Create service received multipart/form-data instead of JSON', {
+        contentType,
+        userId: req.user.id
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'This endpoint expects JSON data. Use /api/marketplace/services/:id/images for file uploads.',
+        code: 'INVALID_CONTENT_TYPE'
+      });
+    }
+
+    // Only validate basic required fields
+    const { title, category } = req.body;
+
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Service title is required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    if (!category || typeof category !== 'string' || category.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Service category is required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
     const serviceData = {
       ...req.body,
       provider: req.user.id
     };
 
+    // Remove any file-related fields that shouldn't be in the service document
+    delete serviceData.images; // Images should be uploaded separately
+    delete serviceData.files;
+    delete serviceData.file;
+
     const service = await Service.create(serviceData);
+
+    logger.info('Service created successfully', {
+      serviceId: service._id,
+      title: service.title,
+      category: service.category,
+      providerId: req.user.id
+    });
 
     res.status(201).json({
       success: true,
@@ -165,10 +219,46 @@ const createService = async (req, res) => {
       data: service
     });
   } catch (error) {
-    console.error('Create service error:', error);
+    logger.error('Create service error', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      userId: req.user.id,
+      bodyKeys: Object.keys(req.body || {})
+    });
+
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        code: 'VALIDATION_ERROR',
+        errors: errors
+      });
+    }
+
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0];
+      return res.status(400).json({
+        success: false,
+        message: `${field} already exists`,
+        code: 'DUPLICATE_ERROR',
+        field: field
+      });
+    }
+
+    // Generic server error
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Failed to create service',
+      code: 'SERVER_ERROR',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -210,6 +300,172 @@ const updateService = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error'
+    });
+  }
+};
+
+// @desc    Deactivate service
+// @route   PATCH /api/marketplace/services/:id/deactivate
+// @access  Private (Provider)
+const deactivateService = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid service ID',
+        code: 'INVALID_ID'
+      });
+    }
+
+    // Find the service
+    const service = await Service.findById(id);
+
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: 'Service not found',
+        code: 'SERVICE_NOT_FOUND'
+      });
+    }
+
+    // Check if user owns the service or is admin
+    const isOwner = service.provider.toString() === userId;
+    const isAdmin = req.user.roles && req.user.roles.includes('admin');
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to deactivate this service',
+        code: 'FORBIDDEN'
+      });
+    }
+
+    // Check if already inactive
+    if (!service.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Service is already inactive',
+        code: 'ALREADY_INACTIVE',
+        data: service
+      });
+    }
+
+    // Deactivate the service
+    service.isActive = false;
+    await service.save();
+
+    logger.info('Service deactivated', {
+      serviceId: id,
+      title: service.title,
+      deactivatedBy: userId,
+      isAdmin: isAdmin
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Service deactivated successfully',
+      data: service
+    });
+  } catch (error) {
+    logger.error('Deactivate service error', {
+      error: error.message,
+      stack: error.stack,
+      serviceId: req.params.id,
+      userId: req.user.id
+    });
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to deactivate service',
+      code: 'SERVER_ERROR',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Activate service
+// @route   PATCH /api/marketplace/services/:id/activate
+// @access  Private (Provider)
+const activateService = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid service ID',
+        code: 'INVALID_ID'
+      });
+    }
+
+    // Find the service
+    const service = await Service.findById(id);
+
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: 'Service not found',
+        code: 'SERVICE_NOT_FOUND'
+      });
+    }
+
+    // Check if user owns the service or is admin
+    const isOwner = service.provider.toString() === userId;
+    const isAdmin = req.user.roles && req.user.roles.includes('admin');
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to activate this service',
+        code: 'FORBIDDEN'
+      });
+    }
+
+    // Check if already active
+    if (service.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Service is already active',
+        code: 'ALREADY_ACTIVE',
+        data: service
+      });
+    }
+
+    // Activate the service
+    service.isActive = true;
+    await service.save();
+
+    logger.info('Service activated', {
+      serviceId: id,
+      title: service.title,
+      activatedBy: userId,
+      isAdmin: isAdmin
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Service activated successfully',
+      data: service
+    });
+  } catch (error) {
+    logger.error('Activate service error', {
+      error: error.message,
+      stack: error.stack,
+      serviceId: req.params.id,
+      userId: req.user.id
+    });
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to activate service',
+      code: 'SERVER_ERROR',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -2287,20 +2543,28 @@ const getProviderDetails = async (req, res) => {
     // Get the actual userId (handle both populated and non-populated cases)
     const actualUserId = provider.userId?._id || provider.userId;
 
-    // Get provider's services if requested
-    if (includeServices === 'true' || includeServices === true) {
-      const services = await Service.find({
-        provider: actualUserId,
-        isActive: true
-      })
-        .select('title description category subcategory pricing rating images serviceArea createdAt')
-        .sort({ createdAt: -1 })
-        .limit(20)
-        .lean();
-
-      providerDetails.services = services;
-      providerDetails.serviceCount = services.length;
+    // Always get provider's services - ensure they are populated
+    // Filter by active status by default, but can be controlled via query param
+    const serviceFilter = { provider: actualUserId };
+    
+    // By default, show active services. Set includeServices=false to show all
+    if (includeServices !== 'false' && includeServices !== false) {
+      serviceFilter.isActive = true;
     }
+    
+    const services = await Service.find(serviceFilter)
+      .select('title description category subcategory pricing serviceType estimatedDuration teamSize equipmentProvided materialsIncluded features requirements availability warranty insurance emergencyService servicePackages addOns rating images serviceArea isActive createdAt updatedAt')
+      .sort({ createdAt: -1 })
+      .limit(50) // Increased limit to show more services
+      .lean();
+
+    // Always include services in response
+    providerDetails.services = services || [];
+    providerDetails.serviceCount = services.length;
+    
+    // Also add total service count (including inactive) for reference
+    const totalServiceCount = await Service.countDocuments({ provider: actualUserId });
+    providerDetails.totalServiceCount = totalServiceCount;
 
     // Get statistics if requested
     if (includeStatistics === 'true' || includeStatistics === true) {
@@ -2567,5 +2831,7 @@ module.exports = {
   getMyBookings,
   getProvidersForService,
   getProviderDetails,
-  getProviderServices
+  getProviderServices,
+  deactivateService,
+  activateService
 };

@@ -39,15 +39,28 @@ class AIService {
       }
       messages.push({ role: 'user', content: prompt });
 
+      const requestConfig = {
+        model: options.model || this.model,
+        messages,
+        temperature: options.temperature || 0.7,
+        max_tokens: options.max_tokens || 1000,
+        ...options
+      };
+
+      const requestUrl = `${this.baseURL}/chat/completions`;
+
+      logger.debug('AI API call - Request details', {
+        url: requestUrl,
+        model: requestConfig.model,
+        messagesCount: messages.length,
+        maxTokens: requestConfig.max_tokens,
+        hasApiKey: !!this.apiKey,
+        apiKeyPrefix: this.apiKey ? `${this.apiKey.substring(0, 7)}...` : 'none'
+      });
+
       const response = await axios.post(
-        `${this.baseURL}/chat/completions`,
-        {
-          model: options.model || this.model,
-          messages,
-          temperature: options.temperature || 0.7,
-          max_tokens: options.max_tokens || 1000,
-          ...options
-        },
+        requestUrl,
+        requestConfig,
         {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
@@ -57,17 +70,69 @@ class AIService {
         }
       );
 
+      // Check if response has expected structure
+      if (!response.data || !response.data.choices || !response.data.choices[0]) {
+        logger.error('AI API call - Invalid response structure', {
+          hasData: !!response.data,
+          hasChoices: !!response.data?.choices,
+          responseKeys: response.data ? Object.keys(response.data) : []
+        });
+        throw new Error('Invalid response structure from AI API');
+      }
+
       return {
         success: true,
         content: response.data.choices[0].message.content,
         usage: response.data.usage
       };
     } catch (error) {
-      logger.error('AI API call failed', {
-        error: error.message,
+      // Enhanced error logging
+      const errorDetails = {
+        errorType: error.name || 'Unknown',
+        errorMessage: error.message,
+        hasResponse: !!error.response,
         status: error.response?.status,
-        data: error.response?.data
-      });
+        statusText: error.response?.statusText,
+        responseData: error.response?.data,
+        requestUrl: `${this.baseURL}/chat/completions`,
+        hasApiKey: !!this.apiKey,
+        apiKeyConfigured: !!this.apiKey,
+        isNetworkError: error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND',
+        isTimeoutError: error.code === 'ETIMEDOUT',
+        isAxiosError: error.isAxiosError
+      };
+
+      // Log different error types with appropriate detail levels
+      if (error.response) {
+        // API returned an error response
+        logger.error('AI API call failed - API Error Response', {
+          ...errorDetails,
+          errorCode: error.response.data?.error?.code,
+          errorType: error.response.data?.error?.type,
+          errorMessage: error.response.data?.error?.message
+        });
+      } else if (error.request) {
+        // Request was made but no response received
+        logger.error('AI API call failed - No Response Received', {
+          ...errorDetails,
+          requestMade: true,
+          networkError: true
+        });
+      } else {
+        // Error setting up the request
+        logger.error('AI API call failed - Request Setup Error', errorDetails);
+      }
+
+      // Log common issues
+      if (!this.apiKey) {
+        logger.warn('AI API call failed - No API key configured. Using fallback response.');
+      } else if (error.response?.status === 401) {
+        logger.error('AI API call failed - Authentication Error (401). Check your OPENAI_API_KEY.');
+      } else if (error.response?.status === 429) {
+        logger.error('AI API call failed - Rate Limit Exceeded (429). Please wait before retrying.');
+      } else if (error.response?.status === 500 || error.response?.status === 502 || error.response?.status === 503) {
+        logger.error('AI API call failed - Server Error. OpenAI service may be temporarily unavailable.');
+      }
       
       // Return fallback response on error
       return this.getMockResponse(prompt, options);
@@ -80,9 +145,40 @@ class AIService {
   getMockResponse(prompt, _options = {}) {
     logger.warn('Using fallback AI response - configure OPENAI_API_KEY environment variable for real AI responses');
     
+    // Try to extract service title from prompt for better fallback
+    let serviceTitle = 'Service';
+    const titleMatch = prompt.match(/Service Title: "([^"]+)"/);
+    if (titleMatch && titleMatch[1]) {
+      serviceTitle = titleMatch[1];
+    }
+    
+    // Generate a basic fallback description based on the title
+    const fallbackDescription = `Professional ${serviceTitle} service. Our experienced team provides high-quality service with attention to detail. We are committed to delivering excellent results and customer satisfaction. Contact us today to learn more about how we can help you.`;
+    
+    const fallbackResponse = {
+      description: fallbackDescription,
+      keyFeatures: [
+        'Professional service',
+        'Experienced team',
+        'Quality guaranteed',
+        'Customer satisfaction'
+      ],
+      benefits: [
+        'Reliable service',
+        'Professional results',
+        'Peace of mind'
+      ],
+      tags: [
+        serviceTitle.toLowerCase(),
+        'professional',
+        'service'
+      ],
+      wordCount: fallbackDescription.split(/\s+/).length
+    };
+    
     return {
       success: true,
-      content: JSON.stringify({}),
+      content: JSON.stringify(fallbackResponse),
       usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
     };
   }
@@ -239,6 +335,145 @@ class AIService {
       };
     } catch (e) {
       return response;
+    }
+  }
+
+  /**
+   * Generate service description from title only
+   */
+  async generateDescriptionFromTitle(serviceTitle, options = {}) {
+    const systemPrompt = `You are a professional copywriter for service marketplaces.
+    Create compelling, accurate service descriptions based solely on the service title.
+    Generate descriptions that are professional, engaging, and highlight what customers can expect.`;
+    
+    const {
+      length = 'medium', // short (50-100 words), medium (100-200 words), long (200-300 words)
+      tone = 'professional', // professional, friendly, casual
+      includeFeatures = true,
+      includeBenefits = true
+    } = options;
+
+    const lengthMap = {
+      short: '50-100 words',
+      medium: '100-200 words',
+      long: '200-300 words'
+    };
+
+    let prompt = `Service Title: "${serviceTitle}"\n\n`;
+    prompt += `Generate a ${tone} service description (${lengthMap[length] || '100-200 words'}) that:\n`;
+    prompt += `- Accurately describes what the service entails based on the title\n`;
+    if (includeFeatures) {
+      prompt += `- Highlights key features and what's included\n`;
+    }
+    if (includeBenefits) {
+      prompt += `- Mentions benefits and value proposition\n`;
+    }
+    prompt += `- Uses relevant keywords for searchability\n`;
+    prompt += `- Is engaging and professional\n`;
+    prompt += `- Helps potential customers understand what they'll receive\n\n`;
+    prompt += `Return JSON with:\n`;
+    prompt += `- description: string (the generated description)\n`;
+    prompt += `- keyFeatures: array of strings (3-5 key features)\n`;
+    prompt += `- benefits: array of strings (2-4 main benefits)\n`;
+    prompt += `- tags: array of strings (relevant keywords/tags)\n`;
+    prompt += `- wordCount: number`;
+    
+    const maxTokens = length === 'long' ? 600 : length === 'short' ? 200 : 400;
+    
+    logger.info('AI Description Generation - Request', {
+      serviceTitle,
+      options,
+      maxTokens,
+      promptLength: prompt.length
+    });
+    
+    const response = await this.makeAICall(prompt, systemPrompt, { 
+      max_tokens: maxTokens,
+      temperature: 0.7 
+    });
+    
+    // Debug: Log raw response
+    logger.info('AI Description Generation - Raw Response', {
+      hasContent: !!response.content,
+      contentLength: response.content?.length || 0,
+      contentPreview: response.content?.substring(0, 200) || 'No content',
+      hasUsage: !!response.usage,
+      success: response.success
+    });
+    
+    try {
+      // Try to extract JSON from response (handle markdown code blocks)
+      let contentToParse = response.content || '';
+      
+      // Remove markdown code blocks if present
+      if (contentToParse.includes('```json')) {
+        contentToParse = contentToParse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      } else if (contentToParse.includes('```')) {
+        contentToParse = contentToParse.replace(/```\n?/g, '').trim();
+      }
+      
+      const parsed = JSON.parse(contentToParse);
+      
+      // Debug: Log parsed result
+      logger.info('AI Description Generation - Parsed Successfully', {
+        hasDescription: !!parsed.description,
+        descriptionLength: parsed.description?.length || 0,
+        hasKeyFeatures: Array.isArray(parsed.keyFeatures),
+        keyFeaturesCount: parsed.keyFeatures?.length || 0,
+        hasBenefits: Array.isArray(parsed.benefits),
+        benefitsCount: parsed.benefits?.length || 0,
+        hasTags: Array.isArray(parsed.tags),
+        tagsCount: parsed.tags?.length || 0,
+        wordCount: parsed.wordCount
+      });
+      
+      // Ensure parsed object has required fields
+      if (!parsed.description) {
+        logger.warn('AI Description Generation - Missing description in parsed response', {
+          parsedKeys: Object.keys(parsed),
+          rawContent: response.content?.substring(0, 500)
+        });
+        parsed.description = response.content || 'Unable to generate description at this time.';
+      }
+      
+      return {
+        ...response,
+        parsed: parsed,
+        debug: {
+          rawContentLength: response.content?.length || 0,
+          parsedSuccessfully: true,
+          parseMethod: 'json_parse'
+        }
+      };
+    } catch (e) {
+      // If JSON parsing fails, return the content as description
+      logger.warn('AI Description Generation - JSON Parse Failed', {
+        error: e.message,
+        contentPreview: response.content?.substring(0, 500) || 'No content',
+        contentLength: response.content?.length || 0
+      });
+      
+      const content = response.content || 'Unable to generate description at this time.';
+      const wordCount = content && typeof content === 'string' 
+        ? content.trim().split(/\s+/).filter(word => word.length > 0).length 
+        : 0;
+      
+      return {
+        ...response,
+        parsed: {
+          description: content,
+          keyFeatures: [],
+          benefits: [],
+          tags: [],
+          wordCount: wordCount
+        },
+        debug: {
+          rawContentLength: response.content?.length || 0,
+          parsedSuccessfully: false,
+          parseError: e.message,
+          parseMethod: 'fallback'
+        }
+      };
     }
   }
 
@@ -525,6 +760,75 @@ class AIService {
           highlights: [],
           suggestedTags: [],
           wordCount: response.content.split(/\s+/).length
+        }
+      };
+    }
+  }
+
+  /**
+   * Pre-fill marketplace form fields
+   */
+  async prefillForm(userInput, context = {}) {
+    const systemPrompt = `You are a form pre-filling assistant for a service marketplace.
+    Analyze user input and suggest appropriate values for service listing form fields.
+    Extract and suggest values for: title, description, category, subcategory, pricing type, estimated price, 
+    service type, features, requirements, and other relevant fields.
+    Return suggestions that are practical, accurate, and follow marketplace best practices.`;
+
+    const prompt = `User input: "${userInput}"
+    Context: ${JSON.stringify(context)}
+    
+    Analyze the input and suggest form field values. Return JSON with:
+    - title: string (suggested service title)
+    - description: string (suggested service description, 100-300 words)
+    - category: string (one of: cleaning, plumbing, electrical, moving, landscaping, painting, carpentry, flooring, roofing, hvac, appliance_repair, locksmith, handyman, home_security, pool_maintenance, pest_control, carpet_cleaning, window_cleaning, gutter_cleaning, power_washing, snow_removal, other)
+    - subcategory: string (specific subcategory)
+    - pricing: {
+        type: string (hourly, fixed, per_sqft, per_item),
+        basePrice: number (suggested price),
+        currency: string (default: USD)
+      }
+    - serviceType: string (one_time, recurring, emergency, maintenance, installation)
+    - estimatedDuration: { min: number, max: number } (in hours)
+    - features: array of strings (key features)
+    - requirements: array of strings (customer requirements)
+    - serviceArea: array of strings (suggested service areas if mentioned)
+    - tags: array of strings (relevant tags/keywords)
+    - confidence: number (0-1, confidence in suggestions)
+    - reasoning: string (brief explanation of suggestions)`;
+
+    const response = await this.makeAICall(prompt, systemPrompt, { 
+      max_tokens: 800,
+      temperature: 0.5 
+    });
+
+    try {
+      return {
+        ...response,
+        parsed: JSON.parse(response.content)
+      };
+    } catch (e) {
+      // If JSON parsing fails, return a basic structure
+      return {
+        ...response,
+        parsed: {
+          title: '',
+          description: response.content || '',
+          category: 'other',
+          subcategory: '',
+          pricing: {
+            type: 'fixed',
+            basePrice: 0,
+            currency: 'USD'
+          },
+          serviceType: 'one_time',
+          estimatedDuration: { min: 1, max: 2 },
+          features: [],
+          requirements: [],
+          serviceArea: [],
+          tags: [],
+          confidence: 0.5,
+          reasoning: 'Unable to parse AI response'
         }
       };
     }
