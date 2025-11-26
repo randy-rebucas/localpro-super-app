@@ -23,6 +23,8 @@ The Finance feature manages financial transactions, earnings, expenses, withdraw
 | GET | `/tax-documents` | Get tax documents | AUTHENTICATED |
 | PUT | `/wallet/settings` | Update wallet settings | AUTHENTICATED |
 | POST | `/top-up` | Request top-up (with receipt) | AUTHENTICATED |
+| GET | `/top-ups` | Get all top-up requests | **admin** |
+| GET | `/top-ups/my-requests` | Get my top-up requests | AUTHENTICATED |
 | PUT | `/top-ups/:topUpId/process` | Process top-up request | **admin** |
 
 ## Request/Response Examples
@@ -110,7 +112,8 @@ Content-Type: application/json
    - User requests top-up with receipt
    - Admin verifies receipt
    - Funds added to wallet
-   - Status: `pending` → `processing` → `completed`
+   - Status: `pending` → `approved`/`rejected`
+   - See [Top-Up Documentation](./top-up.md) for detailed information
 
 4. **Expenses**:
    - User adds expense record
@@ -131,4 +134,7 @@ Content-Type: application/json
 - Payments (PayPal, PayMaya)
 - User Management
 - Analytics
+
+## Detailed Documentation
+- [Top-Up Feature](./top-up.md) - Complete guide for top-up functionality
 

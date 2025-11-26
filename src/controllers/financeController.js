@@ -1027,6 +1027,114 @@ const requestTopUp = async (req, res) => {
   }
 };
 
+// @desc    Get all top-up requests (Admin only)
+// @route   GET /api/finance/top-ups
+// @access  Private (Admin only)
+const getTopUpRequests = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Build filter for top-up requests
+    const filter = {};
+    if (status) {
+      filter['topUpRequests.status'] = status;
+    }
+
+    // Find all finance records with top-up requests
+    const financeRecords = await Finance.find({
+      topUpRequests: { $exists: true, $ne: [] },
+      ...filter
+    })
+      .populate('user', 'firstName lastName email profile.avatar')
+      .select('user topUpRequests')
+      .lean();
+
+    // Extract and flatten top-up requests with user info
+    let allTopUpRequests = [];
+    financeRecords.forEach(finance => {
+      finance.topUpRequests.forEach(request => {
+        // Apply status filter if provided
+        if (!status || request.status === status) {
+          allTopUpRequests.push({
+            ...request,
+            user: finance.user
+          });
+        }
+      });
+    });
+
+    // Sort by requestedAt (newest first)
+    allTopUpRequests.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+
+    // Apply pagination
+    const total = allTopUpRequests.length;
+    const paginatedRequests = allTopUpRequests.slice(skip, skip + Number(limit));
+
+    res.status(200).json({
+      success: true,
+      count: paginatedRequests.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: paginatedRequests
+    });
+  } catch (error) {
+    console.error('Get top-up requests error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get user's top-up requests
+// @route   GET /api/finance/top-ups/my-requests
+// @access  Private
+const getMyTopUpRequests = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status } = req.query;
+    const skip = (page - 1) * limit;
+
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    // Filter top-up requests by status if provided
+    let topUpRequests = finance.topUpRequests;
+    if (status) {
+      topUpRequests = topUpRequests.filter(req => req.status === status);
+    }
+
+    // Sort by requestedAt (newest first)
+    topUpRequests.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+
+    // Apply pagination
+    const total = topUpRequests.length;
+    const paginatedRequests = topUpRequests.slice(skip, skip + Number(limit));
+
+    res.status(200).json({
+      success: true,
+      count: paginatedRequests.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: paginatedRequests
+    });
+  } catch (error) {
+    console.error('Get my top-up requests error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 // @desc    Process top-up request (Admin only)
 // @route   PUT /api/finance/top-ups/:topUpId/process
 // @access  Private (Admin only)
@@ -1158,5 +1266,7 @@ module.exports = {
   getFinancialReports,
   updateWalletSettings,
   requestTopUp,
+  getTopUpRequests,
+  getMyTopUpRequests,
   processTopUp
 };
