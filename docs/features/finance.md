@@ -137,4 +137,5 @@ Content-Type: application/json
 
 ## Detailed Documentation
 - [Top-Up Feature](./top-up.md) - Complete guide for top-up functionality
+- [Admin Finance Management](./admin-finance.md) - Complete guide for admin finance operations (withdrawal and top-up processing)
 
