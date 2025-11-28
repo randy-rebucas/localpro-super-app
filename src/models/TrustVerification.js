@@ -357,6 +357,24 @@ const trustScoreSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Pre-save hook to ensure phoneNumber matches user's unique phoneNumber
+verificationRequestSchema.pre('save', async function(next) {
+  if (this.personalInfo && this.personalInfo.phoneNumber && this.user) {
+    try {
+      const User = mongoose.model('User');
+      const user = await User.findById(this.user);
+      if (user && user.phoneNumber) {
+        // Always use the user's unique phoneNumber to ensure consistency
+        this.personalInfo.phoneNumber = user.phoneNumber;
+      }
+    } catch (error) {
+      // If user lookup fails, continue - validation will catch it
+      console.warn('Could not validate phone number in verification request:', error.message);
+    }
+  }
+  next();
+});
+
 // Indexes
 verificationRequestSchema.index({ user: 1, type: 1 });
 verificationRequestSchema.index({ status: 1 });

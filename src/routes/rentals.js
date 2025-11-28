@@ -16,7 +16,8 @@ const {
   getNearbyRentalItem,
   getRentalCategories,
   getFeaturedRentalItem,
-  getRentalStatistics
+  getRentalStatistics,
+  generateRentalDescription
 } = require('../controllers/rentalsController');
 const { uploaders } = require('../config/cloudinary');
 
@@ -33,6 +34,9 @@ router.get('/:id', getRental);
 
 // Protected routes
 router.use(auth);
+
+// AI-powered routes
+router.post('/generate-description', authorize('provider', 'admin'), generateRentalDescription);
 
 // Rental management routes
 router.post('/', authorize('provider', 'admin'), createRental);

@@ -86,13 +86,45 @@ const getVerificationRequestRequest = async (req, res) => {
 // @access  Private
 const createVerificationRequestRequest = async (req, res) => {
   try {
-    const { type, documents, additionalInfo } = req.body;
+    const { type, documents, additionalInfo, personalInfo } = req.body;
 
     if (!type || !documents || documents.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'Type and documents are required'
       });
+    }
+
+    // Validate phone number if provided in personalInfo
+    if (personalInfo && personalInfo.phoneNumber) {
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Normalize phone numbers for comparison
+      const normalizedRequestPhone = personalInfo.phoneNumber.trim().replace(/\s+/g, '');
+      const normalizedUserPhone = user.phoneNumber.trim().replace(/\s+/g, '');
+
+      if (normalizedRequestPhone !== normalizedUserPhone) {
+        return res.status(403).json({
+          success: false,
+          message: 'Phone number in verification request must match your registered unique phone number',
+          code: 'PHONE_NUMBER_MISMATCH'
+        });
+      }
+
+      // Ensure personalInfo.phoneNumber matches user's unique phoneNumber
+      personalInfo.phoneNumber = user.phoneNumber;
+    } else if (personalInfo) {
+      // If personalInfo is provided but phoneNumber is missing, add user's phoneNumber
+      const user = await User.findById(req.user.id);
+      if (user) {
+        personalInfo.phoneNumber = user.phoneNumber;
+      }
     }
 
     // Check if user already has a pending request of this type
@@ -114,6 +146,7 @@ const createVerificationRequestRequest = async (req, res) => {
       type,
       documents,
       additionalInfo,
+      personalInfo,
       status: 'pending'
     });
 
@@ -152,7 +185,7 @@ const createVerificationRequestRequest = async (req, res) => {
 // @access  Private
 const updateVerificationRequestRequest = async (req, res) => {
   try {
-    const { documents, additionalInfo } = req.body;
+    const { documents, additionalInfo, personalInfo } = req.body;
 
     const request = await VerificationRequest.findById(req.params.id);
 
@@ -179,9 +212,38 @@ const updateVerificationRequestRequest = async (req, res) => {
       });
     }
 
+    // Validate and update phone number if provided in personalInfo
+    if (personalInfo && personalInfo.phoneNumber) {
+      const user = await User.findById(req.user.id);
+      if (user) {
+        // Normalize phone numbers for comparison
+        const normalizedRequestPhone = personalInfo.phoneNumber.trim().replace(/\s+/g, '');
+        const normalizedUserPhone = user.phoneNumber.trim().replace(/\s+/g, '');
+
+        if (normalizedRequestPhone !== normalizedUserPhone) {
+          return res.status(403).json({
+            success: false,
+            message: 'Phone number in verification request must match your registered unique phone number',
+            code: 'PHONE_NUMBER_MISMATCH'
+          });
+        }
+
+        // Ensure personalInfo.phoneNumber matches user's unique phoneNumber
+        personalInfo.phoneNumber = user.phoneNumber;
+      }
+    }
+
     // Update request
     if (documents) request.documents = documents;
     if (additionalInfo) request.additionalInfo = additionalInfo;
+    if (personalInfo) {
+      request.personalInfo = { ...request.personalInfo, ...personalInfo };
+      // Always ensure phoneNumber matches user's unique phoneNumber
+      const user = await User.findById(req.user.id);
+      if (user) {
+        request.personalInfo.phoneNumber = user.phoneNumber;
+      }
+    }
 
     request.updatedAt = new Date();
     await request.save();

@@ -9,7 +9,7 @@ const favoriteSchema = new mongoose.Schema({
   },
   itemType: {
     type: String,
-    enum: ['service', 'provider', 'course', 'supply'],
+    enum: ['service', 'provider', 'course', 'supply', 'job'],
     required: true,
     index: true
   },

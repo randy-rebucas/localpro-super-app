@@ -478,6 +478,157 @@ class AIService {
   }
 
   /**
+   * Generate rental description from name
+   */
+  async generateRentalDescriptionFromName(rentalName, options = {}) {
+    const systemPrompt = `You are a professional copywriter for equipment rental marketplaces.
+    Create compelling, accurate rental descriptions based solely on the rental item name.
+    Generate descriptions that are professional, engaging, and highlight what renters can expect from the equipment.`;
+    
+    const {
+      length = 'medium', // short (50-100 words), medium (100-200 words), long (200-300 words)
+      tone = 'professional', // professional, friendly, casual
+      includeFeatures = true,
+      includeBenefits = true,
+      category = null // tools, vehicles, equipment, machinery
+    } = options;
+
+    const lengthMap = {
+      short: '50-100 words',
+      medium: '100-200 words',
+      long: '200-300 words'
+    };
+
+    let prompt = `Rental Item Name: "${rentalName}"\n\n`;
+    
+    if (category) {
+      prompt += `Category: ${category}\n\n`;
+    }
+    
+    prompt += `Generate a ${tone} rental description (${lengthMap[length] || '100-200 words'}) that:\n`;
+    prompt += `- Accurately describes what the rental item is and its purpose\n`;
+    prompt += `- Highlights the item's condition and quality\n`;
+    if (includeFeatures) {
+      prompt += `- Lists key features and specifications\n`;
+    }
+    if (includeBenefits) {
+      prompt += `- Mentions benefits and value proposition for renters\n`;
+    }
+    prompt += `- Includes relevant keywords for searchability\n`;
+    prompt += `- Is engaging and professional\n`;
+    prompt += `- Helps potential renters understand what they'll receive\n`;
+    prompt += `- Mentions typical use cases and applications\n\n`;
+    prompt += `Return JSON with:\n`;
+    prompt += `- description: string (the generated description)\n`;
+    prompt += `- keyFeatures: array of strings (3-5 key features)\n`;
+    prompt += `- benefits: array of strings (2-4 main benefits)\n`;
+    prompt += `- useCases: array of strings (2-4 typical use cases)\n`;
+    prompt += `- tags: array of strings (relevant keywords/tags)\n`;
+    prompt += `- wordCount: number`;
+    
+    const maxTokens = length === 'long' ? 600 : length === 'short' ? 200 : 400;
+    
+    logger.info('AI Rental Description Generation - Request', {
+      rentalName,
+      options,
+      maxTokens,
+      promptLength: prompt.length
+    });
+    
+    const response = await this.makeAICall(prompt, systemPrompt, { 
+      max_tokens: maxTokens,
+      temperature: 0.7 
+    });
+    
+    // Debug: Log raw response
+    logger.info('AI Rental Description Generation - Raw Response', {
+      hasContent: !!response.content,
+      contentLength: response.content?.length || 0,
+      contentPreview: response.content?.substring(0, 200) || 'No content',
+      hasUsage: !!response.usage,
+      success: response.success
+    });
+    
+    try {
+      // Try to extract JSON from response (handle markdown code blocks)
+      let contentToParse = response.content || '';
+      
+      // Remove markdown code blocks if present
+      if (contentToParse.includes('```json')) {
+        contentToParse = contentToParse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      } else if (contentToParse.includes('```')) {
+        contentToParse = contentToParse.replace(/```\n?/g, '').trim();
+      }
+      
+      const parsed = JSON.parse(contentToParse);
+      
+      // Debug: Log parsed result
+      logger.info('AI Rental Description Generation - Parsed Successfully', {
+        hasDescription: !!parsed.description,
+        descriptionLength: parsed.description?.length || 0,
+        hasKeyFeatures: Array.isArray(parsed.keyFeatures),
+        keyFeaturesCount: parsed.keyFeatures?.length || 0,
+        hasBenefits: Array.isArray(parsed.benefits),
+        benefitsCount: parsed.benefits?.length || 0,
+        hasUseCases: Array.isArray(parsed.useCases),
+        useCasesCount: parsed.useCases?.length || 0,
+        hasTags: Array.isArray(parsed.tags),
+        tagsCount: parsed.tags?.length || 0,
+        wordCount: parsed.wordCount
+      });
+      
+      // Ensure parsed object has required fields
+      if (!parsed.description) {
+        logger.warn('AI Rental Description Generation - Missing description in parsed response', {
+          parsedKeys: Object.keys(parsed),
+          rawContent: response.content?.substring(0, 500)
+        });
+        parsed.description = response.content || 'Unable to generate description at this time.';
+      }
+      
+      return {
+        ...response,
+        parsed: parsed,
+        debug: {
+          rawContentLength: response.content?.length || 0,
+          parsedSuccessfully: true,
+          parseMethod: 'json_parse'
+        }
+      };
+    } catch (e) {
+      // If JSON parsing fails, return the content as description
+      logger.warn('AI Rental Description Generation - JSON Parse Failed', {
+        error: e.message,
+        contentPreview: response.content?.substring(0, 500) || 'No content',
+        contentLength: response.content?.length || 0
+      });
+      
+      const content = response.content || 'Unable to generate description at this time.';
+      const wordCount = content && typeof content === 'string' 
+        ? content.trim().split(/\s+/).filter(word => word.length > 0).length 
+        : 0;
+      
+      return {
+        ...response,
+        parsed: {
+          description: content,
+          keyFeatures: [],
+          benefits: [],
+          useCases: [],
+          tags: [],
+          wordCount: wordCount
+        },
+        debug: {
+          rawContentLength: response.content?.length || 0,
+          parsedSuccessfully: false,
+          parseError: e.message,
+          parseMethod: 'fallback'
+        }
+      };
+    }
+  }
+
+  /**
    * Pricing optimization
    */
   async optimizePricing(serviceData, marketData = {}) {

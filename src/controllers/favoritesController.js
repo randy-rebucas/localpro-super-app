@@ -3,6 +3,7 @@ const { Service } = require('../models/Marketplace');
 const Provider = require('../models/Provider');
 const { Course } = require('../models/Academy');
 const { Product } = require('../models/Supplies');
+const Job = require('../models/Job');
 
 // Helper function to get the model based on itemType
 const getModelByType = (itemType) => {
@@ -10,7 +11,8 @@ const getModelByType = (itemType) => {
     'service': Service,
     'provider': Provider,
     'course': Course,
-    'supply': Product
+    'supply': Product,
+    'job': Job
   };
   return modelMap[itemType];
 };
@@ -49,6 +51,12 @@ const populateItem = async (itemType, itemId) => {
     query = query.populate('provider', 'firstName lastName profile roles');
   }
 
+  // For jobs, populate employer and category
+  if (itemType === 'job') {
+    query = query.populate('employer', 'firstName lastName profile.avatar')
+                  .populate('category', 'name');
+  }
+
   // For courses, populate instructor to get instructor info
   if (itemType === 'course') {
     query = query.populate('instructor', 'firstName lastName email profile roles');
@@ -74,7 +82,7 @@ const addFavorite = async (req, res) => {
     }
 
     // Validate itemType
-    const validTypes = ['service', 'provider', 'course', 'supply'];
+    const validTypes = ['service', 'provider', 'course', 'supply', 'job'];
     if (!validTypes.includes(itemType)) {
       return res.status(400).json({
         success: false,
@@ -201,7 +209,7 @@ const removeFavoriteByItem = async (req, res) => {
     const { itemType, itemId } = req.params;
 
     // Validate itemType
-    const validTypes = ['service', 'provider', 'course', 'supply'];
+    const validTypes = ['service', 'provider', 'course', 'supply', 'job'];
     if (!validTypes.includes(itemType)) {
       return res.status(400).json({
         success: false,
@@ -266,7 +274,7 @@ const getFavorites = async (req, res) => {
 
     // Filter by itemType
     if (itemType) {
-      const validTypes = ['service', 'provider', 'course', 'supply'];
+      const validTypes = ['service', 'provider', 'course', 'supply', 'job'];
       if (!validTypes.includes(itemType)) {
         return res.status(400).json({
           success: false,
@@ -385,7 +393,7 @@ const checkFavorite = async (req, res) => {
     const { itemType, itemId } = req.params;
 
     // Validate itemType
-    const validTypes = ['service', 'provider', 'course', 'supply'];
+    const validTypes = ['service', 'provider', 'course', 'supply', 'job'];
     if (!validTypes.includes(itemType)) {
       return res.status(400).json({
         success: false,
@@ -495,7 +503,7 @@ const getFavoritesByType = async (req, res) => {
     } = req.query;
 
     // Validate itemType
-    const validTypes = ['service', 'provider', 'course', 'supply'];
+    const validTypes = ['service', 'provider', 'course', 'supply', 'job'];
     if (!validTypes.includes(itemType)) {
       return res.status(400).json({
         success: false,
@@ -503,9 +511,13 @@ const getFavoritesByType = async (req, res) => {
       });
     }
 
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
     const options = {
       tags: tags ? (Array.isArray(tags) ? tags : [tags]) : undefined,
-      sortBy,
+      sortBy: sort,
       limit: Number(limit),
       skip: (page - 1) * limit
     };
@@ -568,7 +580,8 @@ const getFavoritesStats = async (req, res) => {
       service: 0,
       provider: 0,
       course: 0,
-      supply: 0
+      supply: 0,
+      job: 0
     };
 
     stats.forEach(stat => {

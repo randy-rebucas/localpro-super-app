@@ -9,7 +9,7 @@ This document describes all data models (MongoDB schemas) used in the LocalPro S
 **Collection**: `users`
 
 **Key Fields**:
-- `phoneNumber` (String, unique, required)
+- `phoneNumber` (String, **unique**, required) - Mobile phone number serves as the primary unique identifier for users across the entire system
 - `email` (String, unique, sparse)
 - `firstName`, `lastName` (String)
 - `roles` (Array: client, provider, admin, supplier, instructor, agency_owner, agency_admin)
