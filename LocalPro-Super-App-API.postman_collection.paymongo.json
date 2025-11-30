@@ -1,0 +1,113 @@
+{
+  "info": {
+    "name": "LocalPro Super App API - Complete Collection (PayMongo Updated)",
+    "description": "API collection for LocalPro Super App with PayMongo endpoints and payment method support.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "authToken", "value": "" },
+    { "key": "paymongoApiKey", "value": "sk_test_xxx" },
+    { "key": "paymongoWebhookSecret", "value": "whsec_xxx" }
+  ],
+  "item": [
+    {
+      "name": "PayMongo",
+      "item": [
+        {
+          "name": "Create PayMongo Payment Intent (Top-Up)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/topup/paymongo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "topup", "paymongo"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000,\n  \"currency\": \"PHP\",\n  \"paymentMethod\": \"paymongo\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "body": "{\n  \"status\": \"pending\",\n  \"paymongoIntentId\": \"pi_xxx\",\n  \"redirectUrl\": \"https://paymongo.com/checkout/xxx\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Capture PayMongo Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/topup/paymongo/capture",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "topup", "paymongo", "capture"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymongoIntentId\": \"pi_xxx\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "body": "{\n  \"status\": \"succeeded\",\n  \"paymongoPaymentId\": \"pm_xxx\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "PayMongo Webhook Simulation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/webhooks/paymongo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "webhooks", "paymongo"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"payment_intent.succeeded\",\n  \"data\": { \"id\": \"pi_xxx\" }\n}"
+            }
+          }
+        },
+        {
+          "name": "Refund PayMongo Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/finance/topup/paymongo/refund",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance", "topup", "paymongo", "refund"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymongoPaymentId\": \"pm_xxx\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "Success",
+              "body": "{\n  \"status\": \"refunded\",\n  \"paymongoRefundId\": \"rf_xxx\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
