@@ -45,7 +45,8 @@ describe('Referral Processor Middleware', () => {
       };
       const user = {
         _id: 'user-id',
-        referral: { referredBy: 'referrer-id' }
+        referral: { referredBy: 'referrer-id' },
+        populate: jest.fn().mockReturnThis()
       };
       const referral = { _id: 'referral-id' };
       req.booking = booking;
@@ -112,7 +113,8 @@ describe('Referral Processor Middleware', () => {
       };
       const user = {
         _id: 'user-id',
-        referral: { referredBy: 'referrer-id' }
+        referral: { referredBy: 'referrer-id' },
+        populate: jest.fn().mockReturnThis()
       };
       const referral = { _id: 'referral-id' };
       req.order = order;
@@ -136,9 +138,20 @@ describe('Referral Processor Middleware', () => {
 
   describe('processSignupReferral', () => {
     test('should process signup referral with valid code', async () => {
-      const user = { _id: 'user-id', referral: {}, save: jest.fn().mockResolvedValue() };
+      const referralObj = { 
+        referredBy: null,
+        save: jest.fn().mockResolvedValue()
+      };
+      const user = {
+        _id: 'user-id',
+        referral: referralObj,
+        save: jest.fn().mockResolvedValue(),
+        ensureReferral: jest.fn().mockResolvedValue(referralObj),
+        get: jest.fn().mockReturnValue(undefined)
+      };
       req.user = user;
       req.body.referralCode = 'REF123';
+      req.ip = '127.0.0.1';
       ReferralService.validateReferralCode = jest.fn().mockResolvedValue({
         valid: true,
         referrer: { id: 'referrer-id' }
@@ -149,7 +162,8 @@ describe('Referral Processor Middleware', () => {
 
       expect(ReferralService.validateReferralCode).toHaveBeenCalledWith('REF123');
       expect(ReferralService.createReferral).toHaveBeenCalled();
-      expect(user.referral.referredBy).toBe('referrer-id');
+      expect(referralObj.referredBy).toBe('referrer-id');
+      expect(referralObj.save).toHaveBeenCalled();
       expect(user.save).toHaveBeenCalled();
       expect(next).toHaveBeenCalled();
     });

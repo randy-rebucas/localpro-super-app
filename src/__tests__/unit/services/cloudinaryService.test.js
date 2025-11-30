@@ -1,20 +1,21 @@
-const cloudinary = require('cloudinary');
-
 jest.mock('cloudinary', () => {
   const mockUploader = {
     upload: jest.fn(),
     destroy: jest.fn()
   };
   
-  return {
+  const mockV2 = {
     config: jest.fn(),
-    uploader: mockUploader,
-    v2: {
-      config: jest.fn(),
-      uploader: mockUploader
-    }
+    uploader: mockUploader
+  };
+  
+  return {
+    v2: mockV2
   };
 });
+
+// Import after mocking cloudinary
+const cloudinary = require('cloudinary');
 
 // Import service after mocks (it's exported as an instance)
 const cloudinaryService = require('../../../services/cloudinaryService');
@@ -39,7 +40,7 @@ describe('CloudinaryService', () => {
         originalname: 'test.png'
       };
 
-      cloudinary.uploader.upload.mockResolvedValue({
+      cloudinary.v2.uploader.upload.mockResolvedValue({
         public_id: 'test-id',
         secure_url: 'https://example.com/image.jpg',
         url: 'https://example.com/image.jpg'
@@ -48,7 +49,7 @@ describe('CloudinaryService', () => {
       const result = await cloudinaryService.uploadFile(mockFile, 'test-folder');
       
       expect(result.success).toBe(true);
-      expect(cloudinary.uploader.upload).toHaveBeenCalled();
+      expect(cloudinary.v2.uploader.upload).toHaveBeenCalled();
     });
 
     test('should upload file from path', async () => {
@@ -57,7 +58,7 @@ describe('CloudinaryService', () => {
         originalname: 'test.png'
       };
 
-      cloudinary.uploader.upload.mockResolvedValue({
+      cloudinary.v2.uploader.upload.mockResolvedValue({
         public_id: 'test-id',
         secure_url: 'https://example.com/image.jpg'
       });
@@ -70,12 +71,12 @@ describe('CloudinaryService', () => {
 
   describe('deleteFile', () => {
     test('should delete file by public ID', async () => {
-      cloudinary.uploader.destroy.mockResolvedValue({ result: 'ok' });
+      cloudinary.v2.uploader.destroy.mockResolvedValue({ result: 'ok' });
 
       const result = await cloudinaryService.deleteFile('test-public-id');
       
       expect(result.success).toBe(true);
-      expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('test-public-id', {});
+      expect(cloudinary.v2.uploader.destroy).toHaveBeenCalledWith('test-public-id', {});
     });
   });
 });

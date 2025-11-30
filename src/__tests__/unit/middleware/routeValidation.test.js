@@ -51,8 +51,10 @@ describe('Route Validation Middleware', () => {
 
       expect(sendValidationError).toHaveBeenCalledWith(res, [{
         field: 'id',
-        message: 'Invalid id format',
-        code: 'INVALID_ID_FORMAT'
+        message: 'Invalid id format. Must be a valid MongoDB ObjectId (24 hexadecimal characters)',
+        code: 'INVALID_ID_FORMAT',
+        received: 'invalid-id',
+        expectedFormat: '24 hexadecimal characters (e.g., 507f1f77bcf86cd799439011)'
       }]);
       expect(next).not.toHaveBeenCalled();
     });
