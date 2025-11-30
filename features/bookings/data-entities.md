@@ -307,7 +307,7 @@ const bookingSchema = new mongoose.Schema({
     },
     method: {
       type: String,
-      enum: ['cash', 'card', 'bank_transfer', 'paypal', 'paymaya'],
+      enum: ['cash', 'card', 'bank_transfer', 'paypal', 'paymaya', 'paymongo'],
       default: 'cash'
     },
     transactionId: String,
@@ -318,6 +318,9 @@ const bookingSchema = new mongoose.Schema({
     paymayaPaymentId: String,
     paymayaInvoiceId: String,
     paymayaTransactionId: String,
+    paymongoIntentId: String,
+    paymongoChargeId: String,
+    paymongoPaymentId: String,
     paidAt: Date
   },
   

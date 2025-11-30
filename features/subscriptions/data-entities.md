@@ -15,8 +15,8 @@
 - status: ['active','cancelled','expired','suspended','pending']
 - billingCycle: ['monthly','yearly']
 - startDate, endDate, nextBillingDate, cancelledAt, cancellationReason
-- paymentMethod: ['paypal','paymaya','stripe','bank_transfer']
-- paymentDetails: { paypalSubscriptionId?, paymayaSubscriptionId?, stripeSubscriptionId?, lastPaymentId?, lastPaymentDate?, nextPaymentAmount? }
+- paymentMethod: ['paypal','paymaya','stripe','bank_transfer','paymongo']
+- paymentDetails: { paypalSubscriptionId?, paymayaSubscriptionId?, stripeSubscriptionId?, paymongoCustomerId?, paymongoIntentId?, lastPaymentId?, lastPaymentDate?, nextPaymentAmount? }
 - usage: { services{ current, limit }, bookings{ current, limit }, storage{ current, limit }, apiCalls{ current, limit } }
 - features: flags { prioritySupport, advancedAnalytics, customBranding, apiAccess, whiteLabel }
 - trial: { isTrial, trialEndDate, trialUsed }
@@ -41,7 +41,7 @@ Statics:
 - subscription: UserSubscriptionId
 - amount, currency('USD')
 - status: ['pending','completed','failed','refunded','cancelled']
-- paymentMethod: ['paypal','paymaya','stripe','bank_transfer']
+- paymentMethod: ['paypal','paymaya','stripe','bank_transfer','paymongo']
 - paymentDetails: provider transaction IDs
 - billingPeriod: { startDate, endDate }
 - description, metadata, processedAt, failedAt(failureReason), refundedAt(refundAmount, refundReason)
