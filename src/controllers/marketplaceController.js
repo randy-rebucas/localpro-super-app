@@ -7,6 +7,7 @@ const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
 const PayPalService = require('../services/paypalService');
+const paymongoService = require('../services/paymongoService');
 const logger = require('../config/logger');
 const { 
   sendPaginated, 
@@ -728,6 +729,57 @@ const createBooking = async (req, res) => {
         return;
       } catch (paypalError) {
         console.error('PayPal booking error:', paypalError);
+        // Fall back to regular booking creation
+        booking.payment.method = 'cash';
+        await booking.save();
+      }
+    }
+
+    // Handle PayMongo payment if selected
+    if (finalPaymentMethod === 'paymongo') {
+      try {
+        const user = await User.findById(req.user.id).select('firstName lastName email');
+        
+        // Create PayMongo payment authorization
+        const paymongoResult = await paymongoService.createAuthorization({
+          amount: Math.round(totalAmount * 100), // Convert to cents
+          currency: service.pricing.currency,
+          description: `Service booking: ${service.title}`,
+          clientId: req.user.id,
+          bookingId: booking._id.toString()
+        });
+
+        if (!paymongoResult.success) {
+          throw new Error('Failed to create PayMongo authorization');
+        }
+
+        // Update booking with PayMongo details
+        booking.payment.method = 'paymongo';
+        booking.payment.paymongoIntentId = paymongoResult.holdId;
+        await booking.save();
+
+        // Populate the booking with service and user details
+        await booking.populate([
+          { path: 'service', select: 'title category pricing' },
+          { path: 'client', select: 'firstName lastName phoneNumber email' },
+          { path: 'provider', select: 'firstName lastName phoneNumber email' }
+        ]);
+
+        res.status(201).json({
+          success: true,
+          message: 'Booking created successfully with PayMongo payment',
+          data: {
+            booking,
+            paymentDetails: {
+              clientSecret: paymongoResult.clientSecret,
+              publishableKey: paymongoResult.publishableKey,
+              intentId: paymongoResult.holdId
+            }
+          }
+        });
+        return;
+      } catch (paymongoError) {
+        console.error('PayMongo booking error:', paymongoError);
         // Fall back to regular booking creation
         booking.payment.method = 'cash';
         await booking.save();

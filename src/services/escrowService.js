@@ -5,6 +5,7 @@ const User = require('../models/User');
 const logger = require('../config/logger');
 const EmailService = require('./emailService');
 const axios = require('axios');
+const paymongoService = require('./paymongoService');
 
 class EscrowService {
   /**
@@ -744,19 +745,67 @@ class EscrowService {
   // ==================== Gateway Implementations (Placeholder) ====================
 
   async paymongCreateHold(amount, currency, clientId) {
-    // TODO: Implement PayMongo integration
-    logger.info('PayMongo hold creation (placeholder)');
-    return { success: true, holdId: `pm_hold_${Date.now()}` };
+    // Implement PayMongo integration
+    try {
+      const result = await paymongoService.createAuthorization({
+        amount,
+        currency: currency || 'PHP',
+        clientId,
+        description: 'LocalPro Escrow Payment Hold'
+      });
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        success: true,
+        holdId: result.holdId,
+        intentId: result.intentId,
+        clientSecret: result.clientSecret
+      };
+    } catch (error) {
+      logger.error('PayMongo hold creation error:', error);
+      return { success: false, message: error.message };
+    }
   }
 
   async paymongoCapture(holdId, amount, currency) {
-    logger.info('PayMongo capture (placeholder)');
-    return { success: true, captureId: `pm_capture_${Date.now()}` };
+    try {
+      const result = await paymongoService.capturePayment(holdId);
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        success: true,
+        captureId: result.chargeId || result.captureId,
+        transactionId: result.chargeId || result.captureId
+      };
+    } catch (error) {
+      logger.error('PayMongo capture error:', error);
+      return { success: false, message: error.message };
+    }
   }
 
   async paymongoRelease(holdId) {
-    logger.info('PayMongo release (placeholder)');
-    return { success: true, releaseId: `pm_release_${Date.now()}` };
+    try {
+      const result = await paymongoService.releaseAuthorization(holdId);
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        success: true,
+        releaseId: result.releaseId || result.chargeId,
+        transactionId: result.releaseId || result.chargeId
+      };
+    } catch (error) {
+      logger.error('PayMongo release error:', error);
+      return { success: false, message: error.message };
+    }
   }
 
   async xenditCreateHold(amount, currency, clientId) {

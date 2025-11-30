@@ -1,7 +1,9 @@
 const express = require('express');
 const crypto = require('crypto');
 const escrowService = require('../services/escrowService');
+const paymongoService = require('../services/paymongoService');
 const Payout = require('../models/Payout');
+const Escrow = require('../models/Escrow');
 const logger = require('../config/logger');
 
 const router = express.Router();
@@ -127,21 +129,180 @@ const handlePaymongoPaymentEvent = async (req, res) => {
   try {
     const { data, type } = req.body;
 
-    logger.info(`PayMongo webhook received: ${type}`);
+    logger.info(`PayMongo webhook received: ${type}`, {
+      dataId: data?.id,
+      dataType: data?.type
+    });
 
-    // TODO: Implement PayMongo payment event handling
-    // This would handle authorization.success, charge.paid, etc.
+    if (!data || !data.id) {
+      logger.warn('Invalid PayMongo webhook: missing data');
+      return res.status(400).json({ success: false, message: 'Invalid webhook' });
+    }
 
+    // Handle different PayMongo events
+    switch (type) {
+      case 'payment_intent.payment_failed':
+        await handlePaymongoPaymentFailed(data);
+        break;
+
+      case 'payment_intent.succeeded':
+        await handlePaymongoPaymentSucceeded(data);
+        break;
+
+      case 'payment_intent.awaiting_next_action':
+        await handlePaymongoAwaitingAction(data);
+        break;
+
+      case 'charge.created':
+        logger.info('PayMongo charge created', { chargeId: data.id });
+        break;
+
+      case 'charge.updated':
+        logger.info('PayMongo charge updated', {
+          chargeId: data.id,
+          status: data.attributes?.status
+        });
+        break;
+
+      case 'charge.refunded':
+        await handlePaymongoChargeRefunded(data);
+        break;
+
+      default:
+        logger.info(`Unhandled PayMongo event: ${type}`);
+    }
+
+    // Always return 200 OK to acknowledge receipt
     res.status(200).json({
       success: true,
-      message: 'Webhook processed'
+      message: 'Webhook processed',
+      eventType: type
     });
   } catch (error) {
     logger.error('PayMongo webhook error:', error);
-    res.status(500).json({
+    // Return 200 anyway to prevent gateway retries
+    res.status(200).json({
       success: false,
       message: error.message
     });
+  }
+};
+
+/**
+ * Handle payment failure
+ */
+const handlePaymongoPaymentFailed = async (data) => {
+  try {
+    const intentId = data.id;
+    const { charges } = data.attributes;
+
+    logger.warn('PayMongo payment failed', {
+      intentId,
+      failureCode: data.attributes?.failure_code,
+      failureMessage: data.attributes?.failure_message
+    });
+
+    // Find related escrow by payment intent ID
+    const escrow = await Escrow.findOne({
+      providerHoldId: intentId
+    });
+
+    if (escrow) {
+      // Mark as failed in transaction log
+      await escrowService.logTransaction({
+        escrowId: escrow._id,
+        transactionType: 'HOLD',
+        amount: escrow.amount,
+        currency: escrow.currency,
+        status: 'FAILED',
+        initiatedBy: escrow.clientId,
+        gateway: {
+          provider: 'paymongo',
+          transactionId: intentId,
+          responseMessage: data.attributes?.failure_message || 'Payment failed'
+        },
+        metadata: {
+          reason: 'Payment authorization failed',
+          tags: ['payment_failure']
+        }
+      });
+    }
+  } catch (error) {
+    logger.error('Handle PayMongo payment failed error:', error);
+  }
+};
+
+/**
+ * Handle payment success
+ */
+const handlePaymongoPaymentSucceeded = async (data) => {
+  try {
+    const intentId = data.id;
+
+    logger.info('PayMongo payment succeeded', { intentId });
+
+    // Find related escrow
+    const escrow = await Escrow.findOne({
+      providerHoldId: intentId
+    });
+
+    if (escrow && escrow.status === 'FUNDS_HELD') {
+      // Already processed in capturePayment
+      logger.info('Payment intent succeeded, funds held', { intentId });
+    }
+  } catch (error) {
+    logger.error('Handle PayMongo payment succeeded error:', error);
+  }
+};
+
+/**
+ * Handle awaiting next action (e.g., 3D Secure)
+ */
+const handlePaymongoAwaitingAction = async (data) => {
+  try {
+    const intentId = data.id;
+
+    logger.info('PayMongo payment awaiting action', {
+      intentId,
+      nextAction: data.attributes?.next_action
+    });
+
+    // Payment requires additional action (3DS, etc)
+    // Client needs to complete the action
+  } catch (error) {
+    logger.error('Handle PayMongo awaiting action error:', error);
+  }
+};
+
+/**
+ * Handle charge refunded
+ */
+const handlePaymongoChargeRefunded = async (data) => {
+  try {
+    const chargeId = data.id;
+
+    logger.info('PayMongo charge refunded', {
+      chargeId,
+      refundedAmount: data.attributes?.amount_refunded,
+      totalAmount: data.attributes?.amount
+    });
+
+    // Payment was refunded - update escrow status if needed
+    const escrow = await Escrow.findOne({
+      providerHoldId: chargeId
+    });
+
+    if (escrow && escrow.status !== 'REFUNDED') {
+      escrow.status = 'REFUNDED';
+      await escrow.save();
+
+      logger.info('Escrow marked as refunded due to charge refund', {
+        escrowId: escrow._id,
+        chargeId
+      });
+    }
+  } catch (error) {
+    logger.error('Handle PayMongo charge refunded error:', error);
   }
 };
 

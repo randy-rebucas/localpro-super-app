@@ -89,7 +89,7 @@ const userSubscriptionSchema = new mongoose.Schema({
   cancellationReason: String,
   paymentMethod: {
     type: String,
-    enum: ['paypal', 'paymaya', 'stripe', 'bank_transfer', 'manual'],
+    enum: ['paypal', 'paymaya', 'stripe', 'bank_transfer', 'manual', 'paymongo'],
     default: 'paypal'
   },
   isManual: {
@@ -108,6 +108,8 @@ const userSubscriptionSchema = new mongoose.Schema({
     paypalSubscriptionId: String,
     paymayaSubscriptionId: String,
     stripeSubscriptionId: String,
+    paymongoCustomerId: String,
+    paymongoIntentId: String,
     lastPaymentId: String,
     lastPaymentDate: Date,
     nextPaymentAmount: Number
@@ -219,7 +221,7 @@ const paymentSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['paypal', 'paymaya', 'stripe', 'bank_transfer'],
+    enum: ['paypal', 'paymaya', 'stripe', 'bank_transfer', 'paymongo'],
     required: true
   },
   paymentDetails: {
@@ -229,7 +231,10 @@ const paymentSchema = new mongoose.Schema({
     paymayaCheckoutId: String,
     paymayaPaymentId: String,
     stripePaymentIntentId: String,
-    bankReference: String
+    bankReference: String,
+    paymongoIntentId: String,
+    paymongoChargeId: String,
+    paymongoPaymentId: String
   },
   billingPeriod: {
     startDate: Date,

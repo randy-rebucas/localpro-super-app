@@ -208,7 +208,7 @@ const transactionSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['bank_transfer', 'mobile_money', 'card', 'cash', 'paypal', 'paymaya'],
+    enum: ['bank_transfer', 'mobile_money', 'card', 'cash', 'paypal', 'paymaya', 'paymongo'],
     default: 'bank_transfer'
   },
   transactionId: String,
@@ -220,6 +220,9 @@ const transactionSchema = new mongoose.Schema({
   paymayaPaymentId: String,
   paymayaInvoiceId: String,
   paymayaTransactionId: String,
+  paymongoIntentId: String,
+  paymongoChargeId: String,
+  paymongoPaymentId: String,
   metadata: mongoose.Schema.Types.Mixed
 }, {
   timestamps: true
@@ -317,7 +320,9 @@ const financeSchema = new mongoose.Schema({
     processedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
-    }
+    },
+    paymongoIntentId: String,
+    paymongoChargeId: String
   }],
   topUpRequests: [{
     amount: {

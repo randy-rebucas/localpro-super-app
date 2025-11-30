@@ -4,6 +4,7 @@ const EmailService = require('../services/emailService');
 const { Booking } = require('../models/Marketplace');
 const Referral = require('../models/Referral');
 const CloudinaryService = require('../services/cloudinaryService');
+const paymongoService = require('../services/paymongoService');
 
 // @desc    Get user's financial overview
 // @route   GET /api/finance/overview
@@ -987,6 +988,27 @@ const requestTopUp = async (req, res) => {
       requestedAt: new Date()
     };
 
+    // If PayMongo, create payment authorization
+    if (paymentMethod === 'paymongo') {
+      try {
+        const paymongoResult = await paymongoService.createAuthorization({
+          amount: Math.round(parseFloat(amount) * 100), // Convert to cents
+          currency: 'PHP',
+          description: `LocalPro Super App Top-Up by ${req.user.firstName} ${req.user.lastName}`,
+          clientId: req.user.id,
+          bookingId: `topup_${req.user.id}_${Date.now()}`
+        });
+
+        if (paymongoResult.success) {
+          topUpRequest.paymongoIntentId = paymongoResult.holdId;
+          topUpRequest.status = 'authorized'; // Mark as authorized pending capture
+        }
+      } catch (paymongoError) {
+        console.error('PayMongo top-up authorization error:', paymongoError);
+        // Fall back to manual approval
+      }
+    }
+
     finance.topUpRequests.push(topUpRequest);
     await finance.save();
 
@@ -1001,20 +1023,28 @@ const requestTopUp = async (req, res) => {
         amount: parseFloat(amount),
         paymentMethod,
         reference: reference || 'N/A',
-        receiptUrl: uploadResult.data.secure_url
+        receiptUrl: uploadResult.data.secure_url,
+        paymentStatus: paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId ? 'PayMongo authorized, awaiting capture' : 'Manual approval required'
       }
     });
 
     res.status(201).json({
       success: true,
-      message: 'Top-up request submitted successfully. Please wait for admin approval.',
+      message: paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId 
+        ? 'Top-up initiated with PayMongo. Please complete the payment.'
+        : 'Top-up request submitted successfully. Please wait for admin approval.',
       data: {
         topUpRequest: {
           _id: finance.topUpRequests[finance.topUpRequests.length - 1]._id,
           amount: topUpRequest.amount,
           paymentMethod: topUpRequest.paymentMethod,
           status: topUpRequest.status,
-          requestedAt: topUpRequest.requestedAt
+          requestedAt: topUpRequest.requestedAt,
+          paymongoDetails: paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId ? {
+            intentId: topUpRequest.paymongoIntentId,
+            clientSecret: paymongoResult?.clientSecret,
+            publishableKey: paymongoResult?.publishableKey
+          } : undefined
         }
       }
     });
@@ -1194,6 +1224,20 @@ const processTopUp = async (req, res) => {
     topUpRequest.processedBy = req.user.id;
 
     if (status === 'approved') {
+      // Capture PayMongo payment if applicable
+      if (topUpRequest.paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId) {
+        try {
+          const captureResult = await paymongoService.capturePayment(topUpRequest.paymongoIntentId);
+          if (captureResult.success) {
+            topUpRequest.paymongoChargeId = captureResult.captureId;
+          } else {
+            console.error('PayMongo capture failed:', captureResult.message);
+          }
+        } catch (captureError) {
+          console.error('PayMongo capture error:', captureError);
+        }
+      }
+
       // Add transaction to user's account
       const transaction = {
         type: 'topup',
@@ -1205,7 +1249,9 @@ const processTopUp = async (req, res) => {
         timestamp: new Date(),
         reference: topUpRequest.reference,
         processedAt: new Date(),
-        processedBy: req.user.id
+        processedBy: req.user.id,
+        paymongoIntentId: topUpRequest.paymongoIntentId,
+        paymongoChargeId: topUpRequest.paymongoChargeId
       };
 
       finance.transactions.push(transaction);
