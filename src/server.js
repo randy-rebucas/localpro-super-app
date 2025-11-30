@@ -49,6 +49,8 @@ const databaseOptimizationRoutes = require('./routes/databaseOptimization');
 const metricsStreamRoutes = require('./routes/metricsStream');
 const aiMarketplaceRoutes = require('./routes/aiMarketplace');
 const aiUsersRoutes = require('./routes/aiUsers');
+const escrowRoutes = require('./routes/escrows');
+const escrowWebhookRoutes = require('./routes/escrowWebhooks');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 const { generalLimiter } = require('./middleware/rateLimiter');
 
@@ -406,6 +408,10 @@ function startServer() {
   
   // AI Users Routes
   app.use('/api/ai/users', aiUsersRoutes);
+  
+  // Escrow and Payment Routes
+  app.use('/api/escrows', escrowRoutes);
+  app.use('/webhooks', escrowWebhookRoutes);
   
   // Monitoring and Performance Routes
   app.use('/api/monitoring', monitoringRoutes);
