@@ -449,7 +449,7 @@ const handleStripePayoutEvent = async (req, res) => {
     logger.info(`Stripe payout webhook received: ${type}`);
 
     switch (type) {
-      case 'payout.paid':
+      case 'payout.paid': {
         // Payout was successful
         const payoutId = data.object.id;
         logger.info(`Payout paid: ${payoutId}`);
@@ -459,8 +459,9 @@ const handleStripePayoutEvent = async (req, res) => {
           await escrowService.completePayout(payout._id, data.object);
         }
         break;
+      }
 
-      case 'payout.failed':
+      case 'payout.failed': {
         // Payout failed
         logger.warn(`Payout failed: ${data.object.id}`);
         const failedPayout = await Payout.findOne({ gatewayPayoutId: data.object.id });
@@ -470,6 +471,7 @@ const handleStripePayoutEvent = async (req, res) => {
           await failedPayout.save();
         }
         break;
+      }
 
       default:
         logger.info(`Unhandled Stripe payout event: ${type}`);

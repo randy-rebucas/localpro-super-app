@@ -989,9 +989,10 @@ const requestTopUp = async (req, res) => {
     };
 
     // If PayMongo, create payment authorization
+    let paymongoResult;
     if (paymentMethod === 'paymongo') {
       try {
-        const paymongoResult = await paymongoService.createAuthorization({
+        paymongoResult = await paymongoService.createAuthorization({
           amount: Math.round(parseFloat(amount) * 100), // Convert to cents
           currency: 'PHP',
           description: `LocalPro Super App Top-Up by ${req.user.firstName} ${req.user.lastName}`,
@@ -1040,11 +1041,11 @@ const requestTopUp = async (req, res) => {
           paymentMethod: topUpRequest.paymentMethod,
           status: topUpRequest.status,
           requestedAt: topUpRequest.requestedAt,
-          paymongoDetails: paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId ? {
-            intentId: topUpRequest.paymongoIntentId,
-            clientSecret: paymongoResult?.clientSecret,
-            publishableKey: paymongoResult?.publishableKey
-          } : undefined
+            paymongoDetails: paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId ? {
+              intentId: topUpRequest.paymongoIntentId,
+              clientSecret: paymongoResult?.clientSecret,
+              publishableKey: paymongoResult?.publishableKey
+            } : undefined
         }
       }
     });
