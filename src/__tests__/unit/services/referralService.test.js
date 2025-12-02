@@ -28,6 +28,11 @@ describe('ReferralService', () => {
 
   describe('createReferral', () => {
     test('should create referral successfully', async () => {
+      const referralObjMock = {
+        referredBy: null,
+        referralSource: null,
+        save: jest.fn().mockResolvedValue()
+      };
       const mockReferrer = {
         _id: 'referrer123',
         updateReferralStats: jest.fn().mockResolvedValue(),
@@ -36,10 +41,7 @@ describe('ReferralService', () => {
       const mockReferee = {
         _id: 'referee123',
         createdAt: new Date(),
-        referral: {
-          referredBy: null,
-          referralSource: null
-        },
+        ensureReferral: jest.fn().mockResolvedValue(referralObjMock),
         save: jest.fn().mockResolvedValue()
       };
       
@@ -50,14 +52,14 @@ describe('ReferralService', () => {
       Referral.findOne = jest.fn().mockResolvedValue(null);
       Referral.generateReferralCode = jest.fn().mockReturnValue('REF123');
       
-      const mockReferral = {
+      const mockReferralDoc = {
         _id: 'referral123',
         referrer: 'referrer123',
         referee: 'referee123',
         save: jest.fn().mockResolvedValue()
       };
       
-      Referral.mockImplementation(() => mockReferral);
+      Referral.mockImplementation(() => mockReferralDoc);
 
       const result = await referralService.createReferral({
         referrerId: 'referrer123',
@@ -66,28 +68,35 @@ describe('ReferralService', () => {
       });
 
       expect(result).toBeDefined();
-      expect(mockReferral.save).toHaveBeenCalled();
+      expect(mockReferralDoc.save).toHaveBeenCalled();
+      expect(mockReferrer.updateReferralStats).toHaveBeenCalled();
+      expect(referralObjMock.save).toHaveBeenCalled();
     });
   });
 
   describe('getReferralStats', () => {
     test('should get referral statistics', async () => {
-      Referral.getReferralStats = jest.fn().mockResolvedValue({
+      const mockStats = {
         totalReferrals: 10,
         activeReferrals: 5
-      });
+      };
+      
+      Referral.getReferralStats = jest.fn().mockResolvedValue(mockStats);
+      
+      const mockUser = {
+        referral: {
+          referralStats: mockStats
+        }
+      };
       
       User.findById = jest.fn().mockReturnValue({
-        select: jest.fn().mockResolvedValue({
-          referral: {
-            referralStats: {}
-          }
-        })
+        populate: jest.fn().mockResolvedValue(mockUser)
       });
 
       const result = await referralService.getReferralStats('user123');
 
       expect(result).toBeDefined();
+      expect(User.findById).toHaveBeenCalledWith('user123');
     });
   });
 });

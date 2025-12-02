@@ -133,6 +133,19 @@ const appSettingsSchema = new mongoose.Schema({
       requireVerification: {
         type: Boolean,
         default: true
+      },
+      // Optional metadata
+      description: String,
+      icon: String,
+      color: String,
+      services: [String],
+      route: String,
+      category: String,
+      users: Number,
+      lastUpdated: String,
+      featured: {
+        type: Boolean,
+        default: false
       }
     },
     academy: {
@@ -147,6 +160,19 @@ const appSettingsSchema = new mongoose.Schema({
       requireInstructorVerification: {
         type: Boolean,
         default: true
+      },
+      // Optional metadata
+      description: String,
+      icon: String,
+      color: String,
+      services: [String],
+      route: String,
+      category: String,
+      users: Number,
+      lastUpdated: String,
+      featured: {
+        type: Boolean,
+        default: false
       }
     },
     jobBoard: {
@@ -161,6 +187,19 @@ const appSettingsSchema = new mongoose.Schema({
       requireCompanyVerification: {
         type: Boolean,
         default: true
+      },
+      // Optional metadata
+      description: String,
+      icon: String,
+      color: String,
+      services: [String],
+      route: String,
+      category: String,
+      users: Number,
+      lastUpdated: String,
+      featured: {
+        type: Boolean,
+        default: false
       }
     },
     referrals: {
@@ -175,6 +214,210 @@ const appSettingsSchema = new mongoose.Schema({
       maxReferralsPerUser: {
         type: Number,
         default: 50
+      },
+      // Optional metadata
+      description: String,
+      icon: String,
+      color: String,
+      services: [String],
+      route: String,
+      category: String,
+      users: Number,
+      lastUpdated: String,
+      featured: {
+        type: Boolean,
+        default: false
+      }
+    },
+    ads: {
+      enabled: {
+        type: Boolean,
+        default: true
+      },
+      allowNewAds: {
+        type: Boolean,
+        default: true
+      },
+      requireApproval: {
+        type: Boolean,
+        default: true
+      },
+      allowPromotion: {
+        type: Boolean,
+        default: true
+      },
+      // Optional metadata
+      description: String,
+      icon: String,
+      color: String,
+      services: [String],
+      route: String,
+      category: String,
+      users: Number,
+      lastUpdated: String,
+      featured: {
+        type: Boolean,
+        default: false
+      }
+    },
+    facilityCare: {
+      enabled: {
+        type: Boolean,
+        default: true
+      },
+      allowNewServices: {
+        type: Boolean,
+        default: true
+      },
+      allowContracts: {
+        type: Boolean,
+        default: true
+      },
+      allowSubscriptions: {
+        type: Boolean,
+        default: true
+      },
+      // Optional metadata
+      description: String,
+      icon: String,
+      color: String,
+      services: [String],
+      route: String,
+      category: String,
+      users: Number,
+      lastUpdated: String,
+      featured: {
+        type: Boolean,
+        default: false
+      }
+    },
+    finance: {
+      enabled: {
+        type: Boolean,
+        default: true
+      },
+      allowWithdrawals: {
+        type: Boolean,
+        default: true
+      },
+      allowLoans: {
+        type: Boolean,
+        default: true
+      },
+      allowSalaryAdvance: {
+        type: Boolean,
+        default: true
+      },
+      minimumWithdrawal: {
+        type: Number,
+        default: 100
+      },
+      // Optional metadata
+      description: String,
+      icon: String,
+      color: String,
+      services: [String],
+      route: String,
+      category: String,
+      users: Number,
+      lastUpdated: String,
+      featured: {
+        type: Boolean,
+        default: false
+      }
+    },
+    supplies: {
+      enabled: {
+        type: Boolean,
+        default: true
+      },
+      allowNewProducts: {
+        type: Boolean,
+        default: true
+      },
+      allowOrders: {
+        type: Boolean,
+        default: true
+      },
+      allowSubscriptions: {
+        type: Boolean,
+        default: true
+      },
+      requireSupplierVerification: {
+        type: Boolean,
+        default: true
+      },
+      // Optional metadata
+      description: String,
+      icon: String,
+      color: String,
+      services: [String],
+      route: String,
+      category: String,
+      users: Number,
+      lastUpdated: String,
+      featured: {
+        type: Boolean,
+        default: false
+      }
+    },
+    localProPlus: {
+      enabled: {
+        type: Boolean,
+        default: true
+      },
+      allowSubscriptions: {
+        type: Boolean,
+        default: true
+      },
+      allowUpgrades: {
+        type: Boolean,
+        default: true
+      },
+      plans: {
+        basic: {
+          enabled: {
+            type: Boolean,
+            default: true
+          },
+          price: {
+            type: Number,
+            default: 0
+          }
+        },
+        premium: {
+          enabled: {
+            type: Boolean,
+            default: true
+          },
+          price: {
+            type: Number,
+            default: 299
+          }
+        },
+        enterprise: {
+          enabled: {
+            type: Boolean,
+            default: true
+          },
+          price: {
+            type: Number,
+            default: 999
+          }
+        }
+      },
+      // Optional metadata
+      description: String,
+      icon: String,
+      color: String,
+      services: [String],
+      route: String,
+      category: String,
+      users: Number,
+      lastUpdated: String,
+      featured: {
+        type: Boolean,
+        default: false
       }
     },
     payments: {
@@ -201,6 +444,19 @@ const appSettingsSchema = new mongoose.Schema({
           type: Boolean,
           default: true
         }
+      },
+      // Optional metadata
+      description: String,
+      icon: String,
+      color: String,
+      services: [String],
+      route: String,
+      category: String,
+      users: Number,
+      lastUpdated: String,
+      featured: {
+        type: Boolean,
+        default: false
       }
     },
     analytics: {
@@ -215,6 +471,19 @@ const appSettingsSchema = new mongoose.Schema({
       trackPerformance: {
         type: Boolean,
         default: true
+      },
+      // Optional metadata
+      description: String,
+      icon: String,
+      color: String,
+      services: [String],
+      route: String,
+      category: String,
+      users: Number,
+      lastUpdated: String,
+      featured: {
+        type: Boolean,
+        default: false
       }
     }
   },

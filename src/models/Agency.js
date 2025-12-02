@@ -84,6 +84,8 @@ const agencySchema = new mongoose.Schema({
     phone: {
       type: String,
       required: true
+      // Note: Agency contact phone is not required to be unique.
+      // It may be the same as the owner's personal phoneNumber (which is unique in User model).
     },
     website: String,
     address: {

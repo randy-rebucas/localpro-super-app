@@ -22,7 +22,7 @@ const providerBusinessInfoSchema = new mongoose.Schema({
       lng: Number
     }
   },
-  businessPhone: String,
+  businessPhone: String, // Business contact phone (not required to be unique - can be same as owner's personal phone)
   businessEmail: String,
   website: String,
   businessDescription: String,

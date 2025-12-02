@@ -1,6 +1,8 @@
 const Joi = require('joi');
 
 // User validation schemas
+// Note: phoneNumber is enforced as unique at the database level (User model)
+// This ensures all mobile phone numbers are unique across the entire system
 const phoneNumberSchema = Joi.string()
   .pattern(/^\+[1-9]\d{4,14}$/)
   .required()
@@ -119,6 +121,28 @@ const validateObjectId = (id) => {
   return !!(id && id.match(/^[0-9a-fA-F]{24}$/));
 };
 
+/**
+ * Check if a phone number already exists in the system
+ * This is a helper function to check uniqueness before database operations
+ * Note: The User model enforces uniqueness at the database level, but this
+ * can be used for early validation and better error messages
+ * @param {string} phoneNumber - Phone number to check
+ * @param {Object} UserModel - Mongoose User model
+ * @param {string} excludeUserId - Optional user ID to exclude from check (for updates)
+ * @returns {Promise<boolean>} - True if phone number exists, false otherwise
+ */
+const checkPhoneNumberExists = async (phoneNumber, UserModel, excludeUserId = null) => {
+  if (!phoneNumber || !UserModel) return false;
+  
+  const query = { phoneNumber };
+  if (excludeUserId) {
+    query._id = { $ne: excludeUserId };
+  }
+  
+  const existingUser = await UserModel.findOne(query);
+  return !!existingUser;
+};
+
 // Middleware to validate ObjectId in params
 const validateObjectIdParam = (paramName = 'id') => {
   return (req, res, next) => {
@@ -163,7 +187,9 @@ module.exports = {
   bookingSchema,
   productSchema,
   loanApplicationSchema,
+  phoneNumberSchema,
   validateObjectId,
   validateObjectIdParam,
-  validate
+  validate,
+  checkPhoneNumberExists
 };

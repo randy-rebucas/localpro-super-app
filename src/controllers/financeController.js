@@ -4,6 +4,7 @@ const EmailService = require('../services/emailService');
 const { Booking } = require('../models/Marketplace');
 const Referral = require('../models/Referral');
 const CloudinaryService = require('../services/cloudinaryService');
+const paymongoService = require('../services/paymongoService');
 
 // @desc    Get user's financial overview
 // @route   GET /api/finance/overview
@@ -987,6 +988,28 @@ const requestTopUp = async (req, res) => {
       requestedAt: new Date()
     };
 
+    // If PayMongo, create payment authorization
+    let paymongoResult;
+    if (paymentMethod === 'paymongo') {
+      try {
+        paymongoResult = await paymongoService.createAuthorization({
+          amount: Math.round(parseFloat(amount) * 100), // Convert to cents
+          currency: 'PHP',
+          description: `LocalPro Super App Top-Up by ${req.user.firstName} ${req.user.lastName}`,
+          clientId: req.user.id,
+          bookingId: `topup_${req.user.id}_${Date.now()}`
+        });
+
+        if (paymongoResult.success) {
+          topUpRequest.paymongoIntentId = paymongoResult.holdId;
+          topUpRequest.status = 'authorized'; // Mark as authorized pending capture
+        }
+      } catch (paymongoError) {
+        console.error('PayMongo top-up authorization error:', paymongoError);
+        // Fall back to manual approval
+      }
+    }
+
     finance.topUpRequests.push(topUpRequest);
     await finance.save();
 
@@ -1001,25 +1024,141 @@ const requestTopUp = async (req, res) => {
         amount: parseFloat(amount),
         paymentMethod,
         reference: reference || 'N/A',
-        receiptUrl: uploadResult.data.secure_url
+        receiptUrl: uploadResult.data.secure_url,
+        paymentStatus: paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId ? 'PayMongo authorized, awaiting capture' : 'Manual approval required'
       }
     });
 
     res.status(201).json({
       success: true,
-      message: 'Top-up request submitted successfully. Please wait for admin approval.',
+      message: paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId 
+        ? 'Top-up initiated with PayMongo. Please complete the payment.'
+        : 'Top-up request submitted successfully. Please wait for admin approval.',
       data: {
         topUpRequest: {
           _id: finance.topUpRequests[finance.topUpRequests.length - 1]._id,
           amount: topUpRequest.amount,
           paymentMethod: topUpRequest.paymentMethod,
           status: topUpRequest.status,
-          requestedAt: topUpRequest.requestedAt
+          requestedAt: topUpRequest.requestedAt,
+            paymongoDetails: paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId ? {
+              intentId: topUpRequest.paymongoIntentId,
+              clientSecret: paymongoResult?.clientSecret,
+              publishableKey: paymongoResult?.publishableKey
+            } : undefined
         }
       }
     });
   } catch (error) {
     console.error('Request top-up error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get all top-up requests (Admin only)
+// @route   GET /api/finance/top-ups
+// @access  Private (Admin only)
+const getTopUpRequests = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Build filter for top-up requests
+    const filter = {};
+    if (status) {
+      filter['topUpRequests.status'] = status;
+    }
+
+    // Find all finance records with top-up requests
+    const financeRecords = await Finance.find({
+      topUpRequests: { $exists: true, $ne: [] },
+      ...filter
+    })
+      .populate('user', 'firstName lastName email profile.avatar')
+      .select('user topUpRequests')
+      .lean();
+
+    // Extract and flatten top-up requests with user info
+    let allTopUpRequests = [];
+    financeRecords.forEach(finance => {
+      finance.topUpRequests.forEach(request => {
+        // Apply status filter if provided
+        if (!status || request.status === status) {
+          allTopUpRequests.push({
+            ...request,
+            user: finance.user
+          });
+        }
+      });
+    });
+
+    // Sort by requestedAt (newest first)
+    allTopUpRequests.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+
+    // Apply pagination
+    const total = allTopUpRequests.length;
+    const paginatedRequests = allTopUpRequests.slice(skip, skip + Number(limit));
+
+    res.status(200).json({
+      success: true,
+      count: paginatedRequests.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: paginatedRequests
+    });
+  } catch (error) {
+    console.error('Get top-up requests error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get user's top-up requests
+// @route   GET /api/finance/top-ups/my-requests
+// @access  Private
+const getMyTopUpRequests = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status } = req.query;
+    const skip = (page - 1) * limit;
+
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    // Filter top-up requests by status if provided
+    let topUpRequests = finance.topUpRequests;
+    if (status) {
+      topUpRequests = topUpRequests.filter(req => req.status === status);
+    }
+
+    // Sort by requestedAt (newest first)
+    topUpRequests.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+
+    // Apply pagination
+    const total = topUpRequests.length;
+    const paginatedRequests = topUpRequests.slice(skip, skip + Number(limit));
+
+    res.status(200).json({
+      success: true,
+      count: paginatedRequests.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: paginatedRequests
+    });
+  } catch (error) {
+    console.error('Get my top-up requests error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1086,6 +1225,20 @@ const processTopUp = async (req, res) => {
     topUpRequest.processedBy = req.user.id;
 
     if (status === 'approved') {
+      // Capture PayMongo payment if applicable
+      if (topUpRequest.paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId) {
+        try {
+          const captureResult = await paymongoService.capturePayment(topUpRequest.paymongoIntentId);
+          if (captureResult.success) {
+            topUpRequest.paymongoChargeId = captureResult.captureId;
+          } else {
+            console.error('PayMongo capture failed:', captureResult.message);
+          }
+        } catch (captureError) {
+          console.error('PayMongo capture error:', captureError);
+        }
+      }
+
       // Add transaction to user's account
       const transaction = {
         type: 'topup',
@@ -1097,7 +1250,9 @@ const processTopUp = async (req, res) => {
         timestamp: new Date(),
         reference: topUpRequest.reference,
         processedAt: new Date(),
-        processedBy: req.user.id
+        processedBy: req.user.id,
+        paymongoIntentId: topUpRequest.paymongoIntentId,
+        paymongoChargeId: topUpRequest.paymongoChargeId
       };
 
       finance.transactions.push(transaction);
@@ -1158,5 +1313,7 @@ module.exports = {
   getFinancialReports,
   updateWalletSettings,
   requestTopUp,
+  getTopUpRequests,
+  getMyTopUpRequests,
   processTopUp
 };

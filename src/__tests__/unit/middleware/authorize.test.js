@@ -74,7 +74,8 @@ describe('Authorize Middleware', () => {
       req.user = {
         id: 'user-id',
         roles: ['client'],
-        hasAnyRole: jest.fn().mockReturnValue(false)
+        hasAnyRole: jest.fn().mockReturnValue(false),
+        ensureAgency: jest.fn().mockResolvedValue(null)
       };
       const middleware = authorize(['admin']);
 
@@ -106,12 +107,14 @@ describe('Authorize Middleware', () => {
       req.user = {
         id: 'user-id',
         roles: ['client'],
-        agency: { agencyId }
+        agency: { agencyId },
+        ensureAgency: jest.fn().mockResolvedValue({ agencyId })
       };
       req.params.id = 'target-user-id';
       const targetUser = {
         _id: 'target-user-id',
-        agency: { agencyId }
+        agency: { agencyId },
+        ensureAgency: jest.fn().mockResolvedValue({ agencyId })
       };
       User.findById = jest.fn().mockResolvedValue(targetUser);
       const middleware = authorize(['admin'], { allowAgencyMembers: true });
@@ -126,12 +129,15 @@ describe('Authorize Middleware', () => {
       req.user = {
         id: 'admin-id',
         roles: ['agency_admin'],
-        agency: { agencyId: 'agency-123' }
+        agency: { agencyId: 'agency-123' },
+        hasRole: jest.fn().mockReturnValue(true),
+        ensureAgency: jest.fn().mockResolvedValue({ agencyId: 'agency-123' })
       };
       req.params.id = 'target-user-id';
       const targetUser = {
         _id: 'target-user-id',
-        agency: { agencyId: 'agency-123' }
+        agency: { agencyId: 'agency-123' },
+        ensureAgency: jest.fn().mockResolvedValue({ agencyId: 'agency-123' })
       };
       User.findById = jest.fn().mockResolvedValue(targetUser);
       const middleware = authorize(['agency_admin']);
@@ -146,12 +152,15 @@ describe('Authorize Middleware', () => {
       req.user = {
         id: 'admin-id',
         roles: ['agency_admin'],
-        agency: { agencyId: 'agency-123' }
+        agency: { agencyId: 'agency-123' },
+        hasRole: jest.fn().mockReturnValue(true),
+        ensureAgency: jest.fn().mockResolvedValue({ agencyId: 'agency-123' })
       };
       req.params.id = 'target-user-id';
       const targetUser = {
         _id: 'target-user-id',
-        agency: { agencyId: 'agency-456' }
+        agency: { agencyId: 'agency-456' },
+        ensureAgency: jest.fn().mockResolvedValue({ agencyId: 'agency-456' })
       };
       User.findById = jest.fn().mockResolvedValue(targetUser);
       const middleware = authorize(['agency_admin']);

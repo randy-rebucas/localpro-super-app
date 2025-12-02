@@ -37,9 +37,10 @@ Indexes: employee, employer, status
 - description: string
 - reference: string (required)
 - status: ['pending','completed','failed','cancelled']
-- paymentMethod: ['bank_transfer','mobile_money','card','cash','paypal','paymaya']
+- paymentMethod: ['bank_transfer','mobile_money','card','cash','paypal','paymaya','paymongo']
 - transactionId, externalReference, paypalOrderId, paypalTransactionId,
-  paymayaReferenceNumber, paymayaCheckoutId, paymayaPaymentId, paymayaInvoiceId, paymayaTransactionId
+  paymayaReferenceNumber, paymayaCheckoutId, paymayaPaymentId, paymayaInvoiceId, paymayaTransactionId,
+  paymongoIntentId, paymongoChargeId, paymongoPaymentId
 - metadata: Mixed
 - timestamps
 

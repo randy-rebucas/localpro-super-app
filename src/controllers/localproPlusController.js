@@ -2,6 +2,7 @@ const { SubscriptionPlan, UserSubscription, Payment } = require('../models/Local
 const User = require('../models/User');
 const PayPalService = require('../services/paypalService');
 const PayMayaService = require('../services/paymayaService');
+const paymongoService = require('../services/paymongoService');
 const EmailService = require('../services/emailService');
 
 // @desc    Get all LocalPro Plus plans
@@ -192,6 +193,14 @@ const subscribeToPlan = async (req, res) => {
         currency: currency === 'USD' ? 'PHP' : currency,
         description: `LocalPro Plus ${plan.name} subscription (${billingCycle})`
       });
+    } else if (paymentMethod === 'paymongo') {
+      paymentResult = await paymongoService.createAuthorization({
+        amount: Math.round(price * 100), // Convert to cents
+        currency: currency,
+        description: `LocalPro Plus ${plan.name} subscription (${billingCycle})`,
+        clientId: req.user.id,
+        bookingId: `sub_${req.user.id}_${Date.now()}`
+      });
     } else {
       return res.status(400).json({
         success: false,
@@ -217,7 +226,8 @@ const subscribeToPlan = async (req, res) => {
       paymentDetails: {
         paypalOrderId: paymentResult.data?.id,
         paymayaCheckoutId: paymentResult.data?.checkoutId,
-        lastPaymentId: paymentResult.data?.id,
+        paymongoIntentId: paymentResult.holdId,
+        lastPaymentId: paymentResult.data?.id || paymentResult.holdId,
         nextPaymentAmount: price
       },
       startDate: new Date(),

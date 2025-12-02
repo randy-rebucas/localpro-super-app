@@ -23,6 +23,14 @@ jest.mock('cloudinary', () => {
   };
 });
 
+jest.mock('multer-storage-cloudinary', () => {
+  return class MockCloudinaryStorage {
+    constructor(options) {
+      this.params = options.params;
+    }
+  };
+});
+
 const { cloudinary, uploaders, cloudinaryUtils, storageConfigs } = require('../../../config/cloudinary');
 
 describe('Cloudinary Configuration', () => {

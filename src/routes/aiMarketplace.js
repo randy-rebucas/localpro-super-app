@@ -7,12 +7,14 @@ const {
   reviewSentiment,
   bookingAssistant,
   descriptionGenerator,
+  generateDescriptionFromTitle,
   pricingOptimizer,
   demandForecast,
   reviewInsights,
   responseAssistant,
   listingOptimizer,
-  schedulingAssistant
+  schedulingAssistant,
+  formPrefiller
 } = require('../controllers/aiMarketplaceController');
 
 const router = express.Router();
@@ -50,6 +52,11 @@ router.post('/booking-assistant', bookingAssistant);
 // @access  AUTHENTICATED (Provider)
 router.post('/description-generator', authorize('provider', 'admin'), descriptionGenerator);
 
+// @route   POST /api/ai/marketplace/description-from-title
+// @desc    Generate service description from title only
+// @access  AUTHENTICATED
+router.post('/description-from-title', generateDescriptionFromTitle);
+
 // @route   POST /api/ai/marketplace/pricing-optimizer
 // @desc    Pricing optimization
 // @access  AUTHENTICATED (Provider)
@@ -79,6 +86,11 @@ router.post('/listing-optimizer', authorize('provider', 'admin'), listingOptimiz
 // @desc    Scheduling assistant
 // @access  AUTHENTICATED
 router.post('/scheduling-assistant', schedulingAssistant);
+
+// @route   POST /api/ai/marketplace/form-prefiller
+// @desc    Pre-fill marketplace service form fields using AI
+// @access  AUTHENTICATED
+router.post('/form-prefiller', formPrefiller);
 
 module.exports = router;
 

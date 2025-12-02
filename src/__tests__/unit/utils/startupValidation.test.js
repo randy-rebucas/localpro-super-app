@@ -1,3 +1,10 @@
+jest.mock('../../../utils/logger', () => ({
+  info: jest.fn(),
+  debug: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn()
+}));
+
 const { StartupValidator, createDefaultChecks } = require('../../../utils/startupValidation');
 
 describe('Startup Validation Utility', () => {

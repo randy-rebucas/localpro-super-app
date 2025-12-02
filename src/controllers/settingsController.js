@@ -1,6 +1,29 @@
 const UserSettings = require('../models/UserSettings');
 const AppSettings = require('../models/AppSettings');
 const { validationResult } = require('express-validator');
+const logger = require('../config/logger');
+
+// Simple in-memory cache for public app settings
+const publicSettingsCache = {
+  data: null,
+  timestamp: null,
+  TTL: 60000 // 60 seconds cache
+};
+
+// Helper function to check if cache is valid
+const isCacheValid = () => {
+  if (!publicSettingsCache.data || !publicSettingsCache.timestamp) {
+    return false;
+  }
+  return Date.now() - publicSettingsCache.timestamp < publicSettingsCache.TTL;
+};
+
+// Helper function to invalidate cache
+const invalidatePublicSettingsCache = () => {
+  publicSettingsCache.data = null;
+  publicSettingsCache.timestamp = null;
+  logger.debug('Public app settings cache invalidated');
+};
 
 // User Settings Controllers
 
@@ -268,6 +291,9 @@ const updateAppSettings = async (req, res) => {
     const updates = req.body;
     const appSettings = await AppSettings.updateAppSettings(updates);
     
+    // Invalidate cache when settings are updated
+    invalidatePublicSettingsCache();
+    
     res.status(200).json({
       success: true,
       message: 'App settings updated successfully',
@@ -320,6 +346,9 @@ const updateAppSettingsCategory = async (req, res) => {
     
     await appSettings.updateCategory(category, updates);
     
+    // Invalidate cache when settings are updated
+    invalidatePublicSettingsCache();
+    
     res.status(200).json({
       success: true,
       message: `${category} settings updated successfully`,
@@ -335,46 +364,177 @@ const updateAppSettingsCategory = async (req, res) => {
   }
 };
 
+// Helper function to create a timeout promise
+const createTimeout = (ms) => {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Request timeout')), ms);
+  });
+};
+
+// Helper function to get default public settings
+const getDefaultPublicSettings = () => ({
+  general: {
+    appName: process.env.APP_NAME || 'LocalPro',
+    appVersion: process.env.APP_VERSION || '1.0.0',
+    maintenanceMode: false
+  },
+  business: {
+    companyName: process.env.COMPANY_NAME || 'LocalPro',
+    supportChannels: {
+      email: process.env.SUPPORT_EMAIL || 'support@localpro.com',
+      phone: process.env.SUPPORT_PHONE || null
+    }
+  },
+  features: {
+    marketplace: { enabled: true },
+    academy: { enabled: true },
+    jobBoard: { enabled: true },
+    referrals: { enabled: true },
+    payments: { enabled: true },
+    analytics: { enabled: true }
+  },
+  uploads: {
+    maxFileSize: 5242880, // 5MB
+    allowedImageTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    allowedDocumentTypes: ['application/pdf', 'application/msword'],
+    maxImagesPerUpload: 5
+  },
+  payments: {
+    defaultCurrency: 'USD',
+    supportedCurrencies: ['USD', 'PHP'],
+    minimumPayout: 10
+  }
+});
+
 // Get public app settings (no auth required)
 const getPublicAppSettings = async (req, res) => {
+  const startTime = Date.now();
+  const TIMEOUT_MS = 5000; // 5 second timeout
+  
   try {
-    const appSettings = await AppSettings.getCurrentSettings();
+    // Check cache first
+    if (isCacheValid()) {
+      const duration = Date.now() - startTime;
+      logger.debug('Public app settings served from cache', {
+        duration,
+        endpoint: '/api/settings/app/public'
+      });
+      return res.status(200).json({
+        success: true,
+        data: publicSettingsCache.data,
+        cached: true,
+        fallback: false
+      });
+    }
+
+    // Check database connection first
+    const mongoose = require('mongoose');
+    if (!mongoose.connection || mongoose.connection.readyState !== 1) {
+      logger.warn('Database not connected, returning default settings', {
+        readyState: mongoose.connection?.readyState
+      });
+      const defaultSettings = getDefaultPublicSettings();
+      // Cache the defaults
+      publicSettingsCache.data = defaultSettings;
+      publicSettingsCache.timestamp = Date.now();
+      
+      return res.status(200).json({
+        success: true,
+        data: defaultSettings,
+        cached: false,
+        fallback: true
+      });
+    }
+
+    // Race between the database query and timeout
+    const appSettings = await Promise.race([
+      AppSettings.getCurrentSettings(),
+      createTimeout(TIMEOUT_MS)
+    ]);
     
     // Only return public settings
     const publicSettings = {
       general: {
-        appName: appSettings.general.appName,
-        appVersion: appSettings.general.appVersion,
-        maintenanceMode: appSettings.general.maintenanceMode
+        appName: appSettings.general?.appName || process.env.APP_NAME || 'LocalPro',
+        appVersion: appSettings.general?.appVersion || process.env.APP_VERSION || '1.0.0',
+        maintenanceMode: appSettings.general?.maintenanceMode || false
       },
       business: {
-        companyName: appSettings.business.companyName,
-        supportChannels: appSettings.business.supportChannels
+        companyName: appSettings.business?.companyName || process.env.COMPANY_NAME || 'LocalPro',
+        supportChannels: appSettings.business?.supportChannels || {
+          email: process.env.SUPPORT_EMAIL || 'support@localpro.com',
+          phone: process.env.SUPPORT_PHONE || null
+        }
       },
-      features: appSettings.features,
+      features: appSettings.features || getDefaultPublicSettings().features,
       uploads: {
-        maxFileSize: appSettings.uploads.maxFileSize,
-        allowedImageTypes: appSettings.uploads.allowedImageTypes,
-        allowedDocumentTypes: appSettings.uploads.allowedDocumentTypes,
-        maxImagesPerUpload: appSettings.uploads.maxImagesPerUpload
+        maxFileSize: appSettings.uploads?.maxFileSize || 5242880,
+        allowedImageTypes: appSettings.uploads?.allowedImageTypes || ['image/jpeg', 'image/png', 'image/webp'],
+        allowedDocumentTypes: appSettings.uploads?.allowedDocumentTypes || ['application/pdf', 'application/msword'],
+        maxImagesPerUpload: appSettings.uploads?.maxImagesPerUpload || 5
       },
       payments: {
-        defaultCurrency: appSettings.payments.defaultCurrency,
-        supportedCurrencies: appSettings.payments.supportedCurrencies,
-        minimumPayout: appSettings.payments.minimumPayout
+        defaultCurrency: appSettings.payments?.defaultCurrency || 'USD',
+        supportedCurrencies: appSettings.payments?.supportedCurrencies || ['USD', 'PHP'],
+        minimumPayout: appSettings.payments?.minimumPayout || 10
       }
     };
     
+    const duration = Date.now() - startTime;
+    logger.info('Public app settings retrieved successfully', {
+      duration,
+      endpoint: '/api/settings/app/public'
+    });
+    
+    // Update cache
+    publicSettingsCache.data = publicSettings;
+    publicSettingsCache.timestamp = Date.now();
+    
     res.status(200).json({
       success: true,
-      data: publicSettings
+      data: publicSettings,
+      cached: false,
+      fallback: false
     });
   } catch (error) {
-    console.error('Error getting public app settings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get public app settings',
-      error: error.message
+    const duration = Date.now() - startTime;
+    
+    // Check if it's a timeout error
+    if (error.message === 'Request timeout' || error.name === 'MongoServerSelectionError') {
+      logger.warn('Public app settings request timed out or database unavailable, returning defaults', {
+        error: error.message,
+        duration,
+        endpoint: '/api/settings/app/public'
+      });
+      
+      // Try to use cached data if available, otherwise use defaults
+      const fallbackData = publicSettingsCache.data || getDefaultPublicSettings();
+      
+      return res.status(200).json({
+        success: true,
+        data: fallbackData,
+        cached: !!publicSettingsCache.data,
+        fallback: true,
+        warning: 'Using cached/default settings due to database timeout'
+      });
+    }
+    
+    logger.error('Error getting public app settings', {
+      error: error.message,
+      stack: error.stack,
+      duration,
+      endpoint: '/api/settings/app/public'
+    });
+    
+    // On any other error, try cached data first, then defaults
+    const fallbackData = publicSettingsCache.data || getDefaultPublicSettings();
+    
+    res.status(200).json({
+      success: true,
+      data: fallbackData,
+      cached: !!publicSettingsCache.data,
+      fallback: true,
+      warning: 'Using cached/default settings due to error'
     });
   }
 };
@@ -406,6 +566,9 @@ const toggleFeatureFlag = async (req, res) => {
     // Find and update the feature flag
     const featurePath = `features.${feature}.enabled`;
     await appSettings.setSetting(featurePath, enabled);
+    
+    // Invalidate cache when settings are updated
+    invalidatePublicSettingsCache();
     
     res.status(200).json({
       success: true,

@@ -745,6 +745,279 @@ const schedulingAssistant = async (req, res) => {
   }
 };
 
+// @desc    Generate service description from title
+// @route   POST /api/ai/marketplace/description-from-title
+// @access  AUTHENTICATED
+const generateDescriptionFromTitle = async (req, res) => {
+  try {
+    const { title, options } = req.body;
+
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Service title is required'
+      });
+    }
+
+    // Validate options if provided
+    const validOptions = {};
+    if (options) {
+      if (options.length && ['short', 'medium', 'long'].includes(options.length)) {
+        validOptions.length = options.length;
+      }
+      if (options.tone && ['professional', 'friendly', 'casual'].includes(options.tone)) {
+        validOptions.tone = options.tone;
+      }
+      if (typeof options.includeFeatures === 'boolean') {
+        validOptions.includeFeatures = options.includeFeatures;
+      }
+      if (typeof options.includeBenefits === 'boolean') {
+        validOptions.includeBenefits = options.includeBenefits;
+      }
+    }
+
+    // Generate description using AI
+    logger.info('Generating description from title', {
+      title: title.trim(),
+      options: validOptions,
+      userId: req.user.id
+    });
+    
+    const aiResponse = await aiService.generateDescriptionFromTitle(title.trim(), validOptions);
+    
+    // Debug: Log AI response structure
+    logger.info('AI Response received', {
+      hasParsed: !!aiResponse.parsed,
+      hasContent: !!aiResponse.content,
+      hasUsage: !!aiResponse.usage,
+      hasDebug: !!aiResponse.debug,
+      success: aiResponse.success,
+      parsedKeys: aiResponse.parsed ? Object.keys(aiResponse.parsed) : [],
+      debugInfo: aiResponse.debug || {}
+    });
+    
+    // Safely extract result with proper fallbacks
+    let result = {};
+    if (aiResponse.parsed) {
+      result = aiResponse.parsed;
+      logger.info('Using parsed result', {
+        hasDescription: !!result.description,
+        descriptionType: typeof result.description,
+        descriptionLength: result.description?.length || 0
+      });
+    } else if (aiResponse.content) {
+      // If parsed failed but we have content, use it as description
+      logger.warn('Using content as fallback (parsed not available)', {
+        contentLength: aiResponse.content.length,
+        contentPreview: aiResponse.content.substring(0, 100)
+      });
+      result = {
+        description: aiResponse.content,
+        keyFeatures: [],
+        benefits: [],
+        tags: [],
+        wordCount: 0
+      };
+    } else {
+      // Fallback if nothing is available
+      logger.error('No parsed or content available in AI response', {
+        aiResponseKeys: Object.keys(aiResponse),
+        aiResponse: JSON.stringify(aiResponse).substring(0, 500)
+      });
+      result = {
+        description: 'Unable to generate description at this time.',
+        keyFeatures: [],
+        benefits: [],
+        tags: [],
+        wordCount: 0
+      };
+    }
+
+    // Ensure description is a string and not empty
+    logger.info('Processing result description', {
+      descriptionExists: !!result.description,
+      descriptionType: typeof result.description,
+      descriptionValue: result.description ? String(result.description).substring(0, 100) : 'undefined'
+    });
+    
+    if (!result.description || typeof result.description !== 'string') {
+      logger.warn('Description is not a string, converting', {
+        originalType: typeof result.description,
+        originalValue: result.description
+      });
+      
+      if (result.description && typeof result.description === 'object') {
+        result.description = JSON.stringify(result.description);
+      } else {
+        result.description = result.description ? String(result.description) : 'Unable to generate description at this time.';
+      }
+    }
+
+    // Ensure description is not empty
+    if (result.description.trim().length === 0) {
+      logger.warn('Description is empty after processing, using fallback');
+      result.description = 'Unable to generate description at this time.';
+    }
+
+    // Calculate word count if not provided or invalid
+    if (!result.wordCount || result.wordCount === 0) {
+      if (result.description && typeof result.description === 'string') {
+        const words = result.description.trim().split(/\s+/).filter(word => word.length > 0);
+        result.wordCount = words.length;
+        logger.info('Calculated word count', { wordCount: result.wordCount });
+      } else {
+        result.wordCount = 0;
+        logger.warn('Could not calculate word count, description is not a string');
+      }
+    }
+
+    // Check if debug mode is requested
+    const includeDebug = req.query.debug === 'true' || req.body.debug === true;
+
+    logger.info('Service description generated from title', {
+      title: title.trim(),
+      wordCount: result.wordCount,
+      descriptionLength: result.description.length,
+      generatedBy: req.user.id,
+      hasKeyFeatures: Array.isArray(result.keyFeatures),
+      keyFeaturesCount: result.keyFeatures?.length || 0,
+      hasBenefits: Array.isArray(result.benefits),
+      benefitsCount: result.benefits?.length || 0
+    });
+
+    const responseData = {
+      title: title.trim(),
+      description: result.description,
+      keyFeatures: result.keyFeatures || [],
+      benefits: result.benefits || [],
+      tags: result.tags || [],
+      wordCount: result.wordCount,
+      options: validOptions,
+      usage: aiResponse.usage
+    };
+
+    // Include debug information if requested
+    if (includeDebug) {
+      responseData.debug = {
+        aiResponse: {
+          hasParsed: !!aiResponse.parsed,
+          hasContent: !!aiResponse.content,
+          success: aiResponse.success,
+          contentPreview: aiResponse.content?.substring(0, 500) || null,
+          parsedKeys: aiResponse.parsed ? Object.keys(aiResponse.parsed) : []
+        },
+        processing: {
+          resultKeys: Object.keys(result),
+          descriptionType: typeof result.description,
+          descriptionLength: result.description?.length || 0
+        },
+        debugInfo: aiResponse.debug || {}
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Description generated successfully',
+      data: responseData
+    });
+  } catch (error) {
+    logger.error('Description from title generator error', {
+      error: error.message,
+      stack: error.stack,
+      title: req.body.title
+    });
+    return sendServerError(res, error, 'Failed to generate description', 'DESCRIPTION_GENERATOR_ERROR');
+  }
+};
+
+// @desc    Form pre-filler for marketplace service forms
+// @route   POST /api/ai/marketplace/form-prefiller
+// @access  AUTHENTICATED
+const formPrefiller = async (req, res) => {
+  try {
+    const { input, context } = req.body;
+    const userId = req.user.id;
+
+    if (!input || typeof input !== 'string' || input.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Input text is required for form pre-filling'
+      });
+    }
+
+    // Get user context if available
+    let userContext = {};
+    if (userId) {
+      const User = require('../models/User');
+      const user = await User.findById(userId)
+        .select('profile.serviceAreas profile.specialties profile.businessName profile.businessType')
+        .lean();
+      
+      if (user) {
+        userContext = {
+          serviceAreas: user.profile?.serviceAreas || [],
+          specialties: user.profile?.specialties || [],
+          businessName: user.profile?.businessName,
+          businessType: user.profile?.businessType
+        };
+      }
+    }
+
+    // Merge user context with provided context
+    const enrichedContext = {
+      ...context,
+      user: userContext
+    };
+
+    // Get market data for price suggestions if category can be inferred
+    const aiResponse = await aiService.prefillForm(input, enrichedContext);
+    const suggestions = aiResponse.parsed || {};
+
+    // If category is suggested, get market pricing data
+    if (suggestions.category && suggestions.pricing?.basePrice === 0) {
+      const marketFilter = { 
+        isActive: true,
+        category: suggestions.category 
+      };
+      
+      const similarServices = await Service.find(marketFilter)
+        .select('pricing.basePrice')
+        .limit(20)
+        .lean();
+
+      if (similarServices.length > 0) {
+        const avgPrice = similarServices.reduce((sum, s) => sum + (s.pricing?.basePrice || 0), 0) / similarServices.length;
+        if (!suggestions.pricing) {
+          suggestions.pricing = {};
+        }
+        if (suggestions.pricing.basePrice === 0) {
+          suggestions.pricing.basePrice = Math.round(avgPrice);
+        }
+        suggestions.marketAverage = avgPrice;
+      }
+    }
+
+    logger.info('Form pre-filled successfully', {
+      userId,
+      category: suggestions.category,
+      confidence: suggestions.confidence
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Form pre-filled successfully',
+      data: {
+        suggestions,
+        input,
+        usage: aiResponse.usage
+      }
+    });
+  } catch (error) {
+    logger.error('Form pre-filler error', error);
+    return sendServerError(res, error, 'Failed to pre-fill form', 'FORM_PREFILLER_ERROR');
+  }
+};
+
 module.exports = {
   aiNaturalLanguageSearch,
   priceEstimator,
@@ -752,11 +1025,13 @@ module.exports = {
   reviewSentiment,
   bookingAssistant,
   descriptionGenerator,
+  generateDescriptionFromTitle,
   pricingOptimizer,
   demandForecast,
   reviewInsights,
   responseAssistant,
   listingOptimizer,
-  schedulingAssistant
+  schedulingAssistant,
+  formPrefiller
 };
 

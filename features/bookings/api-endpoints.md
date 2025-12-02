@@ -912,6 +912,75 @@ Get details of a PayPal order.
 }
 ```
 
+### Confirm PayMongo Booking Payment
+**POST** `/api/marketplace/bookings/paymongo/confirm`
+**Access**: Private
+
+Confirm PayMongo payment for a booking (after client-side payment confirmation).
+
+#### Request Body
+```json
+{
+  "bookingId": "64a1b2c3d4e5f6789012347",
+  "paymentIntentId": "pi_xxx_secret_xxx",
+  "paymentMethodId": "pm_xxx"
+}
+```
+
+#### Response Format
+```json
+{
+  "success": true,
+  "message": "Booking confirmed with PayMongo payment",
+  "data": {
+    "booking": {
+      "_id": "64a1b2c3d4e5f6789012347",
+      "service": {
+        "_id": "64a1b2c3d4e5f6789012345",
+        "title": "Professional House Cleaning"
+      },
+      "payment": {
+        "status": "paid",
+        "method": "paymongo",
+        "paymongoIntentId": "pi_xxx",
+        "paymongoChargeId": "charge_xxx",
+        "paidAt": "2024-01-15T10:35:00Z"
+      }
+    }
+  }
+}
+```
+
+### Get PayMongo Payment Intent
+**GET** `/api/marketplace/bookings/paymongo/intent/:intentId`
+**Access**: Private
+
+Get details of a PayMongo payment intent for a booking.
+
+#### Response Format
+```json
+{
+  "success": true,
+  "data": {
+    "paymentIntent": {
+      "id": "pi_xxx",
+      "status": "succeeded",
+      "amount": 7500,
+      "currency": "PHP",
+      "charges": {
+        "data": [
+          {
+            "id": "charge_xxx",
+            "status": "succeeded",
+            "amount": 7500
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
 ## ❌ Error Responses
 
 ### Standard Error Format

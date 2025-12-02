@@ -13,6 +13,8 @@ const {
   getFinancialReports,
   updateWalletSettings,
   requestTopUp,
+  getTopUpRequests,
+  getMyTopUpRequests,
   processTopUp
 } = require('../controllers/financeController');
 
@@ -59,6 +61,8 @@ router.put('/wallet/settings', updateWalletSettings);
 
 // Top-up management
 router.post('/top-up', upload.single('receipt'), requestTopUp);
+router.get('/top-ups', authorize('admin'), getTopUpRequests); // [ADMIN ONLY]
+router.get('/top-ups/my-requests', getMyTopUpRequests);
 router.put('/top-ups/:topUpId/process', authorize('admin'), processTopUp); // [ADMIN ONLY]
 
 module.exports = router;

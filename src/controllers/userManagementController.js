@@ -506,6 +506,35 @@ const updateUser = async (req, res) => {
       delete updateData.profile; // Remove from updateData to avoid overwriting
     }
 
+    // Validate phoneNumber uniqueness if being updated
+    if (updateData.phoneNumber !== undefined && updateData.phoneNumber !== user.phoneNumber) {
+      const existingUser = await User.findOne({ 
+        phoneNumber: updateData.phoneNumber,
+        _id: { $ne: id }
+      });
+      
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'This phone number is already registered. Phone numbers must be unique across the system.',
+          code: 'PHONE_NUMBER_ALREADY_EXISTS'
+        });
+      }
+      
+      // Validate phone number format
+      const phoneRegex = /^\+[1-9]\d{4,14}$/;
+      if (!phoneRegex.test(updateData.phoneNumber)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid phone number format. Please use international format (e.g., +1234567890)',
+          code: 'INVALID_PHONE_FORMAT'
+        });
+      }
+      
+      user.phoneNumber = updateData.phoneNumber.trim();
+      delete updateData.phoneNumber;
+    }
+
     // Handle gender and birthdate explicitly
     if (updateData.gender !== undefined) {
       // Validate gender enum value

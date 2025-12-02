@@ -30,10 +30,17 @@ describe('AIService', () => {
       
       expect(result).toEqual({
         success: true,
-        content: JSON.stringify({}),
+        content: expect.any(String),
         usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
       });
       expect(logger.warn).toHaveBeenCalled();
+      
+      // Verify the content is a valid JSON string
+      const parsedContent = JSON.parse(result.content);
+      expect(parsedContent).toHaveProperty('description');
+      expect(parsedContent).toHaveProperty('keyFeatures');
+      expect(parsedContent).toHaveProperty('benefits');
+      expect(parsedContent).toHaveProperty('tags');
     });
   });
 
@@ -43,8 +50,12 @@ describe('AIService', () => {
       const result = await aiService.makeAICall('test prompt');
       
       expect(result.success).toBe(true);
-      expect(result.content).toBe(JSON.stringify({}));
+      expect(typeof result.content).toBe('string');
       expect(axios.post).not.toHaveBeenCalled();
+      
+      // Verify the content is a valid JSON string
+      const parsedContent = JSON.parse(result.content);
+      expect(parsedContent).toHaveProperty('description');
     });
 
     test('should return fallback response (service initialized without API key)', async () => {
@@ -53,7 +64,11 @@ describe('AIService', () => {
       const result = await aiService.makeAICall('test prompt');
       
       expect(result.success).toBe(true);
-      expect(result.content).toBe(JSON.stringify({}));
+      expect(typeof result.content).toBe('string');
+      
+      // Verify the content is a valid JSON string
+      const parsedContent = JSON.parse(result.content);
+      expect(parsedContent).toHaveProperty('description');
     });
   });
 
