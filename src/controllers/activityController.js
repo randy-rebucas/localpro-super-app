@@ -8,18 +8,18 @@ const getActivityFeed = async (req, res) => {
     const {
       page = 1,
       limit = 20,
-      types = [],
-      categories = [],
+      types,
+      categories,
       visibility = 'public',
-      includeOwn = true,
+      includeOwn = 'true',
       timeframe = '7d'
     } = req.query;
 
     const options = {
       page: parseInt(page),
       limit: Math.min(parseInt(limit), 100),
-      types: types ? types.split(',') : [],
-      categories: categories ? categories.split(',') : [],
+      types: types && typeof types === 'string' ? types.split(',').filter(Boolean) : [],
+      categories: categories && typeof categories === 'string' ? categories.split(',').filter(Boolean) : [],
       visibility,
       includeOwn: includeOwn === 'true',
       timeframe
@@ -62,9 +62,17 @@ const getActivityFeed = async (req, res) => {
       query: req.query
     });
     
+    // Log full error details to console for debugging
+    console.error('Activity feed error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve activity feed'
+      message: 'Failed to retrieve activity feed',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -76,16 +84,16 @@ const getUserActivities = async (req, res) => {
     const {
       page = 1,
       limit = 20,
-      types = [],
-      categories = [],
+      types,
+      categories,
       timeframe = '30d'
     } = req.query;
 
     const options = {
       page: parseInt(page),
       limit: Math.min(parseInt(limit), 100),
-      types: types ? types.split(',') : [],
-      categories: categories ? categories.split(',') : [],
+      types: types && typeof types === 'string' ? types.split(',').filter(Boolean) : [],
+      categories: categories && typeof categories === 'string' ? categories.split(',').filter(Boolean) : [],
       timeframe
     };
 
@@ -137,8 +145,8 @@ const getSpecificUserActivities = async (req, res) => {
     const {
       page = 1,
       limit = 20,
-      types = [],
-      categories = [],
+      types,
+      categories,
       timeframe = '30d'
     } = req.query;
 
@@ -184,8 +192,8 @@ const getSpecificUserActivities = async (req, res) => {
     const options = {
       page: parseInt(page),
       limit: Math.min(parseInt(limit), 100),
-      types: types ? types.split(',') : [],
-      categories: categories ? categories.split(',') : [],
+      types: types && typeof types === 'string' ? types.split(',').filter(Boolean) : [],
+      categories: categories && typeof categories === 'string' ? categories.split(',').filter(Boolean) : [],
       timeframe
     };
 

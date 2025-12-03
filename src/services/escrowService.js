@@ -4,7 +4,7 @@ const EscrowTransaction = require('../models/EscrowTransaction');
 const User = require('../models/User');
 const logger = require('../config/logger');
 const EmailService = require('./emailService');
-const axios = require('axios');
+// const axios = require('axios'); // Available for direct API calls
 const paymongoService = require('./paymongoService');
 
 class EscrowService {
@@ -356,7 +356,7 @@ class EscrowService {
   /**
    * Complete payout (called from webhook)
    */
-  async completePayout(payoutId, gatewayData) {
+  async completePayout(payoutId, _gatewayData) {
     try {
       const payout = await Payout.findById(payoutId);
 
@@ -661,7 +661,7 @@ class EscrowService {
   /**
    * Create payment hold (integrate with actual gateway)
    */
-  async createPaymentHold({ amount, currency, holdProvider, clientId, bookingId }) {
+  async createPaymentHold({ amount, currency, holdProvider, clientId, _bookingId }) {
     try {
       // This is a placeholder - integrate with actual payment gateway
       // For now, return mock response
@@ -726,7 +726,7 @@ class EscrowService {
   /**
    * Initiate payout to provider (integrate with actual gateway)
    */
-  async initiatePayoutGateway({ amount, currency, provider, payoutMethod, providerId, escrowId, reference }) {
+  async initiatePayoutGateway({ amount, currency, provider, payoutMethod, providerId, _escrowId, reference }) {
     try {
       switch (provider) {
         case 'xendit':
@@ -770,7 +770,7 @@ class EscrowService {
     }
   }
 
-  async paymongoCapture(holdId, amount, currency) {
+  async paymongoCapture(holdId, _amount, _currency) {
     try {
       const result = await paymongoService.capturePayment(holdId);
 
@@ -808,44 +808,44 @@ class EscrowService {
     }
   }
 
-  async xenditCreateHold(amount, currency, clientId) {
+  async xenditCreateHold(_amount, _currency, _clientId) {
     // TODO: Implement Xendit integration
     logger.info('Xendit hold creation (placeholder)');
     return { success: true, holdId: `xdt_hold_${Date.now()}` };
   }
 
-  async xenditCapture(holdId, amount, currency) {
+  async xenditCapture(_holdId, _amount, _currency) {
     logger.info('Xendit capture (placeholder)');
     return { success: true, captureId: `xdt_capture_${Date.now()}` };
   }
 
-  async xenditRelease(holdId) {
+  async xenditRelease(_holdId) {
     logger.info('Xendit release (placeholder)');
     return { success: true, releaseId: `xdt_release_${Date.now()}` };
   }
 
-  async xenditInitiatePayout(amount, currency, payoutMethod, providerId, reference) {
+  async xenditInitiatePayout(_amount, _currency, _payoutMethod, _providerId, _reference) {
     logger.info('Xendit payout initiation (placeholder)');
     return { success: true, payoutId: `xdt_payout_${Date.now()}` };
   }
 
-  async stripeCreateHold(amount, currency, clientId) {
+  async stripeCreateHold(_amount, _currency, _clientId) {
     // TODO: Implement Stripe integration
     logger.info('Stripe hold creation (placeholder)');
     return { success: true, holdId: `stripe_hold_${Date.now()}` };
   }
 
-  async stripeCapture(holdId, amount, currency) {
+  async stripeCapture(_holdId, _amount, _currency) {
     logger.info('Stripe capture (placeholder)');
     return { success: true, captureId: `stripe_capture_${Date.now()}` };
   }
 
-  async stripeRelease(holdId) {
+  async stripeRelease(_holdId) {
     logger.info('Stripe release (placeholder)');
     return { success: true, releaseId: `stripe_release_${Date.now()}` };
   }
 
-  async stripeInitiatePayout(amount, currency, payoutMethod, providerId, reference) {
+  async stripeInitiatePayout(_amount, _currency, _payoutMethod, _providerId, _reference) {
     logger.info('Stripe payout initiation (placeholder)');
     return { success: true, payoutId: `stripe_payout_${Date.now()}` };
   }

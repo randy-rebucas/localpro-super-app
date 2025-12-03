@@ -478,6 +478,239 @@ class AIService {
   }
 
   /**
+   * Generate supply description from name, category, and subcategory
+   * NOTE: This method requires actual AI API - no mock/fallback data
+   */
+  async generateSupplyDescriptionFromName(supplyName, options = {}) {
+    // Check if API key is configured - no mock data for supplies
+    if (!this.apiKey) {
+      logger.error('AI Supply Description Generation - API key not configured');
+      return {
+        success: false,
+        error: 'AI service not configured. Please set OPENAI_API_KEY environment variable.',
+        code: 'AI_NOT_CONFIGURED'
+      };
+    }
+
+    const systemPrompt = `You are a professional copywriter for a supplies and products marketplace.
+    Create compelling, accurate product descriptions based on the supply name, category, and subcategory.
+    Generate descriptions that are professional, engaging, and highlight the product's features, benefits, and typical use cases.`;
+    
+    const {
+      length = 'medium', // short (50-100 words), medium (100-200 words), long (200-300 words)
+      tone = 'professional', // professional, friendly, casual
+      includeFeatures = true,
+      includeBenefits = true,
+      category = null, // cleaning_supplies, tools, materials, equipment
+      subcategory = null
+    } = options;
+
+    const lengthMap = {
+      short: '50-100 words',
+      medium: '100-200 words',
+      long: '200-300 words'
+    };
+
+    const categoryDescriptions = {
+      cleaning_supplies: 'cleaning products and supplies',
+      tools: 'professional tools',
+      materials: 'construction and building materials',
+      equipment: 'professional equipment'
+    };
+
+    let prompt = `Supply/Product Name: "${supplyName}"\n\n`;
+    
+    if (category) {
+      prompt += `Category: ${categoryDescriptions[category] || category}\n`;
+    }
+    
+    if (subcategory) {
+      prompt += `Subcategory: ${subcategory}\n`;
+    }
+    
+    prompt += `\nGenerate a ${tone} product description (${lengthMap[length] || '100-200 words'}) that:\n`;
+    prompt += `- Accurately describes what the product is and its purpose\n`;
+    prompt += `- Highlights the product's quality and reliability\n`;
+    if (includeFeatures) {
+      prompt += `- Lists key features and specifications\n`;
+    }
+    if (includeBenefits) {
+      prompt += `- Mentions benefits and value proposition for buyers\n`;
+    }
+    prompt += `- Includes relevant keywords for searchability\n`;
+    prompt += `- Is engaging and professional\n`;
+    prompt += `- Helps potential buyers understand what they'll receive\n`;
+    prompt += `- Mentions typical use cases and applications\n\n`;
+    prompt += `Return JSON with:\n`;
+    prompt += `- description: string (the generated description)\n`;
+    prompt += `- keyFeatures: array of strings (3-5 key features)\n`;
+    prompt += `- benefits: array of strings (2-4 main benefits)\n`;
+    prompt += `- useCases: array of strings (2-4 typical use cases)\n`;
+    prompt += `- suggestedTags: array of strings (relevant keywords/tags)\n`;
+    prompt += `- suggestedTitle: string (a compelling product title)\n`;
+    prompt += `- wordCount: number`;
+    
+    const maxTokens = length === 'long' ? 700 : length === 'short' ? 250 : 500;
+    
+    logger.info('AI Supply Description Generation - Request', {
+      supplyName,
+      category,
+      subcategory,
+      options,
+      maxTokens,
+      promptLength: prompt.length
+    });
+    
+    // Make direct API call without fallback to mock data
+    try {
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ];
+
+      const requestConfig = {
+        model: this.model,
+        messages,
+        temperature: 0.7,
+        max_tokens: maxTokens
+      };
+
+      const requestUrl = `${this.baseURL}/chat/completions`;
+
+      const apiResponse = await axios.post(
+        requestUrl,
+        requestConfig,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        }
+      );
+
+      if (!apiResponse.data || !apiResponse.data.choices || !apiResponse.data.choices[0]) {
+        logger.error('AI Supply Description Generation - Invalid API response structure');
+        return {
+          success: false,
+          error: 'Invalid response from AI service',
+          code: 'AI_INVALID_RESPONSE'
+        };
+      }
+
+      const response = {
+        success: true,
+        content: apiResponse.data.choices[0].message.content,
+        usage: apiResponse.data.usage
+      };
+    
+      // Debug: Log raw response
+      logger.info('AI Supply Description Generation - Raw Response', {
+        hasContent: !!response.content,
+        contentLength: response.content?.length || 0,
+        contentPreview: response.content?.substring(0, 200) || 'No content',
+        hasUsage: !!response.usage,
+        success: response.success
+      });
+      
+      // Try to extract JSON from response (handle markdown code blocks)
+      let contentToParse = response.content || '';
+      
+      // Remove markdown code blocks if present
+      if (contentToParse.includes('```json')) {
+        contentToParse = contentToParse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      } else if (contentToParse.includes('```')) {
+        contentToParse = contentToParse.replace(/```\n?/g, '').trim();
+      }
+      
+      const parsed = JSON.parse(contentToParse);
+      
+      // Debug: Log parsed result
+      logger.info('AI Supply Description Generation - Parsed Successfully', {
+        hasDescription: !!parsed.description,
+        descriptionLength: parsed.description?.length || 0,
+        hasKeyFeatures: Array.isArray(parsed.keyFeatures),
+        keyFeaturesCount: parsed.keyFeatures?.length || 0,
+        hasBenefits: Array.isArray(parsed.benefits),
+        benefitsCount: parsed.benefits?.length || 0,
+        hasUseCases: Array.isArray(parsed.useCases),
+        useCasesCount: parsed.useCases?.length || 0,
+        hasSuggestedTags: Array.isArray(parsed.suggestedTags),
+        suggestedTagsCount: parsed.suggestedTags?.length || 0,
+        hasSuggestedTitle: !!parsed.suggestedTitle,
+        wordCount: parsed.wordCount
+      });
+      
+      // Ensure parsed object has required fields
+      if (!parsed.description) {
+        logger.warn('AI Supply Description Generation - Missing description in parsed response', {
+          parsedKeys: Object.keys(parsed),
+          rawContent: response.content?.substring(0, 500)
+        });
+        parsed.description = response.content;
+      }
+      
+      return {
+        ...response,
+        parsed: parsed,
+        debug: {
+          rawContentLength: response.content?.length || 0,
+          parsedSuccessfully: true,
+          parseMethod: 'json_parse'
+        }
+      };
+    } catch (error) {
+      // Log detailed error information
+      const errorDetails = {
+        errorType: error.name || 'Unknown',
+        errorMessage: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      };
+
+      if (error.response?.status === 401) {
+        logger.error('AI Supply Description Generation - Authentication failed (401)', errorDetails);
+        return {
+          success: false,
+          error: 'AI service authentication failed. Please check your API key.',
+          code: 'AI_AUTH_FAILED'
+        };
+      } else if (error.response?.status === 429) {
+        logger.error('AI Supply Description Generation - Rate limit exceeded (429)', errorDetails);
+        return {
+          success: false,
+          error: 'AI service rate limit exceeded. Please try again later.',
+          code: 'AI_RATE_LIMITED'
+        };
+      } else if (error.response?.status >= 500) {
+        logger.error('AI Supply Description Generation - Server error', errorDetails);
+        return {
+          success: false,
+          error: 'AI service is temporarily unavailable. Please try again later.',
+          code: 'AI_SERVICE_ERROR'
+        };
+      } else if (error.name === 'SyntaxError') {
+        // JSON parsing failed - return raw content
+        logger.warn('AI Supply Description Generation - JSON Parse Failed', {
+          error: error.message
+        });
+        return {
+          success: false,
+          error: 'Failed to parse AI response',
+          code: 'AI_PARSE_ERROR'
+        };
+      }
+
+      logger.error('AI Supply Description Generation - Unexpected error', errorDetails);
+      return {
+        success: false,
+        error: 'Failed to generate description. Please try again.',
+        code: 'AI_ERROR'
+      };
+    }
+  }
+
+  /**
    * Generate rental description from name
    */
   async generateRentalDescriptionFromName(rentalName, options = {}) {

@@ -293,7 +293,7 @@ activitySchema.pre('save', function(next) {
 });
 
 // Static methods
-activitySchema.statics.getActivityFeed = function(userId, options = {}) {
+activitySchema.statics.getActivityFeed = async function(userId, options = {}) {
   const {
     page = 1,
     limit = 20,
@@ -323,42 +323,52 @@ activitySchema.statics.getActivityFeed = function(userId, options = {}) {
     query.createdAt = { $gte: cutoff };
   }
 
-  // Visibility filter
-  if (visibility === 'public') {
-    query.visibility = 'public';
-  } else if (visibility === 'connections') {
-    query.$or = [
-      { visibility: 'public' },
-      { visibility: 'connections' }
-    ];
-  }
-
   // Type and category filters
-  if (types.length > 0) {
+  if (types && types.length > 0) {
     query.type = { $in: types };
   }
-  if (categories.length > 0) {
+  if (categories && categories.length > 0) {
     query.category = { $in: categories };
   }
 
-  // User filter
-  if (includeOwn) {
-    query.$or = [
-      { user: userId },
-      { visibility: 'public' }
-    ];
-  } else {
+  // Build visibility and user filter together to avoid $or conflicts
+  const visibilityConditions = [];
+
+  // Include user's own activities if requested
+  if (includeOwn && userId) {
+    visibilityConditions.push({ user: userId });
+  }
+
+  // Add visibility-based conditions
+  if (visibility === 'public') {
+    visibilityConditions.push({ visibility: 'public' });
+  } else if (visibility === 'connections') {
+    visibilityConditions.push({ visibility: 'public' });
+    visibilityConditions.push({ visibility: 'connections' });
+  }
+
+  // Apply the combined $or condition
+  if (visibilityConditions.length > 0) {
+    query.$or = visibilityConditions;
+  }
+
+  // If not including own and explicit exclusion needed
+  if (!includeOwn && userId) {
     query.user = { $ne: userId };
   }
 
-  return this.find(query)
-    .populate('user', 'firstName lastName email avatar role')
-    .populate('targetEntity.id')
-    .populate('relatedEntities.id')
-    .sort({ createdAt: -1 })
-    .limit(limit * 1)
-    .skip((page - 1) * limit)
-    .lean();
+  try {
+    return await this.find(query)
+      .populate('user', 'firstName lastName email avatar role')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .lean();
+  } catch (error) {
+    // Log error details for debugging
+    console.error('Activity.getActivityFeed error:', error.message);
+    throw error;
+  }
 };
 
 activitySchema.statics.getUserActivities = function(userId, options = {}) {

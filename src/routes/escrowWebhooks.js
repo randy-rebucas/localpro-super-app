@@ -1,7 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const escrowService = require('../services/escrowService');
-const paymongoService = require('../services/paymongoService');
+// const paymongoService = require('../services/paymongoService'); // Available for future PayMongo webhook handling
 const Payout = require('../models/Payout');
 const Escrow = require('../models/Escrow');
 const logger = require('../config/logger');
@@ -194,7 +194,7 @@ const handlePaymongoPaymentEvent = async (req, res) => {
 const handlePaymongoPaymentFailed = async (data) => {
   try {
     const intentId = data.id;
-    const { charges } = data.attributes;
+    // const { charges } = data.attributes; // Available for detailed charge analysis
 
     logger.warn('PayMongo payment failed', {
       intentId,
@@ -319,7 +319,7 @@ const handleXenditPaymentEvent = async (req, res) => {
 
     // Handle authorization events
     if (event === 'xendit_auth.authorization_success') {
-      const { id, status, reference_id } = data;
+      const { id, reference_id } = data;
       logger.info(`Authorization success: ${id}, Reference: ${reference_id}`);
     }
 
@@ -345,7 +345,7 @@ const handleXenditPaymentEvent = async (req, res) => {
  */
 const handleStripePaymentEvent = async (req, res) => {
   try {
-    const { type, data } = req.body;
+    const { type } = req.body;
 
     logger.info(`Stripe webhook received: ${type}`);
 
@@ -392,7 +392,7 @@ const handleXenditPayoutEvent = async (req, res) => {
 
     logger.info(`Xendit payout webhook received: ${event}`);
 
-    const { id, status, reference_id } = data;
+    const { id } = data;
 
     // Handle payout completion
     if (event === 'disbursement_succeeded') {

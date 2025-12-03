@@ -29,9 +29,9 @@ class PayMongoService {
         currency,
         description,
         clientId,
-        bookingId,
-        returnUrl,
-        paymentMethod
+        bookingId
+        // returnUrl, // Available for redirect-based payment flows
+        // paymentMethod // Available for specifying payment method type
       } = paymentData;
 
       logger.info('Creating PayMongo authorization', {
@@ -91,7 +91,7 @@ class PayMongoService {
         amount,
         currency = 'PHP',
         description,
-        clientId,
+        // clientId, // Available for client tracking
         setup_future_usage,
         capture = false
       } = intentData;

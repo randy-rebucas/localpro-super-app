@@ -16,7 +16,8 @@ const {
   getNearbySupplies,
   getSupplyCategories,
   getFeaturedSupplies,
-  getSupplyStatistics
+  getSupplyStatistics,
+  generateSupplyDescription
 } = require('../controllers/suppliesController');
 const { uploaders } = require('../config/cloudinary');
 
@@ -33,6 +34,9 @@ router.get('/:id', getSupply);
 
 // Protected routes
 router.use(auth);
+
+// AI-powered routes
+router.post('/generate-description', authorize('supplier', 'admin'), generateSupplyDescription);
 
 // Supply management routes
 router.post('/', authorize('supplier', 'admin'), createSupply);

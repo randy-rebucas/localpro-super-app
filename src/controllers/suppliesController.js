@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
 const EmailService = require('../services/emailService');
+const aiService = require('../services/aiService');
 const logger = require('../config/logger');
 const { sendServerError } = require('../utils/responseHelper');
 
@@ -1102,6 +1103,127 @@ const getSupplyStatistics = async (req, res) => {
   }
 };
 
+// @desc    Generate supply description using AI
+// @route   POST /api/supplies/generate-description
+// @access  Private (Supplier/Admin)
+const generateSupplyDescription = async (req, res) => {
+  try {
+    const { name, category, subcategory, options } = req.body;
+
+    // Validate required field
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Supply name is required'
+      });
+    }
+
+    // Validate category if provided
+    const validCategories = ['cleaning_supplies', 'tools', 'materials', 'equipment'];
+    if (category && !validCategories.includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid category. Must be one of: ${validCategories.join(', ')}`
+      });
+    }
+
+    // Validate options if provided
+    const validOptions = {};
+    if (options) {
+      if (options.length && ['short', 'medium', 'long'].includes(options.length)) {
+        validOptions.length = options.length;
+      }
+      if (options.tone && ['professional', 'friendly', 'casual'].includes(options.tone)) {
+        validOptions.tone = options.tone;
+      }
+      if (typeof options.includeFeatures === 'boolean') {
+        validOptions.includeFeatures = options.includeFeatures;
+      }
+      if (typeof options.includeBenefits === 'boolean') {
+        validOptions.includeBenefits = options.includeBenefits;
+      }
+    }
+
+    // Add category and subcategory to options
+    if (category) {
+      validOptions.category = category;
+    }
+    if (subcategory) {
+      validOptions.subcategory = subcategory;
+    }
+
+    // Generate description using AI
+    logger.info('Generating supply description from name', {
+      name: name.trim(),
+      category,
+      subcategory,
+      options: validOptions,
+      userId: req.user.id
+    });
+    
+    const aiResponse = await aiService.generateSupplyDescriptionFromName(name.trim(), validOptions);
+    
+    // Check if AI service returned an error
+    if (!aiResponse.success) {
+      logger.warn('AI service returned error for supply description', {
+        error: aiResponse.error,
+        code: aiResponse.code,
+        userId: req.user.id
+      });
+
+      const statusCode = aiResponse.code === 'AI_NOT_CONFIGURED' ? 503 
+        : aiResponse.code === 'AI_AUTH_FAILED' ? 503
+        : aiResponse.code === 'AI_RATE_LIMITED' ? 429
+        : aiResponse.code === 'AI_SERVICE_ERROR' ? 503
+        : 500;
+
+      return res.status(statusCode).json({
+        success: false,
+        message: aiResponse.error || 'Failed to generate description',
+        code: aiResponse.code || 'AI_ERROR'
+      });
+    }
+    
+    // Debug: Log AI response structure
+    logger.info('AI Response received for supply description', {
+      hasParsed: !!aiResponse.parsed,
+      hasContent: !!aiResponse.content,
+      hasUsage: !!aiResponse.usage,
+      hasDebug: !!aiResponse.debug,
+      success: aiResponse.success,
+      parsedKeys: aiResponse.parsed ? Object.keys(aiResponse.parsed) : [],
+      debugInfo: aiResponse.debug || {}
+    });
+    
+    // Extract result from parsed response
+    const result = {
+      description: aiResponse.parsed.description || '',
+      keyFeatures: Array.isArray(aiResponse.parsed.keyFeatures) ? aiResponse.parsed.keyFeatures : [],
+      benefits: Array.isArray(aiResponse.parsed.benefits) ? aiResponse.parsed.benefits : [],
+      useCases: Array.isArray(aiResponse.parsed.useCases) ? aiResponse.parsed.useCases : [],
+      suggestedTags: Array.isArray(aiResponse.parsed.suggestedTags) ? aiResponse.parsed.suggestedTags : [],
+      suggestedTitle: aiResponse.parsed.suggestedTitle || name.trim(),
+      wordCount: typeof aiResponse.parsed.wordCount === 'number' ? aiResponse.parsed.wordCount : 0
+    };
+
+    res.status(200).json({
+      success: true,
+      message: 'Supply description generated successfully',
+      data: result,
+      usage: aiResponse.usage || null
+    });
+  } catch (error) {
+    logger.error('Generate supply description error:', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate supply description'
+    });
+  }
+};
+
 module.exports = {
   getSupplies,
   getSupply,
@@ -1118,5 +1240,6 @@ module.exports = {
   getNearbySupplies,
   getSupplyCategories,
   getFeaturedSupplies,
-  getSupplyStatistics
+  getSupplyStatistics,
+  generateSupplyDescription
 };

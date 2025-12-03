@@ -738,8 +738,6 @@ const createBooking = async (req, res) => {
     // Handle PayMongo payment if selected
     if (finalPaymentMethod === 'paymongo') {
       try {
-        const user = await User.findById(req.user.id).select('firstName lastName email');
-        
         // Create PayMongo payment authorization
         const paymongoResult = await paymongoService.createAuthorization({
           amount: Math.round(totalAmount * 100), // Convert to cents

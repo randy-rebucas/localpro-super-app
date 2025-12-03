@@ -2,7 +2,7 @@ const express = require('express');
 const { auth, authorize } = require('../middleware/auth');
 const paymongoService = require('../services/paymongoService');
 const logger = require('../config/logger');
-const Escrow = require('../models/Escrow');
+// const Escrow = require('../models/Escrow'); // Available for future escrow integration
 
 const router = express.Router();
 
