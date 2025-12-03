@@ -450,8 +450,8 @@ class ReferralService {
       }
 
       const baseUrl = process.env.FRONTEND_URL;
-      const referralCode = user.generateReferralCode();
-      const referralLink = user.getReferralLink(baseUrl);
+      const referralCode = await user.generateReferralCode();
+      const referralLink = await user.getReferralLink(baseUrl);
 
       return {
         referralCode,

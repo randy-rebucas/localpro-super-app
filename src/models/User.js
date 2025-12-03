@@ -555,7 +555,9 @@ userSchema.methods.ensureReferral = async function(options = {}) {
 userSchema.methods.generateReferralCode = async function() {
   const referral = await this.ensureReferral();
   const initials = (this.firstName?.charAt(0) || '') + (this.lastName?.charAt(0) || '');
-  return referral.generateReferralCode(initials);
+  referral.generateReferralCode(initials);
+  await referral.save();
+  return referral.referralCode;
 };
 
 // Method to update referral stats
@@ -567,10 +569,11 @@ userSchema.methods.updateReferralStats = async function(type, amount = 0) {
 
 // Method to get referral link
 userSchema.methods.getReferralLink = async function(baseUrl = process.env.FRONTEND_URL) {
-  const referral = await this.ensureReferral();
+  let referral = await this.ensureReferral();
   if (!referral.referralCode) {
     await this.generateReferralCode();
-    await this.populate('referral');
+    // Re-fetch the referral to get the updated referralCode
+    referral = await this.ensureReferral({ forceRefresh: true });
   }
   return referral.getReferralLink(baseUrl);
 };
