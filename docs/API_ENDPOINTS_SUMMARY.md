@@ -229,6 +229,35 @@ This document provides a quick reference for all API endpoints organized by feat
 ### AI Marketplace (`/api/ai/marketplace`)
 - See feature documentation for complete endpoint list
 
+### Live Chat (`/api/live-chat` & `/api/admin/live-chat`)
+
+#### Public (Guest Users)
+- `POST /api/live-chat/sessions` - Create chat session
+- `GET /api/live-chat/sessions/:sessionId` - Get session details
+- `POST /api/live-chat/sessions/:sessionId/messages` - Send message
+- `GET /api/live-chat/sessions/:sessionId/messages` - Get messages
+- `POST /api/live-chat/upload` - Upload attachments
+- `PATCH /api/live-chat/sessions/:sessionId/end` - End session
+- `POST /api/live-chat/sessions/:sessionId/rate` - Rate session
+- `POST /api/live-chat/sessions/:sessionId/typing` - Typing indicator
+
+#### Admin (Authenticated - admin, super_admin, support)
+- `GET /api/admin/live-chat/sessions` - List all sessions
+- `GET /api/admin/live-chat/sessions/:sessionId` - Get session with messages
+- `POST /api/admin/live-chat/sessions/:sessionId/reply` - Send agent reply
+- `PATCH /api/admin/live-chat/sessions/:sessionId/assign` - Assign to agent
+- `PATCH /api/admin/live-chat/sessions/:sessionId/status` - Update status
+- `POST /api/admin/live-chat/sessions/:sessionId/notes` - Add internal note
+- `POST /api/admin/live-chat/sessions/:sessionId/transfer` - Transfer session
+- `GET /api/admin/live-chat/analytics` - Get chat analytics
+- `GET /api/admin/live-chat/customers/:email/history` - Customer history
+- `DELETE /api/admin/live-chat/sessions/:sessionId` - Delete session
+
+#### WebSocket
+- `ws://localhost:5000/ws/live-chat` - Real-time chat connection
+
+See **[Live Chat API Documentation](features/LIVE_CHAT_API.md)** for complete details.
+
 ## Role-Based Access Summary
 
 - **PUBLIC**: No authentication required

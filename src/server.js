@@ -51,8 +51,11 @@ const aiMarketplaceRoutes = require('./routes/aiMarketplace');
 const aiUsersRoutes = require('./routes/aiUsers');
 const escrowRoutes = require('./routes/escrows');
 const escrowWebhookRoutes = require('./routes/escrowWebhooks');
+const liveChatRoutes = require('./routes/liveChat');
+const adminLiveChatRoutes = require('./routes/adminLiveChat');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 const { generalLimiter } = require('./middleware/rateLimiter');
+const liveChatWebSocketService = require('./services/liveChatWebSocketService');
 
 const app = express();
 
@@ -421,6 +424,12 @@ function startServer() {
   
   // Database Optimization Routes
   app.use('/api/database/optimization', databaseOptimizationRoutes);
+  
+  // Live Chat Routes (Public - No Auth Required)
+  app.use('/api/live-chat', liveChatRoutes);
+  
+  // Live Chat Admin Routes (Requires Auth)
+  app.use('/api/admin/live-chat', adminLiveChatRoutes);
 
   // 404 handler
   app.use('*', (req, res) => {
@@ -436,7 +445,22 @@ function startServer() {
   // Start the server (skip in test environment)
   if (process.env.NODE_ENV !== 'test') {
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+    const http = require('http');
+    const { WebSocketServer } = require('ws');
+    
+    // Create HTTP server
+    const server = http.createServer(app);
+    
+    // Create WebSocket server for live chat
+    const wss = new WebSocketServer({ 
+      server,
+      path: '/ws/live-chat'
+    });
+    
+    // Initialize live chat WebSocket service
+    liveChatWebSocketService.initialize(wss);
+    
+    server.listen(PORT, () => {
       logger.info('LocalPro Super App API Started', {
         port: PORT,
         environment: process.env.NODE_ENV || 'development',
@@ -447,6 +471,7 @@ function startServer() {
       logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
       logger.info(`📊 Logging enabled with Winston`);
       logger.info(`🔍 Error monitoring active`);
+      logger.info(`💬 Live Chat WebSocket available at ws://localhost:${PORT}/ws/live-chat`);
     });
   }
 }

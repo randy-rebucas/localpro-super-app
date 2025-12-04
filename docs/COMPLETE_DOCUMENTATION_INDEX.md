@@ -26,8 +26,11 @@ This document provides a comprehensive index of all documentation available for 
 2. **[Main README](README.md)** - Complete documentation overview
 3. **[Documentation Index](INDEX.md)** - Navigation guide
 
-### 🎯 Feature Documentation (29 documents)
+### 🎯 Feature Documentation (30 documents)
 See [README](README.md) for complete feature list
+
+**New Features:**
+- **[Live Chat API](features/LIVE_CHAT_API.md)** - Real-time customer support chat system with WebSocket
 
 ### 👥 Role Documentation (13 documents)
 - Client: USE_CASES, FLOW, JOURNEY
