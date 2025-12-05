@@ -1,23 +1,28 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const CloudinaryStorage = require('multer-storage-cloudinary');
-const cloudinaryModule = require('cloudinary');
+const cloudinaryStorage = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary');
 const { auth, authorize } = require('../middleware/auth');
 const liveChatController = require('../controllers/liveChatController');
 
+// Configure Cloudinary (must be done before creating storage)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 // Configure Cloudinary storage for file uploads
-// Note: multer-storage-cloudinary expects the full cloudinary module (with .v2)
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinaryModule,
-  params: {
-    folder: 'localpro/live-chat/attachments',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'],
-    transformation: [
-      { width: 1920, height: 1080, crop: 'limit' },
-      { quality: 'auto' }
-    ]
-  }
+// Note: multer-storage-cloudinary v2.x uses factory function (no 'new') with flat options
+const storage = cloudinaryStorage({
+  cloudinary: cloudinary,
+  folder: 'localpro/live-chat/attachments',
+  allowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'],
+  transformation: [
+    { width: 1920, height: 1080, crop: 'limit' },
+    { quality: 'auto' }
+  ]
 });
 
 const upload = multer({

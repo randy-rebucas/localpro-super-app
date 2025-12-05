@@ -1,5 +1,5 @@
-const cloudinary = require('cloudinary').v2;
-const CloudinaryStorage = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary');
+const cloudinaryStorage = require('multer-storage-cloudinary');
 const multer = require('multer');
 
 // Configure Cloudinary
@@ -10,35 +10,33 @@ cloudinary.config({
 });
 
 // Create storage configuration for different file types
+// Note: multer-storage-cloudinary v2.x uses factory function (no 'new') with flat options
 const createStorage = (folder, allowedFormats = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx']) => {
-  return new CloudinaryStorage({
+  return cloudinaryStorage({
     cloudinary: cloudinary,
-    params: {
-      folder: folder,
-      allowed_formats: allowedFormats,
-      transformation: [
-        { width: 1000, height: 1000, crop: 'limit' }, // Limit image size
-        { quality: 'auto' }, // Auto quality optimization
-        { fetch_format: 'auto' } // Auto format selection
-      ]
-    }
+    folder: folder,
+    allowedFormats: allowedFormats,
+    transformation: [
+      { width: 1000, height: 1000, crop: 'limit' }, // Limit image size
+      { quality: 'auto' }, // Auto quality optimization
+      { fetch_format: 'auto' } // Auto format selection
+    ]
   });
 };
 
 // Create storage configuration for video files
 const createVideoStorage = (folder, allowedFormats = ['mp4', 'avi', 'mov', 'webm', 'mkv', 'flv', 'wmv']) => {
-  return new CloudinaryStorage({
+  return cloudinaryStorage({
     cloudinary: cloudinary,
+    folder: folder,
+    allowedFormats: allowedFormats,
     params: {
-      folder: folder,
-      allowed_formats: allowedFormats,
-      resource_type: 'video',
-      // No image transformations for videos
-      transformation: [
-        { quality: 'auto' }, // Auto quality optimization
-        { fetch_format: 'auto' } // Auto format selection
-      ]
-    }
+      resource_type: 'video'
+    },
+    transformation: [
+      { quality: 'auto' }, // Auto quality optimization
+      { fetch_format: 'auto' } // Auto format selection
+    ]
   });
 };
 
@@ -112,7 +110,7 @@ const cloudinaryUtils = {
   // Delete a file from Cloudinary
   deleteFile: async (publicId) => {
     try {
-      const result = await cloudinary.uploader.destroy(publicId);
+      const result = await cloudinary.v2.uploader.destroy(publicId);
       return result;
     } catch (error) {
       console.error('Error deleting file from Cloudinary:', error);
@@ -123,7 +121,7 @@ const cloudinaryUtils = {
   // Get file info
   getFileInfo: async (publicId) => {
     try {
-      const result = await cloudinary.api.resource(publicId);
+      const result = await cloudinary.v2.api.resource(publicId);
       return result;
     } catch (error) {
       console.error('Error getting file info from Cloudinary:', error);
@@ -133,14 +131,14 @@ const cloudinaryUtils = {
 
   // Transform image URL
   transformUrl: (publicId, transformations = {}) => {
-    return cloudinary.url(publicId, transformations);
+    return cloudinary.v2.url(publicId, transformations);
   },
 
   // Generate responsive image URLs
   generateResponsiveUrls: (publicId, widths = [320, 640, 1024, 1920]) => {
     return widths.map(width => ({
       width,
-      url: cloudinary.url(publicId, { width, crop: 'scale', quality: 'auto' })
+      url: cloudinary.v2.url(publicId, { width, crop: 'scale', quality: 'auto' })
     }));
   }
 };
