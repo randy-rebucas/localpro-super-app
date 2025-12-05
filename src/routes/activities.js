@@ -13,7 +13,10 @@ const {
   removeInteraction,
   getActivityStats,
   getGlobalActivityStats,
-  getActivityMetadata
+  getActivityMetadata,
+  getActivityTimeline,
+  getLeaderboard,
+  getTotalPoints
 } = require('../controllers/activityController');
 
 const router = express.Router();
@@ -494,5 +497,69 @@ router.get('/stats/global', authorize(['admin']), queryValidation, getGlobalActi
  * }
  */
 router.get('/metadata', getActivityMetadata);
+
+/**
+ * @route   GET /api/activities/timeline
+ * @desc    Get user's activity timeline grouped by date
+ * @access  Private
+ * @query   timeframe, limit
+ * 
+ * Response:
+ * {
+ *   "success": true,
+ *   "data": {
+ *     "timeline": [
+ *       {
+ *         "_id": "2024-01-15",
+ *         "activities": [...],
+ *         "totalPoints": 50,
+ *         "count": 5
+ *       }
+ *     ]
+ *   }
+ * }
+ */
+router.get('/timeline', queryValidation, getActivityTimeline);
+
+/**
+ * @route   GET /api/activities/points
+ * @desc    Get user's total accumulated points
+ * @access  Private
+ * 
+ * Response:
+ * {
+ *   "success": true,
+ *   "data": {
+ *     "totalPoints": 1250,
+ *     "rank": 42
+ *   }
+ * }
+ */
+router.get('/points', getTotalPoints);
+
+/**
+ * @route   GET /api/activities/leaderboard
+ * @desc    Get activity leaderboard based on points
+ * @access  Private
+ * @query   timeframe, limit
+ * 
+ * Response:
+ * {
+ *   "success": true,
+ *   "data": {
+ *     "timeframe": "30d",
+ *     "leaderboard": [
+ *       {
+ *         "rank": 1,
+ *         "userId": "...",
+ *         "user": { "firstName": "...", "lastName": "...", "avatar": "..." },
+ *         "totalPoints": 5000,
+ *         "activityCount": 150
+ *       }
+ *     ]
+ *   }
+ * }
+ */
+router.get('/leaderboard', queryValidation, getLeaderboard);
 
 module.exports = router;

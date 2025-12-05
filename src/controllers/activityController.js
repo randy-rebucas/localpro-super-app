@@ -1,5 +1,6 @@
 const Activity = require('../models/Activity');
 const { logger } = require('../utils/logger');
+const activityService = require('../services/activityService');
 
 // Get activity feed for user
 const getActivityFeed = async (req, res) => {
@@ -834,6 +835,117 @@ const checkActivityAccess = (activity, user) => {
   return activity.visibility === 'public';
 };
 
+// Get activity timeline (grouped by date)
+const getActivityTimeline = async (req, res) => {
+  try {
+    const user = req.user;
+    const { timeframe = '30d', limit = 100 } = req.query;
+
+    const timeline = await activityService.getActivityTimeline(user.id, {
+      timeframe,
+      limit: Math.min(parseInt(limit), 500)
+    });
+
+    logger.info('Activity timeline retrieved', {
+      userId: user.id,
+      timeframe,
+      daysCount: timeline.length
+    });
+
+    res.json({
+      success: true,
+      data: {
+        timeframe,
+        timeline
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get activity timeline', error, {
+      userId: req.user?.id,
+      timeframe: req.query.timeframe
+    });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve activity timeline'
+    });
+  }
+};
+
+// Get user's total points
+const getTotalPoints = async (req, res) => {
+  try {
+    const user = req.user;
+    
+    const totalPoints = await activityService.getTotalPoints(user.id);
+    
+    // Calculate user's rank on the leaderboard
+    const leaderboard = await activityService.getLeaderboard('all', 1000);
+    const userRank = leaderboard.findIndex(entry => entry.userId.toString() === user.id) + 1;
+
+    logger.info('User points retrieved', {
+      userId: user.id,
+      totalPoints,
+      rank: userRank || 'unranked'
+    });
+
+    res.json({
+      success: true,
+      data: {
+        totalPoints,
+        rank: userRank || null,
+        totalUsers: leaderboard.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get total points', error, {
+      userId: req.user?.id
+    });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve total points'
+    });
+  }
+};
+
+// Get activity leaderboard
+const getLeaderboard = async (req, res) => {
+  try {
+    const { timeframe = '30d', limit = 10 } = req.query;
+
+    const leaderboard = await activityService.getLeaderboard(
+      timeframe,
+      Math.min(parseInt(limit), 100)
+    );
+
+    logger.info('Leaderboard retrieved', {
+      userId: req.user?.id,
+      timeframe,
+      entriesCount: leaderboard.length
+    });
+
+    res.json({
+      success: true,
+      data: {
+        timeframe,
+        leaderboard,
+        totalEntries: leaderboard.length
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get leaderboard', error, {
+      userId: req.user?.id,
+      timeframe: req.query.timeframe
+    });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve leaderboard'
+    });
+  }
+};
+
 module.exports = {
   getActivityFeed,
   getUserActivities,
@@ -846,5 +958,8 @@ module.exports = {
   removeInteraction,
   getActivityStats,
   getGlobalActivityStats,
-  getActivityMetadata
+  getActivityMetadata,
+  getActivityTimeline,
+  getTotalPoints,
+  getLeaderboard
 };

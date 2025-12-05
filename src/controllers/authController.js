@@ -4,6 +4,7 @@ const TwilioService = require('../services/twilioService');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const logger = require('../config/logger');
+const activityService = require('../services/activityService');
 
 // Generate JWT Token with enhanced payload for mobile
 const generateToken = (user) => {
@@ -43,6 +44,14 @@ const getClientInfo = (req) => {
     userAgent: (req.get ? req.get('User-Agent') : (req.headers && req.headers['user-agent'])) || 'unknown',
     timestamp: new Date()
   };
+};
+
+// Helper function to determine device type from user agent
+const getDeviceType = (userAgent) => {
+  if (!userAgent) return 'unknown';
+  if (/mobile|android|iphone/i.test(userAgent)) return 'mobile';
+  if (/tablet|ipad/i.test(userAgent)) return 'tablet';
+  return 'desktop';
 };
 
 // @desc    Send verification code
@@ -311,6 +320,13 @@ const verifyCode = async (req, res) => {
         duration: Date.now() - startTime
       });
 
+      // Track login activity (async, don't wait)
+      activityService.trackLogin(user._id, {
+        ipAddress: clientInfo.ip,
+        userAgent: clientInfo.userAgent,
+        device: getDeviceType(clientInfo.userAgent)
+      }).catch(err => logger.warn('Failed to track login activity', { error: err.message }));
+
       res.status(200).json({
         success: true,
         message: 'Login successful',
@@ -357,6 +373,13 @@ const verifyCode = async (req, res) => {
         clientInfo,
         duration: Date.now() - startTime
       });
+
+      // Track registration activity (async, don't wait)
+      activityService.trackRegistration(user._id, {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        method: 'phone'
+      }).catch(err => logger.warn('Failed to track registration activity', { error: err.message }));
 
       const providedProfile = req.body && req.body.firstName && req.body.lastName && req.body.email;
       res.status(providedProfile ? 200 : 201).json({

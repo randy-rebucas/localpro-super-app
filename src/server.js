@@ -12,6 +12,7 @@ const { errorHandler } = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
 const requestIdMiddleware = require('./middleware/requestId');
 const { auditGeneralOperations } = require('./middleware/auditLogger');
+const { activityTracker } = require('./middleware/activityTracker');
 const authRoutes = require('./routes/auth');
 const marketplaceRoutes = require('./routes/marketplace');
 const suppliesRoutes = require('./routes/supplies');
@@ -203,6 +204,12 @@ function startServer() {
 
   // Audit logging middleware
   app.use(auditGeneralOperations);
+
+  // Activity tracking middleware (tracks user activities automatically)
+  app.use(activityTracker({
+    excludePaths: ['/api/activities', '/api/logs', '/api/audit-logs', '/health', '/api/monitoring'],
+    onlySuccessful: true
+  }));
 
   // Index API info endpoint
   app.get('/', (req, res) => {
