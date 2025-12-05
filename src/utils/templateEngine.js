@@ -204,12 +204,23 @@ class TemplateEngine {
    * @returns {string} Processed template
    */
   processConditionals(template, data) {
-    return template.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, condition, content) => {
+    // Handle {{#if condition}}...{{/if}}
+    let processedTemplate = template.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, condition, content) => {
       if (data[condition]) {
         return content;
       }
       return '';
     });
+
+    // Handle {{#unless condition}}...{{/unless}}
+    processedTemplate = processedTemplate.replace(/\{\{#unless\s+(\w+)\}\}([\s\S]*?)\{\{\/unless\}\}/g, (match, condition, content) => {
+      if (!data[condition]) {
+        return content;
+      }
+      return '';
+    });
+
+    return processedTemplate;
   }
 
   /**

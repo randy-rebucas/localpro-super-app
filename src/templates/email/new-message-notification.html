@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{subject}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .logo {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .email-body {
+            padding: 40px 30px;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 30px 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer-text {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 0 0 10px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 14px 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .sender-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .sender-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        .sender-details h3 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+            color: #333;
+        }
+        .sender-details p {
+            margin: 0;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .message-preview {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+        .message-preview::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 30px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid #f8f9fa;
+        }
+        .message-text {
+            font-size: 15px;
+            color: #333;
+            margin: 0;
+            word-wrap: break-word;
+        }
+        .message-time {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 10px;
+            text-align: right;
+        }
+        .quick-actions {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .conversation-context {
+            background-color: #e8f4f8;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .conversation-context h4 {
+            margin: 0 0 10px 0;
+            color: #0c5460;
+        }
+        .conversation-context p {
+            margin: 0;
+            color: #0c5460;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1 class="logo">💬 New Message</h1>
+        </div>
+
+        <div class="email-body">
+            <h2 style="margin-top: 0;">Hi {{recipientName}},</h2>
+            
+            <p>You have a new message from <strong>{{senderName}}</strong>.</p>
+
+            <div class="sender-info">
+                <div class="sender-avatar">
+                    {{senderInitials}}
+                </div>
+                <div class="sender-details">
+                    <h3>{{senderName}}</h3>
+                    <p>{{senderRole}}</p>
+                </div>
+            </div>
+
+            <div class="message-preview">
+                <p class="message-text">"{{messagePreview}}"</p>
+                <p class="message-time">{{messageTime}}</p>
+            </div>
+
+            {{#if conversationContext}}
+            <div class="conversation-context">
+                <h4>📋 Conversation Context</h4>
+                <p>{{conversationContext}}</p>
+            </div>
+            {{/if}}
+
+            <div class="quick-actions">
+                <a href="{{conversation_url}}" class="btn">Reply Now</a>
+            </div>
+
+            <p style="color: #6c757d; font-size: 14px; text-align: center;">
+                Click the button above to view the full message and continue the conversation.
+            </p>
+        </div>
+
+        <div class="email-footer">
+            <p class="footer-text">
+                <strong>LocalPro Messaging</strong><br>
+                Stay connected with your clients and service providers.
+            </p>
+            <p class="footer-text" style="font-size: 12px;">
+                Don't want to receive message notifications? 
+                <a href="{{notification_settings_url}}" style="color: #667eea;">Update your preferences</a>
+            </p>
+            <p class="footer-text">
+                © {{current_year}} LocalPro. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+

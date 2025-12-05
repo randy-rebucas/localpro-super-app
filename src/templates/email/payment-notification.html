@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{subject}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .logo {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .email-body {
+            padding: 40px 30px;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 30px 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer-text {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 0 0 10px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .payment-box {
+            background-color: {{#if isSuccess}}#d4edda{{else}}#f8d7da{{/if}};
+            border: 1px solid {{#if isSuccess}}#c3e6cb{{else}}#f5c6cb{{/if}};
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .payment-amount {
+            font-size: 42px;
+            font-weight: bold;
+            color: {{#if isSuccess}}#155724{{else}}#721c24{{/if}};
+            margin: 10px 0;
+        }
+        .payment-currency {
+            font-size: 18px;
+            color: #6c757d;
+        }
+        .payment-status {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            background-color: {{#if isSuccess}}#28a745{{else}}#dc3545{{/if}};
+            color: #ffffff;
+            margin-top: 15px;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+        }
+        .details-table td {
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .details-table td:first-child {
+            color: #6c757d;
+            font-weight: 500;
+        }
+        .details-table td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+        .alert-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .status-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1 class="logo">LocalPro</h1>
+        </div>
+
+        <div class="email-body">
+            <h2 style="margin-top: 0;">Hi {{firstName}},</h2>
+            
+            <div class="payment-box">
+                <div class="status-icon">{{#if isSuccess}}✅{{else}}❌{{/if}}</div>
+                <h3 style="margin: 0; color: {{#if isSuccess}}#155724{{else}}#721c24{{/if}};">
+                    {{#if isSuccess}}Payment Received{{else}}Payment Failed{{/if}}
+                </h3>
+                <div class="payment-amount">
+                    <span class="payment-currency">{{currency}}</span>
+                    {{amount}}
+                </div>
+                <div class="payment-status">
+                    {{statusText}}
+                </div>
+            </div>
+
+            <table class="details-table">
+                <tr>
+                    <td>Transaction ID</td>
+                    <td>{{transactionId}}</td>
+                </tr>
+                <tr>
+                    <td>Date</td>
+                    <td>{{transactionDate}}</td>
+                </tr>
+                <tr>
+                    <td>Description</td>
+                    <td>{{description}}</td>
+                </tr>
+                {{#if paymentMethod}}
+                <tr>
+                    <td>Payment Method</td>
+                    <td>{{paymentMethod}}</td>
+                </tr>
+                {{/if}}
+            </table>
+
+            {{#unless isSuccess}}
+            <div class="alert-box">
+                <strong>⚠️ Action Required:</strong> Your payment could not be processed. 
+                Please check your payment details and try again, or contact support if the issue persists.
+            </div>
+            {{/unless}}
+
+            <div style="text-align: center;">
+                <a href="{{dashboard_url}}" class="btn">View Payment Details</a>
+            </div>
+
+            {{#if isSuccess}}
+            <p style="color: #6c757d; font-size: 14px; margin-top: 30px;">
+                A receipt has been sent to your email. Keep this for your records.
+            </p>
+            {{/if}}
+        </div>
+
+        <div class="email-footer">
+            <p class="footer-text">
+                <strong>LocalPro Super App</strong><br>
+                Secure and reliable payment processing.
+            </p>
+            <p class="footer-text">
+                Questions about your payment? <a href="{{support_url}}" style="color: #667eea;">Contact Support</a>
+            </p>
+            <p class="footer-text">
+                © {{current_year}} LocalPro. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+

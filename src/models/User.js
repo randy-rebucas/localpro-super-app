@@ -103,6 +103,31 @@ const userSchema = new mongoose.Schema({
     ref: 'UserSettings'
   },
   
+  // Push notification tokens (FCM/Firebase)
+  fcmTokens: [{
+    token: {
+      type: String,
+      required: true
+    },
+    deviceId: {
+      type: String,
+      required: true
+    },
+    deviceType: {
+      type: String,
+      enum: ['ios', 'android', 'web'],
+      default: 'android'
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    lastUsedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  
   // User management reference
   management: {
     type: mongoose.Schema.Types.ObjectId,
@@ -409,6 +434,60 @@ userSchema.methods.setRoles = function(roles) {
     this.roles.unshift('client');
   }
   return this;
+};
+
+// Method to add or update FCM token for push notifications
+userSchema.methods.addFcmToken = function(token, deviceId, deviceType = 'android') {
+  if (!this.fcmTokens) {
+    this.fcmTokens = [];
+  }
+  
+  // Check if token or device already exists
+  const existingIndex = this.fcmTokens.findIndex(t => 
+    t.token === token || t.deviceId === deviceId
+  );
+  
+  if (existingIndex >= 0) {
+    // Update existing token
+    this.fcmTokens[existingIndex].token = token;
+    this.fcmTokens[existingIndex].lastUsedAt = new Date();
+  } else {
+    // Add new token
+    this.fcmTokens.push({
+      token,
+      deviceId,
+      deviceType,
+      createdAt: new Date(),
+      lastUsedAt: new Date()
+    });
+  }
+  
+  // Limit to 5 devices per user (remove oldest)
+  if (this.fcmTokens.length > 5) {
+    this.fcmTokens.sort((a, b) => new Date(b.lastUsedAt) - new Date(a.lastUsedAt));
+    this.fcmTokens = this.fcmTokens.slice(0, 5);
+  }
+  
+  return this;
+};
+
+// Method to remove FCM token
+userSchema.methods.removeFcmToken = function(tokenOrDeviceId) {
+  if (!this.fcmTokens) {
+    return this;
+  }
+  this.fcmTokens = this.fcmTokens.filter(t => 
+    t.token !== tokenOrDeviceId && t.deviceId !== tokenOrDeviceId
+  );
+  return this;
+};
+
+// Method to get all FCM tokens as array of strings
+userSchema.methods.getFcmTokens = function() {
+  if (!this.fcmTokens || this.fcmTokens.length === 0) {
+    return [];
+  }
+  return this.fcmTokens.map(t => t.token);
 };
 
 // Method to generate verification code

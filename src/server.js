@@ -53,6 +53,7 @@ const escrowRoutes = require('./routes/escrows');
 const escrowWebhookRoutes = require('./routes/escrowWebhooks');
 const liveChatRoutes = require('./routes/liveChat');
 const adminLiveChatRoutes = require('./routes/adminLiveChat');
+const notificationsRoutes = require('./routes/notifications');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 const { generalLimiter } = require('./middleware/rateLimiter');
 const liveChatWebSocketService = require('./services/liveChatWebSocketService');
@@ -430,6 +431,9 @@ function startServer() {
   
   // Live Chat Admin Routes (Requires Auth)
   app.use('/api/admin/live-chat', adminLiveChatRoutes);
+  
+  // Notification Routes
+  app.use('/api/notifications', notificationsRoutes);
 
   // 404 handler
   app.use('*', (req, res) => {

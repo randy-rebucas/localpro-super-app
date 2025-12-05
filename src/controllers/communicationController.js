@@ -2,6 +2,8 @@ const { Conversation, Message, Notification } = require('../models/Communication
 const EmailService = require('../services/emailService');
 const TwilioService = require('../services/twilioService');
 const CloudinaryService = require('../services/cloudinaryService');
+const NotificationService = require('../services/notificationService');
+const User = require('../models/User');
 
 // @desc    Get user conversations
 // @route   GET /api/communication/conversations
@@ -396,13 +398,28 @@ const sendMessage = async (req, res) => {
     // Populate sender info
     await message.populate('sender', 'firstName lastName profile.avatar');
     
-    // TODO: Implement push notification service
-    // await PushNotificationService.sendNotification({
-    //   recipients: otherParticipants,
-    //   title: 'New Message',
-    //   body: content,
-    //   data: { conversationId: conversation._id }
-    // });
+    // Send notifications to other participants
+    const otherParticipants = conversation.participants
+      .filter(p => p.user.toString() !== req.user.id)
+      .map(p => p.user.toString());
+    
+    if (otherParticipants.length > 0) {
+      const senderUser = await User.findById(req.user.id).select('firstName lastName');
+      const senderName = senderUser ? `${senderUser.firstName} ${senderUser.lastName}` : 'Someone';
+      
+      // Send notification to each participant (async, don't block response)
+      Promise.all(
+        otherParticipants.map(participantId =>
+          NotificationService.sendMessageNotification({
+            userId: participantId,
+            senderId: req.user.id,
+            senderName,
+            conversationId: conversation._id,
+            messagePreview: content
+          })
+        )
+      ).catch(err => console.error('Error sending message notifications:', err));
+    }
 
     res.status(201).json({
       success: true,
