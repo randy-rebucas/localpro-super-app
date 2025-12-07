@@ -355,8 +355,21 @@ class EmailService {
    * @returns {Promise<object>} Send result
    */
   async sendViaSendGrid(_to, _subject, _html) {
-    // TODO: Implement SendGrid integration
-    throw new Error('SendGrid integration not yet implemented. Please use Resend or SMTP.');
+    // SendGrid integration
+    const sgMail = require('@sendgrid/mail');
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const msg = {
+      to: _to,
+      from: this.fromEmail,
+      subject: _subject,
+      html: _html,
+    };
+    try {
+      const response = await sgMail.send(msg);
+      return { success: true, messageId: response[0]?.headers['x-message-id'] || null, message: 'Email sent via SendGrid' };
+    } catch (error) {
+      throw new Error(`SendGrid error: ${error.message}`);
+    }
   }
 
   /**

@@ -809,24 +809,74 @@ class EscrowService {
   }
 
   async xenditCreateHold(_amount, _currency, _clientId) {
-    // TODO: Implement Xendit integration
-    logger.info('Xendit hold creation (placeholder)');
-    return { success: true, holdId: `xdt_hold_${Date.now()}` };
+    // Xendit integration
+    const Xendit = require('xendit-node');
+    const x = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY });
+    const { PaymentRequest } = x;
+    try {
+      const paymentRequest = await PaymentRequest.create({
+        amount: _amount,
+        currency: _currency,
+        referenceId: _clientId,
+      });
+      return { success: true, holdId: paymentRequest.id };
+    } catch (error) {
+      logger.error('Xendit hold creation error:', error);
+      return { success: false, message: error.message };
+    }
   }
 
   async xenditCapture(_holdId, _amount, _currency) {
-    logger.info('Xendit capture (placeholder)');
-    return { success: true, captureId: `xdt_capture_${Date.now()}` };
+    // Xendit capture
+    const Xendit = require('xendit-node');
+    const x = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY });
+    const { PaymentRequest } = x;
+    try {
+      const capture = await PaymentRequest.capturePayment({
+        paymentRequestId: _holdId,
+        amount: _amount,
+      });
+      return { success: true, captureId: capture.id };
+    } catch (error) {
+      logger.error('Xendit capture error:', error);
+      return { success: false, message: error.message };
+    }
   }
 
   async xenditRelease(_holdId) {
-    logger.info('Xendit release (placeholder)');
-    return { success: true, releaseId: `xdt_release_${Date.now()}` };
+    // Xendit release
+    const Xendit = require('xendit-node');
+    const x = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY });
+    const { PaymentRequest } = x;
+    try {
+      const release = await PaymentRequest.releasePayment({
+        paymentRequestId: _holdId,
+      });
+      return { success: true, releaseId: release.id };
+    } catch (error) {
+      logger.error('Xendit release error:', error);
+      return { success: false, message: error.message };
+    }
   }
 
   async xenditInitiatePayout(_amount, _currency, _payoutMethod, _providerId, _reference) {
-    logger.info('Xendit payout initiation (placeholder)');
-    return { success: true, payoutId: `xdt_payout_${Date.now()}` };
+    // Xendit payout
+    const Xendit = require('xendit-node');
+    const x = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY });
+    const { Payout } = x;
+    try {
+      const payout = await Payout.create({
+        amount: _amount,
+        currency: _currency,
+        method: _payoutMethod,
+        destination: _providerId,
+        referenceId: _reference,
+      });
+      return { success: true, payoutId: payout.id };
+    } catch (error) {
+      logger.error('Xendit payout error:', error);
+      return { success: false, message: error.message };
+    }
   }
 
   async stripeCreateHold(_amount, _currency, _clientId) {

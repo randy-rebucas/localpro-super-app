@@ -9,8 +9,10 @@ const connectDB = require('./config/database');
 const logger = require('./config/logger');
 const { StartupValidator, createDefaultChecks } = require('./utils/startupValidation');
 const { errorHandler } = require('./middleware/errorHandler');
-const requestLogger = require('./middleware/requestLogger');
+// ...existing code...
 const requestIdMiddleware = require('./middleware/requestId');
+const { requestCorrelation } = require('./middleware/requestCorrelation');
+const { requestLogger } = require('./middleware/errorHandler');
 const { auditGeneralOperations } = require('./middleware/auditLogger');
 const { activityTracker } = require('./middleware/activityTracker');
 const authRoutes = require('./routes/auth');
@@ -190,6 +192,9 @@ function startServer() {
   // Request ID middleware (add unique ID to each request)
   app.use(requestIdMiddleware);
 
+  // Request correlation middleware (for distributed tracing)
+  app.use(requestCorrelation);
+
   // Rate limiting middleware (apply early to protect all routes)
   // General rate limiting for all API routes (skip in test and development for easier development)
   if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
@@ -199,6 +204,9 @@ function startServer() {
   // Logging middleware
   app.use(morgan('combined', { stream: logger.stream }));
   app.use(requestLogger);
+  
+  // Enhanced request logging with performance tracking (optional - can enable if needed)
+  // app.use(enhancedRequestLogger({ logBody: false, logHeaders: false }));
 
   // Metrics collection middleware
   app.use(metricsMiddleware);

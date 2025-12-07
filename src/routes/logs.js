@@ -1,8 +1,467 @@
 const express = require('express');
 const router = express.Router();
+const { body, param, query, validationResult } = require('express-validator');
 const { auth } = require('../middleware/auth');
 const logManagementService = require('../services/logManagementService');
+const loggerService = require('../services/loggerService');
 const logger = require('../config/logger');
+
+// Helper to check admin access
+const isAdmin = (req) => {
+  const userRoles = req.user.roles || [];
+  return req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+};
+
+// Validation middleware
+const handleValidationErrors = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: errors.array()
+    });
+  }
+  next();
+};
+
+// ==================== Runtime Log Level Management ====================
+
+/**
+ * @route GET /api/logs/config
+ * @desc Get current logger configuration
+ * @access Admin
+ */
+router.get('/config', auth, async (req, res) => {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    const config = {
+      defaultLevel: loggerService.defaultLevel,
+      levels: loggerService.levels,
+      overrides: loggerService.getLogLevelOverrides(),
+      metrics: loggerService.getMetrics()
+    };
+
+    res.json({
+      success: true,
+      data: config
+    });
+  } catch (error) {
+    logger.error('Failed to get logger config', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve logger configuration'
+    });
+  }
+});
+
+/**
+ * @route PUT /api/logs/config/level
+ * @desc Set global log level
+ * @access Admin
+ */
+router.put('/config/level',
+  auth,
+  body('level').isIn(['error', 'warn', 'info', 'http', 'debug']).withMessage('Invalid log level'),
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      if (!isAdmin(req)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { level } = req.body;
+      const previousLevel = loggerService.defaultLevel;
+      loggerService.setDefaultLogLevel(level);
+
+      logger.info('Global log level changed', {
+        userId: req.user.id,
+        previousLevel,
+        newLevel: level
+      });
+
+      res.json({
+        success: true,
+        message: `Log level changed from ${previousLevel} to ${level}`,
+        data: {
+          previousLevel,
+          currentLevel: level
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to set log level', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to set log level'
+      });
+    }
+  }
+);
+
+/**
+ * @route PUT /api/logs/config/override
+ * @desc Set log level override for specific module/context
+ * @access Admin
+ */
+router.put('/config/override',
+  auth,
+  body('context').notEmpty().withMessage('Context is required'),
+  body('level').isIn(['error', 'warn', 'info', 'http', 'debug']).withMessage('Invalid log level'),
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      if (!isAdmin(req)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { context, level } = req.body;
+      loggerService.setLogLevelOverride(context, level);
+
+      logger.info('Log level override set', {
+        userId: req.user.id,
+        context,
+        level
+      });
+
+      res.json({
+        success: true,
+        message: `Log level override set for ${context}`,
+        data: {
+          context,
+          level,
+          overrides: loggerService.getLogLevelOverrides()
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to set log level override', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to set log level override'
+      });
+    }
+  }
+);
+
+/**
+ * @route DELETE /api/logs/config/override/:context
+ * @desc Remove log level override for specific module/context
+ * @access Admin
+ */
+router.delete('/config/override/:context',
+  auth,
+  param('context').notEmpty().withMessage('Context is required'),
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      if (!isAdmin(req)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { context } = req.params;
+      loggerService.removeLogLevelOverride(context);
+
+      logger.info('Log level override removed', {
+        userId: req.user.id,
+        context
+      });
+
+      res.json({
+        success: true,
+        message: `Log level override removed for ${context}`,
+        data: {
+          overrides: loggerService.getLogLevelOverrides()
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to remove log level override', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to remove log level override'
+      });
+    }
+  }
+);
+
+/**
+ * @route GET /api/logs/metrics
+ * @desc Get real-time log metrics
+ * @access Admin
+ */
+router.get('/metrics', auth, async (req, res) => {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    const metrics = loggerService.getMetrics();
+
+    res.json({
+      success: true,
+      data: metrics
+    });
+  } catch (error) {
+    logger.error('Failed to get log metrics', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve log metrics'
+    });
+  }
+});
+
+/**
+ * @route POST /api/logs/metrics/reset
+ * @desc Reset log metrics
+ * @access Admin
+ */
+router.post('/metrics/reset', auth, async (req, res) => {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    loggerService.resetMetrics();
+
+    logger.info('Log metrics reset', { userId: req.user.id });
+
+    res.json({
+      success: true,
+      message: 'Log metrics have been reset',
+      data: loggerService.getMetrics()
+    });
+  } catch (error) {
+    logger.error('Failed to reset log metrics', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reset log metrics'
+    });
+  }
+});
+
+/**
+ * @route GET /api/logs/correlation/:correlationId
+ * @desc Get all logs by correlation ID (for distributed tracing)
+ * @access Admin
+ */
+router.get('/correlation/:correlationId',
+  auth,
+  param('correlationId').notEmpty().withMessage('Correlation ID is required'),
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      if (!isAdmin(req)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { correlationId } = req.params;
+      const logs = await loggerService.getLogsByCorrelation(correlationId);
+
+      res.json({
+        success: true,
+        data: {
+          correlationId,
+          logs,
+          count: logs.length
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to get logs by correlation ID', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve logs by correlation ID'
+      });
+    }
+  }
+);
+
+/**
+ * @route GET /api/logs/errors/summary
+ * @desc Get error summary with grouping
+ * @access Admin
+ */
+router.get('/errors/summary',
+  auth,
+  query('timeframe').optional().isIn(['1h', '24h', '7d', '30d']).withMessage('Invalid timeframe'),
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      if (!isAdmin(req)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { timeframe = '24h' } = req.query;
+      const summary = await loggerService.getErrorSummary(timeframe);
+
+      res.json({
+        success: true,
+        data: summary
+      });
+    } catch (error) {
+      logger.error('Failed to get error summary', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve error summary'
+      });
+    }
+  }
+);
+
+/**
+ * @route GET /api/logs/statistics
+ * @desc Get comprehensive log statistics
+ * @access Admin
+ */
+router.get('/statistics',
+  auth,
+  query('timeframe').optional().isIn(['1h', '24h', '7d', '30d']).withMessage('Invalid timeframe'),
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      if (!isAdmin(req)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { timeframe = '24h' } = req.query;
+      const statistics = await loggerService.getLogStatistics(timeframe);
+
+      res.json({
+        success: true,
+        data: statistics
+      });
+    } catch (error) {
+      logger.error('Failed to get log statistics', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve log statistics'
+      });
+    }
+  }
+);
+
+/**
+ * @route GET /api/logs/slow-operations
+ * @desc Get slow operations
+ * @access Admin
+ */
+router.get('/slow-operations',
+  auth,
+  query('threshold').optional().isInt({ min: 100 }).withMessage('Threshold must be at least 100ms'),
+  query('timeframe').optional().isIn(['1h', '24h', '7d', '30d']).withMessage('Invalid timeframe'),
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      if (!isAdmin(req)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const { threshold = 1000, timeframe = '24h' } = req.query;
+      const slowOps = await loggerService.getSlowOperations(parseInt(threshold), timeframe);
+
+      res.json({
+        success: true,
+        data: {
+          threshold: parseInt(threshold),
+          timeframe,
+          operations: slowOps,
+          count: slowOps.length
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to get slow operations', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve slow operations'
+      });
+    }
+  }
+);
+
+/**
+ * @route GET /api/logs/query
+ * @desc Query logs with advanced filters
+ * @access Admin
+ */
+router.get('/query',
+  auth,
+  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      if (!isAdmin(req)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      const {
+        level,
+        category,
+        startDate,
+        endDate,
+        correlationId,
+        userId,
+        search,
+        page = 1,
+        limit = 50,
+        sortBy = 'timestamp',
+        sortOrder = 'desc'
+      } = req.query;
+
+      const result = await loggerService.queryLogs(
+        { level, category, startDate, endDate, correlationId, userId, search },
+        { page: parseInt(page), limit: parseInt(limit), sortBy, sortOrder }
+      );
+
+      res.json({
+        success: true,
+        data: result.logs,
+        pagination: result.pagination
+      });
+    } catch (error) {
+      logger.error('Failed to query logs', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to query logs'
+      });
+    }
+  }
+);
+
+// ==================== Original Log Management Routes ====================
 
 // Get log statistics - [ADMIN ONLY]
 router.get('/stats', auth, async (req, res) => {
