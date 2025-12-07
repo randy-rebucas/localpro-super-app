@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{{subject}}</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+  <style>
+    /* Reset styles */
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; }
+    
+    /* General styles */
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+      background-color: #1a1a2e;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .wrapper {
+      width: 100%;
+      background-color: #1a1a2e;
+      padding: 40px 0;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .hero {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #ff6b6b 100%);
+      padding: 60px 30px;
+      text-align: center;
+      position: relative;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="30" cy="40" r="1" fill="rgba(255,255,255,0.15)"/><circle cx="70" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="60" r="1.5" fill="rgba(255,255,255,0.12)"/><circle cx="50" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+      opacity: 0.5;
+    }
+    
+    .hero-badge {
+      display: inline-block;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 8px 20px;
+      border-radius: 50px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .hero h1 {
+      color: #ffffff;
+      margin: 0;
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+    
+    .hero .discount {
+      font-size: 72px;
+      display: block;
+      margin: 15px 0;
+    }
+    
+    .hero .subtitle {
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 18px;
+      margin-top: 15px;
+      position: relative;
+    }
+    
+    .countdown {
+      background-color: rgba(0, 0, 0, 0.15);
+      padding: 20px;
+      margin-top: 30px;
+      border-radius: 12px;
+      position: relative;
+    }
+    
+    .countdown-label {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    
+    .countdown-timer {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+    
+    .countdown-item {
+      text-align: center;
+    }
+    
+    .countdown-number {
+      display: block;
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    .countdown-unit {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.7);
+      text-transform: uppercase;
+    }
+    
+    .content {
+      padding: 40px 30px;
+    }
+    
+    .greeting {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    
+    .promo-text {
+      color: #555;
+      font-size: 16px;
+      line-height: 1.7;
+      margin-bottom: 30px;
+    }
+    
+    .promo-code-box {
+      background: linear-gradient(135deg, #f8f9fb 0%, #e8edf5 100%);
+      border: 2px dashed #667eea;
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      margin: 30px 0;
+    }
+    
+    .promo-code-label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    
+    .promo-code {
+      font-size: 32px;
+      font-weight: 800;
+      color: #667eea;
+      letter-spacing: 4px;
+      margin: 10px 0;
+    }
+    
+    .promo-code-note {
+      font-size: 12px;
+      color: #888;
+    }
+    
+    .features {
+      margin: 30px 0;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    
+    .feature-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+    
+    .feature-text h4 {
+      margin: 0 0 5px 0;
+      font-size: 16px;
+      color: #333;
+    }
+    
+    .feature-text p {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .product-grid {
+      margin: 30px 0;
+    }
+    
+    .product-card {
+      background-color: #f8f9fb;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    
+    .product-image {
+      width: 100%;
+      max-width: 200px;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    
+    .product-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin: 0 0 5px 0;
+    }
+    
+    .product-price {
+      font-size: 14px;
+      color: #888;
+    }
+    
+    .product-price .original {
+      text-decoration: line-through;
+      margin-right: 10px;
+    }
+    
+    .product-price .sale {
+      color: #f5576c;
+      font-weight: 700;
+    }
+    
+    .cta-section {
+      text-align: center;
+      padding: 30px 0;
+    }
+    
+    .button {
+      display: inline-block;
+      padding: 18px 45px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(245, 87, 108, 0.5);
+    }
+    
+    .button-secondary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+    
+    .terms {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 15px;
+      line-height: 1.5;
+    }
+    
+    .social-links {
+      text-align: center;
+      padding: 20px 0;
+      border-top: 1px solid #eee;
+      margin-top: 30px;
+    }
+    
+    .social-links a {
+      display: inline-block;
+      margin: 0 10px;
+      color: #667eea;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    
+    .footer {
+      background-color: #1a1a2e;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .footer p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 12px;
+      margin: 5px 0;
+      line-height: 1.6;
+    }
+    
+    .footer a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+    }
+    
+    .footer a:hover {
+      color: #f5576c;
+    }
+    
+    .unsubscribe {
+      margin-top: 15px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+    
+    /* Mobile styles */
+    @media only screen and (max-width: 600px) {
+      .wrapper {
+        padding: 20px 15px;
+      }
+      
+      .container {
+        border-radius: 16px;
+      }
+      
+      .hero {
+        padding: 40px 20px;
+      }
+      
+      .hero h1 {
+        font-size: 32px;
+      }
+      
+      .hero .discount {
+        font-size: 56px;
+      }
+      
+      .content {
+        padding: 30px 20px;
+      }
+      
+      .promo-code {
+        font-size: 24px;
+        letter-spacing: 2px;
+      }
+      
+      .countdown-number {
+        font-size: 24px;
+      }
+      
+      .button {
+        padding: 16px 35px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <table class="container" cellpadding="0" cellspacing="0" border="0">
+      <!-- Hero Section -->
+      <tr>
+        <td class="hero">
+          <div class="hero-badge">{{badgeText}}</div>
+          <h1>
+            {{headline}}
+            {{#if discountAmount}}
+            <span class="discount">{{discountAmount}}</span>
+            {{/if}}
+          </h1>
+          <p class="subtitle">{{subtitle}}</p>
+          
+          {{#if showCountdown}}
+          <div class="countdown">
+            <div class="countdown-label">Offer ends in</div>
+            <div class="countdown-timer">
+              <div class="countdown-item">
+                <span class="countdown-number">{{countdownDays}}</span>
+                <span class="countdown-unit">Days</span>
+              </div>
+              <div class="countdown-item">
+                <span class="countdown-number">{{countdownHours}}</span>
+                <span class="countdown-unit">Hours</span>
+              </div>
+              <div class="countdown-item">
+                <span class="countdown-number">{{countdownMinutes}}</span>
+                <span class="countdown-unit">Mins</span>
+              </div>
+            </div>
+          </div>
+          {{/if}}
+        </td>
+      </tr>
+      
+      <!-- Content -->
+      <tr>
+        <td class="content">
+          <!-- Greeting -->
+          <p class="greeting">Hi {{firstName}},</p>
+          
+          <!-- Promo Text -->
+          <p class="promo-text">{{promoText}}</p>
+          
+          <!-- Promo Code -->
+          {{#if promoCode}}
+          <div class="promo-code-box">
+            <div class="promo-code-label">Use code at checkout</div>
+            <div class="promo-code">{{promoCode}}</div>
+            <div class="promo-code-note">{{promoCodeNote}}</div>
+          </div>
+          {{/if}}
+          
+          <!-- Features -->
+          {{#if features}}
+          <div class="features">
+            {{#each features}}
+            <div class="feature-item">
+              <div class="feature-icon">{{this.icon}}</div>
+              <div class="feature-text">
+                <h4>{{this.title}}</h4>
+                <p>{{this.description}}</p>
+              </div>
+            </div>
+            {{/each}}
+          </div>
+          {{/if}}
+          
+          <!-- Products -->
+          {{#if products}}
+          <div class="product-grid">
+            {{#each products}}
+            <div class="product-card">
+              {{#if this.image}}
+              <img src="{{this.image}}" alt="{{this.name}}" class="product-image">
+              {{/if}}
+              <h4 class="product-name">{{this.name}}</h4>
+              <p class="product-price">
+                {{#if this.originalPrice}}
+                <span class="original">{{this.originalPrice}}</span>
+                {{/if}}
+                <span class="sale">{{this.salePrice}}</span>
+              </p>
+            </div>
+            {{/each}}
+          </div>
+          {{/if}}
+          
+          <!-- CTA -->
+          <div class="cta-section">
+            <a href="{{ctaLink}}" class="button">{{ctaButtonText}}</a>
+            <p class="terms">{{termsText}}</p>
+          </div>
+          
+          <!-- Social Links -->
+          <div class="social-links">
+            <a href="{{facebookUrl}}">Facebook</a>
+            <a href="{{twitterUrl}}">Twitter</a>
+            <a href="{{instagramUrl}}">Instagram</a>
+          </div>
+        </td>
+      </tr>
+      
+      <!-- Footer -->
+      <tr>
+        <td class="footer">
+          <p>© {{currentYear}} LocalPro Super App. All rights reserved.</p>
+          <p>
+            <a href="{{websiteUrl}}">Website</a> | 
+            <a href="{{preferencesUrl}}">Update Preferences</a> | 
+            <a href="{{helpUrl}}">Help Center</a>
+          </p>
+          <p class="unsubscribe">
+            You're receiving this because you opted in to promotional emails.<br>
+            <a href="{{unsubscribeUrl}}">Unsubscribe</a> from promotional emails.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
+

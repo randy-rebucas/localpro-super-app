@@ -516,7 +516,7 @@ class NotificationService {
    * Send email notification
    * @private
    */
-  async _sendEmailNotification({ to, type, title, message, data, firstName, _template }) {
+  async _sendEmailNotification({ to, type, title, message, data, firstName }) {
     try {
       // Use specific email methods based on notification type
       switch (type) {
@@ -567,7 +567,7 @@ class NotificationService {
    * Send SMS notification
    * @private
    */
-  async _sendSMSNotification({ to, _type, title, message }) {
+  async _sendSMSNotification({ to, title, message }) {
     try {
       // Format SMS message (keep it concise)
       const smsMessage = `LocalPro: ${title}\n${message}`.substring(0, 160);

@@ -4,6 +4,8 @@ const { Service, Booking } = require('../models/Marketplace');
 const Job = require('../models/Job');
 const Referral = require('../models/Referral');
 const Agency = require('../models/Agency');
+const analyticsService = require('../services/analyticsService');
+const { logger } = require('../utils/logger');
 
 // @desc    Get analytics overview
 // @route   GET /api/analytics/overview
@@ -828,6 +830,312 @@ const getCustomAnalytics = async (req, res) => {
   }
 };
 
+// @desc    Get dashboard analytics summary
+// @route   GET /api/analytics/dashboard
+// @access  Private (Admin)
+const getDashboardAnalytics = async (req, res) => {
+  try {
+    const { timeframe = '30d' } = req.query;
+    
+    const dashboard = await analyticsService.getDashboardSummary(timeframe);
+    
+    logger.info('Dashboard analytics retrieved', {
+      userId: req.user.id,
+      timeframe
+    });
+
+    res.status(200).json({
+      success: true,
+      data: dashboard
+    });
+  } catch (error) {
+    logger.error('Get dashboard analytics error:', error, {
+      userId: req.user?.id
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve dashboard analytics'
+    });
+  }
+};
+
+// @desc    Get provider analytics
+// @route   GET /api/analytics/provider
+// @access  Private (Provider)
+const getProviderAnalytics = async (req, res) => {
+  try {
+    const providerId = req.params.providerId || req.user.id;
+    const { timeframe = '30d' } = req.query;
+
+    // Verify user has permission to view these analytics
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    const isProvider = req.user.hasRole ? req.user.hasRole('provider') : userRoles.includes('provider');
+    
+    if (!isAdmin && providerId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only view your own analytics.'
+      });
+    }
+
+    if (!isAdmin && !isProvider) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Provider role required.'
+      });
+    }
+
+    const analytics = await analyticsService.getProviderAnalytics(providerId, timeframe);
+
+    logger.info('Provider analytics retrieved', {
+      userId: req.user.id,
+      providerId,
+      timeframe
+    });
+
+    res.status(200).json({
+      success: true,
+      data: analytics
+    });
+  } catch (error) {
+    logger.error('Get provider analytics error:', error, {
+      userId: req.user?.id,
+      providerId: req.params.providerId
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve provider analytics'
+    });
+  }
+};
+
+// @desc    Get financial analytics
+// @route   GET /api/analytics/financial
+// @access  Private (Admin)
+const getFinancialAnalytics = async (req, res) => {
+  try {
+    const { timeframe = '30d' } = req.query;
+
+    const analytics = await analyticsService.getFinancialAnalytics(timeframe);
+
+    logger.info('Financial analytics retrieved', {
+      userId: req.user.id,
+      timeframe
+    });
+
+    res.status(200).json({
+      success: true,
+      data: analytics
+    });
+  } catch (error) {
+    logger.error('Get financial analytics error:', error, {
+      userId: req.user?.id
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve financial analytics'
+    });
+  }
+};
+
+// @desc    Get time series data for charts
+// @route   GET /api/analytics/time-series
+// @access  Private (Admin)
+const getTimeSeriesData = async (req, res) => {
+  try {
+    const { metric = 'bookings', timeframe = '30d', granularity = 'daily' } = req.query;
+
+    const validMetrics = ['users', 'bookings', 'revenue', 'services', 'jobs'];
+    if (!validMetrics.includes(metric)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid metric. Must be one of: ${validMetrics.join(', ')}`
+      });
+    }
+
+    const validGranularities = ['hourly', 'daily', 'weekly', 'monthly'];
+    if (!validGranularities.includes(granularity)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid granularity. Must be one of: ${validGranularities.join(', ')}`
+      });
+    }
+
+    const data = await analyticsService.getTimeSeriesData(metric, timeframe, granularity);
+
+    logger.info('Time series data retrieved', {
+      userId: req.user.id,
+      metric,
+      timeframe,
+      granularity
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        metric,
+        timeframe,
+        granularity,
+        series: data
+      }
+    });
+  } catch (error) {
+    logger.error('Get time series data error:', error, {
+      userId: req.user?.id,
+      query: req.query
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve time series data'
+    });
+  }
+};
+
+// @desc    Get real-time metrics
+// @route   GET /api/analytics/realtime
+// @access  Private (Admin)
+const getRealTimeMetrics = async (req, res) => {
+  try {
+    const metrics = await analyticsService.getRealTimeMetrics();
+
+    res.status(200).json({
+      success: true,
+      data: metrics
+    });
+  } catch (error) {
+    logger.error('Get real-time metrics error:', error, {
+      userId: req.user?.id
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve real-time metrics'
+    });
+  }
+};
+
+// @desc    Export analytics data
+// @route   GET /api/analytics/export
+// @access  Private (Admin)
+const exportAnalytics = async (req, res) => {
+  try {
+    const { type = 'overview', timeframe = '30d', format = 'json' } = req.query;
+
+    const validTypes = ['overview', 'users', 'revenue', 'bookings'];
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid export type. Must be one of: ${validTypes.join(', ')}`
+      });
+    }
+
+    const validFormats = ['json', 'csv'];
+    if (!validFormats.includes(format)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid format. Must be one of: ${validFormats.join(', ')}`
+      });
+    }
+
+    const exportData = await analyticsService.exportAnalytics(type, timeframe, format);
+
+    logger.info('Analytics exported', {
+      userId: req.user.id,
+      type,
+      timeframe,
+      format
+    });
+
+    if (format === 'csv') {
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="analytics-${type}-${new Date().toISOString().split('T')[0]}.csv"`);
+      res.send(exportData);
+    } else {
+      res.status(200).json({
+        success: true,
+        data: exportData,
+        exportInfo: {
+          type,
+          timeframe,
+          format,
+          generatedAt: new Date()
+        }
+      });
+    }
+  } catch (error) {
+    logger.error('Export analytics error:', error, {
+      userId: req.user?.id,
+      query: req.query
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export analytics'
+    });
+  }
+};
+
+// @desc    Get comparison analytics (current vs previous period)
+// @route   GET /api/analytics/comparison
+// @access  Private (Admin)
+const getComparisonAnalytics = async (req, res) => {
+  try {
+    const { timeframe = '30d' } = req.query;
+
+    const dashboard = await analyticsService.getDashboardSummary(timeframe);
+
+    logger.info('Comparison analytics retrieved', {
+      userId: req.user.id,
+      timeframe
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        current: dashboard.summary,
+        growth: dashboard.summary.growth,
+        timeframe,
+        comparisonPeriod: `Previous ${timeframe}`
+      }
+    });
+  } catch (error) {
+    logger.error('Get comparison analytics error:', error, {
+      userId: req.user?.id
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve comparison analytics'
+    });
+  }
+};
+
+// @desc    Get analytics metadata (available metrics, timeframes, etc.)
+// @route   GET /api/analytics/metadata
+// @access  Private
+const getAnalyticsMetadata = async (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      data: {
+        timeframes: ['1h', '24h', '7d', '30d', '90d', '1y'],
+        metrics: ['users', 'bookings', 'revenue', 'services', 'jobs', 'referrals'],
+        granularities: ['hourly', 'daily', 'weekly', 'monthly'],
+        exportTypes: ['overview', 'users', 'revenue', 'bookings'],
+        exportFormats: ['json', 'csv'],
+        categories: {
+          services: ['cleaning', 'plumbing', 'electrical', 'carpentry', 'painting', 'gardening', 'other'],
+          jobs: ['full-time', 'part-time', 'contract', 'freelance']
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Get analytics metadata error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve analytics metadata'
+    });
+  }
+};
+
 module.exports = {
   getAnalyticsOverview,
   getUserAnalytics,
@@ -836,5 +1144,13 @@ module.exports = {
   getReferralAnalytics,
   getAgencyAnalytics,
   trackEvent,
-  getCustomAnalytics
+  getCustomAnalytics,
+  getDashboardAnalytics,
+  getProviderAnalytics,
+  getFinancialAnalytics,
+  getTimeSeriesData,
+  getRealTimeMetrics,
+  exportAnalytics,
+  getComparisonAnalytics,
+  getAnalyticsMetadata
 };

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{{subject}}</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+  <style>
+    /* Reset styles */
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; }
+    
+    /* General styles */
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+      background-color: #f4f6f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .wrapper {
+      width: 100%;
+      background-color: #f4f6f9;
+      padding: 40px 0;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 40px 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      color: #ffffff;
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    
+    .header .tagline {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    
+    .content {
+      padding: 40px 30px;
+    }
+    
+    .greeting {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    
+    .intro {
+      color: #555;
+      font-size: 16px;
+      line-height: 1.7;
+      margin-bottom: 30px;
+    }
+    
+    .section {
+      margin-bottom: 35px;
+    }
+    
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #667eea;
+      display: inline-block;
+    }
+    
+    .article {
+      background-color: #f8f9fb;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+    }
+    
+    .article-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin: 0 0 10px 0;
+    }
+    
+    .article-text {
+      color: #555;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0 0 15px 0;
+    }
+    
+    .article-link {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .article-link:hover {
+      text-decoration: underline;
+    }
+    
+    .featured-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      margin: 30px 0;
+    }
+    
+    .featured-box h3 {
+      color: #fff;
+      font-size: 22px;
+      margin: 0 0 10px 0;
+    }
+    
+    .featured-box p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      margin: 0 0 20px 0;
+    }
+    
+    .button {
+      display: inline-block;
+      padding: 14px 32px;
+      background-color: #ffffff;
+      color: #667eea !important;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: transform 0.2s;
+    }
+    
+    .button-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff !important;
+    }
+    
+    .tips-list {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    
+    .tips-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+      color: #555;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .tips-list li:last-child {
+      border-bottom: none;
+    }
+    
+    .tips-list li strong {
+      color: #333;
+    }
+    
+    .stats-row {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      margin: 30px 0;
+      padding: 25px;
+      background-color: #f8f9fb;
+      border-radius: 12px;
+    }
+    
+    .stat-item {
+      flex: 1;
+    }
+    
+    .stat-number {
+      font-size: 28px;
+      font-weight: 700;
+      color: #667eea;
+      display: block;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .divider {
+      height: 1px;
+      background-color: #eee;
+      margin: 30px 0;
+    }
+    
+    .social-links {
+      text-align: center;
+      padding: 20px 0;
+    }
+    
+    .social-links a {
+      display: inline-block;
+      margin: 0 8px;
+      color: #667eea;
+      text-decoration: none;
+    }
+    
+    .footer {
+      background-color: #f8f9fb;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .footer p {
+      color: #888;
+      font-size: 12px;
+      margin: 5px 0;
+      line-height: 1.6;
+    }
+    
+    .footer a {
+      color: #667eea;
+      text-decoration: none;
+    }
+    
+    .unsubscribe {
+      margin-top: 15px;
+      font-size: 11px;
+      color: #aaa;
+    }
+    
+    .unsubscribe a {
+      color: #888;
+    }
+    
+    /* Mobile styles */
+    @media only screen and (max-width: 600px) {
+      .wrapper {
+        padding: 20px 15px;
+      }
+      
+      .container {
+        border-radius: 12px;
+      }
+      
+      .header {
+        padding: 30px 20px;
+      }
+      
+      .header h1 {
+        font-size: 24px;
+      }
+      
+      .content {
+        padding: 30px 20px;
+      }
+      
+      .section-title {
+        font-size: 18px;
+      }
+      
+      .article {
+        padding: 20px;
+      }
+      
+      .featured-box {
+        padding: 25px 20px;
+      }
+      
+      .stats-row {
+        flex-direction: column;
+        gap: 20px;
+      }
+      
+      .stat-number {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <table class="container" cellpadding="0" cellspacing="0" border="0">
+      <!-- Header -->
+      <tr>
+        <td class="header">
+          <h1>LocalPro</h1>
+          <p class="tagline">Your Trusted Service Partner</p>
+        </td>
+      </tr>
+      
+      <!-- Content -->
+      <tr>
+        <td class="content">
+          <!-- Greeting -->
+          <p class="greeting">Hi {{firstName}},</p>
+          
+          <!-- Intro -->
+          <p class="intro">{{introText}}</p>
+          
+          <!-- Featured Section -->
+          {{#if featuredContent}}
+          <div class="featured-box">
+            <h3>{{featuredTitle}}</h3>
+            <p>{{featuredDescription}}</p>
+            <a href="{{featuredLink}}" class="button">{{featuredButtonText}}</a>
+          </div>
+          {{/if}}
+          
+          <!-- Articles Section -->
+          {{#if articles}}
+          <div class="section">
+            <h2 class="section-title">{{articlesSectionTitle}}</h2>
+            {{#each articles}}
+            <div class="article">
+              <h3 class="article-title">{{this.title}}</h3>
+              <p class="article-text">{{this.description}}</p>
+              <a href="{{this.link}}" class="article-link">Read More →</a>
+            </div>
+            {{/each}}
+          </div>
+          {{/if}}
+          
+          <!-- Tips Section -->
+          {{#if tips}}
+          <div class="section">
+            <h2 class="section-title">💡 Tips & Insights</h2>
+            <ul class="tips-list">
+              {{#each tips}}
+              <li><strong>{{this.title}}</strong> - {{this.text}}</li>
+              {{/each}}
+            </ul>
+          </div>
+          {{/if}}
+          
+          <!-- Stats Section -->
+          {{#if showStats}}
+          <div class="divider"></div>
+          <table class="stats-row" cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+              <td class="stat-item">
+                <span class="stat-number">{{stat1Value}}</span>
+                <span class="stat-label">{{stat1Label}}</span>
+              </td>
+              <td class="stat-item">
+                <span class="stat-number">{{stat2Value}}</span>
+                <span class="stat-label">{{stat2Label}}</span>
+              </td>
+              <td class="stat-item">
+                <span class="stat-number">{{stat3Value}}</span>
+                <span class="stat-label">{{stat3Label}}</span>
+              </td>
+            </tr>
+          </table>
+          {{/if}}
+          
+          <!-- CTA Section -->
+          {{#if ctaText}}
+          <div class="divider"></div>
+          <div style="text-align: center; padding: 20px 0;">
+            <p style="color: #555; font-size: 16px; margin-bottom: 20px;">{{ctaText}}</p>
+            <a href="{{ctaLink}}" class="button button-primary">{{ctaButtonText}}</a>
+          </div>
+          {{/if}}
+          
+          <!-- Social Links -->
+          <div class="social-links">
+            <a href="{{facebookUrl}}">Facebook</a>
+            <a href="{{twitterUrl}}">Twitter</a>
+            <a href="{{instagramUrl}}">Instagram</a>
+            <a href="{{linkedinUrl}}">LinkedIn</a>
+          </div>
+        </td>
+      </tr>
+      
+      <!-- Footer -->
+      <tr>
+        <td class="footer">
+          <p>© {{currentYear}} LocalPro Super App. All rights reserved.</p>
+          <p>
+            <a href="{{websiteUrl}}">Website</a> | 
+            <a href="{{preferencesUrl}}">Update Preferences</a> | 
+            <a href="{{helpUrl}}">Help Center</a>
+          </p>
+          <p class="unsubscribe">
+            You're receiving this email because you subscribed to LocalPro updates.<br>
+            <a href="{{unsubscribeUrl}}">Unsubscribe</a> from these emails.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
+
