@@ -2,11 +2,91 @@ const databaseOptimizationService = require('../services/databaseOptimizationSer
 const queryOptimizationService = require('../services/queryOptimizationService');
 const dbMonitor = require('../services/databasePerformanceMonitor');
 const logger = require('../config/logger');
+const path = require('path');
+const fs = require('fs');
 
 /**
  * Database Optimization Controller
  * Provides endpoints for database optimization and performance monitoring
  */
+/**
+ * @desc    Trigger database backup
+ * @route   POST /api/database/optimization/backup
+ * @access  Private (Admin only)
+ */
+const backupDatabase = async (req, res) => {
+  try {
+    const result = await databaseOptimizationService.backupDatabase();
+    res.json({
+      success: true,
+      data: result,
+      message: 'Database backup completed successfully'
+    });
+  } catch (error) {
+    logger.error('Error backing up database:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to backup database',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Restore database from backup file
+ * @route   POST /api/database/optimization/restore
+ * @access  Private (Admin only)
+ */
+const restoreDatabase = async (req, res) => {
+  try {
+    const { backupFilePath } = req.body;
+    if (!backupFilePath || !fs.existsSync(backupFilePath)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid backupFilePath is required'
+      });
+    }
+    const result = await databaseOptimizationService.restoreDatabase(backupFilePath);
+    res.json({
+      success: true,
+      data: result,
+      message: 'Database restore completed successfully'
+    });
+  } catch (error) {
+    logger.error('Error restoring database:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to restore database',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc    List available backups
+ * @route   GET /api/database/optimization/backups
+ * @access  Private (Admin only)
+ */
+const listBackups = async (req, res) => {
+  try {
+    const backups = await databaseOptimizationService.listBackups();
+    res.json({
+      success: true,
+      data: {
+        backups,
+        count: backups.length
+      },
+      message: 'Backups retrieved successfully'
+    });
+  } catch (error) {
+    logger.error('Error listing backups:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to list backups',
+      error: error.message
+    });
+  }
+};
 
 /**
  * @desc    Get database optimization report
@@ -382,5 +462,8 @@ module.exports = {
   clearQueryCache,
   getCollectionStats,
   analyzeSlowQueries,
-  resetPerformanceStats
+  resetPerformanceStats,
+  backupDatabase,
+  restoreDatabase,
+  listBackups
 };

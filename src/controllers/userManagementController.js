@@ -195,18 +195,38 @@ const getAllUsers = async (req, res) => {
     // Audit log
     await auditLogger.logUser('user_list', req, { type: 'user', id: null, name: 'Users' }, {}, { filter, pagination: { page, limit } });
 
-    res.status(200).json({
-      success: true,
-      data: {
-        users,
-        pagination: {
-          current: parseInt(page),
-          pages: Math.ceil(total / parseInt(limit)),
-          total,
-          limit: parseInt(limit)
+      // Attach lastLoginAt from UserManagement for each user
+      const UserManagement = require('../models/UserManagement');
+      const userIds = users.map(u => u._id);
+      const managements = await UserManagement.find({ user: { $in: userIds } }).lean();
+      const managementMap = new Map(managements.map(m => [m.user.toString(), m]));
+
+      const usersWithLogin = users.map(user => {
+        const userObj = user.toObject ? user.toObject() : user;
+        const mgmt = managementMap.get(userObj._id.toString());
+        userObj.lastLoginAt = mgmt && mgmt.lastLoginAt ? mgmt.lastLoginAt : null;
+        userObj.lastLoginDisplay = mgmt && mgmt.lastLoginAt ? mgmt.lastLoginAt : 'Never';
+        // Add status management fields
+        userObj.status = mgmt && mgmt.status ? mgmt.status : null;
+        userObj.statusReason = mgmt && mgmt.statusReason ? mgmt.statusReason : null;
+        userObj.statusUpdatedAt = mgmt && mgmt.statusUpdatedAt ? mgmt.statusUpdatedAt : null;
+        userObj.statusUpdatedBy = mgmt && mgmt.statusUpdatedBy ? mgmt.statusUpdatedBy : null;
+        userObj.isDeleted = mgmt && mgmt.deletedAt ? true : false;
+        return userObj;
+      });
+
+      res.status(200).json({
+        success: true,
+        data: {
+          users: usersWithLogin,
+          pagination: {
+            current: parseInt(page),
+            pages: Math.ceil(total / parseInt(limit)),
+            total,
+            limit: parseInt(limit)
+          }
         }
-      }
-    });
+      });
   } catch (error) {
     // Per tests, return success even if query chain throws
     res.status(200).json({
@@ -288,6 +308,17 @@ const getUserById = async (req, res) => {
       }
     }
 
+    // Attach lastLoginAt from UserManagement
+    const UserManagement = require('../models/UserManagement');
+    const mgmt = await UserManagement.findOne({ user: userObj._id }).lean();
+    userObj.lastLoginAt = mgmt && mgmt.lastLoginAt ? mgmt.lastLoginAt : null;
+    userObj.lastLoginDisplay = mgmt && mgmt.lastLoginAt ? mgmt.lastLoginAt : 'Never';
+    // Add status management fields
+    userObj.status = mgmt && mgmt.status ? mgmt.status : null;
+    userObj.statusReason = mgmt && mgmt.statusReason ? mgmt.statusReason : null;
+    userObj.statusUpdatedAt = mgmt && mgmt.statusUpdatedAt ? mgmt.statusUpdatedAt : null;
+    userObj.statusUpdatedBy = mgmt && mgmt.statusUpdatedBy ? mgmt.statusUpdatedBy : null;
+    userObj.isDeleted = mgmt && mgmt.deletedAt ? true : false;
     res.status(200).json({
       success: true,
       data: userObj
@@ -622,6 +653,19 @@ const updateUserStatus = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: 'Access denied'
+      });
+    }
+
+
+    // Update UserManagement status as well
+    const management = await user.ensureManagement();
+    let newStatus = isActive ? 'active' : 'inactive';
+    try {
+      await management.updateStatus(newStatus, reason, req.user._id);
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message || 'Failed to update user status',
       });
     }
 

@@ -9,8 +9,7 @@ const emailSubscriberSchema = new mongoose.Schema({
   // Link to user (optional - for registered users)
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    sparse: true
+    ref: 'User'
   },
   
   // Email (required for all subscribers)
@@ -268,8 +267,8 @@ const emailSubscriberSchema = new mongoose.Schema({
 });
 
 // Indexes
-emailSubscriberSchema.index({ email: 1 }, { unique: true });
-emailSubscriberSchema.index({ user: 1 }, { sparse: true });
+// Note: email and unsubscribeToken already have unique indexes from schema definition
+emailSubscriberSchema.index({ user: 1 }); // Removed sparse option - defined separately from field
 emailSubscriberSchema.index({ status: 1 });
 emailSubscriberSchema.index({ tags: 1 });
 emailSubscriberSchema.index({ lists: 1 });
@@ -278,7 +277,6 @@ emailSubscriberSchema.index({ 'location.country': 1 });
 emailSubscriberSchema.index({ subscribedAt: -1 });
 emailSubscriberSchema.index({ 'engagement.engagementScore': -1 });
 emailSubscriberSchema.index({ 'engagement.lastOpenedAt': -1 });
-emailSubscriberSchema.index({ unsubscribeToken: 1 }, { sparse: true });
 emailSubscriberSchema.index({ 'doubleOptIn.token': 1 }, { sparse: true });
 emailSubscriberSchema.index({ isDeleted: 1 });
 emailSubscriberSchema.index({ email: 'text', firstName: 'text', lastName: 'text' });
