@@ -1,4 +1,5 @@
-const { Course, Enrollment } = require('../models/Academy');
+const { Course, Enrollment, Certification, AcademyCategory } = require('../models/Academy');
+const Favorite = require('../models/Favorite');
 const Academy = Course; // Alias for backward compatibility
 const User = require('../models/User');
 const mongoose = require('mongoose');
@@ -6,6 +7,83 @@ const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const logger = require('../config/logger');
 const { sendServerError } = require('../utils/responseHelper');
+
+// Resolve category value (ObjectId or name) to ObjectId
+const resolveCategoryId = async (value) => {
+  if (!value) return null;
+  if (mongoose.isValidObjectId(value)) return value;
+  const found = await AcademyCategory.findOne({ name: value.toLowerCase().trim() }, { _id: 1 });
+  return found ? found._id : null;
+};
+
+// Helper to allow ObjectId or name-based lookup for categories
+const buildCategoryFilter = (param) => (
+  mongoose.isValidObjectId(param)
+    ? { _id: param }
+    : { name: param.toLowerCase().trim() }
+);
+
+// Category CRUD
+const listCategories = async (_req, res) => {
+  try {
+    const categories = await AcademyCategory.find({ isActive: true }).sort({ name: 1 });
+    res.json({ success: true, data: categories });
+  } catch (error) {
+    logger.error('List categories error:', error);
+    res.status(500).json({ success: false, message: 'Failed to list categories' });
+  }
+};
+
+const createCategory = async (req, res) => {
+  try {
+    const { name, description, isActive = true } = req.body;
+    if (!name) {
+      return res.status(400).json({ success: false, message: 'Name is required' });
+    }
+    const exists = await AcademyCategory.findOne({ name: name.toLowerCase().trim() });
+    if (exists) {
+      return res.status(409).json({ success: false, message: 'Category already exists' });
+    }
+    const category = await AcademyCategory.create({ name, description, isActive });
+    res.status(201).json({ success: true, data: category, message: 'Category created' });
+  } catch (error) {
+    logger.error('Create category error:', error);
+    res.status(500).json({ success: false, message: 'Failed to create category' });
+  }
+};
+
+const updateCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const category = await AcademyCategory.findOneAndUpdate(
+      buildCategoryFilter(id),
+      updates,
+      { new: true, runValidators: true }
+    );
+    if (!category) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+    res.json({ success: true, data: category, message: 'Category updated' });
+  } catch (error) {
+    logger.error('Update category error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update category' });
+  }
+};
+
+const deleteCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await AcademyCategory.findOneAndDelete(buildCategoryFilter(id));
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+    res.json({ success: true, message: 'Category deleted' });
+  } catch (error) {
+    logger.error('Delete category error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete category' });
+  }
+};
 
 // @desc    Get all academy courses
 // @route   GET /api/academy/courses
@@ -37,7 +115,11 @@ const getCourses = async (req, res) => {
 
     // Category filter
     if (category) {
-      filter.category = category;
+      const categoryId = await resolveCategoryId(category);
+      if (!categoryId) {
+        return res.status(400).json({ success: false, message: 'Category not found' });
+      }
+      filter.category = categoryId;
     }
 
     // Level filter
@@ -58,6 +140,7 @@ const getCourses = async (req, res) => {
 
     const courses = await Course.find(filter)
       .populate('instructor', 'firstName lastName profile.avatar profile.bio')
+      .populate('category', 'name description isActive')
       .sort(sort)
       .skip(skip)
       .limit(Number(limit));
@@ -131,6 +214,7 @@ const getCourse = async (req, res) => {
     // Find course with instructor population
     const course = await Course.findById(courseId)
       .populate('instructor', 'firstName lastName email phone profile.avatar profile.bio profile.rating profile.experience')
+      .populate('category', 'name description isActive')
       .lean();
 
     if (!course) {
@@ -320,6 +404,14 @@ const createCourse = async (req, res) => {
       instructor: req.user.id
     };
 
+    if (courseData.category) {
+      const categoryId = await resolveCategoryId(courseData.category);
+      if (!categoryId) {
+        return res.status(400).json({ success: false, message: 'Invalid category', detail: 'Category not found' });
+      }
+      courseData.category = categoryId;
+    }
+
     const course = await Course.create(courseData);
 
     await course.populate('instructor', 'firstName lastName profile.avatar');
@@ -364,7 +456,16 @@ const updateCourse = async (req, res) => {
       });
     }
 
-    course = await Academy.findByIdAndUpdate(req.params.id, req.body, {
+    const updateData = { ...req.body };
+    if (updateData.category) {
+      const categoryId = await resolveCategoryId(updateData.category);
+      if (!categoryId) {
+        return res.status(400).json({ success: false, message: 'Invalid category', detail: 'Category not found' });
+      }
+      updateData.category = categoryId;
+    }
+
+    course = await Academy.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true
     });
@@ -431,10 +532,20 @@ const deleteCourse = async (req, res) => {
 // @access  Private (Instructor/Admin)
 const uploadCourseThumbnail = async (req, res) => {
   try {
-    if (!req.file) {
+    const file = req.file || (Array.isArray(req.files) && req.files[0]);
+
+    if (!file) {
       return res.status(400).json({
         success: false,
         message: 'No file uploaded'
+      });
+    }
+
+    // Ensure multer provided buffer/path; otherwise fail gracefully
+    if (!file.buffer && !file.path) {
+      return res.status(400).json({
+        success: false,
+        message: 'Uploaded file is empty. Please try again.'
       });
     }
 
@@ -461,7 +572,7 @@ const uploadCourseThumbnail = async (req, res) => {
 
     // Upload to Cloudinary
     const uploadResult = await CloudinaryService.uploadFile(
-      req.file, 
+      file, 
       'localpro/academy/thumbnails'
     );
 
@@ -724,10 +835,11 @@ const enrollInCourse = async (req, res) => {
       });
     }
 
-    // Check if user is already enrolled
-    const existingEnrollment = course.enrollments.find(
-      enrollment => enrollment.user.toString() === req.user.id
-    );
+    // Check if user is already enrolled (Enrollment collection)
+    const existingEnrollment = await Enrollment.findOne({
+      course: course._id,
+      student: req.user.id
+    });
 
     if (existingEnrollment) {
       return res.status(400).json({
@@ -736,16 +848,14 @@ const enrollInCourse = async (req, res) => {
       });
     }
 
-    // Add enrollment
-    const enrollment = {
-      user: req.user.id,
-      enrolledAt: new Date(),
-      progress: 0,
-      status: 'active'
-    };
-
-    course.enrollments.push(enrollment);
-    await course.save();
+    // Create enrollment
+    const enrollment = await Enrollment.create({
+      student: req.user.id,
+      course: course._id,
+      status: 'enrolled',
+      enrollmentDate: new Date(),
+      payment: req.body?.payment || undefined
+    });
 
     // Send notification email to instructor
     const instructor = await User.findById(course.instructor);
@@ -933,6 +1043,7 @@ const getMyCourses = async (req, res) => {
 
     const courses = await Course.find(filter)
       .populate('instructor', 'firstName lastName profile.avatar')
+      .populate('category', 'name description isActive')
       .sort({ 'enrollments.enrolledAt': -1 })
       .skip(skip)
       .limit(Number(limit));
@@ -978,7 +1089,8 @@ const getMyCreatedCourses = async (req, res) => {
     const courses = await Academy.find({ instructor: req.user.id })
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(Number(limit));
+      .limit(Number(limit))
+      .populate('category', 'name description isActive');
 
     const total = await Academy.countDocuments({ instructor: req.user.id });
 
@@ -996,6 +1108,123 @@ const getMyCreatedCourses = async (req, res) => {
       success: false,
       message: 'Server error'
     });
+  }
+};
+
+// @desc    Favorite a course
+// @route   POST /api/academy/courses/:id/favorite
+// @access  Private
+const favoriteCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const course = await Course.findById(id);
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+
+    // Check via Favorite model
+    const existing = await Favorite.isFavorited(req.user.id, 'course', id);
+    if (existing) {
+      return res.status(200).json({ success: true, message: 'Course already favorited' });
+    }
+
+    await Favorite.create({
+      user: req.user.id,
+      itemType: 'course',
+      itemId: id
+    });
+
+    // Optional: sync counter on course
+    const favoritesCount = await Favorite.countDocuments({ itemType: 'course', itemId: id });
+    course.favoritesCount = favoritesCount;
+    await course.save();
+
+    res.status(200).json({ success: true, message: 'Course favorited', data: { favoritesCount } });
+  } catch (error) {
+    logger.error('Favorite course error:', error);
+    res.status(500).json({ success: false, message: 'Failed to favorite course' });
+  }
+};
+
+// @desc    Unfavorite a course
+// @route   DELETE /api/academy/courses/:id/favorite
+// @access  Private
+const unfavoriteCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const course = await Course.findById(id);
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+
+    const favorite = await Favorite.findOne({
+      user: req.user.id,
+      itemType: 'course',
+      itemId: id
+    });
+
+    if (!favorite) {
+      return res.status(404).json({ success: false, message: 'Favorite not found for this course' });
+    }
+
+    await favorite.deleteOne();
+
+    const favoritesCount = await Favorite.countDocuments({ itemType: 'course', itemId: id });
+    course.favoritesCount = favoritesCount;
+    await course.save();
+
+    res.status(200).json({ success: true, message: 'Course unfavorited', data: { favoritesCount } });
+  } catch (error) {
+    logger.error('Unfavorite course error:', error);
+    res.status(500).json({ success: false, message: 'Failed to unfavorite course' });
+  }
+};
+
+// @desc    Get my favorite courses
+// @route   GET /api/academy/my-favorite-courses
+// @access  Private
+const getMyFavoriteCourses = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const favorites = await Favorite.find({
+      user: req.user.id,
+      itemType: 'course'
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    // Populate the course for each favorite
+    const populated = await Promise.all(
+      favorites.map(async (fav) => {
+        const course = await Course.findById(fav.itemId)
+          .populate('instructor', 'firstName lastName profile.avatar')
+          .populate('category', 'name description isActive');
+        return {
+          favoriteId: fav._id,
+          notes: fav.notes,
+          tags: fav.tags,
+          addedAt: fav.metadata?.addedAt || fav.createdAt,
+          course
+        };
+      })
+    );
+
+    const total = await Favorite.countDocuments({ user: req.user.id, itemType: 'course' });
+
+    res.status(200).json({
+      success: true,
+      count: populated.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: populated
+    });
+  } catch (error) {
+    logger.error('Get my favorite courses error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get favorite courses' });
   }
 };
 
@@ -1119,6 +1348,132 @@ const getCourseStatistics = async (req, res) => {
   }
 };
 
+// ========= Certifications =========
+
+// @desc    List certifications
+// @route   GET /api/academy/certifications
+// @access  Public
+const listCertifications = async (_req, res) => {
+  try {
+    const certifications = await Certification.find({ isActive: true }).sort({ name: 1 });
+    res.json({ success: true, data: certifications });
+  } catch (error) {
+    logger.error('List certifications error:', error);
+    res.status(500).json({ success: false, message: 'Failed to list certifications' });
+  }
+};
+
+// @desc    Create certification
+// @route   POST /api/academy/certifications
+// @access  Admin/Instructor
+const createCertification = async (req, res) => {
+  try {
+    const cert = await Certification.create(req.body);
+    res.status(201).json({ success: true, data: cert, message: 'Certification created' });
+  } catch (error) {
+    logger.error('Create certification error:', error);
+    res.status(500).json({ success: false, message: 'Failed to create certification', error: error.message });
+  }
+};
+
+// @desc    Update certification
+// @route   PUT /api/academy/certifications/:id
+// @access  Admin/Instructor
+const updateCertification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cert = await Certification.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+    if (!cert) return res.status(404).json({ success: false, message: 'Certification not found' });
+    res.json({ success: true, data: cert, message: 'Certification updated' });
+  } catch (error) {
+    logger.error('Update certification error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update certification', error: error.message });
+  }
+};
+
+// @desc    Delete certification
+// @route   DELETE /api/academy/certifications/:id
+// @access  Admin/Instructor
+const deleteCertification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Certification.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ success: false, message: 'Certification not found' });
+    res.json({ success: true, message: 'Certification deleted' });
+  } catch (error) {
+    logger.error('Delete certification error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete certification', error: error.message });
+  }
+};
+
+// ========= Enrollments =========
+
+// @desc    List enrollments (admin/instructor)
+// @route   GET /api/academy/enrollments
+// @access  Admin/Instructor
+const listEnrollments = async (req, res) => {
+  try {
+    const { course, student, status, page = 1, limit = 20 } = req.query;
+    const filter = {};
+    if (course) filter.course = course;
+    if (student) filter.student = student;
+    if (status) filter.status = status;
+    const skip = (page - 1) * limit;
+    const enrollments = await Enrollment.find(filter)
+      .populate('student', 'firstName lastName email profile.avatar')
+      .populate('course', 'title category level')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+    const total = await Enrollment.countDocuments(filter);
+    res.json({
+      success: true,
+      data: enrollments,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    logger.error('List enrollments error:', error);
+    res.status(500).json({ success: false, message: 'Failed to list enrollments' });
+  }
+};
+
+// @desc    Update enrollment status
+// @route   PUT /api/academy/enrollments/:id/status
+// @access  Admin/Instructor
+const updateEnrollmentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    if (!status) return res.status(400).json({ success: false, message: 'Status is required' });
+    const enrollment = await Enrollment.findByIdAndUpdate(id, { status }, { new: true, runValidators: true });
+    if (!enrollment) return res.status(404).json({ success: false, message: 'Enrollment not found' });
+    res.json({ success: true, data: enrollment, message: 'Enrollment status updated' });
+  } catch (error) {
+    logger.error('Update enrollment status error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update enrollment status', error: error.message });
+  }
+};
+
+// @desc    Delete enrollment
+// @route   DELETE /api/academy/enrollments/:id
+// @access  Admin
+const deleteEnrollment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Enrollment.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ success: false, message: 'Enrollment not found' });
+    res.json({ success: true, message: 'Enrollment deleted' });
+  } catch (error) {
+    logger.error('Delete enrollment error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete enrollment', error: error.message });
+  }
+};
+
 module.exports = {
   getCourses,
   getCourse,
@@ -1133,7 +1488,24 @@ module.exports = {
   addCourseReview,
   getMyCourses,
   getMyCreatedCourses,
+  favoriteCourse,
+  unfavoriteCourse,
+  getMyFavoriteCourses,
   getCourseCategories,
   getFeaturedCourses,
-  getCourseStatistics
+  getCourseStatistics,
+  // Categories
+  listCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  // Certifications
+  listCertifications,
+  createCertification,
+  updateCertification,
+  deleteCertification,
+  // Enrollments
+  listEnrollments,
+  updateEnrollmentStatus,
+  deleteEnrollment
 };
