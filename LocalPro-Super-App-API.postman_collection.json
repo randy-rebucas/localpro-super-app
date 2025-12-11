@@ -1,10 +1,10 @@
 {
   "info": {
     "name": "LocalPro Super App API - Complete Collection",
-    "description": "Complete API collection for LocalPro Super App with all endpoints organized by module. Updated for multi-role support - users can have multiple roles (client, provider, supplier, instructor, agency_owner, agency_admin). Generated automatically from route files.",
+    "description": "Complete API collection for LocalPro Super App with all endpoints organized by module. Updated for multi-role support - users can have multiple roles (client, provider, supplier, instructor, agency_owner, agency_admin). Generated automatically from route files. PayMongo integration endpoints and webhook coverage added Dec 2025.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "1e3e122b-7797-461c-a3ed-d06fe0577dae",
-    "version": "2025-01-15-multi-role"
+    "version": "2025-12-11-paymongo"
   },
   "auth": {
     "type": "bearer",
@@ -89,6 +89,41 @@
     },
     {
       "key": "providerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paymongoPublicKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paymongoSecretKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paymongoWebhookSecret",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paymongoIntentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paymongoChargeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paymongoRefundId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paymongoPaymentMethodId",
       "value": "",
       "type": "string"
     }
@@ -3707,9 +3742,9 @@
                 },
                 {
                   "key": "paymentMethod",
-                  "value": "bank_transfer",
+                  "value": "paymongo",
                   "type": "text",
-                  "description": "Payment method: bank_transfer, mobile_money, card, cash, paypal, paymaya"
+                  "description": "Payment method: bank_transfer, mobile_money, card, cash, paypal, paymaya, paymongo"
                 },
                 {
                   "key": "receipt",
@@ -3742,7 +3777,7 @@
                 "top-up"
               ]
             },
-            "description": "Request top-up (add money to account). Requires receipt image upload. Admin approval required."
+            "description": "Request top-up (add money to account). Requires receipt image upload. Admin approval required. Supports PayMongo authorization and returns clientSecret/publishableKey when paymentMethod=paymongo."
           },
           "response": []
         },
@@ -5494,12 +5529,19 @@
                 "localpro-plus",
                 "subscribe",
                 ":planId"
+              ],
+              "variable": [
+                {
+                  "key": "planId",
+                  "value": "{{planId}}",
+                  "description": "Subscription plan ID"
+                }
               ]
             },
-            "description": "Subscribe to plan",
+            "description": "Subscribe to plan (paypal, paymaya, paymongo).",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"paymentMethod\": \"paypal\",\n  \"billingCycle\": \"monthly\"\n}",
+              "raw": "{\n  \"planId\": \"{{planId}}\",\n  \"paymentMethod\": \"paymongo\",\n  \"billingCycle\": \"monthly\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -7960,6 +8002,399 @@
             "description": "Get webhook events"
           },
           "response": []
+        }
+      ]
+    },
+    {
+      "name": "PayMongo",
+      "item": [
+        {
+          "name": "POST /api/paymongo/create-intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymongo/create-intent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paymongo",
+                "create-intent"
+              ]
+            },
+            "description": "Create PayMongo payment intent (authorization hold) for escrow or top-up.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"providerId\": \"{{providerId}}\",\n  \"amount\": 15000,\n  \"currency\": \"PHP\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/paymongo/confirm-payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymongo/confirm-payment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paymongo",
+                "confirm-payment"
+              ]
+            },
+            "description": "Confirm PayMongo payment intent and create escrow record.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intentId\": \"{{paymongoIntentId}}\",\n  \"paymentMethodId\": \"{{paymongoPaymentMethodId}}\",\n  \"bookingId\": \"{{bookingId}}\",\n  \"providerId\": \"{{providerId}}\",\n  \"amount\": 15000,\n  \"currency\": \"PHP\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/paymongo/intent/:intentId",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymongo/intent/:intentId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paymongo",
+                "intent",
+                ":intentId"
+              ],
+              "variable": [
+                {
+                  "key": "intentId",
+                  "value": "{{paymongoIntentId}}",
+                  "description": "PayMongo payment intent ID"
+                }
+              ]
+            },
+            "description": "Get PayMongo payment intent status"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/paymongo/charge/:chargeId",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymongo/charge/:chargeId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paymongo",
+                "charge",
+                ":chargeId"
+              ],
+              "variable": [
+                {
+                  "key": "chargeId",
+                  "value": "{{paymongoChargeId}}",
+                  "description": "PayMongo charge ID"
+                }
+              ]
+            },
+            "description": "Get PayMongo charge details"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/paymongo/refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymongo/refund",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paymongo",
+                "refund"
+              ]
+            },
+            "description": "Create PayMongo refund for a charge",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chargeId\": \"{{paymongoChargeId}}\",\n  \"amount\": 15000,\n  \"reason\": \"customer_request\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/paymongo/refund/:refundId",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymongo/refund/:refundId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paymongo",
+                "refund",
+                ":refundId"
+              ],
+              "variable": [
+                {
+                  "key": "refundId",
+                  "value": "{{paymongoRefundId}}",
+                  "description": "PayMongo refund ID"
+                }
+              ]
+            },
+            "description": "Get PayMongo refund status"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/paymongo/intents [ADMIN]",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymongo/intents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paymongo",
+                "intents"
+              ]
+            },
+            "description": "List PayMongo payment intents (admin)"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/paymongo/charges [ADMIN]",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paymongo/charges",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paymongo",
+                "charges"
+              ]
+            },
+            "description": "List PayMongo charges (admin)"
+          },
+          "response": []
+        },
+        {
+          "name": "Webhooks (PayMongo)",
+          "item": [
+            {
+              "name": "POST /webhooks/payments/paymongo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/webhooks/payments/paymongo",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "webhooks",
+                    "payments",
+                    "paymongo"
+                  ]
+                },
+                "description": "PayMongo payment webhook (uses PAYMONGO_WEBHOOK_SECRET verification).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"payment_intent.succeeded\",\n  \"data\": {\n    \"id\": \"{{paymongoIntentId}}\",\n    \"type\": \"payment_intent\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST /webhooks/payments",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/webhooks/payments?provider=paymongo",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "webhooks",
+                    "payments"
+                  ],
+                  "query": [
+                    {
+                      "key": "provider",
+                      "value": "paymongo"
+                    }
+                  ]
+                },
+                "description": "Generic payment webhook entry point (provider query or payload).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"provider\": \"paymongo\",\n  \"type\": \"payment_intent.payment_failed\",\n  \"data\": {\n    \"id\": \"{{paymongoIntentId}}\",\n    \"type\": \"payment_intent\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST /webhooks/disbursements",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/webhooks/disbursements",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "webhooks",
+                    "disbursements"
+                  ]
+                },
+                "description": "Generic disbursement/payout webhook endpoint.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"provider\": \"paymongo\",\n  \"event\": \"payout.released\",\n  \"data\": {\n    \"id\": \"payout_123\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
         }
       ]
     },
