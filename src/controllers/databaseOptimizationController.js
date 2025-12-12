@@ -2,7 +2,6 @@ const databaseOptimizationService = require('../services/databaseOptimizationSer
 const queryOptimizationService = require('../services/queryOptimizationService');
 const dbMonitor = require('../services/databasePerformanceMonitor');
 const logger = require('../config/logger');
-const path = require('path');
 const fs = require('fs');
 
 /**

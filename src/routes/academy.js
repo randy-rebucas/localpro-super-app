@@ -17,7 +17,6 @@ const {
   favoriteCourse,
   unfavoriteCourse,
   getMyFavoriteCourses,
-  getCourseCategories,
   getFeaturedCourses,
   getCourseStatistics,
   // New handlers
