@@ -746,6 +746,58 @@ const leaveAgency = async (req, res) => {
   }
 };
 
+// @desc    Update agency verification status
+// @route   PATCH /api/agencies/:id/verification
+// @access  Private (owner or admin)
+const updateAgencyVerification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { verification } = req.body;
+
+    const agency = await Agency.findById(id);
+    if (!agency) {
+      return res.status(404).json({
+        success: false,
+        message: 'Agency not found'
+      });
+    }
+
+    // Only owner or admin can update verification
+    const isOwner = agency.owner.toString() === req.user.id;
+    const isAdmin = agency.isAdmin && agency.isAdmin(req.user.id);
+    const isAuthorized = isOwner || isAdmin || req.user.role === 'admin';
+    if (!isAuthorized) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update agency verification'
+      });
+    }
+
+    // Update verification fields
+    if (typeof verification?.isVerified === 'boolean') {
+      agency.verification.isVerified = verification.isVerified;
+      agency.verification.verifiedAt = verification.isVerified ? new Date() : null;
+    }
+    if (Array.isArray(verification?.documents)) {
+      agency.verification.documents = verification.documents;
+    }
+
+    await agency.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Agency verification updated successfully',
+      data: agency.verification
+    });
+  } catch (error) {
+    console.error('Update agency verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getAgencies,
   getAgency,
@@ -761,5 +813,6 @@ module.exports = {
   getAgencyAnalytics,
   getMyAgencies,
   joinAgency,
-  leaveAgency
+  leaveAgency,
+  updateAgencyVerification
 };

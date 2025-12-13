@@ -1,5 +1,29 @@
 const mongoose = require('mongoose');
 
+// Academy Category Schema
+const academyCategorySchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true
+  },
+  description: {
+    type: String,
+    default: ''
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  }
+}, {
+  timestamps: true
+});
+
+academyCategorySchema.index({ name: 1 }, { unique: true });
+academyCategorySchema.index({ isActive: 1 });
+
 const courseSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -11,8 +35,8 @@ const courseSchema = new mongoose.Schema({
     required: true
   },
   category: {
-    type: String,
-    enum: ['cleaning', 'plumbing', 'electrical', 'moving', 'business', 'safety', 'certification'],
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'AcademyCategory',
     required: true
   },
   instructor: {
@@ -109,6 +133,14 @@ const courseSchema = new mongoose.Schema({
       type: Number,
       default: 0
     }
+  },
+  favoritedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  favoritesCount: {
+    type: Number,
+    default: 0
   },
   isActive: {
     type: Boolean,
@@ -255,6 +287,8 @@ courseSchema.index({ 'partner.name': 1, isActive: 1 }); // Partner filtering
 courseSchema.index({ prerequisites: 1, isActive: 1 }); // Prerequisites filtering
 courseSchema.index({ 'schedule.startDate': 1, 'schedule.endDate': 1, isActive: 1 }); // Schedule filtering
 courseSchema.index({ tags: 1, isActive: 1 }); // Tags filtering
+courseSchema.index({ favoritedBy: 1 }); // Favorite lookups
+courseSchema.index({ favoritesCount: -1 }); // Popular favorites
 
 // Text search index for courses
 courseSchema.index({
@@ -280,6 +314,7 @@ certificationSchema.index({ 'requirements.courses': 1, isActive: 1 });
 certificationSchema.index({ 'validity.months': 1, isActive: 1 });
 
 module.exports = {
+  AcademyCategory: mongoose.model('AcademyCategory', academyCategorySchema),
   Course: mongoose.model('Course', courseSchema),
   Enrollment: mongoose.model('Enrollment', enrollmentSchema),
   Certification: mongoose.model('Certification', certificationSchema)

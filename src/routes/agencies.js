@@ -19,7 +19,8 @@ const {
   getAgencyAnalytics,
   getMyAgencies,
   joinAgency,
-  leaveAgency
+  leaveAgency,
+  updateAgencyVerification
 } = require('../controllers/agencyController');
 
 // Validation middleware
@@ -79,6 +80,9 @@ router.get('/:id', getAgency); // Get single agency (public)
 
 // Protected routes
 router.use(auth); // All routes below require authentication
+
+// Agency verification management
+router.patch('/:id/verification', updateAgencyVerification); // Update agency verification
 
 // Agency management routes
 router.post('/', createAgencyValidation, createAgency); // Create agency

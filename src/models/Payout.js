@@ -82,8 +82,8 @@ const payoutSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Indexes for common queries
-payoutSchema.index({ escrowId: 1 });
-payoutSchema.index({ providerId: 1, status: 1 });
+// Note: escrowId and providerId already have indexes from schema definition (index: true)
+payoutSchema.index({ providerId: 1, status: 1 }); // Compound index for provider queries
 payoutSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Payout', payoutSchema);

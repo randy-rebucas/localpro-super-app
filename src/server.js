@@ -8,11 +8,9 @@ require('dotenv').config();
 const connectDB = require('./config/database');
 const logger = require('./config/logger');
 const { StartupValidator, createDefaultChecks } = require('./utils/startupValidation');
-const { errorHandler } = require('./middleware/errorHandler');
-// ...existing code...
+const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const requestIdMiddleware = require('./middleware/requestId');
 const { requestCorrelation } = require('./middleware/requestCorrelation');
-const { requestLogger } = require('./middleware/errorHandler');
 const { auditGeneralOperations } = require('./middleware/auditLogger');
 const { activityTracker } = require('./middleware/activityTracker');
 const authRoutes = require('./routes/auth');
@@ -205,8 +203,9 @@ function startServer() {
   app.use(morgan('combined', { stream: logger.stream }));
   app.use(requestLogger);
   
-  // Enhanced request logging with performance tracking (optional - can enable if needed)
-  // app.use(enhancedRequestLogger({ logBody: false, logHeaders: false }));
+  // Enhanced request logging with performance tracking is available in src/middleware/requestLogger.js
+  // To enable: const { requestLogger: enhancedRequestLogger } = require('./middleware/requestLogger');
+  // Then: app.use(enhancedRequestLogger({ logBody: false, logHeaders: false }));
 
   // Metrics collection middleware
   app.use(metricsMiddleware);

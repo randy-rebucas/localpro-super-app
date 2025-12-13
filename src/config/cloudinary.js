@@ -49,7 +49,8 @@ const storageConfigs = {
   marketplace: createStorage('localpro/marketplace', ['jpg', 'jpeg', 'png', 'gif']),
   
   // Academy course materials (images, documents, thumbnails)
-  academy: createStorage('localpro/academy', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']),
+  // Allow webp for thumbnails and images
+  academy: createStorage('localpro/academy', ['jpg', 'jpeg', 'png', 'webp', 'pdf', 'doc', 'docx']),
   
   // Academy course videos
   academyVideos: createVideoStorage('localpro/academy/videos', ['mp4', 'avi', 'mov', 'webm', 'mkv', 'flv', 'wmv', 'm4v', '3gp']),

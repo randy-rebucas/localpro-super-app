@@ -80,4 +80,25 @@ router.post('/clear-cache', clearQueryCache);
  */
 router.post('/reset-stats', resetPerformanceStats);
 
+/**
+ * @route   GET /api/database/optimization/backups
+ * @desc    List available database backups
+ * @access  Private (Admin only)
+ */
+router.get('/backups', require('../controllers/databaseOptimizationController').listBackups);
+
+/**
+ * @route   POST /api/database/optimization/backup
+ * @desc    Trigger database backup
+ * @access  Private (Admin only)
+ */
+router.post('/backup', require('../controllers/databaseOptimizationController').backupDatabase);
+
+/**
+ * @route   POST /api/database/optimization/restore
+ * @desc    Restore database from backup file
+ * @access  Private (Admin only)
+ */
+router.post('/restore', require('../controllers/databaseOptimizationController').restoreDatabase);
+
 module.exports = router;

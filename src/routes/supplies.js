@@ -30,7 +30,7 @@ router.get('/products/:id', getSupply); // Alias for /api/supplies/products/:id
 router.get('/categories', getSupplyCategories);
 router.get('/featured', getFeaturedSupplies);
 router.get('/nearby', getNearbySupplies);
-router.get('/:id', getSupply);
+router.get('/:id([a-fA-F0-9]{24})', getSupply); // ensure only ObjectId-like values hit this route
 
 // Protected routes
 router.use(auth);

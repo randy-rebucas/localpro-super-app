@@ -1671,15 +1671,53 @@ const getMyBookings = async (req, res) => {
   }
 };
 
+const normalizeCategoryKey = (value = '') => value.toString().trim().toLowerCase().replace(/\s+/g, '-');
+
+const buildServiceCategoryFilter = (identifier) => {
+  if (!identifier) return null;
+  return mongoose.Types.ObjectId.isValid(identifier)
+    ? { _id: identifier }
+    : { key: normalizeCategoryKey(identifier) };
+};
+
+const sanitizeSubcategories = (subcategories = []) => {
+  if (!Array.isArray(subcategories)) return [];
+  return subcategories
+    .map((item) => (item || '').toString().trim())
+    .filter(Boolean);
+};
+
+const sanitizeMetadata = (metadata) => {
+  if (!metadata || typeof metadata !== 'object') return undefined;
+
+  const result = {};
+
+  if (metadata.color) {
+    result.color = metadata.color;
+  }
+
+  if (Array.isArray(metadata.tags)) {
+    result.tags = metadata.tags
+      .map((tag) => (tag || '').toString().trim())
+      .filter(Boolean);
+  }
+
+  return result;
+};
+
 // @desc    Get service categories with details and statistics
 // @route   GET /api/marketplace/services/categories
 // @access  Public
 const getServiceCategories = async (req, res) => {
   try {
-    const { includeStats = 'true' } = req.query;
+    const { includeStats = 'true', includeInactive = 'true' } = req.query;
+
+    const includeInactiveBool = includeInactive === 'true' || includeInactive === true;
 
     // Get categories from database
-    const categories = await ServiceCategory.getActiveCategories();
+    const categories = includeInactiveBool
+      ? await ServiceCategory.find({}).sort({ displayOrder: 1, name: 1 })
+      : await ServiceCategory.getActiveCategories();
     
     // Convert to object format for compatibility
     const categoryDefinitions = {};
@@ -2006,6 +2044,268 @@ const getCategoryDetails = async (req, res) => {
       category: req.params.category
     });
     return sendServerError(res, error, 'Failed to retrieve category details', 'CATEGORY_DETAILS_ERROR');
+  }
+};
+
+// @desc    Admin list service categories (with inactive support)
+// @route   GET /api/marketplace/services/categories/manage
+// @access  Private (Admin)
+const listServiceCategoriesAdmin = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 25,
+      search,
+      includeInactive = 'true',
+      sortBy = 'displayOrder',
+      sortOrder = 'asc'
+    } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    const filter = {};
+    if (!(includeInactive === 'true' || includeInactive === true)) {
+      filter.isActive = true;
+    }
+
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      filter.$or = [
+        { name: regex },
+        { key: regex },
+        { description: regex }
+      ];
+    }
+
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const [categories, total] = await Promise.all([
+      ServiceCategory.find(filter)
+        .sort(sort)
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
+        .lean(),
+      ServiceCategory.countDocuments(filter)
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Service categories retrieved successfully',
+      data: categories,
+      pagination: createPagination(pageNum, limitNum, total)
+    });
+  } catch (error) {
+    logger.error('Failed to list service categories', error);
+    return sendServerError(res, error, 'Failed to retrieve service categories', 'CATEGORIES_LIST_ERROR');
+  }
+};
+
+// @desc    Create a service category
+// @route   POST /api/marketplace/services/categories
+// @access  Private (Admin)
+const createServiceCategory = async (req, res) => {
+  try {
+    const {
+      key,
+      name,
+      description,
+      icon,
+      subcategories = [],
+      isActive = true,
+      displayOrder = 0,
+      metadata = {}
+    } = req.body;
+
+    if (!key || typeof key !== 'string' || !key.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category key is required'
+      });
+    }
+
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category name is required'
+      });
+    }
+
+    const normalizedKey = normalizeCategoryKey(key);
+    const existing = await ServiceCategory.findOne({ key: normalizedKey });
+
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: 'Category key already exists'
+      });
+    }
+
+    const category = await ServiceCategory.create({
+      key: normalizedKey,
+      name: name.trim(),
+      description,
+      icon,
+      subcategories: sanitizeSubcategories(subcategories),
+      isActive: typeof isActive === 'string' ? isActive === 'true' : !!isActive,
+      displayOrder: Number(displayOrder) || 0,
+      metadata: sanitizeMetadata(metadata) || {}
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Service category created successfully',
+      data: category
+    });
+  } catch (error) {
+    logger.error('Failed to create service category', error);
+    return sendServerError(res, error, 'Failed to create service category', 'CREATE_CATEGORY_ERROR');
+  }
+};
+
+// @desc    Update a service category
+// @route   PUT /api/marketplace/services/categories/:id
+// @access  Private (Admin)
+const updateServiceCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      key,
+      name,
+      description,
+      icon,
+      subcategories,
+      isActive,
+      displayOrder,
+      metadata
+    } = req.body;
+
+    const filter = buildServiceCategoryFilter(id);
+    if (!filter) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category identifier is required'
+      });
+    }
+
+    const category = await ServiceCategory.findOne(filter);
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found'
+      });
+    }
+
+    if (key) {
+      if (typeof key !== 'string' || !key.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Category key cannot be empty'
+        });
+      }
+      const normalizedKey = normalizeCategoryKey(key);
+      const duplicate = await ServiceCategory.findOne({ 
+        key: normalizedKey, 
+        _id: { $ne: category._id } 
+      });
+      if (duplicate) {
+        return res.status(409).json({
+          success: false,
+          message: 'Another category already uses this key'
+        });
+      }
+      category.key = normalizedKey;
+    }
+
+    if (name !== undefined) {
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Category name cannot be empty'
+        });
+      }
+      category.name = name.trim();
+    }
+
+    if (description !== undefined) category.description = description;
+    if (icon !== undefined) category.icon = icon;
+    if (Array.isArray(subcategories)) category.subcategories = sanitizeSubcategories(subcategories);
+    if (isActive !== undefined) {
+      category.isActive = typeof isActive === 'string' ? isActive === 'true' : !!isActive;
+    }
+    if (displayOrder !== undefined) {
+      const parsedOrder = Number(displayOrder);
+      category.displayOrder = Number.isNaN(parsedOrder) ? 0 : parsedOrder;
+    }
+    if (metadata !== undefined) category.metadata = sanitizeMetadata(metadata) || {};
+
+    await category.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Service category updated successfully',
+      data: category
+    });
+  } catch (error) {
+    logger.error('Failed to update service category', error);
+    return sendServerError(res, error, 'Failed to update service category', 'UPDATE_CATEGORY_ERROR');
+  }
+};
+
+// @desc    Delete/deactivate a service category
+// @route   DELETE /api/marketplace/services/categories/:id
+// @access  Private (Admin)
+const deleteServiceCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { hardDelete = 'false' } = req.query;
+
+    const filter = buildServiceCategoryFilter(id);
+    if (!filter) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category identifier is required'
+      });
+    }
+
+    const category = await ServiceCategory.findOne(filter);
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found'
+      });
+    }
+
+    const shouldHardDelete = hardDelete === 'true' || hardDelete === true;
+
+    if (shouldHardDelete) {
+      await category.deleteOne();
+      return res.status(200).json({
+        success: true,
+        message: 'Service category permanently deleted'
+      });
+    }
+
+    if (!category.isActive) {
+      return res.status(200).json({
+        success: true,
+        message: 'Service category already inactive',
+        data: category
+      });
+    }
+
+    category.isActive = false;
+    await category.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Service category deactivated',
+      data: category
+    });
+  } catch (error) {
+    logger.error('Failed to delete service category', error);
+    return sendServerError(res, error, 'Failed to delete service category', 'DELETE_CATEGORY_ERROR');
   }
 };
 
@@ -2865,6 +3165,10 @@ module.exports = {
   getNearbyServices,
   getServiceCategories,
   getCategoryDetails,
+  listServiceCategoriesAdmin,
+  createServiceCategory,
+  updateServiceCategory,
+  deleteServiceCategory,
   createService,
   updateService,
   deleteService,

@@ -11,6 +11,10 @@ const {
   getNearbyServices,
   getServiceCategories,
   getCategoryDetails,
+  listServiceCategoriesAdmin,
+  createServiceCategory,
+  updateServiceCategory,
+  deleteServiceCategory,
   createService,
   updateService,
   deleteService,
@@ -73,6 +77,12 @@ router.get('/providers/:id',
 
 // Protected routes
 router.use(auth);
+
+// Service category management (Admin)
+router.get('/services/categories/manage', authorize('admin'), listServiceCategoriesAdmin);
+router.post('/services/categories', authorize('admin'), createServiceCategory);
+router.put('/services/categories/:id', authorize('admin'), updateServiceCategory);
+router.delete('/services/categories/:id', authorize('admin'), deleteServiceCategory);
 
 // My services route
 router.get('/my-services', getMyServices);

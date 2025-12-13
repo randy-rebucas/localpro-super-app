@@ -57,9 +57,11 @@ const populateItem = async (itemType, itemId) => {
                   .populate('category', 'name');
   }
 
-  // For courses, populate instructor to get instructor info
+  // For courses, populate instructor and category to get more context
   if (itemType === 'course') {
-    query = query.populate('instructor', 'firstName lastName email profile roles');
+    query = query
+      .populate('instructor', 'firstName lastName email profile roles')
+      .populate('category', 'name description isActive');
   }
 
   const item = await query;

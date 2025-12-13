@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 const logger = require('../config/logger');
 
-/**
- * Database Optimization Service
- * Provides comprehensive database optimization including query analysis, index recommendations, and performance monitoring
- */
 class DatabaseOptimizationService {
   constructor() {
     this.queryAnalysis = new Map();
@@ -17,34 +13,28 @@ class DatabaseOptimizationService {
     };
   }
 
-  /**
-   * Analyze query performance and identify optimization opportunities
-   */
   async analyzeQueryPerformance() {
     try {
       if (mongoose.connection.readyState !== 1) {
         throw new Error('Database not connected');
       }
-
       const db = mongoose.connection.db;
       
-      // Get current operation statistics
-      const currentOps = await db.admin().currentOp();
+      // Try to get current operations (may not be available on Atlas free tier)
+      let slowOps = [];
+      try {
+        const currentOps = await db.command({ currentOp: 1, active: true });
+        if (currentOps && currentOps.inprog) {
+          slowOps = currentOps.inprog.filter(op => op.secs_running > 1 && op.command && op.command.find);
+        }
+      } catch (opError) {
+        // currentOp may not be available on Atlas free/shared tier
+        logger.warn('currentOp not available (Atlas free tier limitation):', opError.message);
+      }
       
-      // Analyze slow operations
-      const slowOps = currentOps.inprog.filter(op => 
-        op.secs_running > 1 && op.command && op.command.find
-      );
-
-      // Get index usage statistics
       const indexStats = await this.getIndexUsageStats();
-      
-      // Analyze collection statistics
       const collections = await db.listCollections().toArray();
-      const collectionAnalysis = await Promise.all(
-        collections.map(collection => this.analyzeCollection(collection.name))
-      );
-
+      const collectionAnalysis = await Promise.all(collections.map(collection => this.analyzeCollection(collection.name)));
       return {
         slowOperations: slowOps,
         indexStats,
@@ -57,39 +47,29 @@ class DatabaseOptimizationService {
     }
   }
 
-  /**
-   * Get index usage statistics
-   */
   async getIndexUsageStats() {
     try {
       const db = mongoose.connection.db;
       const collections = await db.listCollections().toArray();
-      
-      const indexStats = await Promise.all(
-        collections.map(async (collection) => {
-          try {
-            const stats = await db.collection(collection.name).aggregate([
-              { $indexStats: {} }
-            ]).toArray();
-            
-            return {
-              collection: collection.name,
-              indexes: stats.map(index => ({
-                name: index.name,
-                key: index.key,
-                accesses: index.accesses,
-                usage: index.accesses.ops || 0
-              }))
-            };
-          } catch (error) {
-            return {
-              collection: collection.name,
-              error: error.message
-            };
-          }
-        })
-      );
-
+      const indexStats = await Promise.all(collections.map(async (collection) => {
+        try {
+          const stats = await db.collection(collection.name).aggregate([{ $indexStats: {} }]).toArray();
+          return {
+            collection: collection.name,
+            indexes: stats.map(index => ({
+              name: index.name,
+              key: index.key,
+              accesses: index.accesses,
+              usage: index.accesses.ops || 0
+            }))
+          };
+        } catch (error) {
+          return {
+            collection: collection.name,
+            error: error.message
+          };
+        }
+      }));
       return indexStats;
     } catch (error) {
       logger.error('Error getting index usage stats:', error);
@@ -97,23 +77,33 @@ class DatabaseOptimizationService {
     }
   }
 
-  /**
-   * Analyze individual collection for optimization opportunities
-   */
   async analyzeCollection(collectionName) {
     try {
       const db = mongoose.connection.db;
       const collection = db.collection(collectionName);
       
-      // Get collection stats
-      const stats = await collection.stats();
+      // Use collStats command instead of deprecated stats() method
+      let stats = { count: 0, avgObjSize: 0, size: 0 };
+      try {
+        const collStats = await db.command({ collStats: collectionName });
+        stats = {
+          count: collStats.count || 0,
+          avgObjSize: collStats.avgObjSize || 0,
+          size: collStats.size || 0,
+          storageSize: collStats.storageSize || 0,
+          totalIndexSize: collStats.totalIndexSize || 0
+        };
+      } catch (statsError) {
+        // If collStats fails, try to get count at least
+        try {
+          stats.count = await collection.countDocuments();
+        } catch (countError) {
+          logger.warn(`Could not get stats for ${collectionName}:`, statsError.message);
+        }
+      }
       
-      // Get index information
       const indexes = await collection.indexes();
-      
-      // Analyze query patterns (simplified - in production, you'd use MongoDB profiler)
       const sampleQueries = await this.getSampleQueries(collectionName);
-      
       return {
         name: collectionName,
         documentCount: stats.count,
@@ -139,27 +129,161 @@ class DatabaseOptimizationService {
     }
   }
 
-  /**
-   * Get sample queries for a collection (simplified implementation)
-   */
+  async backupDatabase() {
+    const path = require('path');
+    const fs = require('fs');
+    const backupDir = path.join(__dirname, '../../backups');
+    
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+    
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupFile = path.join(backupDir, `backup-${timestamp}.json`);
+    
+    try {
+      if (mongoose.connection.readyState !== 1) {
+        throw new Error('Database not connected');
+      }
+      
+      const db = mongoose.connection.db;
+      const collections = await db.listCollections().toArray();
+      const backupData = {
+        metadata: {
+          timestamp: new Date().toISOString(),
+          database: mongoose.connection.name,
+          collections: collections.length
+        },
+        collections: {}
+      };
+      
+      // Export each collection
+      for (const collInfo of collections) {
+        const collName = collInfo.name;
+        // Skip system collections
+        if (collName.startsWith('system.')) continue;
+        
+        try {
+          const documents = await db.collection(collName).find({}).toArray();
+          backupData.collections[collName] = {
+            count: documents.length,
+            documents: documents
+          };
+          logger.info(`Backed up ${documents.length} documents from ${collName}`);
+        } catch (collError) {
+          logger.warn(`Could not backup collection ${collName}:`, collError.message);
+        }
+      }
+      
+      // Write backup to file
+      fs.writeFileSync(backupFile, JSON.stringify(backupData, null, 2));
+      
+      logger.info(`Database backup completed: ${backupFile}`);
+      return {
+        success: true,
+        file: backupFile,
+        collections: Object.keys(backupData.collections).length,
+        totalDocuments: Object.values(backupData.collections).reduce((sum, c) => sum + c.count, 0),
+        timestamp: backupData.metadata.timestamp
+      };
+    } catch (error) {
+      logger.error('Database backup failed:', error);
+      throw error;
+    }
+  }
+
+  async restoreDatabase(backupFilePath) {
+    const fs = require('fs');
+    
+    try {
+      if (mongoose.connection.readyState !== 1) {
+        throw new Error('Database not connected');
+      }
+      
+      if (!fs.existsSync(backupFilePath)) {
+        throw new Error(`Backup file not found: ${backupFilePath}`);
+      }
+      
+      const backupData = JSON.parse(fs.readFileSync(backupFilePath, 'utf8'));
+      const db = mongoose.connection.db;
+      const results = {
+        success: true,
+        restored: [],
+        errors: []
+      };
+      
+      for (const [collName, collData] of Object.entries(backupData.collections)) {
+        try {
+          const collection = db.collection(collName);
+          
+          // Drop existing collection
+          try {
+            await collection.drop();
+          } catch (dropError) {
+            // Collection might not exist, ignore
+          }
+          
+          // Insert documents if any
+          if (collData.documents && collData.documents.length > 0) {
+            await collection.insertMany(collData.documents);
+            results.restored.push({
+              collection: collName,
+              documents: collData.documents.length
+            });
+            logger.info(`Restored ${collData.documents.length} documents to ${collName}`);
+          }
+        } catch (collError) {
+          results.errors.push({
+            collection: collName,
+            error: collError.message
+          });
+          logger.error(`Failed to restore collection ${collName}:`, collError);
+        }
+      }
+      
+      logger.info('Database restore completed');
+      return results;
+    } catch (error) {
+      logger.error('Database restore failed:', error);
+      throw error;
+    }
+  }
+  
+  async listBackups() {
+    const path = require('path');
+    const fs = require('fs');
+    const backupDir = path.join(__dirname, '../../backups');
+    
+    if (!fs.existsSync(backupDir)) {
+      return [];
+    }
+    
+    const files = fs.readdirSync(backupDir);
+    const backups = files
+      .filter(f => f.startsWith('backup-') && f.endsWith('.json'))
+      .map(f => {
+        const filePath = path.join(backupDir, f);
+        const stats = fs.statSync(filePath);
+        return {
+          filename: f,
+          path: filePath,
+          size: stats.size,
+          created: stats.birthtime
+        };
+      })
+      .sort((a, b) => b.created - a.created);
+    
+    return backups;
+  }
+
   async getSampleQueries(_collectionName) {
-    // TODO: Query MongoDB's profiler collection to get actual query patterns
-    // This should analyze the profiler data to identify common query patterns
-    // For now, return empty array - implement actual profiler querying
     return [];
   }
 
-  /**
-   * Analyze collection indexes and provide recommendations
-   */
   analyzeCollectionIndexes(collectionName, indexes, stats) {
     const recommendations = [];
-    
-    // Check for missing compound indexes
     const compoundIndexRecommendations = this.recommendCompoundIndexes(collectionName, indexes);
     recommendations.push(...compoundIndexRecommendations);
-    
-    // Check for duplicate indexes
     const duplicateIndexes = this.findDuplicateIndexes(indexes);
     if (duplicateIndexes.length > 0) {
       recommendations.push({
@@ -169,8 +293,6 @@ class DatabaseOptimizationService {
         indexes: duplicateIndexes
       });
     }
-    
-    // Check for unused indexes
     const unusedIndexes = this.findUnusedIndexes(collectionName, indexes);
     if (unusedIndexes.length > 0) {
       recommendations.push({
@@ -180,8 +302,6 @@ class DatabaseOptimizationService {
         indexes: unusedIndexes
       });
     }
-    
-    // Check for large indexes
     const largeIndexes = indexes.filter(idx => idx.size > stats.size * 0.1);
     if (largeIndexes.length > 0) {
       recommendations.push({
@@ -191,18 +311,12 @@ class DatabaseOptimizationService {
         indexes: largeIndexes.map(idx => ({ name: idx.name, size: idx.size }))
       });
     }
-
     return recommendations;
   }
 
-  /**
-   * Recommend compound indexes based on common query patterns
-   */
   recommendCompoundIndexes(collectionName, existingIndexes) {
     const recommendations = [];
     const existingKeys = existingIndexes.map(idx => JSON.stringify(idx.key));
-    
-    // Define recommended compound indexes for each collection
     const recommendedIndexes = {
       'users': [
         { key: { role: 1, isActive: 1, status: 1 } },
@@ -244,40 +358,29 @@ class DatabaseOptimizationService {
         { key: { supplier: 1, isActive: 1, category: 1 } },
         { key: { 'pricing.retailPrice': 1, category: 1, isActive: 1 } },
         { key: { 'inventory.quantity': 1, isActive: 1 } }
-      ],
-      'courses': [
-        { key: { category: 1, level: 1, isActive: 1 } },
-        { key: { instructor: 1, isActive: 1, category: 1 } },
-        { key: { 'pricing.regularPrice': 1, category: 1, isActive: 1 } },
-        { key: { 'enrollment.isOpen': 1, 'enrollment.maxCapacity': 1, isActive: 1 } }
       ]
     };
-
-    const collectionRecommendations = recommendedIndexes[collectionName] || [];
-    
-    collectionRecommendations.forEach(recommended => {
-      const keyStr = JSON.stringify(recommended.key);
-      if (!existingKeys.includes(keyStr)) {
-        recommendations.push({
-          type: 'missing_compound_index',
-          severity: 'high',
-          message: `Missing compound index for ${collectionName}`,
-          index: recommended,
-          reason: 'Common query pattern detected'
-        });
+    if (recommendedIndexes[collectionName]) {
+      for (const rec of recommendedIndexes[collectionName]) {
+        if (!existingKeys.includes(JSON.stringify(rec.key))) {
+          recommendations.push({
+            type: 'missing_compound_index',
+            severity: 'high',
+            message: 'Recommended compound index missing',
+            collection: collectionName,
+            index: rec,
+            reason: 'Common query pattern',
+            action: 'createIndex'
+          });
+        }
       }
-    });
-
+    }
     return recommendations;
   }
 
-  /**
-   * Find duplicate indexes
-   */
   findDuplicateIndexes(indexes) {
     const duplicates = [];
     const seen = new Set();
-    
     indexes.forEach((index, i) => {
       const keyStr = JSON.stringify(index.key);
       if (seen.has(keyStr)) {
@@ -290,27 +393,16 @@ class DatabaseOptimizationService {
         seen.add(keyStr);
       }
     });
-    
     return duplicates;
   }
 
-  /**
-   * Find potentially unused indexes
-   */
-  findUnusedIndexes(collectionName, indexes) {
-    // This is a simplified implementation
-    // In production, you'd analyze actual query patterns and index usage
+  findUnusedIndexes(_collectionName, indexes) {
     const potentiallyUnused = indexes.filter(index => {
-      // Skip the default _id index
       if (index.name === '_id_') return false;
-      
-      // Check if index has very specific fields that might not be used
       const keyFields = Object.keys(index.key);
-      if (keyFields.length > 3) return true; // Very specific compound indexes
-      
+      if (keyFields.length > 3) return true;
       return false;
     });
-    
     return potentiallyUnused.map(idx => ({
       name: idx.name,
       key: idx.key,
@@ -318,60 +410,45 @@ class DatabaseOptimizationService {
     }));
   }
 
-  /**
-   * Generate optimization recommendations
-   */
   generateOptimizationRecommendations(collectionAnalysis) {
     const recommendations = [];
-    
     collectionAnalysis.forEach(collection => {
       if (collection.recommendations) {
         recommendations.push(...collection.recommendations);
       }
     });
-    
-    // Add general recommendations
     recommendations.push({
       type: 'general',
       severity: 'info',
       message: 'Consider enabling MongoDB profiler for detailed query analysis',
       action: 'db.setProfilingLevel(2, { slowms: 100 })'
     });
-    
     recommendations.push({
       type: 'general',
       severity: 'info',
       message: 'Monitor index usage with db.collection.getIndexes() and db.collection.aggregate([{$indexStats: {}}])',
       action: 'Regular index usage analysis'
     });
-    
     return recommendations;
   }
 
-  /**
-   * Create recommended indexes
-   */
   async createRecommendedIndexes(recommendations) {
     const results = [];
-    
     for (const rec of recommendations) {
       if (rec.type === 'missing_compound_index') {
         try {
           const db = mongoose.connection.db;
           const collection = db.collection(rec.collection || 'unknown');
-          
           await collection.createIndex(rec.index.key, {
             name: this.generateIndexName(rec.index.key),
             background: true
           });
-          
           results.push({
             success: true,
             collection: rec.collection,
             index: rec.index,
             message: 'Index created successfully'
           });
-          
           logger.info(`Created index for ${rec.collection}:`, rec.index);
         } catch (error) {
           results.push({
@@ -380,32 +457,21 @@ class DatabaseOptimizationService {
             index: rec.index,
             error: error.message
           });
-          
           logger.error(`Failed to create index for ${rec.collection}:`, error);
         }
       }
     }
-    
     return results;
   }
 
-  /**
-   * Generate index name from key
-   */
   generateIndexName(key) {
-    return Object.entries(key)
-      .map(([field, direction]) => `${field}_${direction}`)
-      .join('_');
+    return Object.entries(key).map(([field, direction]) => `${field}_${direction}`).join('_');
   }
 
-  /**
-   * Get optimization report
-   */
   async getOptimizationReport() {
     try {
       const analysis = await this.analyzeQueryPerformance();
       const indexStats = await this.getIndexUsageStats();
-      
       return {
         timestamp: new Date().toISOString(),
         analysis,
