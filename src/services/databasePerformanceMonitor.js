@@ -59,13 +59,51 @@ class DatabasePerformanceMonitor {
 
       // Update connection stats
       setInterval(() => {
-        if (conn.readyState === 1) { // Connected
-          this.connectionStats = {
-            totalConnections: conn.db.serverConfig.s.pool?.totalCount || 0,
-            activeConnections: conn.db.serverConfig.s.pool?.size || 0,
-            availableConnections: conn.db.serverConfig.s.pool?.available || 0,
-            pendingOperations: conn.db.serverConfig.s.pool?.pending || 0
-          };
+        try {
+          if (conn.readyState === 1) { // Connected
+            // Try to get pool information - structure may vary by MongoDB driver version
+            let poolInfo = {
+              totalConnections: 0,
+              activeConnections: 0,
+              availableConnections: 0,
+              pendingOperations: 0
+            };
+
+            // Try different paths to access pool information
+            if (conn.db?.serverConfig?.s?.pool) {
+              const pool = conn.db.serverConfig.s.pool;
+              poolInfo = {
+                totalConnections: pool.totalCount || pool.totalConnections || 0,
+                activeConnections: pool.size || pool.activeConnections || 0,
+                availableConnections: pool.available || pool.availableConnections || 0,
+                pendingOperations: pool.pending || pool.pendingOperations || 0
+              };
+            } else if (conn.db?.topology?.s?.pool) {
+              const pool = conn.db.topology.s.pool;
+              poolInfo = {
+                totalConnections: pool.totalCount || pool.totalConnections || 0,
+                activeConnections: pool.size || pool.activeConnections || 0,
+                availableConnections: pool.available || pool.availableConnections || 0,
+                pendingOperations: pool.pending || pool.pendingOperations || 0
+              };
+            } else {
+              // Fallback: use connection state information
+              poolInfo = {
+                totalConnections: conn.readyState === 1 ? 1 : 0,
+                activeConnections: conn.readyState === 1 ? 1 : 0,
+                availableConnections: conn.readyState === 1 ? 1 : 0,
+                pendingOperations: 0
+              };
+            }
+
+            this.connectionStats = poolInfo;
+          }
+        } catch (poolError) {
+          // Silently handle pool access errors - pool structure may not be available
+          // This is not critical for application functionality
+          if (process.env.NODE_ENV === 'development') {
+            logger.debug('Could not access connection pool info:', poolError.message);
+          }
         }
       }, 5000); // Every 5 seconds
 

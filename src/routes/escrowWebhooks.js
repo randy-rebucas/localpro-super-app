@@ -10,6 +10,18 @@ const logger = require('../config/logger');
 const router = express.Router();
 
 /**
+ * Middleware to capture raw body for signature verification
+ * This must be applied before express.json() parses the body
+ * The raw body is needed for accurate HMAC signature verification
+ */
+const captureRawBody = express.json({
+  verify: (req, res, buf) => {
+    // Store raw body as string for signature verification
+    req.rawBody = buf.toString('utf8');
+  }
+});
+
+/**
  * Webhook middleware to verify gateway signatures and prevent replay attacks
  */
 const verifyWebhookSignature = async (req, res, next) => {

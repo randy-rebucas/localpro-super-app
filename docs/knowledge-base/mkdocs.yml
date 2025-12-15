@@ -1,0 +1,141 @@
+site_name: LocalPro Super App - Knowledge Base
+site_description: Complete documentation for LocalPro Super App Backend API
+site_author: LocalPro Team
+site_url: https://your-org.github.io/localpro-super-app
+
+# Repository
+repo_name: localpro-super-app
+repo_url: https://github.com/your-org/localpro-super-app
+edit_uri: edit/main/docs/knowledge-base/docs/
+
+# Copyright
+copyright: Copyright &copy; 2025 LocalPro
+
+# Theme
+theme:
+  name: material
+  palette:
+    # Light mode
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.annotate
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+# Plugins
+plugins:
+  - search:
+      lang: en
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+
+# Extensions
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+# Navigation
+nav:
+  - Home: index.md
+  - Getting Started:
+    - getting-started/installation.md
+    - getting-started/configuration.md
+    - getting-started/quick-start.md
+    - getting-started/development-setup.md
+  - Architecture:
+    - architecture/overview.md
+    - architecture/database.md
+    - architecture/authentication.md
+    - architecture/security.md
+    - architecture/api-design.md
+  - Features:
+    - features/marketplace.md
+    - features/payments.md
+    - features/notifications.md
+    - features/referrals.md
+    - features/escrow.md
+    - features/bookings.md
+    - features/job-board.md
+    - features/academy.md
+    - features/analytics.md
+  - API Reference:
+    - api/overview.md
+    - api/authentication.md
+    - api/endpoints.md
+    - api/webhooks.md
+    - api/error-handling.md
+  - Development:
+    - development/setup.md
+    - development/coding-standards.md
+    - development/testing.md
+    - development/contributing.md
+    - development/debugging.md
+  - Deployment:
+    - deployment/production.md
+    - deployment/docker.md
+    - deployment/monitoring.md
+    - deployment/backup.md
+  - Guides:
+    - guides/payment-integration.md
+    - guides/webhook-setup.md
+    - guides/push-notifications.md
+    - guides/sms-integration.md
+    - guides/historical-metrics.md
+  - Reference:
+    - reference/environment-variables.md
+    - reference/error-codes.md
+    - reference/api-versioning.md
+    - reference/database-schemas.md
+  - Troubleshooting:
+    - troubleshooting/common-issues.md
+    - troubleshooting/faq.md
+    - troubleshooting/debugging.md
+
+# Extra
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/your-org/localpro-super-app
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/localpro
+  version:
+    provider: mike
+

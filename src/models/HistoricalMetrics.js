@@ -25,8 +25,8 @@ const historicalMetricsSchema = new mongoose.Schema({
   // Period start date
   periodStart: {
     type: Date,
-    required: true,
-    index: true
+    required: true
+    // Indexed via TTL index below (line 208) - no need for duplicate index
   },
   
   // Period end date

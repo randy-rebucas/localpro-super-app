@@ -401,6 +401,15 @@ function startServer() {
     }
   };
 
+  // Swagger API Documentation (optional - install swagger-jsdoc and swagger-ui-express)
+  try {
+    const { swaggerSpec, swaggerUi, swaggerOptions } = require('../docs/api/swagger-setup');
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
+    logger.info('📚 Swagger API documentation available at /api-docs');
+  } catch (error) {
+    logger.warn('Swagger documentation not available. Install swagger-jsdoc and swagger-ui-express to enable.');
+  }
+
   // Serve Postman collection
   app.get('/LocalPro-Super-App-API.postman_collection.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
