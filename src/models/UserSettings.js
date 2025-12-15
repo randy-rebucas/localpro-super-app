@@ -152,6 +152,10 @@ const userSettingsSchema = new mongoose.Schema({
       securityAlerts: {
         type: Boolean,
         default: true
+      },
+      referralInvitations: {
+        type: Boolean,
+        default: true
       }
     }
   },
@@ -464,7 +468,8 @@ userSettingsSchema.statics.getDefaultSettings = function() {
         urgentMessages: true,
         bookingReminders: true,
         paymentAlerts: true,
-        securityAlerts: true
+        securityAlerts: true,
+        referralInvitations: true
       }
     },
     communication: {

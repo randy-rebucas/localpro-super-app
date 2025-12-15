@@ -644,15 +644,51 @@ class NotificationService {
 
         // Send to all user's devices
         const tokens = user.fcmTokens.map(t => t.token);
+        
+        if (tokens.length === 0) {
+          return { success: false, error: 'No FCM tokens registered' };
+        }
+
         const response = await admin.messaging().sendEachForMulticast({
           tokens,
           ...payload
         });
 
-        return {
-          success: true,
+        // Handle invalid tokens - remove them from user's device list
+        if (response.failureCount > 0) {
+          const invalidTokens = [];
+          response.responses.forEach((resp, idx) => {
+            if (!resp.success) {
+              const errorCode = resp.error?.code;
+              // Remove tokens that are invalid, unregistered, or expired
+              if (['messaging/invalid-registration-token', 
+                   'messaging/registration-token-not-registered',
+                   'messaging/invalid-argument'].includes(errorCode)) {
+                invalidTokens.push(tokens[idx]);
+              }
+            }
+          });
+
+          // Remove invalid tokens from user's device list
+          if (invalidTokens.length > 0) {
+            await User.findByIdAndUpdate(userId, {
+              $pull: { fcmTokens: { token: { $in: invalidTokens } } }
+            });
+            logger.info(`Removed ${invalidTokens.length} invalid FCM tokens for user ${userId}`);
+          }
+        }
+
+        logger.info(`Push notification sent to user ${userId}`, {
           successCount: response.successCount,
-          failureCount: response.failureCount
+          failureCount: response.failureCount,
+          totalTokens: tokens.length
+        });
+
+        return {
+          success: response.successCount > 0,
+          successCount: response.successCount,
+          failureCount: response.failureCount,
+          invalidTokensRemoved: response.failureCount > 0 ? response.failureCount : 0
         };
       } catch (firebaseError) {
         logger.warn('Firebase not available:', firebaseError.message);

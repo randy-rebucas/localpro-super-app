@@ -479,6 +479,9 @@ function startServer() {
   // Partner Routes
   app.use('/api/partners', partnersRoutes);
 
+  // Scheduled Jobs Routes (Admin only)
+  app.use('/api/scheduled-jobs', require('./routes/scheduledJobs'));
+
   // 404 handler
   app.use('*', (req, res) => {
     res.status(404).json({
@@ -520,6 +523,11 @@ function startServer() {
       logger.info(`📊 Logging enabled with Winston`);
       logger.info(`🔍 Error monitoring active`);
       logger.info(`💬 Live Chat WebSocket available at ws://localhost:${PORT}/ws/live-chat`);
+      
+      // Start scheduled jobs
+      const scheduledJobsService = require('./services/scheduledJobsService');
+      scheduledJobsService.start();
+      logger.info(`⏰ Scheduled jobs service started`);
     });
   }
 }

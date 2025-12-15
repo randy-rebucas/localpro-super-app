@@ -1,10 +1,10 @@
 {
   "info": {
     "name": "LocalPro Super App API - Complete Collection",
-    "description": "Complete API collection for LocalPro Super App with all endpoints organized by module. Updated for multi-role support - users can have multiple roles (client, provider, supplier, instructor, agency_owner, agency_admin). Generated automatically from route files. PayMongo integration endpoints and webhook coverage added Dec 2025.",
+    "description": "Complete API collection for LocalPro Super App with all endpoints organized by module. Updated for multi-role support - users can have multiple roles (client, provider, supplier, instructor, agency_owner, agency_admin). Generated automatically from route files. PayMongo integration endpoints and webhook coverage added Dec 2025. Enhanced Dec 15, 2025 with: Push notifications (FCM), SMS referrals, Historical metrics, Scheduled jobs, Enhanced webhook security.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "1e3e122b-7797-461c-a3ed-d06fe0577dae",
-    "version": "2025-12-11-paymongo"
+    "version": "2025-12-15-enhanced"
   },
   "auth": {
     "type": "bearer",
@@ -6956,6 +6956,106 @@
           "response": []
         },
         {
+          "name": "POST /api/notifications/fcm-token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/fcm-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "fcm-token"
+              ]
+            },
+            "description": "Register or update FCM (Firebase Cloud Messaging) token for push notifications. Supports multiple devices per user. Invalid tokens are automatically cleaned up when push delivery fails.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"fcm-device-token-here\",\n  \"deviceId\": \"unique-device-id\",\n  \"deviceType\": \"android\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/notifications/fcm-token/:tokenOrDeviceId",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/fcm-token/:tokenOrDeviceId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "fcm-token",
+                ":tokenOrDeviceId"
+              ],
+              "variable": [
+                {
+                  "key": "tokenOrDeviceId",
+                  "value": "device-id-or-token",
+                  "description": "FCM token or device ID to remove"
+                }
+              ]
+            },
+            "description": "Remove FCM token or device. Can remove by token or device ID."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/notifications/fcm-tokens",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/fcm-tokens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "fcm-tokens"
+              ]
+            },
+            "description": "Get all registered FCM tokens for the current user. Returns list of devices with tokens."
+          },
+          "response": []
+        },
+        {
           "name": "POST /api/communication/notifications/sms",
           "request": {
             "method": "POST",
@@ -7668,7 +7768,7 @@
                 "webhook"
               ]
             },
-            "description": "PayPal webhook",
+            "description": "PayPal webhook with enhanced security: signature verification (paypal-transmission-sig header), replay attack protection (5-minute window), duplicate event detection (idempotency), and complete audit trail. All events are logged in WebhookEvent collection.",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -7735,7 +7835,7 @@
                 "webhook"
               ]
             },
-            "description": "PayMaya webhook",
+            "description": "PayMaya webhook with enhanced security: signature verification, replay attack protection (5-minute window), duplicate event detection (idempotency), and complete audit trail. All events are logged in WebhookEvent collection.",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -8307,7 +8407,7 @@
                     "paymongo"
                   ]
                 },
-                "description": "PayMongo payment webhook (uses PAYMONGO_WEBHOOK_SECRET verification).",
+                "description": "PayMongo payment webhook with enhanced security: signature verification, replay attack protection (5-minute window), duplicate event detection (idempotency), and complete audit trail. Requires x-signature header with timestamp and v1 signature.",
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"type\": \"payment_intent.succeeded\",\n  \"data\": {\n    \"id\": \"{{paymongoIntentId}}\",\n    \"type\": \"payment_intent\"\n  }\n}",
@@ -8347,7 +8447,7 @@
                     }
                   ]
                 },
-                "description": "Generic payment webhook entry point (provider query or payload).",
+                "description": "Generic payment webhook entry point with enhanced security: signature verification for all providers (PayMongo, Stripe, Xendit, PayPal, PayMaya), replay attack protection, duplicate event detection, and complete audit trail. All events are logged in WebhookEvent collection.",
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"provider\": \"paymongo\",\n  \"type\": \"payment_intent.payment_failed\",\n  \"data\": {\n    \"id\": \"{{paymongoIntentId}}\",\n    \"type\": \"payment_intent\"\n  }\n}",
@@ -8622,10 +8722,10 @@
                 "invite"
               ]
             },
-            "description": "Send referral invitation",
+            "description": "Send referral invitation via email or SMS. Supports both email and SMS methods. Rate limited to 10 SMS per hour per user. SMS requires Twilio configuration and user SMS preferences enabled.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"emails\": [\n    \"friend1@example.com\",\n    \"friend2@example.com\"\n  ],\n  \"message\": \"Join LocalPro and get rewarded!\"\n}",
+              "raw": "{\n  \"emails\": [\n    \"friend1@example.com\",\n    \"friend2@example.com\"\n  ],\n  \"phoneNumbers\": [\n    \"+1234567890\",\n    \"+0987654321\"\n  ],\n  \"method\": \"email\",\n  \"message\": \"Join LocalPro and get rewarded!\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -13213,6 +13313,199 @@
               ]
             },
             "description": "Start broadcasting",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Scheduled Jobs",
+      "item": [
+        {
+          "name": "GET /api/scheduled-jobs/status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/scheduled-jobs/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "scheduled-jobs",
+                "status"
+              ]
+            },
+            "description": "Get status of all scheduled jobs. Returns active jobs list and running status. Admin only."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/scheduled-jobs/historical-metrics/trigger",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/scheduled-jobs/historical-metrics/trigger",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "scheduled-jobs",
+                "historical-metrics",
+                "trigger"
+              ]
+            },
+            "description": "Manually trigger historical metrics collection. Can collect for all providers or a specific provider. Automatically runs daily at 2 AM. Admin only.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2025-12-14\",\n  \"providerId\": \"507f1f77bcf86cd799439011\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/scheduled-jobs/webhook-cleanup/trigger",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/scheduled-jobs/webhook-cleanup/trigger",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "scheduled-jobs",
+                "webhook-cleanup",
+                "trigger"
+              ]
+            },
+            "description": "Manually trigger webhook event cleanup. Removes webhook events older than retention period (default 90 days). Automatically runs daily at 3 AM. Admin only.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/scheduled-jobs/start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/scheduled-jobs/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "scheduled-jobs",
+                "start"
+              ]
+            },
+            "description": "Start scheduled jobs service. Jobs automatically start with server, but can be manually started/stopped. Admin only.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/scheduled-jobs/stop",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/scheduled-jobs/stop",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "scheduled-jobs",
+                "stop"
+              ]
+            },
+            "description": "Stop scheduled jobs service. Admin only.",
             "body": {
               "mode": "raw",
               "raw": "{}",

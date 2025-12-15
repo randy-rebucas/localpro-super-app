@@ -1,6 +1,9 @@
 const Referral = require('../models/Referral');
 const User = require('../models/User');
+const UserSettings = require('../models/UserSettings');
 const EmailService = require('./emailService');
+const TwilioService = require('./twilioService');
+const logger = require('../config/logger');
 
 class ReferralService {
   constructor() {
@@ -492,6 +495,170 @@ class ReferralService {
     } catch (error) {
       console.error('Error tracking referral click:', error);
       // Don't throw error as this shouldn't fail the main process
+    }
+  }
+
+  /**
+   * Send SMS referral invitation
+   * @param {string} referrerId - Referrer user ID
+   * @param {string|string[]} phoneNumbers - Phone number(s) to send to
+   * @param {string} customMessage - Optional custom message
+   * @returns {Promise<Object>} Results with delivery status
+   */
+  async sendSMSReferralInvitation(referrerId, phoneNumbers, customMessage) {
+    try {
+      // Get referrer and their settings
+      const [referrer, userSettings] = await Promise.all([
+        User.findById(referrerId).select('firstName lastName phoneNumber'),
+        UserSettings.findOne({ userId: referrerId })
+      ]);
+
+      if (!referrer) {
+        throw new Error('Referrer not found');
+      }
+
+      // Check SMS preferences
+      const smsSettings = userSettings?.notifications?.sms || {};
+      if (!smsSettings.enabled || smsSettings.referralInvitations === false) {
+        logger.info(`SMS referral invitations disabled for user ${referrerId}`);
+        return {
+          success: false,
+          error: 'SMS referral invitations are disabled in your settings'
+        };
+      }
+
+      // Get referral links
+      const referralLinks = await this.getReferralLinks(referrerId);
+      
+      // Prepare SMS message
+      const defaultMessage = `Hi! ${referrer.firstName} invited you to join LocalPro - a platform for local services. Get started with a bonus: ${referralLinks.referralLink}`;
+      const smsMessage = customMessage || defaultMessage;
+
+      // Normalize phone numbers to array
+      const phoneArray = Array.isArray(phoneNumbers) ? phoneNumbers : [phoneNumbers];
+      const results = [];
+      let successCount = 0;
+      let failureCount = 0;
+
+      // Rate limiting: Max 10 SMS per hour per user
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      const recentSMS = await Referral.countDocuments({
+        referrer: referrerId,
+        'analytics.smsInvitations.sentAt': { $gte: oneHourAgo }
+      });
+
+      if (recentSMS >= 10) {
+        logger.warn(`SMS rate limit exceeded for user ${referrerId}`);
+        return {
+          success: false,
+          error: 'SMS rate limit exceeded. Maximum 10 SMS invitations per hour.',
+          rateLimitExceeded: true
+        };
+      }
+
+      // Send SMS to each phone number
+      for (const phoneNumber of phoneArray) {
+        try {
+          // Validate phone number format
+          if (!TwilioService._isValidPhoneNumber(phoneNumber)) {
+            results.push({
+              phoneNumber,
+              status: 'failed',
+              error: 'Invalid phone number format'
+            });
+            failureCount++;
+            continue;
+          }
+
+          // Send SMS via Twilio
+          const smsResult = await TwilioService.sendSMS(phoneNumber, smsMessage);
+
+          if (smsResult.success) {
+            // Track SMS invitation in referral analytics
+            await this._trackSMSInvitation(referrerId, phoneNumber, smsResult.sid);
+            
+            results.push({
+              phoneNumber,
+              status: 'sent',
+              sid: smsResult.sid,
+              sentAt: new Date()
+            });
+            successCount++;
+            
+            logger.info(`SMS referral invitation sent to ${phoneNumber.substring(0, 5)}***`, {
+              referrerId,
+              sid: smsResult.sid
+            });
+          } else {
+            results.push({
+              phoneNumber,
+              status: 'failed',
+              error: smsResult.error || 'Failed to send SMS'
+            });
+            failureCount++;
+            
+            logger.warn(`Failed to send SMS referral invitation to ${phoneNumber}`, {
+              referrerId,
+              error: smsResult.error
+            });
+          }
+        } catch (error) {
+          logger.error(`Error sending SMS to ${phoneNumber}:`, error);
+          results.push({
+            phoneNumber,
+            status: 'failed',
+            error: error.message
+          });
+          failureCount++;
+        }
+      }
+
+      return {
+        success: successCount > 0,
+        total: phoneArray.length,
+        successCount,
+        failureCount,
+        results
+      };
+    } catch (error) {
+      logger.error('Error sending SMS referral invitation:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Track SMS invitation in referral analytics
+   * @private
+   */
+  async _trackSMSInvitation(referrerId, phoneNumber, smsSid) {
+    try {
+      // Find or create a referral record for tracking
+      const user = await User.findById(referrerId);
+      if (!user) return;
+
+      const referral = await user.ensureReferral();
+      
+      // Initialize SMS invitations array if it doesn't exist
+      if (!referral.analytics.smsInvitations) {
+        referral.analytics.smsInvitations = [];
+      }
+
+      // Add SMS invitation record
+      referral.analytics.smsInvitations.push({
+        phoneNumber: phoneNumber.substring(0, 5) + '***', // Partial for privacy
+        smsSid,
+        sentAt: new Date()
+      });
+
+      // Keep only last 100 SMS invitations
+      if (referral.analytics.smsInvitations.length > 100) {
+        referral.analytics.smsInvitations = referral.analytics.smsInvitations.slice(-100);
+      }
+
+      await referral.save();
+    } catch (error) {
+      logger.error('Error tracking SMS invitation:', error);
+      // Don't throw - tracking failure shouldn't break the main flow
     }
   }
 }

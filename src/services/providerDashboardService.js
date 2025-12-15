@@ -7,7 +7,7 @@ const ProviderPerformance = require('../models/ProviderPerformance');
 const Marketplace = require('../models/Marketplace');
 const Announcement = require('../models/Announcement');
 const Communication = require('../models/Communication');
-const { logger } = require('../utils/logger');
+const logger = require('../config/logger');
 
 class ProviderDashboardService {
   constructor() {
@@ -321,21 +321,38 @@ class ProviderDashboardService {
         };
       }
 
-      // For now, we'll use current rating as both current and previous
-      // In a real implementation, you'd track historical ratings
-      const current = performance.rating;
-      const previous = current; // Placeholder - would need historical data
-
+      // Get historical data for comparison
+      const HistoricalMetrics = require('../models/HistoricalMetrics');
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+      
+      // Get current period metrics (today)
+      const currentMetrics = await HistoricalMetrics.getLatestMetrics(providerId, 'daily');
+      
+      // Get previous period metrics (yesterday)
+      const previousMetrics = await HistoricalMetrics.getPreviousPeriodMetrics(
+        providerId,
+        currentDate,
+        'daily'
+      );
+      
+      // Use current performance if no historical data available
+      const current = currentMetrics?.metrics?.rating?.average || performance.rating || 0;
+      const previous = previousMetrics?.metrics?.rating?.average || current;
+      
       const change = current - previous;
       let trend = 'neutral';
       if (change > 0.1) trend = 'up';
       else if (change < -0.1) trend = 'down';
+      
+      const percentageChange = previous > 0 ? ((change / previous) * 100) : (current > 0 ? 100 : 0);
 
       return {
         current,
         previous,
         trend,
-        change
+        change,
+        percentageChange: parseFloat(percentageChange.toFixed(2))
       };
     } catch (error) {
       logger.error('Error getting rating trend:', error);
@@ -360,21 +377,34 @@ class ProviderDashboardService {
         };
       }
 
-      // Use current response time as both current and previous
-      // In a real implementation, you'd track historical response times
-      const current = performance.responseTime || 0;
-      const previous = current; // Placeholder
-
+      // Get historical data for comparison
+      const HistoricalMetrics = require('../models/HistoricalMetrics');
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+      
+      const currentMetrics = await HistoricalMetrics.getLatestMetrics(providerId, 'daily');
+      const previousMetrics = await HistoricalMetrics.getPreviousPeriodMetrics(
+        providerId,
+        currentDate,
+        'daily'
+      );
+      
+      const current = currentMetrics?.metrics?.responseTime?.average || performance.responseTime || 0;
+      const previous = previousMetrics?.metrics?.responseTime?.average || current;
+      
       const change = previous - current; // Lower is better
       let trend = 'neutral';
-      if (change > 5) trend = 'up'; // Response time decreased
-      else if (change < -5) trend = 'down'; // Response time increased
+      if (change > 5) trend = 'up'; // Response time decreased (improved)
+      else if (change < -5) trend = 'down'; // Response time increased (worsened)
+      
+      const percentageChange = previous > 0 ? ((change / previous) * 100) : 0;
 
       return {
         current,
         previous,
         trend,
-        change
+        change,
+        percentageChange: parseFloat(percentageChange.toFixed(2))
       };
     } catch (error) {
       logger.error('Error getting response time trend:', error);
@@ -399,19 +429,34 @@ class ProviderDashboardService {
         };
       }
 
-      const current = performance.completionRate || 0;
-      const previous = current; // Placeholder
-
+      // Get historical data for comparison
+      const HistoricalMetrics = require('../models/HistoricalMetrics');
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+      
+      const currentMetrics = await HistoricalMetrics.getLatestMetrics(providerId, 'daily');
+      const previousMetrics = await HistoricalMetrics.getPreviousPeriodMetrics(
+        providerId,
+        currentDate,
+        'daily'
+      );
+      
+      const current = currentMetrics?.metrics?.jobs?.completionRate || performance.completionRate || 0;
+      const previous = previousMetrics?.metrics?.jobs?.completionRate || current;
+      
       const change = current - previous;
       let trend = 'neutral';
       if (change > 1) trend = 'up';
       else if (change < -1) trend = 'down';
+      
+      const percentageChange = previous > 0 ? ((change / previous) * 100) : (current > 0 ? 100 : 0);
 
       return {
         current,
         previous,
         trend,
-        change
+        change,
+        percentageChange: parseFloat(percentageChange.toFixed(2))
       };
     } catch (error) {
       logger.error('Error getting completion rate trend:', error);

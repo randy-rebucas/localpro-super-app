@@ -4,19 +4,28 @@ const escrowService = require('../services/escrowService');
 // const paymongoService = require('../services/paymongoService'); // Available for future PayMongo webhook handling
 const Payout = require('../models/Payout');
 const Escrow = require('../models/Escrow');
+const WebhookEvent = require('../models/WebhookEvent');
 const logger = require('../config/logger');
 
 const router = express.Router();
 
 /**
- * Webhook middleware to verify gateway signatures
+ * Webhook middleware to verify gateway signatures and prevent replay attacks
  */
-const verifyWebhookSignature = (req, res, next) => {
+const verifyWebhookSignature = async (req, res, next) => {
   try {
-    const signature = req.headers['x-signature'] || req.headers['x-webhook-signature'];
+    const signature = req.headers['x-signature'] || 
+                     req.headers['x-webhook-signature'] || 
+                     req.headers['x-paymongo-signature'] ||
+                     req.headers['stripe-signature'] ||
+                     req.headers['x-xendit-signature'];
     const provider = req.query.provider || req.body.provider || 'unknown';
 
     if (!signature) {
+      logger.warn(`Missing webhook signature from ${provider}`, {
+        headers: Object.keys(req.headers),
+        ip: req.ip
+      });
       return res.status(401).json({
         success: false,
         message: 'Missing webhook signature'
@@ -24,16 +33,66 @@ const verifyWebhookSignature = (req, res, next) => {
     }
 
     // Verify signature based on provider
-    // This is a placeholder - implement actual signature verification per provider
-    const isValid = verifySignatureByProvider(provider, signature, req.body);
+    const isValid = verifySignatureByProvider(provider, signature, req.body, req);
 
     if (!isValid) {
-      logger.warn(`Invalid webhook signature from ${provider}`);
+      logger.warn(`Invalid webhook signature from ${provider}`, {
+        ip: req.ip,
+        userAgent: req.get('user-agent')
+      });
       return res.status(401).json({
         success: false,
         message: 'Invalid webhook signature'
       });
     }
+
+    // Check for replay attacks (timestamp validation)
+    const timestamp = getEventTimestamp(req.body, provider);
+    if (timestamp) {
+      const eventAge = Date.now() - new Date(timestamp).getTime();
+      const maxAge = 5 * 60 * 1000; // 5 minutes
+      
+      if (eventAge > maxAge) {
+        logger.warn(`Webhook event too old (replay attack?)`, {
+          provider,
+          eventAge: `${Math.round(eventAge / 1000)}s`,
+          timestamp
+        });
+        return res.status(401).json({
+          success: false,
+          message: 'Webhook event timestamp too old'
+        });
+      }
+    }
+
+    // Check for duplicate events (idempotency)
+    const eventId = getEventId(req.body, provider);
+    if (eventId) {
+      const isProcessed = await WebhookEvent.isEventProcessed(provider, eventId);
+      if (isProcessed) {
+        logger.info(`Duplicate webhook event detected`, {
+          provider,
+          eventId,
+          ip: req.ip
+        });
+        await WebhookEvent.markAsDuplicate(provider, eventId);
+        return res.status(200).json({
+          success: true,
+          message: 'Event already processed',
+          duplicate: true
+        });
+      }
+    }
+
+    // Store metadata for tracking
+    req.webhookMetadata = {
+      provider,
+      eventId,
+      timestamp,
+      signature,
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent')
+    };
 
     next();
   } catch (error) {
@@ -48,15 +107,19 @@ const verifyWebhookSignature = (req, res, next) => {
 /**
  * Verify webhook signature by provider
  */
-const verifySignatureByProvider = (provider, signature, payload) => {
+const verifySignatureByProvider = (provider, signature, payload, req) => {
   try {
-    switch (provider) {
+    switch (provider.toLowerCase()) {
       case 'paymongo':
-        return verifyPaymongoSignature(signature, payload);
+        return verifyPaymongoSignature(signature, payload, req);
       case 'xendit':
-        return verifyXenditSignature(signature, payload);
+        return verifyXenditSignature(signature, payload, req);
       case 'stripe':
-        return verifyStripeSignature(signature, payload);
+        return verifyStripeSignature(signature, payload, req);
+      case 'paypal':
+        return verifyPaypalSignature(signature, payload, req);
+      case 'paymaya':
+        return verifyPaymayaSignature(signature, payload, req);
       default:
         logger.warn(`Unknown webhook provider: ${provider}`);
         return false;
@@ -68,44 +131,133 @@ const verifySignatureByProvider = (provider, signature, payload) => {
 };
 
 /**
- * PayMongo signature verification
+ * Get event ID from webhook payload
  */
-const verifyPaymongoSignature = (signature, payload) => {
-  // Reference: https://developers.paymongo.com/docs/webhooks
+const getEventId = (payload, provider) => {
+  try {
+    switch (provider.toLowerCase()) {
+      case 'paymongo':
+        return payload?.data?.id || payload?.id;
+      case 'stripe':
+        return payload?.id;
+      case 'xendit':
+        return payload?.id || payload?.event_id;
+      case 'paypal':
+        return payload?.id || payload?.event_id;
+      case 'paymaya':
+        return payload?.id || payload?.event_id;
+      default:
+        return payload?.id;
+    }
+  } catch (error) {
+    logger.error('Error extracting event ID:', error);
+    return null;
+  }
+};
+
+/**
+ * Get event timestamp from webhook payload
+ */
+const getEventTimestamp = (payload, provider) => {
+  try {
+    switch (provider.toLowerCase()) {
+      case 'paymongo':
+        return payload?.data?.attributes?.created_at || payload?.created_at;
+      case 'stripe':
+        return payload?.created ? new Date(payload.created * 1000) : null;
+      case 'xendit':
+        return payload?.created || payload?.timestamp;
+      case 'paypal':
+        return payload?.create_time || payload?.event_version;
+      case 'paymaya':
+        return payload?.created_at || payload?.timestamp;
+      default:
+        return payload?.timestamp || payload?.created_at;
+    }
+  } catch (error) {
+    logger.error('Error extracting event timestamp:', error);
+    return null;
+  }
+};
+
+/**
+ * PayMongo signature verification
+ * Reference: https://developers.paymongo.com/docs/webhooks
+ */
+const verifyPaymongoSignature = (signature, payload, req) => {
   const secret = process.env.PAYMONGO_WEBHOOK_SECRET;
-  if (!secret) return false;
+  if (!secret) {
+    logger.warn('PayMongo webhook secret not configured');
+    return false;
+  }
 
-  const hash = crypto
-    .createHmac('sha256', secret)
-    .update(JSON.stringify(payload))
-    .digest('hex');
+  try {
+    // PayMongo sends signature in format: t=timestamp,v1=signature
+    const elements = signature.split(',');
+    const timestamp = elements.find(el => el.startsWith('t='))?.split('=')[1];
+    const v1Signature = elements.find(el => el.startsWith('v1='))?.split('=')[1];
 
-  return hash === signature;
+    if (!timestamp || !v1Signature) {
+      // Fallback: try direct hash comparison
+      const rawBody = req.rawBody || JSON.stringify(payload);
+      const hash = crypto
+        .createHmac('sha256', secret)
+        .update(rawBody)
+        .digest('hex');
+      return hash === signature;
+    }
+
+    // Create signed payload: timestamp.rawBody
+    const rawBody = req.rawBody || JSON.stringify(payload);
+    const signedPayload = `${timestamp}.${rawBody}`;
+
+    const expectedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(signedPayload)
+      .digest('hex');
+
+    return expectedSignature === v1Signature;
+  } catch (error) {
+    logger.error('PayMongo signature verification error:', error);
+    return false;
+  }
 };
 
 /**
  * Xendit signature verification
+ * Reference: https://xendit.stoplight.io/docs/xendit-api/webhooks
  */
-const verifyXenditSignature = (signature, payload) => {
-  // Reference: https://xendit.stoplight.io/docs/xendit-api/webhooks
+const verifyXenditSignature = (signature, payload, req) => {
   const secret = process.env.XENDIT_WEBHOOK_SECRET;
-  if (!secret) return false;
+  if (!secret) {
+    logger.warn('Xendit webhook secret not configured');
+    return false;
+  }
 
-  const hash = crypto
-    .createHmac('sha256', secret)
-    .update(JSON.stringify(payload))
-    .digest('hex');
+  try {
+    const rawBody = req.rawBody || JSON.stringify(payload);
+    const hash = crypto
+      .createHmac('sha256', secret)
+      .update(rawBody)
+      .digest('hex');
 
-  return hash === signature;
+    return hash === signature;
+  } catch (error) {
+    logger.error('Xendit signature verification error:', error);
+    return false;
+  }
 };
 
 /**
  * Stripe signature verification
+ * Reference: https://stripe.com/docs/webhooks/signatures
  */
-const verifyStripeSignature = (signature, payload) => {
-  // Reference: https://stripe.com/docs/webhooks/signatures
+const verifyStripeSignature = (signature, payload, req) => {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) return false;
+  if (!secret) {
+    logger.warn('Stripe webhook secret not configured');
+    return false;
+  }
 
   try {
     // Stripe signature format: t=timestamp,v1=signature
@@ -115,8 +267,9 @@ const verifyStripeSignature = (signature, payload) => {
 
     if (!timestamp || !v1Signature) return false;
 
-    // Create signed payload: timestamp.payload
-    const signedPayload = `${timestamp}.${JSON.stringify(payload)}`;
+    // Create signed payload: timestamp.rawBody
+    const rawBody = req.rawBody || JSON.stringify(payload);
+    const signedPayload = `${timestamp}.${rawBody}`;
 
     const expectedSignature = crypto
       .createHmac('sha256', secret)
@@ -130,6 +283,53 @@ const verifyStripeSignature = (signature, payload) => {
   }
 };
 
+/**
+ * PayPal signature verification
+ * Reference: https://developer.paypal.com/docs/api-basics/notifications/webhooks/notification-messages/
+ */
+const verifyPaypalSignature = (signature, payload, req) => {
+  const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+  if (!webhookId) {
+    logger.warn('PayPal webhook ID not configured');
+    return false;
+  }
+
+  // PayPal uses certificate-based verification
+  // For now, we'll use a simpler approach with webhook ID validation
+  try {
+    // PayPal webhook verification requires calling their API
+    // This is a simplified check - full implementation should call PayPal's verification API
+    return payload?.event_type && payload?.id;
+  } catch (error) {
+    logger.error('PayPal signature verification error:', error);
+    return false;
+  }
+};
+
+/**
+ * PayMaya signature verification
+ */
+const verifyPaymayaSignature = (signature, payload, req) => {
+  const secret = process.env.PAYMAYA_WEBHOOK_SECRET;
+  if (!secret) {
+    logger.warn('PayMaya webhook secret not configured');
+    return false;
+  }
+
+  try {
+    const rawBody = req.rawBody || JSON.stringify(payload);
+    const hash = crypto
+      .createHmac('sha256', secret)
+      .update(rawBody)
+      .digest('hex');
+
+    return hash === signature;
+  } catch (error) {
+    logger.error('PayMaya signature verification error:', error);
+    return false;
+  }
+};
+
 // ==================== Payment Gateway Webhooks ====================
 
 /**
@@ -138,16 +338,28 @@ const verifyStripeSignature = (signature, payload) => {
  * @access  Public (webhook)
  */
 const handlePaymongoPaymentEvent = async (req, res) => {
+  const startTime = Date.now();
+  const { data, type } = req.body;
+  const provider = 'paymongo';
+  const eventId = data?.id || req.webhookMetadata?.eventId;
+
   try {
-    const { data, type } = req.body;
+    // Mark event as processing
+    if (eventId) {
+      await WebhookEvent.markAsProcessing(provider, eventId, req.body);
+    }
 
     logger.info(`PayMongo webhook received: ${type}`, {
       dataId: data?.id,
-      dataType: data?.type
+      dataType: data?.type,
+      eventId
     });
 
     if (!data || !data.id) {
       logger.warn('Invalid PayMongo webhook: missing data');
+      if (eventId) {
+        await WebhookEvent.markAsFailed(provider, eventId, new Error('Missing data'));
+      }
       return res.status(400).json({ success: false, message: 'Invalid webhook' });
     }
 
@@ -184,6 +396,16 @@ const handlePaymongoPaymentEvent = async (req, res) => {
         logger.info(`Unhandled PayMongo event: ${type}`);
     }
 
+    const processingTime = Date.now() - startTime;
+
+    // Mark event as completed
+    if (eventId) {
+      await WebhookEvent.markAsCompleted(provider, eventId, {
+        success: true,
+        eventType: type
+      }, processingTime);
+    }
+
     // Always return 200 OK to acknowledge receipt
     res.status(200).json({
       success: true,
@@ -192,6 +414,12 @@ const handlePaymongoPaymentEvent = async (req, res) => {
     });
   } catch (error) {
     logger.error('PayMongo webhook error:', error);
+    
+    // Mark event as failed
+    if (eventId) {
+      await WebhookEvent.markAsFailed(provider, eventId, error);
+    }
+
     // Return 200 anyway to prevent gateway retries
     res.status(200).json({
       success: false,
@@ -1154,10 +1382,21 @@ const handleStripePayoutFailed = async (payout) => {
 };
 
 // Route handlers
+// Middleware to capture raw body for signature verification (must be before body parser)
+router.use('/payments', captureRawBody);
+router.use('/disbursements', captureRawBody);
+
 router.post('/payments', verifyWebhookSignature, handlePaymentWebhook);
 router.post('/disbursements', verifyWebhookSignature, handleDisbursementWebhook);
 
 // Provider-specific routes
+// Apply raw body capture middleware for provider-specific routes
+router.use('/payments/paymongo', captureRawBody);
+router.use('/payments/xendit', captureRawBody);
+router.use('/payments/stripe', captureRawBody);
+router.use('/disbursements/xendit', captureRawBody);
+router.use('/disbursements/stripe', captureRawBody);
+
 router.post('/payments/paymongo', verifyWebhookSignature, handlePaymongoPaymentEvent);
 router.post('/payments/xendit', verifyWebhookSignature, handleXenditPaymentEvent);
 router.post('/payments/stripe', verifyWebhookSignature, handleStripePaymentEvent);

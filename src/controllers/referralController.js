@@ -217,16 +217,40 @@ const sendReferralInvitation = async (req, res) => {
     }
 
     // Send SMS invitations (if SMS service is available)
-    if (phoneNumbers && phoneNumbers.length > 0 && method === 'sms') {
-      // This would integrate with your SMS service
-      for (const phoneNumber of phoneNumbers) {
-        try {
-          // await TwilioService.sendSMS(phoneNumber, referralLinks.shareOptions.sms);
-          results.push({ phoneNumber, status: 'sent' });
-        } catch (error) {
-          console.error(`Failed to send SMS to ${phoneNumber}:`, error);
-          results.push({ phoneNumber, status: 'failed', error: error.message });
+    if (phoneNumbers && phoneNumbers.length > 0 && (method === 'sms' || method === 'all')) {
+      try {
+        const smsResult = await ReferralService.sendSMSReferralInvitation(
+          userId,
+          phoneNumbers,
+          message
+        );
+
+        if (smsResult.success) {
+          // Add SMS results to overall results
+          results.push(...smsResult.results);
+        } else {
+          // Handle rate limiting or other errors
+          if (smsResult.rateLimitExceeded) {
+            return res.status(429).json({
+              success: false,
+              message: smsResult.error,
+              data: results
+            });
+          }
+          
+          // Add failed results
+          results.push(...smsResult.results);
         }
+      } catch (error) {
+        logger.error('Error sending SMS referral invitations:', error);
+        // Add error results for each phone number
+        phoneNumbers.forEach(phoneNumber => {
+          results.push({
+            phoneNumber,
+            status: 'failed',
+            error: error.message
+          });
+        });
       }
     }
 
