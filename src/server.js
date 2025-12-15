@@ -56,6 +56,7 @@ const liveChatRoutes = require('./routes/liveChat');
 const adminLiveChatRoutes = require('./routes/adminLiveChat');
 const notificationsRoutes = require('./routes/notifications');
 const emailMarketingRoutes = require('./routes/emailMarketing');
+const partnersRoutes = require('./routes/partners');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 const { generalLimiter } = require('./middleware/rateLimiter');
 const liveChatWebSocketService = require('./services/liveChatWebSocketService');
@@ -452,6 +453,9 @@ function startServer() {
   
   // Email Marketing Routes
   app.use('/api/email-marketing', emailMarketingRoutes);
+
+  // Partner Routes
+  app.use('/api/partners', partnersRoutes);
 
   // 404 handler
   app.use('*', (req, res) => {

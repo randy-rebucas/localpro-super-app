@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema({
   },
   roles: {
     type: [String],
-    enum: ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'],
+    enum: ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner'],
     default: ['client']
   },
   isVerified: {
@@ -393,7 +393,7 @@ userSchema.methods.addRole = function(role) {
   if (!this.roles) {
     this.roles = [];
   }
-  const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'];
+  const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner'];
   if (validRoles.includes(role) && !this.roles.includes(role)) {
     this.roles.push(role);
     // Ensure 'client' is always present if user has other roles
@@ -427,7 +427,7 @@ userSchema.methods.setRoles = function(roles) {
   if (!Array.isArray(roles)) {
     roles = [roles];
   }
-  const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'];
+  const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner'];
   this.roles = roles.filter(role => validRoles.includes(role));
   // Ensure 'client' is always present
   if (!this.roles.includes('client')) {
