@@ -102,6 +102,9 @@ nav:
     - api/endpoints.md
     - api/webhooks.md
     - api/error-handling.md
+  - Frontend Implementation:
+    - frontend/implementation-guide.md
+    - frontend/admin-routes.md
   - Development:
     - development/setup.md
     - development/coding-standards.md
