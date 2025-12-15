@@ -71,7 +71,6 @@ const verifySignatureByProvider = (provider, signature, payload) => {
  * PayMongo signature verification
  */
 const verifyPaymongoSignature = (signature, payload) => {
-  // TODO: Implement PayMongo signature verification
   // Reference: https://developers.paymongo.com/docs/webhooks
   const secret = process.env.PAYMONGO_WEBHOOK_SECRET;
   if (!secret) return false;
@@ -88,9 +87,8 @@ const verifyPaymongoSignature = (signature, payload) => {
  * Xendit signature verification
  */
 const verifyXenditSignature = (signature, payload) => {
-  // TODO: Implement Xendit signature verification
   // Reference: https://xendit.stoplight.io/docs/xendit-api/webhooks
-  const secret = process.env.XENDIT_WEBHOOK_TOKEN;
+  const secret = process.env.XENDIT_WEBHOOK_SECRET;
   if (!secret) return false;
 
   const hash = crypto
@@ -105,17 +103,31 @@ const verifyXenditSignature = (signature, payload) => {
  * Stripe signature verification
  */
 const verifyStripeSignature = (signature, payload) => {
-  // TODO: Implement Stripe signature verification
-  // Reference: https://stripe.com/docs/webhooks
+  // Reference: https://stripe.com/docs/webhooks/signatures
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) return false;
 
-  const hash = crypto
-    .createHmac('sha256', secret)
-    .update(JSON.stringify(payload))
-    .digest('hex');
+  try {
+    // Stripe signature format: t=timestamp,v1=signature
+    const elements = signature.split(',');
+    const timestamp = elements.find(el => el.startsWith('t='))?.split('=')[1];
+    const v1Signature = elements.find(el => el.startsWith('v1='))?.split('=')[1];
 
-  return hash === signature;
+    if (!timestamp || !v1Signature) return false;
+
+    // Create signed payload: timestamp.payload
+    const signedPayload = `${timestamp}.${JSON.stringify(payload)}`;
+
+    const expectedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(signedPayload)
+      .digest('hex');
+
+    return expectedSignature === v1Signature;
+  } catch (error) {
+    logger.error('Stripe signature verification error:', error);
+    return false;
+  }
 };
 
 // ==================== Payment Gateway Webhooks ====================
@@ -315,19 +327,51 @@ const handleXenditPaymentEvent = async (req, res) => {
   try {
     const { event, data } = req.body;
 
-    logger.info(`Xendit webhook received: ${event}`);
+    logger.info(`Xendit webhook received: ${event}`, {
+      eventId: data?.id,
+      eventType: data?.type,
+      referenceId: data?.reference_id
+    });
 
-    // Handle authorization events
-    if (event === 'xendit_auth.authorization_success') {
-      const { id, reference_id } = data;
-      logger.info(`Authorization success: ${id}, Reference: ${reference_id}`);
+    // Handle different event types
+    switch (event) {
+      case 'payment.succeeded':
+        // Payment succeeded - funds captured
+        await handleXenditPaymentSucceeded(data);
+        break;
+
+      case 'payment.failed':
+        // Payment failed
+        await handleXenditPaymentFailed(data);
+        break;
+
+      case 'payment_request.payment_method.attached':
+        // Payment method attached to payment request
+        await handleXenditPaymentMethodAttached(data);
+        break;
+
+      case 'disbursement.sent':
+        // Disbursement sent
+        await handleXenditDisbursementSent(data);
+        break;
+
+      case 'disbursement.failed':
+        // Disbursement failed
+        await handleXenditDisbursementFailed(data);
+        break;
+
+      case 'disbursement.completed':
+        // Disbursement completed
+        await handleXenditDisbursementCompleted(data);
+        break;
+
+      default:
+        logger.info(`Unhandled Xendit event: ${event}`);
     }
-
-    // TODO: Implement Xendit payment event handling
 
     res.status(200).json({
       success: true,
-      message: 'Webhook processed'
+      message: 'Xendit webhook processed successfully'
     });
   } catch (error) {
     logger.error('Xendit webhook error:', error);
@@ -345,30 +389,52 @@ const handleXenditPaymentEvent = async (req, res) => {
  */
 const handleStripePaymentEvent = async (req, res) => {
   try {
-    const { type } = req.body;
+    const { type, data } = req.body;
 
-    logger.info(`Stripe webhook received: ${type}`);
+    logger.info(`Stripe webhook received: ${type}`, {
+      eventId: data?.id,
+      objectId: data?.object?.id
+    });
 
     // Handle different event types
     switch (type) {
       case 'payment_intent.succeeded':
-        // Payment captured
+        // Payment intent succeeded - funds authorized
+        await handleStripePaymentIntentSucceeded(data.object);
         break;
-      case 'charge.captured':
-        // Charge captured
+
+      case 'payment_intent.canceled':
+        // Payment intent canceled - authorization released
+        await handleStripePaymentIntentCanceled(data.object);
         break;
+
+      case 'charge.succeeded':
+        // Charge succeeded - payment captured
+        await handleStripeChargeSucceeded(data.object);
+        break;
+
       case 'charge.refunded':
         // Charge refunded
+        await handleStripeChargeRefunded(data.object);
         break;
+
+      case 'payout.paid':
+        // Payout completed
+        await handleStripePayoutPaid(data.object);
+        break;
+
+      case 'payout.failed':
+        // Payout failed
+        await handleStripePayoutFailed(data.object);
+        break;
+
       default:
         logger.info(`Unhandled Stripe event: ${type}`);
     }
 
-    // TODO: Implement Stripe payment event handling
-
     res.status(200).json({
       success: true,
-      message: 'Webhook processed'
+      message: 'Stripe webhook processed successfully'
     });
   } catch (error) {
     logger.error('Stripe webhook error:', error);
@@ -563,6 +629,527 @@ const handleDisbursementWebhook = async (req, res) => {
       success: false,
       message: error.message
     });
+  }
+};
+
+// ==================== Xendit Event Handlers ====================
+
+/**
+ * Handle Xendit payment succeeded
+ */
+const handleXenditPaymentSucceeded = async (payment) => {
+  try {
+    const { id, payment_request_id, amount, currency, reference_id } = payment;
+
+    logger.info('Processing Xendit payment succeeded', {
+      paymentId: id,
+      requestId: payment_request_id,
+      amount,
+      referenceId: reference_id
+    });
+
+    // Find and update escrow if this was a payment request
+    const escrow = await Escrow.findOne({
+      providerHoldId: payment_request_id,
+      status: 'FUNDS_HELD'
+    });
+
+    if (escrow) {
+      escrow.status = 'COMPLETED';
+      await escrow.save();
+
+      // Log transaction
+      await escrowService.logTransaction({
+        escrowId: escrow._id,
+        transactionType: 'CAPTURE',
+        amount: amount * 100, // Convert to cents
+        currency,
+        status: 'SUCCESS',
+        initiatedBy: escrow.clientId,
+        gateway: {
+          provider: 'xendit',
+          transactionId: id
+        },
+        metadata: {
+          reason: 'Xendit payment succeeded',
+          tags: ['xendit', 'capture']
+        }
+      });
+
+      logger.info('Escrow completed for Xendit payment', {
+        escrowId: escrow._id,
+        paymentId: id
+      });
+    }
+  } catch (error) {
+    logger.error('Error handling Xendit payment succeeded:', error);
+  }
+};
+
+/**
+ * Handle Xendit payment failed
+ */
+const handleXenditPaymentFailed = async (payment) => {
+  try {
+    const { id, payment_request_id, amount, currency, reference_id, failure_code } = payment;
+
+    logger.info('Processing Xendit payment failed', {
+      paymentId: id,
+      requestId: payment_request_id,
+      amount,
+      referenceId: reference_id,
+      failureCode: failure_code
+    });
+
+    // Find escrow and mark as failed
+    const escrow = await Escrow.findOne({
+      providerHoldId: payment_request_id,
+      status: 'FUNDS_HELD'
+    });
+
+    if (escrow) {
+      escrow.status = 'FAILED';
+      await escrow.save();
+
+      // Log transaction
+      await escrowService.logTransaction({
+        escrowId: escrow._id,
+        transactionType: 'FAILED',
+        amount: amount * 100, // Convert to cents
+        currency,
+        status: 'FAILED',
+        initiatedBy: escrow.clientId,
+        gateway: {
+          provider: 'xendit',
+          transactionId: id
+        },
+        metadata: {
+          reason: 'Xendit payment failed',
+          failureCode: failure_code,
+          tags: ['xendit', 'failed']
+        }
+      });
+
+      logger.info('Escrow failed for Xendit payment', {
+        escrowId: escrow._id,
+        paymentId: id,
+        failureCode: failure_code
+      });
+    }
+  } catch (error) {
+    logger.error('Error handling Xendit payment failed:', error);
+  }
+};
+
+/**
+ * Handle Xendit payment method attached
+ */
+const handleXenditPaymentMethodAttached = async (paymentRequest) => {
+  try {
+    const { id, reference_id, amount, currency } = paymentRequest;
+
+    logger.info('Processing Xendit payment method attached', {
+      requestId: id,
+      referenceId: reference_id,
+      amount,
+      currency
+    });
+
+    // Update escrow status to indicate payment method is ready
+    const escrow = await Escrow.findOne({
+      providerHoldId: id,
+      status: 'PENDING'
+    });
+
+    if (escrow) {
+      escrow.status = 'FUNDS_HELD';
+      await escrow.save();
+
+      logger.info('Escrow status updated for payment method attachment', {
+        escrowId: escrow._id,
+        requestId: id
+      });
+    }
+  } catch (error) {
+    logger.error('Error handling Xendit payment method attached:', error);
+  }
+};
+
+/**
+ * Handle Xendit disbursement sent
+ */
+const handleXenditDisbursementSent = async (disbursement) => {
+  try {
+    const { id, external_id, amount } = disbursement;
+
+    logger.info('Processing Xendit disbursement sent', {
+      disbursementId: id,
+      externalId: external_id,
+      amount
+    });
+
+    // Update payout status
+    const payoutRecord = await Payout.findOne({
+      'gateway.transactionId': id
+    });
+
+    if (payoutRecord) {
+      payoutRecord.status = 'PROCESSING';
+      await payoutRecord.save();
+
+      logger.info('Payout status updated to processing', {
+        payoutId: payoutRecord._id,
+        disbursementId: id
+      });
+    }
+  } catch (error) {
+    logger.error('Error handling Xendit disbursement sent:', error);
+  }
+};
+
+/**
+ * Handle Xendit disbursement failed
+ */
+const handleXenditDisbursementFailed = async (disbursement) => {
+  try {
+    const { id, external_id, amount, failure_code } = disbursement;
+
+    logger.info('Processing Xendit disbursement failed', {
+      disbursementId: id,
+      externalId: external_id,
+      amount,
+      failureCode: failure_code
+    });
+
+    // Update payout status
+    const payoutRecord = await Payout.findOne({
+      'gateway.transactionId': id
+    });
+
+    if (payoutRecord) {
+      payoutRecord.status = 'FAILED';
+      payoutRecord.metadata = {
+        ...payoutRecord.metadata,
+        failureReason: failure_code
+      };
+      await payoutRecord.save();
+
+      logger.info('Payout marked as failed', {
+        payoutId: payoutRecord._id,
+        disbursementId: id,
+        failureCode: failure_code
+      });
+    }
+  } catch (error) {
+    logger.error('Error handling Xendit disbursement failed:', error);
+  }
+};
+
+/**
+ * Handle Xendit disbursement completed
+ */
+const handleXenditDisbursementCompleted = async (disbursement) => {
+  try {
+    const { id, external_id, amount } = disbursement;
+
+    logger.info('Processing Xendit disbursement completed', {
+      disbursementId: id,
+      externalId: external_id,
+      amount
+    });
+
+    // Update payout status
+    const payoutRecord = await Payout.findOne({
+      'gateway.transactionId': id
+    });
+
+    if (payoutRecord) {
+      payoutRecord.status = 'COMPLETED';
+      await payoutRecord.save();
+
+      logger.info('Payout marked as completed', {
+        payoutId: payoutRecord._id,
+        disbursementId: id
+      });
+    }
+  } catch (error) {
+    logger.error('Error handling Xendit disbursement completed:', error);
+  }
+};
+
+// ==================== Stripe Event Handlers ====================
+
+/**
+ * Handle Stripe payment intent succeeded
+ */
+const handleStripePaymentIntentSucceeded = async (paymentIntent) => {
+  try {
+    const { id, metadata } = paymentIntent;
+
+    logger.info('Processing Stripe payment intent succeeded', {
+      intentId: id,
+      bookingId: metadata.bookingId,
+      clientId: metadata.clientId
+    });
+
+    // Update escrow status if this was an escrow payment
+    if (metadata.bookingId && metadata.type === 'escrow_authorization') {
+      const escrow = await Escrow.findOne({
+        bookingId: metadata.bookingId,
+        providerHoldId: id
+      });
+
+      if (escrow) {
+        escrow.status = 'FUNDS_HELD';
+        await escrow.save();
+
+        // Log transaction
+        await escrowService.logTransaction({
+          escrowId: escrow._id,
+          transactionType: 'HOLD',
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          status: 'SUCCESS',
+          initiatedBy: metadata.clientId,
+          gateway: {
+            provider: 'stripe',
+            transactionId: id
+          },
+          metadata: {
+            reason: 'Stripe payment intent authorized',
+            tags: ['stripe', 'authorization']
+          }
+        });
+
+        logger.info('Escrow updated for Stripe payment intent', {
+          escrowId: escrow._id,
+          bookingId: metadata.bookingId
+        });
+      }
+    }
+  } catch (error) {
+    logger.error('Error handling Stripe payment intent succeeded:', error);
+  }
+};
+
+/**
+ * Handle Stripe payment intent canceled
+ */
+const handleStripePaymentIntentCanceled = async (paymentIntent) => {
+  try {
+    const { id, metadata } = paymentIntent;
+
+    logger.info('Processing Stripe payment intent canceled', {
+      intentId: id,
+      bookingId: metadata.bookingId
+    });
+
+    // Update escrow status if this was an escrow payment
+    if (metadata.bookingId && metadata.type === 'escrow_authorization') {
+      const escrow = await Escrow.findOne({
+        bookingId: metadata.bookingId,
+        providerHoldId: id
+      });
+
+      if (escrow) {
+        escrow.status = 'CANCELLED';
+        await escrow.save();
+
+        // Log transaction
+        await escrowService.logTransaction({
+          escrowId: escrow._id,
+          transactionType: 'CANCEL',
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          status: 'SUCCESS',
+          initiatedBy: metadata.clientId,
+          gateway: {
+            provider: 'stripe',
+            transactionId: id
+          },
+          metadata: {
+            reason: 'Stripe payment intent canceled',
+            tags: ['stripe', 'cancellation']
+          }
+        });
+
+        logger.info('Escrow canceled for Stripe payment intent', {
+          escrowId: escrow._id,
+          bookingId: metadata.bookingId
+        });
+      }
+    }
+  } catch (error) {
+    logger.error('Error handling Stripe payment intent canceled:', error);
+  }
+};
+
+/**
+ * Handle Stripe charge succeeded
+ */
+const handleStripeChargeSucceeded = async (charge) => {
+  try {
+    const { id, payment_intent, amount, currency, metadata } = charge;
+
+    logger.info('Processing Stripe charge succeeded', {
+      chargeId: id,
+      intentId: payment_intent,
+      amount,
+      bookingId: metadata.bookingId
+    });
+
+    // Find and update escrow if this was a capture
+    const escrow = await Escrow.findOne({
+      providerHoldId: payment_intent,
+      status: 'FUNDS_HELD'
+    });
+
+    if (escrow) {
+      escrow.status = 'COMPLETED';
+      await escrow.save();
+
+      // Log transaction
+      await escrowService.logTransaction({
+        escrowId: escrow._id,
+        transactionType: 'CAPTURE',
+        amount,
+        currency,
+        status: 'SUCCESS',
+        initiatedBy: metadata.clientId,
+        gateway: {
+          provider: 'stripe',
+          transactionId: id
+        },
+        metadata: {
+          reason: 'Stripe charge captured',
+          tags: ['stripe', 'capture']
+        }
+      });
+
+      logger.info('Escrow completed for Stripe charge', {
+        escrowId: escrow._id,
+        chargeId: id
+      });
+    }
+  } catch (error) {
+    logger.error('Error handling Stripe charge succeeded:', error);
+  }
+};
+
+/**
+ * Handle Stripe charge refunded
+ */
+const handleStripeChargeRefunded = async (charge) => {
+  try {
+    const { id, amount, currency, metadata } = charge;
+
+    logger.info('Processing Stripe charge refunded', {
+      chargeId: id,
+      amount,
+      bookingId: metadata.bookingId
+    });
+
+    // Find escrow and create refund transaction
+    const escrow = await Escrow.findOne({
+      'transactions.gateway.transactionId': id
+    });
+
+    if (escrow) {
+      // Log refund transaction
+      await escrowService.logTransaction({
+        escrowId: escrow._id,
+        transactionType: 'REFUND',
+        amount,
+        currency,
+        status: 'SUCCESS',
+        initiatedBy: metadata.clientId,
+        gateway: {
+          provider: 'stripe',
+          transactionId: id
+        },
+        metadata: {
+          reason: 'Stripe charge refunded',
+          tags: ['stripe', 'refund']
+        }
+      });
+
+      logger.info('Refund logged for Stripe charge', {
+        escrowId: escrow._id,
+        chargeId: id
+      });
+    }
+  } catch (error) {
+    logger.error('Error handling Stripe charge refunded:', error);
+  }
+};
+
+/**
+ * Handle Stripe payout paid
+ */
+const handleStripePayoutPaid = async (payout) => {
+  try {
+    const { id, amount, metadata } = payout;
+
+    logger.info('Processing Stripe payout paid', {
+      payoutId: id,
+      amount,
+      providerId: metadata.providerId
+    });
+
+    // Update payout status
+    const payoutRecord = await Payout.findOne({
+      'gateway.transactionId': id
+    });
+
+    if (payoutRecord) {
+      payoutRecord.status = 'COMPLETED';
+      await payoutRecord.save();
+
+      logger.info('Payout marked as completed', {
+        payoutId: payoutRecord._id,
+        stripePayoutId: id
+      });
+    }
+  } catch (error) {
+    logger.error('Error handling Stripe payout paid:', error);
+  }
+};
+
+/**
+ * Handle Stripe payout failed
+ */
+const handleStripePayoutFailed = async (payout) => {
+  try {
+    const { id, amount, metadata, failure_message } = payout;
+
+    logger.info('Processing Stripe payout failed', {
+      payoutId: id,
+      amount,
+      providerId: metadata.providerId,
+      failureMessage: failure_message
+    });
+
+    // Update payout status
+    const payoutRecord = await Payout.findOne({
+      'gateway.transactionId': id
+    });
+
+    if (payoutRecord) {
+      payoutRecord.status = 'FAILED';
+      payoutRecord.metadata = {
+        ...payoutRecord.metadata,
+        failureReason: failure_message
+      };
+      await payoutRecord.save();
+
+      logger.info('Payout marked as failed', {
+        payoutId: payoutRecord._id,
+        stripePayoutId: id,
+        failureMessage: failure_message
+      });
+    }
+  } catch (error) {
+    logger.error('Error handling Stripe payout failed:', error);
   }
 };
 

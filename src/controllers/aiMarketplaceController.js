@@ -1,5 +1,6 @@
 const aiService = require('../services/aiService');
-const { Service, Booking } = require('../models/Marketplace');
+const { Service, Booking, Marketplace } = require('../models/Marketplace');
+const Communication = require('../models/Communication');
 const logger = require('../config/logger');
 const { sendServerError } = require('../utils/responseHelper');
 
@@ -596,7 +597,61 @@ const responseAssistant = async (req, res) => {
       }
     }
 
-    // TODO: Fetch message if messageId provided (when message system is integrated)
+    // Fetch message if messageId provided
+    if (messageId) {
+      // Try to find message in booking communications first
+      let messageData = await Marketplace.findOne({
+        'booking.communication.messages._id': messageId
+      }, {
+        'booking.communication.messages.$': 1,
+        'booking.client': 1,
+        'booking.provider': 1,
+        title: 1
+      })
+      .populate('booking.client', 'firstName lastName')
+      .populate('booking.provider', 'firstName lastName')
+      .lean();
+
+      if (messageData) {
+        const message = messageData.booking.communication.messages[0];
+        enrichedContext.message = {
+          id: message._id,
+          content: message.message,
+          type: message.type,
+          sender: message.sender,
+          timestamp: message.timestamp,
+          bookingTitle: messageData.title,
+          client: messageData.booking.client,
+          provider: messageData.booking.provider
+        };
+      } else {
+        // Try to find message in general communications
+        const communication = await Communication.findOne({
+          'messages._id': messageId
+        }, {
+          'messages.$': 1,
+          participants: 1,
+          subject: 1,
+          type: 1
+        })
+        .populate('participants.user', 'firstName lastName')
+        .lean();
+
+        if (communication) {
+          const message = communication.messages[0];
+          enrichedContext.message = {
+            id: message._id,
+            content: message.message,
+            type: message.type,
+            sender: communication.participants.find(p => p.user._id.toString() === message.sender.toString())?.user,
+            timestamp: message.timestamp,
+            conversationSubject: communication.subject,
+            conversationType: communication.type,
+            participants: communication.participants.map(p => p.user)
+          };
+        }
+      }
+    }
 
     const aiResponse = await aiService.assistResponse(enrichedContext, messageType);
     const assistance = aiResponse.parsed || aiResponse.content;

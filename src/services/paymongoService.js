@@ -8,10 +8,22 @@ const logger = require('../config/logger');
 
 class PayMongoService {
   constructor() {
-    this.publicKey = process.env.PAYMONGO_PUBLIC_KEY;
-    this.secretKey = process.env.PAYMONGO_SECRET_KEY;
-    this.webhookSecret = process.env.PAYMONGO_WEBHOOK_SECRET;
-    this.baseUrl = 'https://api.paymongo.com/v1';
+    // Support both test and production environments
+    const environment = process.env.PAYMONGO_ENVIRONMENT || 'production';
+
+    if (environment === 'test') {
+      this.publicKey = process.env.PAYMONGO_TEST_PUBLIC_KEY;
+      this.secretKey = process.env.PAYMONGO_TEST_SECRET_KEY;
+      this.webhookSecret = process.env.PAYMONGO_TEST_WEBHOOK_SECRET;
+      this.baseUrl = 'https://api.paymongo.com/v1'; // Test uses same API but with test keys
+    } else {
+      this.publicKey = process.env.PAYMONGO_PUBLIC_KEY;
+      this.secretKey = process.env.PAYMONGO_SECRET_KEY;
+      this.webhookSecret = process.env.PAYMONGO_WEBHOOK_SECRET;
+      this.baseUrl = 'https://api.paymongo.com/v1';
+    }
+
+    this.environment = environment;
     
     if (!this.secretKey) {
       logger.warn('PayMongo secret key not configured');

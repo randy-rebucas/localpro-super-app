@@ -1,13 +1,9 @@
 /**
  * Centralized Error Handling Middleware
- * Handles all errors in a consistent manner
+ * Handles all errors in a consistent manner using standardized error responses
  */
 
-/* eslint-disable no-undef */
-const { 
-  sendValidationError, 
-  sendServerError
-} = require('../utils/responseHelper');
+const errorResponse = require('../utils/errorResponse');
 const logger = require('../config/logger');
 
 /**
@@ -24,17 +20,13 @@ const handleAsyncErrors = (fn) => {
 
 /**
  * Centralized error handler
- * Handles all errors thrown in the application
+ * Handles all errors thrown in the application using standardized responses
  * @param {Error} error - Error object
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  * @param {Function} next - Express next function
  */
 const errorHandler = (error, req, res, _next) => {
-  let statusCode = 500;
-  let message = 'Internal server error';
-  let code = 'SERVER_ERROR';
-
   // Log error details
   logger.error('Route error:', {
     error: error.message,
@@ -42,95 +34,109 @@ const errorHandler = (error, req, res, _next) => {
     path: req.path,
     method: req.method,
     ip: req.ip,
-    userAgent: req.get('User-Agent'), // eslint-disable-line no-undef
-    userId: req.user?.id // eslint-disable-line no-undef
+    userAgent: req.get('User-Agent'),
+    userId: req.user?.id,
+    body: req.method !== 'GET' ? req.body : undefined,
+    query: req.query
   });
 
-  // Handle specific error types
+  // Handle specific error types with standardized responses
+
+  // Mongoose validation errors
   if (error.name === 'ValidationError') {
-    statusCode = 400;
-    message = 'Validation failed';
-    code = 'VALIDATION_ERROR';
-    
-    // Format Mongoose validation errors
-    const errors = Object.values(error.errors).map(err => ({
-      field: err.path,
-      message: err.message,
-      code: 'VALIDATION_ERROR'
-    }));
-    
-    return sendValidationError(res, errors);
+    return errorResponse.handleMongooseError(res, error);
   }
 
+  // Mongoose cast errors (invalid ObjectId, etc.)
   if (error.name === 'CastError') {
-    statusCode = 400;
-    message = 'Invalid ID format';
-    code = 'INVALID_ID_FORMAT';
-    
-    return res.status(statusCode).json({
-      success: false,
-      message,
-      code
-    });
+    return errorResponse.sendError(res, 'INVALID_ID', `Invalid ${error.path}: ${error.value}`);
   }
 
+  // MongoDB duplicate key errors
   if (error.name === 'MongoError' && error.code === 11000) {
-    statusCode = 409;
-    message = 'Duplicate entry';
-    code = 'DUPLICATE_ENTRY';
-    
-    return res.status(statusCode).json({
-      success: false,
-      message,
-      code
+    const field = Object.keys(error.keyPattern || {})[0] || 'field';
+    return errorResponse.sendError(res, 'CONFLICT', `Duplicate value for ${field}`);
+  }
+
+  // JWT errors
+  if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+    return errorResponse.handleJWTError(res, error);
+  }
+
+  // Multer file upload errors
+  if (error.code && error.code.startsWith('LIMIT_')) {
+    return errorResponse.handleFileUploadError(res, error);
+  }
+
+  // Payment gateway errors
+  if (error.code && ['PAYMONGO_ERROR', 'STRIPE_ERROR', 'XENDIT_ERROR'].includes(error.code)) {
+    return errorResponse.handlePaymentError(res, error, error.gateway || 'unknown');
+  }
+
+  // Express-validator errors
+  if (error.errors && Array.isArray(error.errors)) {
+    return errorResponse.handleValidationError(res, error);
+  }
+
+  // Custom application errors with error codes
+  if (error.code && errorResponse.getErrorInfo(error.code)) {
+    return errorResponse.sendError(res, error.code, error.details, error.message);
+  }
+
+  // Rate limiting errors
+  if (error.name === 'RateLimitError') {
+    return errorResponse.handleRateLimitError(res, error.resetTime);
+  }
+
+  // Default server error for unhandled errors
+  return errorResponse.sendError(res, 'INTERNAL_SERVER_ERROR', error.message);
+};
+
+/**
+ * Request logging middleware
+ * Logs all incoming requests with performance metrics
+ */
+const requestLogger = (req, res, next) => {
+  const startTime = process.hrtime.bigint();
+
+  // Log request
+  logger.info('Request received:', {
+    method: req.method,
+    path: req.path,
+    query: req.query,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    userId: req.user?.id,
+    contentLength: req.get('Content-Length')
+  });
+
+  // Hook into response finish
+  res.on('finish', () => {
+    const endTime = process.hrtime.bigint();
+    const durationMs = Number(endTime - startTime) / 1000000;
+
+    // Log response
+    logger.info('Request completed:', {
+      method: req.method,
+      path: req.path,
+      statusCode: res.statusCode,
+      duration: `${durationMs.toFixed(2)}ms`,
+      userId: req.user?.id,
+      responseSize: res.get('Content-Length')
     });
-  }
 
-  if (error.name === 'JsonWebTokenError') {
-    statusCode = 401;
-    message = 'Invalid token';
-    code = 'INVALID_TOKEN';
-    
-    return res.status(statusCode).json({
-      success: false,
-      message,
-      code
-    });
-  }
+    // Warn about slow requests
+    if (durationMs > 2000) { // 2 seconds
+      logger.warn('Slow request detected:', {
+        method: req.method,
+        path: req.path,
+        duration: `${durationMs.toFixed(2)}ms`,
+        statusCode: res.statusCode
+      });
+    }
+  });
 
-  if (error.name === 'TokenExpiredError') {
-    statusCode = 401;
-    message = 'Token expired';
-    code = 'TOKEN_EXPIRED';
-    
-    return res.status(statusCode).json({
-      success: false,
-      message,
-      code
-    });
-  }
-
-  if (error.name === 'MulterError') {
-    statusCode = 400;
-    message = 'File upload error';
-    code = 'FILE_UPLOAD_ERROR';
-    
-    return res.status(statusCode).json({
-      success: false,
-      message: error.message,
-      code
-    });
-  }
-
-  // Handle custom application errors
-  if (error.statusCode) {
-    statusCode = error.statusCode;
-    message = error.message;
-    code = error.code || 'APPLICATION_ERROR';
-  }
-
-  // Send error response
-  return sendServerError(res, error, message, code);
+  next();
 };
 
 /**
@@ -145,39 +151,6 @@ const notFoundHandler = (req, res, next) => {
   next(error);
 };
 
-/**
- * Request logging middleware
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
- */
-const requestLogger = (req, res, next) => {
-  const start = Date.now();
-  
-  // Log request
-  logger.info('Request received:', {
-    method: req.method,
-    path: req.path,
-    ip: req.ip,
-    userAgent: req.get('User-Agent'), // eslint-disable-line no-undef
-    userId: req.user?.id // eslint-disable-line no-undef
-  });
-  
-  // Log response
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    logger.info('Request completed:', {
-      method: req.method,
-      path: req.path,
-      status: res.statusCode,
-      duration: `${duration}ms`,
-      ip: req.ip,
-      userId: req.user?.id // eslint-disable-line no-undef
-    });
-  });
-  
-  next();
-};
 
 /**
  * Security headers middleware

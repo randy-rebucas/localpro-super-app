@@ -4,6 +4,8 @@
  */
 
 const rateLimit = require('express-rate-limit');
+const logger = require('../config/logger');
+const errorResponse = require('../utils/errorResponse');
 
 // Get rate limit configuration from environment variables
 const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000; // 15 minutes default
@@ -12,24 +14,78 @@ const RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) ||
 // Check if rate limiting should be disabled (development mode)
 const isDevelopment = process.env.NODE_ENV === 'development';
 
+// IP whitelist for admin/testing access
+const IP_WHITELIST = (process.env.IP_WHITELIST || '').split(',').filter(ip => ip.trim());
+
+// User-based rate limiting configuration
+const USER_RATE_LIMITS = {
+  admin: { windowMs: 60 * 1000, max: 1000 }, // 1000 requests per minute for admins
+  partner: { windowMs: 60 * 1000, max: 500 }, // 500 requests per minute for partners
+  provider: { windowMs: 60 * 1000, max: 300 }, // 300 requests per minute for providers
+  client: { windowMs: 60 * 1000, max: 100 } // 100 requests per minute for clients
+};
+
 /**
  * General API rate limiter
  * Applied to all API routes for basic protection
  */
 const generalLimiter = rateLimit({
   windowMs: RATE_LIMIT_WINDOW_MS,
-  max: RATE_LIMIT_MAX_REQUESTS,
+  max: (req) => {
+    // Dynamic limits based on user role
+    if (req.user?.roles?.includes('admin')) {
+      return USER_RATE_LIMITS.admin.max;
+    }
+    if (req.user?.roles?.includes('partner')) {
+      return USER_RATE_LIMITS.partner.max;
+    }
+    if (req.user?.roles?.includes('provider')) {
+      return USER_RATE_LIMITS.provider.max;
+    }
+    return RATE_LIMIT_MAX_REQUESTS; // Default for clients and unauthenticated users
+  },
   message: {
     success: false,
-    message: 'Too many requests from this IP, please try again later.',
+    message: 'Too many requests, please try again later.',
     code: 'RATE_LIMIT_EXCEEDED'
   },
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  // Skip rate limiting in development mode and for health checks
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Enhanced skip logic
   skip: (req) => {
+    const clientIP = req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress;
+
+    // Skip for whitelisted IPs
+    if (IP_WHITELIST.includes(clientIP)) {
+      return true;
+    }
+
+    // Skip for development mode and health checks
     return isDevelopment || req.path === '/health' || req.path === '/';
-  }
+  },
+  // Custom key generator that includes user ID for authenticated users
+  keyGenerator: (req) => {
+    const clientIP = req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress;
+    const userId = req.user?.id;
+
+    // Use user ID for authenticated requests to allow per-user limits
+    return userId ? `user:${userId}` : `ip:${clientIP}`;
+  },
+  // Enhanced handler with retry-after
+  handler: (req, res) => {
+    const retryAfter = Math.ceil(RATE_LIMIT_WINDOW_MS / 1000);
+    logger.warn('Rate limit exceeded:', {
+      ip: req.ip,
+      userId: req.user?.id,
+      path: req.path,
+      method: req.method
+    });
+
+    return errorResponse.handleRateLimitError(res, retryAfter);
+  },
+  // Store configuration
+  skipSuccessfulRequests: false,
+  skipFailedRequests: false
 });
 
 /**

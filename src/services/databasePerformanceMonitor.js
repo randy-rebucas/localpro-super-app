@@ -1,324 +1,397 @@
 const mongoose = require('mongoose');
-const { recordDatabaseQuery } = require('../middleware/metricsMiddleware');
 const logger = require('../config/logger');
+
+/**
+ * Database Performance Monitoring Service
+ * Monitors slow queries, connection pool, and provides optimization insights
+ */
 
 class DatabasePerformanceMonitor {
   constructor() {
+    this.slowQueryThreshold = parseInt(process.env.SLOW_QUERY_THRESHOLD) || 100; // ms
+    this.monitoringEnabled = process.env.DATABASE_PERFORMANCE_MONITORING !== 'false';
     this.queryStats = new Map();
-    this.slowQueries = [];
     this.connectionStats = {
       totalConnections: 0,
       activeConnections: 0,
-      queuedConnections: 0
+      availableConnections: 0,
+      pendingOperations: 0
     };
-    this.maxQueryStatsSize = 500; // Maximum number of unique query stats to track
-    
-    this.startMonitoring();
-  }
 
-  startMonitoring() {
-    // Monitor database connection events
-    mongoose.connection.on('connected', () => {
-      logger.info('Database connected');
-      this.updateConnectionStats();
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      logger.warn('Database disconnected');
-      this.updateConnectionStats();
-    });
-
-    mongoose.connection.on('error', (error) => {
-      logger.error('Database error:', error);
-      this.updateConnectionStats();
-    });
-
-    // Monitor query performance
-    this.setupQueryMonitoring();
-    
-    // Update connection stats every 30 seconds (skip in test environment)
-    if (process.env.NODE_ENV !== 'test') {
-      this.monitoringInterval = setInterval(() => {
-        this.updateConnectionStats();
-      }, 30000);
-      // Unref to allow Node.js to exit if only this timer is running
-      if (this.monitoringInterval.unref) {
-        this.monitoringInterval.unref();
-      }
+    if (this.monitoringEnabled) {
+      this.initializeMonitoring();
     }
   }
 
-  setupQueryMonitoring() {
-    // Store reference to monitor instance
-    const monitor = this;
-    
-    // Override mongoose query methods to track performance
-    const originalExec = mongoose.Query.prototype.exec;
-    // eslint-disable-next-line no-unused-vars
-    const _originalFind = mongoose.Query.prototype.find;
-    // eslint-disable-next-line no-unused-vars
-    const _originalFindOne = mongoose.Query.prototype.findOne;
-    // eslint-disable-next-line no-unused-vars
-    const _originalFindOneAndUpdate = mongoose.Query.prototype.findOneAndUpdate;
-    // eslint-disable-next-line no-unused-vars
-    const _originalFindOneAndDelete = mongoose.Query.prototype.findOneAndDelete;
-    // eslint-disable-next-line no-unused-vars
-    const _originalUpdate = mongoose.Query.prototype.update;
-    // eslint-disable-next-line no-unused-vars
-    const _originalUpdateOne = mongoose.Query.prototype.updateOne;
-    // eslint-disable-next-line no-unused-vars
-    const _originalUpdateMany = mongoose.Query.prototype.updateMany;
-    // eslint-disable-next-line no-unused-vars
-    const _originalDeleteOne = mongoose.Query.prototype.deleteOne;
-    // eslint-disable-next-line no-unused-vars
-    const _originalDeleteMany = mongoose.Query.prototype.deleteMany;
-    // eslint-disable-next-line no-unused-vars
-    const _originalCount = mongoose.Query.prototype.count;
-    // eslint-disable-next-line no-unused-vars
-    const _originalCountDocuments = mongoose.Query.prototype.countDocuments;
-    // eslint-disable-next-line no-unused-vars
-    const _originalDistinct = mongoose.Query.prototype.distinct;
-    const originalAggregate = mongoose.Aggregate.prototype.exec;
+  /**
+   * Initialize database monitoring
+   */
+  initializeMonitoring() {
+    if (!mongoose.connection) {
+      logger.warn('Database connection not available for monitoring');
+      return;
+    }
 
-    // Wrap exec method to measure query time
-    mongoose.Query.prototype.exec = function() {
-      const start = Date.now();
-      const collection = this.mongooseCollection?.name || 'unknown';
-      const operation = this.op || 'unknown';
-      
-      return originalExec.apply(this, arguments).then((result) => {
-        const duration = Date.now() - start;
-        
-        // Record metrics
-        recordDatabaseQuery(operation, collection, duration);
-        
-        // Track slow queries (> 1 second)
-        if (duration > 1000) {
-          const slowQuery = {
-            operation,
-            collection,
-            duration,
-            query: this.getQuery(),
-            timestamp: new Date().toISOString()
+    // Enable mongoose query debugging in development
+    if (process.env.NODE_ENV === 'development') {
+      mongoose.set('debug', (collection, method, query, doc) => {
+        this.logQueryPerformance(collection, method, query, doc);
+      });
+    }
+
+    // Monitor connection pool
+    this.monitorConnectionPool();
+
+    // Set up periodic stats collection
+    setInterval(() => {
+      this.collectPerformanceStats();
+    }, 30000); // Every 30 seconds
+
+    logger.info('Database performance monitoring initialized');
+  }
+
+  /**
+   * Monitor connection pool statistics
+   */
+  monitorConnectionPool() {
+    try {
+      const conn = mongoose.connection;
+
+      // Update connection stats
+      setInterval(() => {
+        if (conn.readyState === 1) { // Connected
+          this.connectionStats = {
+            totalConnections: conn.db.serverConfig.s.pool?.totalCount || 0,
+            activeConnections: conn.db.serverConfig.s.pool?.size || 0,
+            availableConnections: conn.db.serverConfig.s.pool?.available || 0,
+            pendingOperations: conn.db.serverConfig.s.pool?.pending || 0
           };
-          
-          // Keep only last 100 slow queries
-          if (monitor.slowQueries.length >= 100) {
-            monitor.slowQueries.shift();
-          }
-          monitor.slowQueries.push(slowQuery);
-          
-          logger.warn('Slow database query detected', slowQuery);
         }
-        
-        // Update query stats
-        const key = `${operation}_${collection}`;
-        if (!monitor.queryStats.has(key)) {
-          // If we've reached max size, remove oldest/least-used stats
-          if (monitor.queryStats.size >= monitor.maxQueryStatsSize) {
-            // Remove entry with lowest count (least used)
-            let leastUsedKey = null;
-            let leastUsedCount = Infinity;
-            for (const [k, v] of monitor.queryStats.entries()) {
-              if (v.count < leastUsedCount) {
-                leastUsedCount = v.count;
-                leastUsedKey = k;
-              }
-            }
-            if (leastUsedKey) {
-              monitor.queryStats.delete(leastUsedKey);
-            }
-          }
-          
-          monitor.queryStats.set(key, {
-            operation,
-            collection,
-            count: 0,
-            totalDuration: 0,
-            avgDuration: 0,
-            maxDuration: 0,
-            minDuration: Infinity
+      }, 5000); // Every 5 seconds
+
+    } catch (error) {
+      logger.error('Failed to initialize connection pool monitoring:', error);
+    }
+  }
+
+  /**
+   * Log query performance for analysis
+   */
+  logQueryPerformance(collection, method, query, doc, startTime) {
+    const queryId = `${collection}.${method}.${Date.now()}`;
+    const executionTime = startTime ? Date.now() - startTime : 0;
+
+    // Store query stats
+    if (!this.queryStats.has(queryId)) {
+      this.queryStats.set(queryId, {
+        collection,
+        method,
+        query: JSON.stringify(query),
+        executionTime,
+        timestamp: new Date(),
+        count: 1
+      });
+    } else {
+      const existing = this.queryStats.get(queryId);
+      existing.executionTime = Math.max(existing.executionTime, executionTime);
+      existing.count++;
+    }
+
+    // Log slow queries
+    if (executionTime > this.slowQueryThreshold) {
+      logger.warn('Slow query detected:', {
+        collection,
+        method,
+        executionTime: `${executionTime}ms`,
+        query: JSON.stringify(query).substring(0, 500),
+        threshold: `${this.slowQueryThreshold}ms`
+      });
+    }
+  }
+
+  /**
+   * Collect comprehensive performance statistics
+   */
+  async collectPerformanceStats() {
+    try {
+      const db = mongoose.connection.db;
+      if (!db) return;
+
+      const stats = await db.stats();
+
+      // Analyze collection statistics
+      const collections = await db.listCollections().toArray();
+      const collectionStats = [];
+
+      for (const collection of collections.slice(0, 10)) { // Limit to first 10 for performance
+        try {
+          const collStats = await db.collection(collection.name).stats();
+          collectionStats.push({
+            name: collection.name,
+            size: collStats.size,
+            count: collStats.count,
+            avgObjSize: collStats.avgObjSize,
+            indexes: collStats.nindexes,
+            indexSize: collStats.totalIndexSize
+          });
+        } catch (error) {
+          // Skip collections that can't be analyzed
+        }
+      }
+
+      // Log performance summary every 5 minutes
+      if (Math.floor(Date.now() / 300000) % 10 === 0) { // Every ~5 minutes
+        logger.info('Database Performance Summary:', {
+          collections: stats.collections,
+          objects: stats.objects,
+          dataSize: this.formatBytes(stats.dataSize),
+          indexSize: this.formatBytes(stats.indexSize),
+          storageSize: this.formatBytes(stats.storageSize),
+          connectionPool: this.connectionStats,
+          topCollections: collectionStats
+            .sort((a, b) => b.size - a.size)
+            .slice(0, 5)
+        });
+      }
+
+    } catch (error) {
+      logger.error('Failed to collect performance stats:', error);
+    }
+  }
+
+  /**
+   * Analyze slow queries and provide optimization recommendations
+   */
+  async analyzeSlowQueries() {
+    try {
+      const slowQueries = Array.from(this.queryStats.values())
+        .filter(stat => stat.executionTime > this.slowQueryThreshold)
+        .sort((a, b) => b.executionTime - a.executionTime)
+        .slice(0, 20); // Top 20 slowest
+
+      if (slowQueries.length === 0) {
+        return { message: 'No slow queries detected', recommendations: [] };
+      }
+
+      const recommendations = this.generateOptimizationRecommendations(slowQueries);
+
+      return {
+        slowQueriesCount: slowQueries.length,
+        topSlowQueries: slowQueries,
+        recommendations,
+        analysis: {
+          averageExecutionTime: slowQueries.reduce((sum, q) => sum + q.executionTime, 0) / slowQueries.length,
+          mostAffectedCollection: this.getMostAffectedCollection(slowQueries)
+        }
+      };
+
+    } catch (error) {
+      logger.error('Failed to analyze slow queries:', error);
+      return { error: error.message };
+    }
+  }
+
+  /**
+   * Generate optimization recommendations based on slow queries
+   */
+  generateOptimizationRecommendations(slowQueries) {
+    const recommendations = [];
+
+    // Group queries by collection and operation
+    const queryGroups = {};
+    slowQueries.forEach(query => {
+      const key = `${query.collection}.${query.method}`;
+      if (!queryGroups[key]) {
+        queryGroups[key] = [];
+      }
+      queryGroups[key].push(query);
+    });
+
+    // Analyze each group
+    Object.entries(queryGroups).forEach(([key, queries]) => {
+      const [collection, method] = key.split('.');
+      const avgTime = queries.reduce((sum, q) => sum + q.executionTime, 0) / queries.length;
+
+      // Method-specific recommendations
+      if (method === 'find' || method === 'findOne') {
+        recommendations.push({
+          type: 'INDEXING',
+          priority: avgTime > 500 ? 'HIGH' : 'MEDIUM',
+          collection,
+          operation: method,
+          recommendation: `Consider adding indexes for frequently queried fields in ${collection}`,
+          queries: queries.length,
+          avgExecutionTime: avgTime
+        });
+      }
+
+      if (method === 'aggregate') {
+        recommendations.push({
+          type: 'AGGREGATION_OPTIMIZATION',
+          priority: 'MEDIUM',
+          collection,
+          operation: method,
+          recommendation: `Review aggregation pipeline in ${collection} for optimization opportunities`,
+          queries: queries.length,
+          avgExecutionTime: avgTime
+        });
+      }
+
+      if (method === 'update' || method === 'updateOne') {
+        recommendations.push({
+          type: 'UPDATE_OPTIMIZATION',
+          priority: 'LOW',
+          collection,
+          operation: method,
+          recommendation: `Consider bulk operations for multiple ${collection} updates`,
+          queries: queries.length,
+          avgExecutionTime: avgTime
+        });
+      }
+    });
+
+    return recommendations;
+  }
+
+  /**
+   * Get the most affected collection
+   */
+  getMostAffectedCollection(slowQueries) {
+    const collectionStats = {};
+    slowQueries.forEach(query => {
+      if (!collectionStats[query.collection]) {
+        collectionStats[query.collection] = { count: 0, totalTime: 0 };
+      }
+      collectionStats[query.collection].count++;
+      collectionStats[query.collection].totalTime += query.executionTime;
+    });
+
+    return Object.entries(collectionStats)
+      .sort(([,a], [,b]) => b.totalTime - a.totalTime)[0]?.[0] || 'unknown';
+  }
+
+  /**
+   * Get current connection pool status
+   */
+  getConnectionPoolStatus() {
+    return {
+      ...this.connectionStats,
+      status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+      lastUpdated: new Date()
+    };
+  }
+
+  /**
+   * Get database performance metrics
+   */
+  async getPerformanceMetrics() {
+    try {
+      const db = mongoose.connection.db;
+      if (!db) {
+        return { error: 'Database not connected' };
+      }
+
+      const dbStats = await db.stats();
+
+      return {
+        database: {
+          name: dbStats.db,
+          collections: dbStats.collections,
+          objects: dbStats.objects,
+          dataSize: dbStats.dataSize,
+          indexSize: dbStats.indexSize,
+          storageSize: dbStats.storageSize
+        },
+        connections: this.getConnectionPoolStatus(),
+        queries: {
+          slowQueriesCount: Array.from(this.queryStats.values())
+            .filter(stat => stat.executionTime > this.slowQueryThreshold).length,
+          totalQueriesTracked: this.queryStats.size
+        },
+        timestamp: new Date()
+      };
+
+    } catch (error) {
+      logger.error('Failed to get performance metrics:', error);
+      return { error: error.message };
+    }
+  }
+
+  /**
+   * Clear query statistics (useful for testing)
+   */
+  clearQueryStats() {
+    this.queryStats.clear();
+    logger.info('Query statistics cleared');
+  }
+
+  /**
+   * Format bytes to human readable format
+   */
+  formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  /**
+   * Middleware for monitoring query performance
+   */
+  createMonitoringMiddleware() {
+    return (req, res, next) => {
+      const startTime = Date.now();
+
+      // Hook into response finish
+      res.on('finish', () => {
+        const duration = Date.now() - startTime;
+
+        if (duration > this.slowQueryThreshold) {
+          logger.warn('Slow API response detected:', {
+            method: req.method,
+            url: req.url,
+            duration: `${duration}ms`,
+            statusCode: res.statusCode,
+            userAgent: req.get('User-Agent')?.substring(0, 100)
           });
         }
-        
-        const stats = monitor.queryStats.get(key);
-        stats.count++;
-        stats.totalDuration += duration;
-        stats.avgDuration = stats.totalDuration / stats.count;
-        stats.maxDuration = Math.max(stats.maxDuration, duration);
-        stats.minDuration = Math.min(stats.minDuration, duration);
-        
-        return result;
-      }).catch((error) => {
-        const duration = Date.now() - start;
-        recordDatabaseQuery(`${operation}_error`, collection, duration);
-        logger.error('Database query error:', error);
-        throw error;
       });
-    };
 
-    // Wrap Aggregate exec method
-    mongoose.Aggregate.prototype.exec = function() {
-      const start = Date.now();
-      const collection = this._model?.collection?.name || 'unknown';
-      
-      return originalAggregate.apply(this, arguments).then((result) => {
-        const duration = Date.now() - start;
-        recordDatabaseQuery('aggregate', collection, duration);
-        
-        if (duration > 1000) {
-          const slowQuery = {
-            operation: 'aggregate',
-            collection,
-            duration,
-            pipeline: this.pipeline(),
-            timestamp: new Date().toISOString()
-          };
-          
-          // Keep only last 100 slow queries
-          if (monitor.slowQueries.length >= 100) {
-            monitor.slowQueries.shift();
-          }
-          monitor.slowQueries.push(slowQuery);
-          
-          logger.warn('Slow aggregate query detected', slowQuery);
-        }
-        
-        return result;
-      }).catch((error) => {
-        const duration = Date.now() - start;
-        recordDatabaseQuery('aggregate_error', collection, duration);
-        logger.error('Database aggregate error:', error);
-        throw error;
-      });
+      next();
     };
   }
 
-  async updateConnectionStats() {
+  /**
+   * Export performance report
+   */
+  async generatePerformanceReport() {
     try {
-      if (mongoose.connection.readyState === 1) {
-        const db = mongoose.connection.db;
-        const admin = db.admin();
-        
-        try {
-          const serverStatus = await admin.serverStatus();
-          this.connectionStats = {
-            totalConnections: serverStatus.connections?.current || 0,
-            activeConnections: serverStatus.connections?.available || 0,
-            queuedConnections: serverStatus.connections?.totalCreated || 0
-          };
-        } catch (error) {
-          // Fallback to basic connection info
-          this.connectionStats = {
-            totalConnections: mongoose.connection.readyState === 1 ? 1 : 0,
-            activeConnections: mongoose.connection.readyState === 1 ? 1 : 0,
-            queuedConnections: 0
-          };
-        }
-      } else {
-        this.connectionStats = {
-          totalConnections: 0,
-          activeConnections: 0,
-          queuedConnections: 0
-        };
-      }
-    } catch (error) {
-      logger.error('Error updating connection stats:', error);
-    }
-  }
+      const metrics = await this.getPerformanceMetrics();
+      const slowQueryAnalysis = await this.analyzeSlowQueries();
 
-  getQueryStats() {
-    return Array.from(this.queryStats.values()).map(stats => ({
-      ...stats,
-      minDuration: stats.minDuration === Infinity ? 0 : stats.minDuration
-    }));
-  }
-
-  getSlowQueries(limit = 20) {
-    return this.slowQueries
-      .sort((a, b) => b.duration - a.duration)
-      .slice(0, limit);
-  }
-
-  getConnectionStats() {
-    return this.connectionStats;
-  }
-
-  async getDatabaseStats() {
-    try {
-      if (mongoose.connection.readyState !== 1) {
-        return { error: 'Database not connected' };
-      }
-
-      const db = mongoose.connection.db;
-      const stats = await db.stats();
-      
       return {
-        database: db.databaseName,
-        collections: stats.collections,
-        dataSize: stats.dataSize,
-        storageSize: stats.storageSize,
-        indexes: stats.indexes,
-        indexSize: stats.indexSize,
-        objects: stats.objects,
-        avgObjSize: stats.avgObjSize,
-        fileSize: stats.fileSize,
-        connectionStats: this.connectionStats,
-        queryStats: this.getQueryStats(),
-        slowQueries: this.getSlowQueries(10)
-      };
-    } catch (error) {
-      logger.error('Error getting database stats:', error);
-      return { error: error.message };
-    }
-  }
-
-  async getCollectionStats() {
-    try {
-      if (mongoose.connection.readyState !== 1) {
-        return { error: 'Database not connected' };
-      }
-
-      const db = mongoose.connection.db;
-      const collections = await db.listCollections().toArray();
-      
-      const collectionStats = await Promise.all(
-        collections.map(async (collection) => {
-          try {
-            const stats = await db.collection(collection.name).stats();
-            return {
-              name: collection.name,
-              count: stats.count,
-              size: stats.size,
-              avgObjSize: stats.avgObjSize,
-              storageSize: stats.storageSize,
-              totalIndexSize: stats.totalIndexSize,
-              indexSizes: stats.indexSizes
-            };
-          } catch (error) {
-            return {
-              name: collection.name,
-              error: error.message
-            };
+        generatedAt: new Date(),
+        period: 'Last monitoring session',
+        metrics,
+        slowQueryAnalysis,
+        recommendations: [
+          {
+            category: 'INDEXING',
+            items: slowQueryAnalysis.recommendations?.filter(r => r.type === 'INDEXING') || []
+          },
+          {
+            category: 'QUERY_OPTIMIZATION',
+            items: slowQueryAnalysis.recommendations?.filter(r => r.type !== 'INDEXING') || []
           }
-        })
-      );
+        ]
+      };
 
-      return collectionStats;
     } catch (error) {
-      logger.error('Error getting collection stats:', error);
+      logger.error('Failed to generate performance report:', error);
       return { error: error.message };
     }
-  }
-
-  resetStats() {
-    this.queryStats.clear();
-    this.slowQueries = [];
-    logger.info('Database performance stats reset');
   }
 }
 
-// Create singleton instance
-const dbMonitor = new DatabasePerformanceMonitor();
-
-module.exports = dbMonitor;
+module.exports = new DatabasePerformanceMonitor();

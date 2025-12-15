@@ -6,6 +6,8 @@ const logger = require('../config/logger');
 const EmailService = require('./emailService');
 // const axios = require('axios'); // Available for direct API calls
 const paymongoService = require('./paymongoService');
+const stripeService = require('./stripeService');
+const xenditService = require('./xenditService');
 
 class EscrowService {
   /**
@@ -808,96 +810,182 @@ class EscrowService {
     }
   }
 
-  async xenditCreateHold(_amount, _currency, _clientId) {
-    // Xendit integration
-    const Xendit = require('xendit-node');
-    const x = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY });
-    const { PaymentRequest } = x;
+  async xenditCreateHold(amount, currency, clientId) {
     try {
-      const paymentRequest = await PaymentRequest.create({
-        amount: _amount,
-        currency: _currency,
-        referenceId: _clientId,
+      const result = await xenditService.createAuthorization({
+        amount,
+        currency: currency || 'PHP',
+        clientId,
+        description: 'LocalPro Escrow Payment Hold'
       });
-      return { success: true, holdId: paymentRequest.id };
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        success: true,
+        holdId: result.holdId,
+        requestId: result.requestId,
+        paymentUrl: result.paymentUrl
+      };
     } catch (error) {
       logger.error('Xendit hold creation error:', error);
       return { success: false, message: error.message };
     }
   }
 
-  async xenditCapture(_holdId, _amount, _currency) {
-    // Xendit capture
-    const Xendit = require('xendit-node');
-    const x = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY });
-    const { PaymentRequest } = x;
+  async xenditCapture(holdId, _amount, _currency) {
     try {
-      const capture = await PaymentRequest.capturePayment({
-        paymentRequestId: _holdId,
-        amount: _amount,
-      });
-      return { success: true, captureId: capture.id };
+      const result = await xenditService.capturePayment(holdId);
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        success: true,
+        captureId: result.captureId,
+        transactionId: result.captureId
+      };
     } catch (error) {
       logger.error('Xendit capture error:', error);
       return { success: false, message: error.message };
     }
   }
 
-  async xenditRelease(_holdId) {
-    // Xendit release
-    const Xendit = require('xendit-node');
-    const x = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY });
-    const { PaymentRequest } = x;
+  async xenditRelease(holdId) {
     try {
-      const release = await PaymentRequest.releasePayment({
-        paymentRequestId: _holdId,
-      });
-      return { success: true, releaseId: release.id };
+      const result = await xenditService.releaseAuthorization(holdId);
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        success: true,
+        releaseId: result.releaseId,
+        transactionId: result.releaseId
+      };
     } catch (error) {
       logger.error('Xendit release error:', error);
       return { success: false, message: error.message };
     }
   }
 
-  async xenditInitiatePayout(_amount, _currency, _payoutMethod, _providerId, _reference) {
-    // Xendit payout
-    const Xendit = require('xendit-node');
-    const x = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY });
-    const { Payout } = x;
+  async xenditInitiatePayout(amount, currency, payoutMethod, providerId, reference) {
     try {
-      const payout = await Payout.create({
-        amount: _amount,
-        currency: _currency,
-        method: _payoutMethod,
-        destination: _providerId,
-        referenceId: _reference,
+      const result = await xenditService.createPayout({
+        amount,
+        currency: currency || 'PHP',
+        bankAccount: payoutMethod, // Assuming payoutMethod contains bank account details
+        providerId,
+        reference,
+        description: `Payout for ${reference}`
       });
-      return { success: true, payoutId: payout.id };
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        success: true,
+        payoutId: result.payoutId,
+        transactionId: result.payoutId
+      };
     } catch (error) {
-      logger.error('Xendit payout error:', error);
+      logger.error('Xendit payout initiation error:', error);
       return { success: false, message: error.message };
     }
   }
 
-  async stripeCreateHold(_amount, _currency, _clientId) {
-    // TODO: Implement Stripe integration
-    logger.info('Stripe hold creation (placeholder)');
-    return { success: true, holdId: `stripe_hold_${Date.now()}` };
+  async stripeCreateHold(amount, currency, clientId) {
+    try {
+      const result = await stripeService.createAuthorization({
+        amount,
+        currency: currency || 'USD',
+        clientId,
+        description: 'LocalPro Escrow Payment Hold'
+      });
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        success: true,
+        holdId: result.holdId,
+        intentId: result.intentId,
+        clientSecret: result.clientSecret
+      };
+    } catch (error) {
+      logger.error('Stripe hold creation error:', error);
+      return { success: false, message: error.message };
+    }
   }
 
-  async stripeCapture(_holdId, _amount, _currency) {
-    logger.info('Stripe capture (placeholder)');
-    return { success: true, captureId: `stripe_capture_${Date.now()}` };
+  async stripeCapture(holdId, _amount, _currency) {
+    try {
+      const result = await stripeService.capturePayment(holdId);
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        success: true,
+        captureId: result.captureId,
+        transactionId: result.captureId
+      };
+    } catch (error) {
+      logger.error('Stripe capture error:', error);
+      return { success: false, message: error.message };
+    }
   }
 
-  async stripeRelease(_holdId) {
-    logger.info('Stripe release (placeholder)');
-    return { success: true, releaseId: `stripe_release_${Date.now()}` };
+  async stripeRelease(holdId) {
+    try {
+      const result = await stripeService.releaseAuthorization(holdId);
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        success: true,
+        releaseId: result.releaseId,
+        transactionId: result.releaseId
+      };
+    } catch (error) {
+      logger.error('Stripe release error:', error);
+      return { success: false, message: error.message };
+    }
   }
 
-  async stripeInitiatePayout(_amount, _currency, _payoutMethod, _providerId, _reference) {
-    logger.info('Stripe payout initiation (placeholder)');
-    return { success: true, payoutId: `stripe_payout_${Date.now()}` };
+  async stripeInitiatePayout(amount, currency, payoutMethod, providerId, reference) {
+    try {
+      const result = await stripeService.createPayout({
+        amount,
+        currency: currency || 'USD',
+        destination: payoutMethod,
+        providerId,
+        reference,
+        description: `Payout for ${reference}`
+      });
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        success: true,
+        payoutId: result.payoutId,
+        transactionId: result.payoutId
+      };
+    } catch (error) {
+      logger.error('Stripe payout initiation error:', error);
+      return { success: false, message: error.message };
+    }
   }
 
   // ==================== Utility Methods ====================

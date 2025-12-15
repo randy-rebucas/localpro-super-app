@@ -1,297 +1,357 @@
-const queryOptimizationService = require('../services/queryOptimizationService');
 const logger = require('../config/logger');
 
 /**
  * Query Optimization Middleware
- * Automatically optimizes database queries and provides performance monitoring
+ * Analyzes MongoDB queries and provides optimization suggestions
  */
 
-/**
- * Middleware to optimize find queries
- */
-const optimizeFindQueries = (Model, _options = {}) => {
-  return async (req, res, next) => {
+class QueryOptimizationMiddleware {
+  constructor() {
+    this.queryAnalysis = new Map();
+    this.optimizationEnabled = process.env.QUERY_OPTIMIZATION_ENABLED !== 'false';
+    this.slowQueryThreshold = parseInt(process.env.SLOW_QUERY_THRESHOLD) || 100; // ms
+  }
+
+  /**
+   * Main middleware function
+   */
+  middleware() {
+    return (req, res, next) => {
+      if (!this.optimizationEnabled) {
+        return next();
+      }
+
+      const startTime = process.hrtime.bigint();
+      const originalJson = res.json;
+
+      // Override res.json to analyze response time
+      res.json = function(data) {
+        const endTime = process.hrtime.bigint();
+        const durationMs = Number(endTime - startTime) / 1000000; // Convert to milliseconds
+
+        // Analyze the query if it took too long
+        if (durationMs > this.slowQueryThreshold) {
+          this.analyzeQueryPerformance(req, durationMs, data);
+        }
+
+        // Call original json method
+        return originalJson.call(this, data);
+      }.bind(this);
+
+      next();
+    };
+  }
+
+  /**
+   * Analyze query performance and provide optimization suggestions
+   */
+  analyzeQueryPerformance(req, durationMs, responseData) {
     try {
-      // Store original query methods
-      const originalFind = Model.find;
-      const originalFindOne = Model.findOne;
-      const originalFindById = Model.findById;
-      const originalCount = Model.countDocuments;
-      const originalAggregate = Model.aggregate;
+      const queryAnalysis = this.extractQueryInfo(req);
 
-      // Override find method
-      Model.find = function(query, projection, options) {
-        const { query: optimizedQuery, options: optimizedOptions } = queryOptimizationService.optimizeFindQuery(
-          query, 
-          { ...options, collection: Model.collection.name }
-        );
-        
-        return originalFind.call(this, optimizedQuery, projection, optimizedOptions);
-      };
+      if (!queryAnalysis) return;
 
-      // Override findOne method
-      Model.findOne = function(query, projection, options) {
-        const { query: optimizedQuery, options: optimizedOptions } = queryOptimizationService.optimizeFindQuery(
-          query, 
-          { ...options, collection: Model.collection.name, isListQuery: false }
-        );
-        
-        return originalFindOne.call(this, optimizedQuery, projection, optimizedOptions);
-      };
+      const optimization = this.generateOptimization(queryAnalysis, durationMs, responseData);
 
-      // Override findById method
-      Model.findById = function(id, projection, options) {
-        const { options: optimizedOptions } = queryOptimizationService.optimizeFindQuery(
-          { _id: id }, 
-          { ...options, collection: Model.collection.name, isListQuery: false }
-        );
-        
-        return originalFindById.call(this, id, projection, optimizedOptions);
-      };
-
-      // Override countDocuments method
-      Model.countDocuments = function(query, options) {
-        const { query: optimizedQuery } = queryOptimizationService.optimizeFindQuery(
-          query, 
-          { ...options, collection: Model.collection.name }
-        );
-        
-        return originalCount.call(this, optimizedQuery, options);
-      };
-
-      // Override aggregate method
-      Model.aggregate = function(pipeline, options) {
-        const optimizedPipeline = queryOptimizationService.createOptimizedAggregation(
-          pipeline, 
-          { ...options, collection: Model.collection.name }
-        );
-        
-        return originalAggregate.call(this, optimizedPipeline, options);
-      };
-
-      // Add query execution tracking
-      const originalExec = Model.find().constructor.prototype.exec;
-      Model.find().constructor.prototype.exec = function() {
-        const start = Date.now();
-        const collection = Model.collection.name;
-        
-        return originalExec.apply(this, arguments).then((result) => {
-          const duration = Date.now() - start;
-          
-          // Log slow queries
-          if (duration > 1000) {
-            logger.warn('Slow query detected:', {
-              collection,
-              query: this.getQuery(),
-              duration,
-              resultCount: Array.isArray(result) ? result.length : 1
-            });
-          }
-          
-          return result;
-        }).catch((error) => {
-          const duration = Date.now() - start;
-          logger.error('Query error:', {
-            collection,
-            query: this.getQuery(),
-            duration,
-            error: error.message
-          });
-          throw error;
+      if (optimization.priority !== 'LOW') {
+        logger.warn('Query optimization opportunity detected:', {
+          endpoint: `${req.method} ${req.path}`,
+          duration: `${durationMs.toFixed(2)}ms`,
+          optimization,
+          query: queryAnalysis
         });
-      };
+      }
 
-      next();
+      // Store analysis for reporting
+      this.storeQueryAnalysis(queryAnalysis, optimization, durationMs);
+
     } catch (error) {
-      logger.error('Query optimization middleware error:', error);
-      next();
+      logger.error('Query optimization analysis failed:', error);
     }
-  };
-};
+  }
 
-/**
- * Middleware to add query caching
- */
-const addQueryCaching = (cacheTimeout = 300000) => { // 5 minutes default
-  return (req, res, next) => {
-    // Store original json method
-    const originalJson = res.json;
-    
-    // Override json method to add caching headers
-    res.json = function(data) {
-      // Add cache headers for successful responses
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        res.set({
-          'Cache-Control': `private, max-age=${Math.floor(cacheTimeout / 1000)}`,
-          'ETag': `"${Buffer.from(JSON.stringify(data)).toString('base64').slice(0, 16)}"`
+  /**
+   * Extract query information from request
+   */
+  extractQueryInfo(req) {
+    try {
+      const { method, path, query, params, body } = req;
+
+      // Identify the operation type
+      let operationType = 'unknown';
+      let collection = 'unknown';
+
+      // Map endpoints to collections (this would need to be maintained as routes change)
+      const endpointMappings = {
+        '/api/providers': 'providers',
+        '/api/marketplace': 'marketplaces',
+        '/api/escrows': 'escrows',
+        '/api/partners': 'partners',
+        '/api/users': 'users',
+        '/api/finance': 'userwallets',
+        '/api/jobs': 'jobs',
+        '/api/agencies': 'agencies',
+        '/api/referrals': 'referrals',
+        '/api/academy': 'academies',
+        '/api/rentals': 'rentals',
+        '/api/supplies': 'supplies',
+        '/api/ads': 'ads',
+        '/api/communication': 'communications',
+        '/api/announcements': 'announcements',
+        '/api/trust-verification': 'trustverifications',
+        '/api/analytics': 'analytics',
+        '/api/logs': 'logs'
+      };
+
+      // Find matching endpoint
+      for (const [endpoint, coll] of Object.entries(endpointMappings)) {
+        if (path.startsWith(endpoint)) {
+          collection = coll;
+          break;
+        }
+      }
+
+      // Determine operation type from method and path
+      if (method === 'GET') {
+        if (params.id || path.endsWith('/me')) {
+          operationType = 'findOne';
+        } else {
+          operationType = 'find';
+        }
+      } else if (method === 'POST') {
+        operationType = 'insert';
+      } else if (method === 'PUT' || method === 'PATCH') {
+        operationType = 'update';
+      } else if (method === 'DELETE') {
+        operationType = 'delete';
+      }
+
+      return {
+        method,
+        path,
+        collection,
+        operationType,
+        queryParams: Object.keys(query),
+        hasFilters: Object.keys(query).length > 0,
+        hasSorting: query.sortBy || query.sortOrder,
+        hasPagination: query.page || query.limit,
+        bodySize: JSON.stringify(body || {}).length,
+        queryComplexity: this.calculateQueryComplexity(query)
+      };
+
+    } catch (error) {
+      logger.error('Failed to extract query info:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Calculate query complexity score
+   */
+  calculateQueryComplexity(query) {
+    let complexity = 0;
+
+    // Basic filters
+    if (query.search) complexity += 2; // Text search is expensive
+    if (query.category) complexity += 1;
+    if (query.status) complexity += 1;
+    if (query.city || query.location) complexity += 2; // Location queries
+    if (query.minPrice || query.maxPrice) complexity += 1;
+    if (query.rating) complexity += 1;
+
+    // Advanced filters
+    if (query.tags) complexity += 2;
+    if (query.dateFrom || query.dateTo) complexity += 1;
+    if (query.sortBy && query.sortBy !== 'createdAt') complexity += 1;
+
+    // Pagination
+    if (query.page && query.limit) {
+      const page = parseInt(query.page) || 1;
+      const limit = parseInt(query.limit) || 20;
+      if (page > 10 || limit > 100) complexity += 2; // Deep pagination
+    }
+
+    return complexity;
+  }
+
+  /**
+   * Generate optimization suggestions
+   */
+  generateOptimization(queryAnalysis, durationMs, responseData) {
+    const suggestions = [];
+    let priority = 'LOW';
+
+    // Analyze based on query characteristics
+    if (queryAnalysis.operationType === 'find' && durationMs > 200) {
+      // Check for missing indexes on common query patterns
+      if (queryAnalysis.queryParams.includes('status')) {
+        suggestions.push('Consider adding index on status field');
+        priority = 'MEDIUM';
+      }
+
+      if (queryAnalysis.queryParams.includes('category')) {
+        suggestions.push('Consider adding index on category field');
+        priority = 'MEDIUM';
+      }
+
+      if (queryAnalysis.queryParams.includes('search')) {
+        suggestions.push('Text search detected - ensure text index exists');
+        priority = 'HIGH';
+      }
+
+      if (queryAnalysis.queryParams.includes('city') || queryAnalysis.queryParams.includes('location')) {
+        suggestions.push('Location queries detected - consider geospatial indexes');
+        priority = 'MEDIUM';
+      }
+
+      // Check pagination efficiency
+      if (queryAnalysis.hasPagination && durationMs > 500) {
+        suggestions.push('Deep pagination detected - consider cursor-based pagination');
+        priority = 'MEDIUM';
+      }
+
+      // Check result size
+      if (responseData?.data?.length > 100) {
+        suggestions.push('Large result set - consider implementing pagination limits');
+        priority = 'LOW';
+      }
+    }
+
+    // Update operation optimizations
+    if (queryAnalysis.operationType === 'update' && durationMs > 100) {
+      suggestions.push('Update operations are slow - consider bulk operations for multiple records');
+      priority = 'MEDIUM';
+    }
+
+    // High complexity queries
+    if (queryAnalysis.queryComplexity > 5) {
+      suggestions.push('High complexity query detected - consider query optimization or caching');
+      priority = 'HIGH';
+    }
+
+    return {
+      suggestions,
+      priority,
+      queryComplexity: queryAnalysis.queryComplexity,
+      estimatedImprovement: this.estimateImprovement(durationMs, queryAnalysis)
+    };
+  }
+
+  /**
+   * Estimate potential performance improvement
+   */
+  estimateImprovement(durationMs, queryAnalysis) {
+    let improvement = 0;
+
+    // Estimate improvement from indexes
+    if (queryAnalysis.hasFilters) {
+      improvement += 70; // 70% improvement with proper indexes
+    }
+
+    // Estimate improvement from pagination optimization
+    if (queryAnalysis.hasPagination && durationMs > 500) {
+      improvement += 50; // 50% improvement with better pagination
+    }
+
+    // Estimate improvement from query optimization
+    if (queryAnalysis.queryComplexity > 3) {
+      improvement += 60; // 60% improvement with query restructuring
+    }
+
+    return Math.min(improvement, 90); // Cap at 90% improvement
+  }
+
+  /**
+   * Store query analysis for reporting
+   */
+  storeQueryAnalysis(queryAnalysis, optimization, durationMs) {
+    const key = `${queryAnalysis.method}:${queryAnalysis.path}`;
+
+    if (!this.queryAnalysis.has(key)) {
+      this.queryAnalysis.set(key, {
+        endpoint: key,
+        collection: queryAnalysis.collection,
+        operationType: queryAnalysis.operationType,
+        callCount: 0,
+        totalDuration: 0,
+        avgDuration: 0,
+        maxDuration: 0,
+        optimizations: [],
+        lastAnalyzed: new Date()
+      });
+    }
+
+    const analysis = this.queryAnalysis.get(key);
+    analysis.callCount++;
+    analysis.totalDuration += durationMs;
+    analysis.avgDuration = analysis.totalDuration / analysis.callCount;
+    analysis.maxDuration = Math.max(analysis.maxDuration, durationMs);
+    analysis.lastAnalyzed = new Date();
+
+    // Add optimization if not already present
+    if (optimization.suggestions.length > 0) {
+      const existingOpt = analysis.optimizations.find(opt =>
+        opt.suggestions.join(',') === optimization.suggestions.join(',')
+      );
+
+      if (!existingOpt) {
+        analysis.optimizations.push({
+          ...optimization,
+          detectedAt: new Date(),
+          frequency: 1
         });
-      }
-      
-      return originalJson.call(this, data);
-    };
-    
-    next();
-  };
-};
-
-/**
- * Middleware to add query performance headers
- */
-const addPerformanceHeaders = () => {
-  return (req, res, next) => {
-    const start = Date.now();
-    
-    // Override json method to add performance headers
-    const originalJson = res.json;
-    res.json = function(data) {
-      const duration = Date.now() - start;
-      
-      // Add performance headers
-      res.set({
-        'X-Response-Time': `${duration}ms`,
-        'X-Query-Count': res.locals.queryCount || 0,
-        'X-Cache-Status': res.locals.cacheStatus || 'MISS'
-      });
-      
-      return originalJson.call(this, data);
-    };
-    
-    next();
-  };
-};
-
-/**
- * Middleware to track query count
- */
-const trackQueryCount = () => {
-  return (req, res, next) => {
-    res.locals.queryCount = 0;
-    
-    // Track database queries
-    const originalExec = require('mongoose').Query.prototype.exec;
-    require('mongoose').Query.prototype.exec = function() {
-      res.locals.queryCount = (res.locals.queryCount || 0) + 1;
-      return originalExec.apply(this, arguments);
-    };
-    
-    next();
-  };
-};
-
-/**
- * Middleware to optimize search queries
- */
-const optimizeSearchQueries = () => {
-  return (req, res, next) => {
-    // Optimize search parameters
-    if (req.query.search) {
-      req.query.search = req.query.search.trim();
-    }
-    
-    // Optimize pagination
-    if (req.query.page) {
-      req.query.page = Math.max(1, parseInt(req.query.page) || 1);
-    }
-    
-    if (req.query.limit) {
-      req.query.limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
-    }
-    
-    // Optimize sort parameters
-    if (req.query.sortBy) {
-      const allowedSortFields = ['createdAt', 'updatedAt', 'rating', 'price', 'name', 'title'];
-      if (!allowedSortFields.includes(req.query.sortBy)) {
-        req.query.sortBy = 'createdAt';
+      } else {
+        existingOpt.frequency++;
       }
     }
-    
-    if (req.query.sortOrder) {
-      req.query.sortOrder = ['asc', 'desc'].includes(req.query.sortOrder) ? req.query.sortOrder : 'desc';
-    }
-    
-    next();
-  };
-};
+  }
 
-/**
- * Middleware to add query hints for better performance
- */
-const addQueryHints = (hints = {}) => {
-  return (req, res, next) => {
-    res.locals.queryHints = hints;
-    next();
-  };
-};
+  /**
+   * Get optimization report
+   */
+  getOptimizationReport() {
+    const reports = Array.from(this.queryAnalysis.values())
+      .filter(analysis => analysis.callCount > 5) // Only include frequently called endpoints
+      .sort((a, b) => b.avgDuration - a.avgDuration) // Sort by slowest first
+      .slice(0, 20); // Top 20 slowest endpoints
 
-/**
- * Middleware to validate query parameters
- */
-const validateQueryParams = (allowedParams = []) => {
-  return (req, res, next) => {
-    const queryParams = Object.keys(req.query);
-    const invalidParams = queryParams.filter(param => !allowedParams.includes(param));
-    
-    if (invalidParams.length > 0) {
-      logger.warn('Invalid query parameters detected:', {
-        invalidParams,
-        allowedParams,
-        url: req.url
-      });
-      
-      // Remove invalid parameters
-      invalidParams.forEach(param => {
-        delete req.query[param];
-      });
-    }
-    
-    next();
-  };
-};
-
-/**
- * Middleware to add query logging
- */
-const addQueryLogging = (logLevel = 'debug') => {
-  return (req, res, next) => {
-    const start = Date.now();
-    
-    // Log request
-    logger[logLevel]('Query request:', {
-      method: req.method,
-      url: req.url,
-      query: req.query,
-      params: req.params,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Override json method to log response
-    const originalJson = res.json;
-    res.json = function(data) {
-      const duration = Date.now() - start;
-      
-      logger[logLevel]('Query response:', {
-        method: req.method,
-        url: req.url,
-        statusCode: res.statusCode,
-        duration: `${duration}ms`,
-        resultCount: Array.isArray(data) ? data.length : (data ? 1 : 0),
-        timestamp: new Date().toISOString()
-      });
-      
-      return originalJson.call(this, data);
+    return {
+      generatedAt: new Date(),
+      totalEndpoints: this.queryAnalysis.size,
+      analyzedEndpoints: reports.length,
+      topSlowEndpoints: reports,
+      summary: {
+        avgDuration: reports.reduce((sum, r) => sum + r.avgDuration, 0) / reports.length || 0,
+        totalOptimizations: reports.reduce((sum, r) => sum + r.optimizations.length, 0)
+      }
     };
-    
-    next();
-  };
-};
+  }
 
-module.exports = {
-  optimizeFindQueries,
-  addQueryCaching,
-  addPerformanceHeaders,
-  trackQueryCount,
-  optimizeSearchQueries,
-  addQueryHints,
-  validateQueryParams,
-  addQueryLogging
-};
+  /**
+   * Clear stored analysis data
+   */
+  clearAnalysis() {
+    this.queryAnalysis.clear();
+    logger.info('Query optimization analysis cleared');
+  }
+
+  /**
+   * Enable/disable optimization monitoring
+   */
+  setEnabled(enabled) {
+    this.optimizationEnabled = enabled;
+    logger.info(`Query optimization ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  /**
+   * Update slow query threshold
+   */
+  setSlowQueryThreshold(threshold) {
+    this.slowQueryThreshold = threshold;
+    logger.info(`Slow query threshold set to ${threshold}ms`);
+  }
+}
+
+const queryOptimizer = new QueryOptimizationMiddleware();
+
+module.exports = queryOptimizer.middleware();

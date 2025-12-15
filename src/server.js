@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 require('dotenv').config();
@@ -59,6 +58,18 @@ const emailMarketingRoutes = require('./routes/emailMarketing');
 const partnersRoutes = require('./routes/partners');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 const { generalLimiter } = require('./middleware/rateLimiter');
+const queryOptimizationMiddleware = require('./middleware/queryOptimizationMiddleware');
+const { inputSanitization } = require('./middleware/inputSanitization');
+const {
+  securityHeaders,
+  corsOptions,
+  requestSizeLimit,
+  ipFilter,
+  sqlInjectionProtection,
+  requestTimeout,
+  securityAudit,
+  responseCompression
+} = require('./middleware/security');
 const liveChatWebSocketService = require('./services/liveChatWebSocketService');
 
 const app = express();
@@ -119,12 +130,14 @@ async function initializeApplication() {
 
 // Start the server
 function startServer() {
-  // Security middleware
-  app.use(helmet());
-  app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true
-  }));
+  // Comprehensive Security Middleware
+  app.use(securityHeaders);
+  app.use(cors(corsOptions));
+  app.use(securityAudit);
+  app.use(ipFilter);
+  app.use(sqlInjectionProtection);
+  app.use(requestSizeLimit);
+  app.use(requestTimeout(30000)); // 30 second timeout
 
 
   // Response compression middleware
@@ -143,6 +156,9 @@ function startServer() {
       return compression.filter(req, res);
     }
   }));
+
+  // Response compression
+  app.use(responseCompression);
 
   // Body parsing middleware
   // Only parse JSON for requests with JSON content-type
@@ -188,6 +204,9 @@ function startServer() {
   
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+  // Input sanitization middleware
+  app.use(inputSanitization());
+
   // Request ID middleware (add unique ID to each request)
   app.use(requestIdMiddleware);
 
@@ -210,6 +229,9 @@ function startServer() {
 
   // Metrics collection middleware
   app.use(metricsMiddleware);
+
+  // Query optimization middleware (performance monitoring)
+  app.use(queryOptimizationMiddleware);
 
   // Audit logging middleware
   app.use(auditGeneralOperations);
