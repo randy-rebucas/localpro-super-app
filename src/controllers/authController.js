@@ -1167,6 +1167,24 @@ const updateProfile = async (req, res) => {
 // @access  Private
 const uploadAvatar = async (req, res) => {
   try {
+    // Debug: Log file information
+    console.log('=== Avatar Upload Debug ===');
+    console.log('File object:', {
+      hasFile: !!req.file,
+      fieldname: req.file?.fieldname,
+      originalname: req.file?.originalname,
+      encoding: req.file?.encoding,
+      mimetype: req.file?.mimetype,
+      size: req.file?.size,
+      hasBuffer: !!req.file?.buffer,
+      hasPath: !!req.file?.path,
+      path: req.file?.path,
+      destination: req.file?.destination,
+      filename: req.file?.filename
+    });
+    console.log('Request body:', req.body);
+    console.log('==========================');
+
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -1184,18 +1202,85 @@ const uploadAvatar = async (req, res) => {
       });
     }
 
-    // Upload to Cloudinary
-    const uploadResult = await CloudinaryService.uploadFile(
-      req.file, 
-      'localpro/users/profiles'
-    );
+    // Check if file is already uploaded via CloudinaryStorage
+    const isCloudinaryUploaded = req.file.secure_url || req.file.public_id || 
+                                 (req.file.path && req.file.path.includes('cloudinary.com'));
 
-    if (!uploadResult.success) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to upload avatar',
-        error: uploadResult.error
+    let avatarData;
+
+    if (isCloudinaryUploaded) {
+      // File already uploaded via CloudinaryStorage - extract info directly
+      console.log('File already uploaded to Cloudinary via CloudinaryStorage');
+      
+      const secureUrl = req.file.secure_url || req.file.url || req.file.path;
+      let publicId = req.file.public_id;
+
+      // Extract public_id if not directly available
+      if (!publicId && req.file.path) {
+        try {
+          const pathParts = req.file.path.split('/');
+          const uploadIndex = pathParts.findIndex(part => part === 'upload');
+          if (uploadIndex !== -1 && pathParts.length > uploadIndex + 2) {
+            // Get everything after 'upload/v1234567890/' and remove file extension
+            publicId = pathParts.slice(uploadIndex + 2).join('/').replace(/\.[^/.]+$/, '');
+          }
+        } catch (parseError) {
+          console.error('Error parsing public_id from path:', parseError);
+        }
+      }
+
+      // Fallback: use filename or generate public_id
+      if (!publicId) {
+        if (req.file.filename) {
+          publicId = req.file.filename.replace(/\.[^/.]+$/, '');
+        } else {
+          publicId = `localpro/users/profiles/avatar-${Date.now()}`;
+        }
+      }
+
+      if (!secureUrl) {
+        throw new Error('Failed to extract URL from Cloudinary response');
+      }
+
+      avatarData = {
+        url: secureUrl,
+        publicId: publicId,
+        thumbnail: CloudinaryService.getOptimizedUrl(publicId, 'thumbnail')
+      };
+
+      console.log('Extracted Cloudinary data:', {
+        url: avatarData.url,
+        publicId: avatarData.publicId
       });
+    } else {
+      // File needs to be uploaded manually (shouldn't happen with cloudinaryStorage, but handle it)
+      console.log('Uploading file to Cloudinary manually...');
+      const uploadResult = await CloudinaryService.uploadFile(
+        req.file, 
+        'localpro/users/profiles'
+      );
+
+      console.log('Upload result:', {
+        success: uploadResult.success,
+        error: uploadResult.error,
+        hasData: !!uploadResult.data
+      });
+
+      if (!uploadResult.success) {
+        console.error('Cloudinary upload failed:', uploadResult.error);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload avatar',
+          error: uploadResult.error,
+          code: 'CLOUDINARY_UPLOAD_ERROR'
+        });
+      }
+
+      avatarData = {
+        url: uploadResult.data.secure_url,
+        publicId: uploadResult.data.public_id,
+        thumbnail: CloudinaryService.getOptimizedUrl(uploadResult.data.public_id, 'thumbnail')
+      };
     }
 
     // Delete old avatar if exists
@@ -1204,11 +1289,7 @@ const uploadAvatar = async (req, res) => {
     }
 
     // Update user profile with new avatar
-    user.profile.avatar = {
-      url: uploadResult.data.secure_url,
-      publicId: uploadResult.data.public_id,
-      thumbnail: CloudinaryService.getOptimizedUrl(uploadResult.data.public_id, 'thumbnail')
-    };
+    user.profile.avatar = avatarData;
 
     await user.save();
 
@@ -1220,10 +1301,19 @@ const uploadAvatar = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Upload avatar error:', error);
+    console.error('=== Avatar Upload Exception ===');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
+    if (error.http_code) {
+      console.error('HTTP Code:', error.http_code);
+    }
+    console.error('================================');
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred while uploading avatar',
+      code: 'UPLOAD_ERROR'
     });
   }
 };

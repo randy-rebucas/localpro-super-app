@@ -26,6 +26,17 @@ class CloudinaryService {
    */
   async uploadFile(file, folder = 'localpro', options = {}) {
     try {
+      console.log('=== CloudinaryService.uploadFile ===');
+      console.log('File received:', {
+        hasFile: !!file,
+        hasBuffer: !!file?.buffer,
+        hasPath: !!file?.path,
+        mimetype: file?.mimetype,
+        originalname: file?.originalname,
+        size: file?.size,
+        path: file?.path
+      });
+
       if (!file) {
         throw new Error('No file provided');
       }
@@ -40,15 +51,41 @@ class CloudinaryService {
       let uploadSource;
       if (file.buffer) {
         // Memory storage - upload from buffer
-        uploadSource = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+        console.log('Using buffer upload (memory storage)');
+        if (!file.mimetype) {
+          console.warn('Warning: No mimetype provided, defaulting to image/jpeg');
+        }
+        uploadSource = `data:${file.mimetype || 'image/jpeg'};base64,${file.buffer.toString('base64')}`;
+        console.log('Buffer size:', file.buffer.length, 'bytes');
       } else if (file.path) {
         // Disk storage - upload from path
-        uploadSource = file.path;
+        console.log('Using path upload (disk storage):', file.path);
+        
+        // Check if file exists (for local paths)
+        const fs = require('fs');
+        if (file.path.startsWith('file://')) {
+          // Remove file:// prefix if present
+          const actualPath = file.path.replace('file://', '');
+          if (!fs.existsSync(actualPath)) {
+            throw new Error(`File not found at path: ${actualPath}`);
+          }
+          uploadSource = actualPath;
+        } else {
+          uploadSource = file.path;
+        }
       } else {
+        console.error('File object keys:', Object.keys(file));
         throw new Error('File must have either path or buffer');
       }
 
+      console.log('Uploading to Cloudinary with options:', uploadOptions);
       const result = await cloudinary.uploader.upload(uploadSource, uploadOptions);
+      console.log('Upload successful:', {
+        public_id: result.public_id,
+        format: result.format,
+        bytes: result.bytes
+      });
+      console.log('===================================');
 
       return {
         success: true,
@@ -64,10 +101,23 @@ class CloudinaryService {
         }
       };
     } catch (error) {
-      console.error('Cloudinary upload error:', error);
+      console.error('=== Cloudinary Upload Error ===');
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      if (error.http_code) {
+        console.error('HTTP Code:', error.http_code);
+      }
+      if (error.name) {
+        console.error('Error name:', error.name);
+      }
+      console.error('================================');
       return {
         success: false,
-        error: error.message
+        error: error.message || 'Unknown upload error',
+        details: {
+          http_code: error.http_code,
+          name: error.name
+        }
       };
     }
   }
