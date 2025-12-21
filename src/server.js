@@ -58,7 +58,7 @@ const notificationsRoutes = require('./routes/notifications');
 const emailMarketingRoutes = require('./routes/emailMarketing');
 const partnersRoutes = require('./routes/partners');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
-const { generalLimiter } = require('./middleware/rateLimiter');
+const { generalLimiter, marketplaceLimiter } = require('./middleware/rateLimiter');
 const liveChatWebSocketService = require('./services/liveChatWebSocketService');
 
 const app = express();
@@ -195,8 +195,10 @@ function startServer() {
   app.use(requestCorrelation);
 
   // Rate limiting middleware (apply early to protect all routes)
-  // General rate limiting for all API routes (skip in test and development for easier development)
+  // More lenient rate limiting for public marketplace endpoints (mobile app friendly)
   if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
+    app.use('/api/marketplace', marketplaceLimiter);
+    // General rate limiting for all other API routes
     app.use('/api', generalLimiter);
   }
 

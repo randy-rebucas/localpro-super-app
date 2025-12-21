@@ -15,6 +15,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 /**
  * General API rate limiter
  * Applied to all API routes for basic protection
+ * Excludes marketplace routes which have their own more lenient limiter
  */
 const generalLimiter = rateLimit({
   windowMs: RATE_LIMIT_WINDOW_MS,
@@ -26,9 +27,12 @@ const generalLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  // Skip rate limiting in development mode and for health checks
+  // Skip rate limiting in development mode, for health checks, and marketplace routes
   skip: (req) => {
-    return isDevelopment || req.path === '/health' || req.path === '/';
+    return isDevelopment || 
+           req.path === '/health' || 
+           req.path === '/' ||
+           req.path.startsWith('/marketplace');
   }
 });
 
@@ -144,12 +148,34 @@ const paymentLimiter = rateLimit({
   skip: () => isDevelopment
 });
 
+/**
+ * Public Marketplace rate limiter (more lenient for mobile apps)
+ * Applied to public marketplace endpoints like services, categories, providers
+ * Allows higher rate limits for better mobile app experience
+ */
+const marketplaceLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300, // Limit each IP to 300 requests per 15 minutes (20 req/min average)
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.',
+    code: 'RATE_LIMIT_EXCEEDED'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  // Skip rate limiting in development mode and for health checks
+  skip: (req) => {
+    return isDevelopment || req.path === '/health' || req.path === '/';
+  }
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
   smsLimiter,
   searchLimiter,
   uploadLimiter,
-  paymentLimiter
+  paymentLimiter,
+  marketplaceLimiter
 };
 
