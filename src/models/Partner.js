@@ -246,12 +246,10 @@ const partnerSchema = new mongoose.Schema({
 });
 
 // Indexes for performance
-partnerSchema.index({ slug: 1 }); // Unique slug index already exists
-partnerSchema.index({ email: 1 }); // Unique email index already exists
+// Note: slug, email, apiCredentials.clientId, and apiCredentials.apiKey already have indexes
+// from their unique: true definitions, so we don't need to create them again
 partnerSchema.index({ status: 1 });
 partnerSchema.index({ 'onboarding.completed': 1 });
-partnerSchema.index({ 'apiCredentials.clientId': 1 }, { sparse: true });
-partnerSchema.index({ 'apiCredentials.apiKey': 1 }, { sparse: true });
 partnerSchema.index({ createdAt: -1 });
 partnerSchema.index({ 'businessInfo.industry': 1 });
 partnerSchema.index({ tags: 1 });
