@@ -1,10 +1,10 @@
 {
   "info": {
     "name": "LocalPro Super App API - Complete Collection",
-    "description": "Complete API collection for LocalPro Super App with all endpoints organized by module. Updated for multi-role support - users can have multiple roles (client, provider, supplier, instructor, agency_owner, agency_admin). Generated automatically from route files. PayMongo integration endpoints and webhook coverage added Dec 2025.",
+    "description": "Complete API collection for LocalPro Super App with all endpoints organized by module. Updated for multi-role support - users can have multiple roles (client, provider, supplier, instructor, agency_owner, agency_admin). Generated automatically from route files. PayMongo integration endpoints and webhook coverage added Dec 2025. Job Categories CRUD endpoints added Dec 2025.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "1e3e122b-7797-461c-a3ed-d06fe0577dae",
-    "version": "2025-12-11-paymongo"
+    "version": "2025-12-20-job-categories-crud"
   },
   "auth": {
     "type": "bearer",
@@ -44,6 +44,11 @@
     },
     {
       "key": "jobId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobCategoryId",
       "value": "",
       "type": "string"
     },
@@ -2320,6 +2325,256 @@
                 }
               }
             }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Job Categories",
+      "item": [
+        {
+          "name": "GET /api/job-categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/job-categories?page=1&limit=100&isActive=true&sortBy=displayOrder&sortOrder=asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "job-categories"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "Items per page (default: 10, max: 100)",
+                  "disabled": false
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "description": "Filter by active status (true/false)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "displayOrder",
+                  "description": "Sort field (default: displayOrder)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "description": "Sort order: asc or desc (default: asc)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all job categories with pagination and filtering. Returns paginated list of all job categories. Can filter by isActive status and supports sorting."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/job-categories/active",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/job-categories/active",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "job-categories",
+                "active"
+              ]
+            },
+            "description": "Get all active job categories. Returns only active categories ordered by displayOrder. Public endpoint, no authentication required."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/job-categories/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/job-categories/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "job-categories",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{jobCategoryId}}",
+                  "description": "Job category ID (MongoDB ObjectId)"
+                }
+              ]
+            },
+            "description": "Get job category by ID. Returns detailed information about a specific job category including metadata, display order, and active status."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/job-categories/:id/stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/job-categories/:id/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "job-categories",
+                ":id",
+                "stats"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{jobCategoryId}}",
+                  "description": "Job category ID (MongoDB ObjectId)"
+                }
+              ]
+            },
+            "description": "Get job category statistics. Returns statistics about jobs in this category including total jobs, active jobs, draft jobs, and closed jobs."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/job-categories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/job-categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "job-categories"
+              ]
+            },
+            "description": "Create a new job category. Admin only. Creates a new job category with name, description, display order, and metadata.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Home & Property Services\",\n  \"description\": \"Plumbing, electrical, HVAC, appliance repair, carpentry, painting, roofing, masonry, glass works, pest control, and locksmith services.\",\n  \"isActive\": true,\n  \"displayOrder\": 1,\n  \"metadata\": {\n    \"icon\": \"🏠\",\n    \"color\": \"#3B82F6\",\n    \"tags\": [\"plumbing\", \"electrical\", \"hvac\", \"appliance repair\", \"carpentry\", \"painting\", \"roofing\", \"masonry\", \"pest control\", \"locksmith\"],\n    \"lguAlignment\": [\"BPLO\", \"Building Office\", \"Consumer Protection\"],\n    \"pricing\": \"Per job / Quotation-based\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/job-categories/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/job-categories/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "job-categories",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{jobCategoryId}}",
+                  "description": "Job category ID (MongoDB ObjectId)"
+                }
+              ]
+            },
+            "description": "Update a job category. Admin only. Updates existing job category fields. Only provided fields will be updated.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Category Name\",\n  \"description\": \"Updated description\",\n  \"isActive\": false,\n  \"displayOrder\": 2,\n  \"metadata\": {\n    \"icon\": \"🏠\",\n    \"color\": \"#3B82F6\",\n    \"tags\": [\"updated\", \"tags\"]\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/job-categories/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/job-categories/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "job-categories",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{jobCategoryId}}",
+                  "description": "Job category ID (MongoDB ObjectId)"
+                }
+              ]
+            },
+            "description": "Delete a job category. Admin only. Deletes a job category. Will fail if category is being used by any active jobs. Use deactivation (isActive: false) instead if category is in use."
           },
           "response": []
         }

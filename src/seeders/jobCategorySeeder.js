@@ -3,203 +3,147 @@ const logger = require('../config/logger');
 
 const defaultJobCategories = [
   {
-    name: 'Technology',
-    description: 'Software development, IT support, cybersecurity, and technology-related positions',
+    name: 'Home & Property Services',
+    description: 'Plumbing, electrical, HVAC, appliance repair, carpentry, painting, roofing, masonry, glass works, pest control, and locksmith services. Aligned with BPLO, Building Office, and Consumer Protection.',
     displayOrder: 1,
     metadata: {
-      icon: '💻',
+      icon: '🏠',
       color: '#3B82F6',
-      tags: ['software', 'IT', 'developer', 'programmer', 'tech']
+      tags: ['plumbing', 'electrical', 'hvac', 'appliance repair', 'carpentry', 'painting', 'roofing', 'masonry', 'pest control', 'locksmith', 'home services', 'property maintenance'],
+      lguAlignment: ['BPLO', 'Building Office', 'Consumer Protection'],
+      pricing: 'Per job / Quotation-based'
     }
   },
   {
-    name: 'Healthcare',
-    description: 'Medical, nursing, healthcare administration, and health services positions',
+    name: 'Cleaning & Sanitation Services',
+    description: 'Residential and commercial cleaning, post-construction cleaning, disinfection, septic tank cleaning, garbage collection, and laundry services. Aligned with City Health Office, Environment Office, and Tourism.',
     displayOrder: 2,
     metadata: {
-      icon: '🏥',
-      color: '#EF4444',
-      tags: ['medical', 'nurse', 'doctor', 'health', 'hospital']
-    }
-  },
-  {
-    name: 'Education',
-    description: 'Teaching, training, academic, and educational support positions',
-    displayOrder: 3,
-    metadata: {
-      icon: '📚',
+      icon: '🧹',
       color: '#10B981',
-      tags: ['teacher', 'instructor', 'trainer', 'academic', 'education']
+      tags: ['house cleaning', 'office cleaning', 'commercial cleaning', 'disinfection', 'sanitation', 'septic tank', 'garbage collection', 'laundry', 'dry cleaning'],
+      lguAlignment: ['City Health Office', 'Environment Office', 'Tourism'],
+      pricing: 'Per hour / Contract'
     }
   },
   {
-    name: 'Finance',
-    description: 'Accounting, banking, financial planning, and finance-related positions',
-    displayOrder: 4,
-    metadata: {
-      icon: '💰',
-      color: '#F59E0B',
-      tags: ['accounting', 'banking', 'financial', 'analyst', 'finance']
-    }
-  },
-  {
-    name: 'Marketing',
-    description: 'Digital marketing, advertising, brand management, and marketing communications',
-    displayOrder: 5,
-    metadata: {
-      icon: '📢',
-      color: '#8B5CF6',
-      tags: ['advertising', 'branding', 'social media', 'SEO', 'marketing']
-    }
-  },
-  {
-    name: 'Sales',
-    description: 'Sales representative, account manager, business development, and sales support positions',
-    displayOrder: 6,
-    metadata: {
-      icon: '📞',
-      color: '#EC4899',
-      tags: ['sales rep', 'account manager', 'BD', 'sales executive', 'sales']
-    }
-  },
-  {
-    name: 'Customer Service',
-    description: 'Customer support, call center, client relations, and customer care positions',
-    displayOrder: 7,
-    metadata: {
-      icon: '🎧',
-      color: '#06B6D4',
-      tags: ['support', 'call center', 'client relations', 'customer care', 'CSR']
-    }
-  },
-  {
-    name: 'Human Resources',
-    description: 'HR management, recruitment, talent acquisition, and people operations',
-    displayOrder: 8,
-    metadata: {
-      icon: '👥',
-      color: '#6366F1',
-      tags: ['recruitment', 'talent', 'HR', 'people ops', 'hiring']
-    }
-  },
-  {
-    name: 'Operations',
-    description: 'Operations management, logistics, supply chain, and process improvement',
-    displayOrder: 9,
-    metadata: {
-      icon: '⚙️',
-      color: '#64748B',
-      tags: ['logistics', 'supply chain', 'operations', 'process', 'ops']
-    }
-  },
-  {
-    name: 'Design',
-    description: 'Graphic design, UI/UX design, web design, and creative design positions',
-    displayOrder: 10,
-    metadata: {
-      icon: '🎨',
-      color: '#F97316',
-      tags: ['graphic design', 'UI/UX', 'web design', 'creative', 'designer']
-    }
-  },
-  {
-    name: 'Engineering',
-    description: 'Mechanical, electrical, civil, and other engineering disciplines',
-    displayOrder: 11,
-    metadata: {
-      icon: '🔧',
-      color: '#14B8A6',
-      tags: ['mechanical', 'electrical', 'civil', 'engineer', 'engineering']
-    }
-  },
-  {
-    name: 'Construction',
-    description: 'Construction workers, project managers, site supervisors, and tradespeople',
-    displayOrder: 12,
+    name: 'Construction & Skilled Trades',
+    description: 'General construction workers, foremen, welders, heavy equipment operators, scaffolding installers, safety officers, and draftsmen. Aligned with TESDA, DPWH, and LEDIPO. Requires TESDA NC I–IV certification.',
+    displayOrder: 3,
     metadata: {
       icon: '🏗️',
       color: '#DC2626',
-      tags: ['construction', 'builder', 'contractor', 'trades', 'construction worker']
+      tags: ['construction worker', 'foreman', 'site supervisor', 'welder', 'fabricator', 'equipment operator', 'scaffolding', 'safety officer', 'draftsman', 'CAD technician'],
+      lguAlignment: ['TESDA', 'DPWH', 'LEDIPO'],
+      certification: 'TESDA NC I–IV'
     }
   },
   {
-    name: 'Maintenance',
-    description: 'Facility maintenance, equipment repair, and maintenance technician positions',
-    displayOrder: 13,
-    metadata: {
-      icon: '🔨',
-      color: '#7C3AED',
-      tags: ['maintenance', 'repair', 'technician', 'facility', 'maintenance worker']
-    }
-  },
-  {
-    name: 'Cleaning',
-    description: 'Housekeeping, janitorial, commercial cleaning, and cleaning services',
-    displayOrder: 14,
-    metadata: {
-      icon: '🧹',
-      color: '#059669',
-      tags: ['housekeeping', 'janitor', 'cleaner', 'cleaning services', 'custodial']
-    }
-  },
-  {
-    name: 'Security',
-    description: 'Security guard, security officer, loss prevention, and security services',
-    displayOrder: 15,
-    metadata: {
-      icon: '🛡️',
-      color: '#1E40AF',
-      tags: ['security guard', 'security officer', 'loss prevention', 'security', 'guard']
-    }
-  },
-  {
-    name: 'Transportation',
-    description: 'Driver, delivery, logistics, transportation, and fleet management positions',
-    displayOrder: 16,
+    name: 'Transport, Logistics & Delivery',
+    description: 'Motorcycle couriers, delivery drivers, moving services, hauling, towing, warehouse helpers, fleet drivers, and ride-hailing partners. Aligned with Traffic Office and PESO.',
+    displayOrder: 4,
     metadata: {
       icon: '🚚',
-      color: '#B91C1C',
-      tags: ['driver', 'delivery', 'logistics', 'transport', 'fleet']
+      color: '#F59E0B',
+      tags: ['courier', 'delivery driver', 'motorcycle rider', 'moving services', 'hauling', 'towing', 'warehouse', 'fleet driver', 'ride-hailing', 'logistics'],
+      lguAlignment: ['Traffic Office', 'PESO'],
+      pricing: 'Per trip / Distance-based'
     }
   },
   {
-    name: 'Food Service',
-    description: 'Chef, cook, server, bartender, and food service industry positions',
-    displayOrder: 17,
+    name: 'Personal & Lifestyle Services',
+    description: 'Barbers, hairstylists, makeup artists, massage therapists, nail technicians, fitness trainers, yoga coaches, pet groomers, and pet sitters. Aligned with Tourism Office and Health Office.',
+    displayOrder: 5,
     metadata: {
-      icon: '🍽️',
-      color: '#C2410C',
-      tags: ['chef', 'cook', 'server', 'bartender', 'restaurant', 'food service']
+      icon: '💅',
+      color: '#EC4899',
+      tags: ['barber', 'hairstylist', 'makeup artist', 'massage therapist', 'nail technician', 'fitness trainer', 'yoga', 'wellness coach', 'pet groomer', 'pet sitter', 'dog walker'],
+      lguAlignment: ['Tourism Office', 'Health Office'],
+      pricing: 'Per session'
     }
   },
   {
-    name: 'Retail',
-    description: 'Retail sales associate, cashier, store manager, and retail positions',
-    displayOrder: 18,
+    name: 'Business & Office Support Services',
+    description: 'Virtual assistants, bookkeepers, accounting assistants, payroll staff, office administrators, HR assistants, call center agents, and data encoders. Aligned with DTI, LEDIPO, and PESO.',
+    displayOrder: 6,
     metadata: {
-      icon: '🛍️',
-      color: '#BE185D',
-      tags: ['retail', 'cashier', 'sales associate', 'store manager', 'retail worker']
+      icon: '💼',
+      color: '#6366F1',
+      tags: ['virtual assistant', 'bookkeeper', 'accounting', 'payroll', 'office administrator', 'HR assistant', 'call center', 'customer support', 'data encoder'],
+      lguAlignment: ['DTI', 'LEDIPO', 'PESO'],
+      pricing: 'Hourly / Monthly'
     }
   },
   {
-    name: 'Hospitality',
-    description: 'Hotel staff, concierge, event coordinator, and hospitality service positions',
-    displayOrder: 19,
+    name: 'IT, Digital & Creative Services',
+    description: 'IT support technicians, network installers, CCTV technicians, web developers, mobile app developers, graphic designers, video editors, digital marketing specialists, and social media managers. Aligned with DICT and Smart City Programs.',
+    displayOrder: 7,
     metadata: {
-      icon: '🏨',
+      icon: '💻',
+      color: '#8B5CF6',
+      tags: ['IT support', 'network installer', 'CCTV', 'web developer', 'mobile app developer', 'graphic designer', 'video editor', 'digital marketing', 'social media manager'],
+      lguAlignment: ['DICT', 'Smart City Programs'],
+      pricing: 'Project-based / Retainer'
+    }
+  },
+  {
+    name: 'Education, Training & Coaching',
+    description: 'Academic tutors, technical skills trainers, language instructors, computer literacy trainers, exam review coaches, and corporate skills trainers. Aligned with PESO, TESDA, and DepEd.',
+    displayOrder: 8,
+    metadata: {
+      icon: '📚',
+      color: '#10B981',
+      tags: ['tutor', 'academic tutor', 'technical trainer', 'language instructor', 'computer literacy', 'exam review', 'corporate trainer', 'coaching'],
+      lguAlignment: ['PESO', 'TESDA', 'DepEd'],
+      pricing: 'Per session / Package'
+    }
+  },
+  {
+    name: 'Healthcare & Caregiving (Non-Clinical)',
+    description: 'Caregivers, elderly care assistants, home nurse assistants, physical therapy assistants, childcare providers, babysitters, medical transcriptionists, and health aides. Aligned with City Health Office and Social Welfare. Subject to local regulation and verification.',
+    displayOrder: 9,
+    metadata: {
+      icon: '🏥',
+      color: '#EF4444',
+      tags: ['caregiver', 'elderly care', 'home nurse', 'physical therapy', 'childcare', 'babysitter', 'medical transcriptionist', 'health aide'],
+      lguAlignment: ['City Health Office', 'Social Welfare'],
+      note: 'Subject to local regulation and verification'
+    }
+  },
+  {
+    name: 'Events, Hospitality & Tourism',
+    description: 'Event coordinators, event crew, caterers, cooks, chefs, bartenders, hotel housekeeping staff, tour guides, photographers, and videographers. Aligned with Tourism Office and LGU Events.',
+    displayOrder: 10,
+    metadata: {
+      icon: '🎉',
       color: '#0D9488',
-      tags: ['hotel', 'concierge', 'event coordinator', 'hospitality', 'tourism']
+      tags: ['event coordinator', 'event crew', 'caterer', 'cook', 'chef', 'bartender', 'hotel housekeeping', 'tour guide', 'photographer', 'videographer'],
+      lguAlignment: ['Tourism Office', 'LGU Events'],
+      pricing: 'Per event'
     }
   },
   {
-    name: 'Other',
-    description: 'Other job categories and miscellaneous positions',
-    displayOrder: 20,
+    name: 'Sales, Marketing & Field Promotion',
+    description: 'Sales agents, brand promoters, field marketing staff, merchandisers, real estate sales associates, and insurance agents. Aligned with MSME Development.',
+    displayOrder: 11,
     metadata: {
-      icon: '📋',
-      color: '#6B7280',
-      tags: ['other', 'miscellaneous', 'general']
+      icon: '📢',
+      color: '#F97316',
+      tags: ['sales agent', 'brand promoter', 'field marketing', 'merchandiser', 'real estate', 'insurance agent', 'sales'],
+      lguAlignment: ['MSME Development'],
+      pricing: 'Commission-based'
+    }
+  },
+  {
+    name: 'Emergency, Safety & Public Support',
+    description: 'Disaster response volunteers, emergency repair technicians, safety marshals, traffic aides, and utility restoration crew. Aligned with DRRMO and City Operations. Optional extension category.',
+    displayOrder: 12,
+    metadata: {
+      icon: '🚨',
+      color: '#DC2626',
+      tags: ['disaster response', 'emergency repair', 'safety marshal', 'traffic aide', 'utility restoration', 'emergency services'],
+      lguAlignment: ['DRRMO', 'City Operations'],
+      note: 'Optional Extension Category'
     }
   }
 ];

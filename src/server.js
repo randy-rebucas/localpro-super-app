@@ -29,6 +29,7 @@ const mapsRoutes = require('./routes/maps');
 const paypalRoutes = require('./routes/paypal');
 const paymayaRoutes = require('./routes/paymaya');
 const jobsRoutes = require('./routes/jobs');
+const jobCategoriesRoutes = require('./routes/jobCategories');
 const referralsRoutes = require('./routes/referrals');
 const agenciesRoutes = require('./routes/agencies');
 const settingsRoutes = require('./routes/settings');
@@ -410,6 +411,7 @@ function startServer() {
   app.use('/api/paypal', paypalRoutes);
   app.use('/api/paymaya', paymayaRoutes);
   app.use('/api/jobs', jobsRoutes);
+  app.use('/api/job-categories', jobCategoriesRoutes);
   app.use('/api/referrals', referralsRoutes);
   app.use('/api/agencies', agenciesRoutes);
   app.use('/api/settings', settingsRoutes);
