@@ -359,6 +359,28 @@ jobSchema.methods.isJobActive = function() {
   return true;
 };
 
+// Method to get the reason why a job is not accepting applications
+jobSchema.methods.getInactiveReason = function() {
+  if (!this.isActive) {
+    return 'This job has been deactivated';
+  }
+  
+  if (this.status === 'closed') {
+    return 'This job posting has been closed';
+  }
+  
+  if (this.status === 'filled') {
+    return 'This position has been filled';
+  }
+  
+  if (this.applicationProcess.deadline && new Date() > this.applicationProcess.deadline) {
+    const deadlineDate = new Date(this.applicationProcess.deadline).toLocaleDateString();
+    return `The application deadline (${deadlineDate}) has passed`;
+  }
+  
+  return null; // Job is active
+};
+
 // Method to get salary range display
 jobSchema.methods.getSalaryDisplay = function() {
   if (this.salary.isConfidential) {

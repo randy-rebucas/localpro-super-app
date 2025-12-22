@@ -321,26 +321,24 @@ const createJob = async (req, res) => {
           jobData.company.location.address
         );
         
-        if (geocodeResult.success && geocodeResult.data.length > 0) {
-          const location = geocodeResult.data[0];
+        if (geocodeResult.success && geocodeResult.coordinates) {
           jobData.company.location.coordinates = {
-            lat: location.geometry.location.lat,
-            lng: location.geometry.location.lng
+            lat: geocodeResult.coordinates.lat,
+            lng: geocodeResult.coordinates.lng
           };
           
-          // Extract city, state, country from geocoded result
-          const addressComponents = location.address_components;
-          addressComponents.forEach(component => {
-            if (component.types.includes('locality')) {
-              jobData.company.location.city = component.long_name;
+          // Extract city, state, country from parsed address components
+          if (geocodeResult.addressComponents) {
+            if (geocodeResult.addressComponents.city) {
+              jobData.company.location.city = geocodeResult.addressComponents.city;
             }
-            if (component.types.includes('administrative_area_level_1')) {
-              jobData.company.location.state = component.long_name;
+            if (geocodeResult.addressComponents.state) {
+              jobData.company.location.state = geocodeResult.addressComponents.state;
             }
-            if (component.types.includes('country')) {
-              jobData.company.location.country = component.long_name;
+            if (geocodeResult.addressComponents.country) {
+              jobData.company.location.country = geocodeResult.addressComponents.country;
             }
-          });
+          }
         }
       } catch (geocodeError) {
         console.error('Geocoding error:', geocodeError);
@@ -396,26 +394,24 @@ const updateJob = async (req, res) => {
           req.body.company.location.address
         );
         
-        if (geocodeResult.success && geocodeResult.data.length > 0) {
-          const location = geocodeResult.data[0];
+        if (geocodeResult.success && geocodeResult.coordinates) {
           req.body.company.location.coordinates = {
-            lat: location.geometry.location.lat,
-            lng: location.geometry.location.lng
+            lat: geocodeResult.coordinates.lat,
+            lng: geocodeResult.coordinates.lng
           };
           
-          // Extract city, state, country from geocoded result
-          const addressComponents = location.address_components;
-          addressComponents.forEach(component => {
-            if (component.types.includes('locality')) {
-              req.body.company.location.city = component.long_name;
+          // Extract city, state, country from parsed address components
+          if (geocodeResult.addressComponents) {
+            if (geocodeResult.addressComponents.city) {
+              req.body.company.location.city = geocodeResult.addressComponents.city;
             }
-            if (component.types.includes('administrative_area_level_1')) {
-              req.body.company.location.state = component.long_name;
+            if (geocodeResult.addressComponents.state) {
+              req.body.company.location.state = geocodeResult.addressComponents.state;
             }
-            if (component.types.includes('country')) {
-              req.body.company.location.country = component.long_name;
+            if (geocodeResult.addressComponents.country) {
+              req.body.company.location.country = geocodeResult.addressComponents.country;
             }
-          });
+          }
         }
       } catch (geocodeError) {
         console.error('Geocoding error:', geocodeError);
@@ -500,9 +496,11 @@ const applyForJob = async (req, res) => {
 
     // Check if job is still accepting applications
     if (!job.isJobActive()) {
+      const reason = job.getInactiveReason();
       return res.status(400).json({
         success: false,
-        message: 'This job is no longer accepting applications'
+        message: reason || 'This job is no longer accepting applications',
+        reason: reason || 'unknown'
       });
     }
 
