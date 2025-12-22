@@ -321,6 +321,36 @@ jobSchema.methods.addApplication = function(applicationData) {
   return this.save();
 };
 
+// Method to remove application
+jobSchema.methods.removeApplication = function(applicationId, userId) {
+  const application = this.applications.id(applicationId);
+  
+  if (!application) {
+    throw new Error('Application not found');
+  }
+  
+  // Verify the user owns this application
+  if (application.applicant.toString() !== userId.toString()) {
+    throw new Error('Not authorized to withdraw this application');
+  }
+  
+  // Prevent withdrawal if already hired or rejected (optional business logic)
+  // You can remove this check if you want to allow withdrawal at any stage
+  if (application.status === 'hired') {
+    throw new Error('Cannot withdraw an application that has been accepted');
+  }
+  
+  // Remove the application
+  this.applications.pull(applicationId);
+  
+  // Update analytics if needed
+  if (this.analytics.applicationsCount > 0) {
+    this.analytics.applicationsCount -= 1;
+  }
+  
+  return this.save();
+};
+
 // Method to update application status
 jobSchema.methods.updateApplicationStatus = function(applicationId, status, feedback = null) {
   const application = this.applications.id(applicationId);
@@ -352,10 +382,13 @@ jobSchema.methods.isJobActive = function() {
     return false;
   }
   
-  if (this.applicationProcess.deadline && new Date() > this.applicationProcess.deadline) {
+  // If job is paused, respect the deadline strictly
+  if (this.status === 'paused' && this.applicationProcess.deadline && new Date() > this.applicationProcess.deadline) {
     return false;
   }
   
+  // For active/featured jobs, deadline is informational only
+  // Applications are allowed even after deadline if job is still active
   return true;
 };
 
@@ -373,12 +406,18 @@ jobSchema.methods.getInactiveReason = function() {
     return 'This position has been filled';
   }
   
-  if (this.applicationProcess.deadline && new Date() > this.applicationProcess.deadline) {
+  // Only enforce deadline for paused jobs
+  if (this.status === 'paused' && this.applicationProcess.deadline && new Date() > this.applicationProcess.deadline) {
     const deadlineDate = new Date(this.applicationProcess.deadline).toLocaleDateString();
     return `The application deadline (${deadlineDate}) has passed`;
   }
   
   return null; // Job is active
+};
+
+// Method to check if deadline has passed (informational only)
+jobSchema.methods.isDeadlinePassed = function() {
+  return this.applicationProcess.deadline && new Date() > this.applicationProcess.deadline;
 };
 
 // Method to get salary range display

@@ -16,6 +16,7 @@ const {
   getJobApplications,
   updateApplicationStatus,
   getMyApplications,
+  withdrawApplication,
   getMyJobs,
   uploadCompanyLogo,
   getJobStats,
@@ -93,6 +94,11 @@ router.post('/:id/apply',
     required: false // Resume is optional
   }),
   applyForJob
+);
+router.delete('/:id/applications/:applicationId',
+  validateObjectIdParam('id'),
+  validateObjectIdParam('applicationId'),
+  withdrawApplication
 );
 
 // Application management routes (Employer/Admin only)

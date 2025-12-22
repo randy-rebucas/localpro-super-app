@@ -504,6 +504,14 @@ const applyForJob = async (req, res) => {
       });
     }
 
+    // Check if deadline has passed (informational warning, not blocking)
+    const deadlinePassed = job.isDeadlinePassed();
+    let warningMessage = null;
+    if (deadlinePassed) {
+      const deadlineDate = new Date(job.applicationProcess.deadline).toLocaleDateString();
+      warningMessage = `Note: The application deadline (${deadlineDate}) has passed, but applications are still being accepted.`;
+    }
+
     // Check if user already applied
     const existingApplication = job.applications.find(
       app => app.applicant.toString() === userId
@@ -579,7 +587,8 @@ const applyForJob = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Application submitted successfully'
+      message: 'Application submitted successfully',
+      ...(warningMessage && { warning: warningMessage })
     });
   } catch (error) {
     console.error('Apply for job error:', error);
@@ -784,6 +793,87 @@ const getMyApplications = async (req, res) => {
       success: false,
       message: 'Server error'
     });
+  }
+};
+
+// @desc    Withdraw job application
+// @route   DELETE /api/jobs/:jobId/applications/:applicationId
+// @access  Private
+const withdrawApplication = async (req, res) => {
+  try {
+    const { jobId, applicationId } = req.params;
+    const userId = req.user.id;
+
+    // Validate ObjectId format
+    if (!validateObjectId(jobId)) {
+      return sendValidationError(res, [{
+        field: 'jobId',
+        message: 'Invalid job ID format',
+        code: 'INVALID_JOB_ID'
+      }]);
+    }
+
+    if (!validateObjectId(applicationId)) {
+      return sendValidationError(res, [{
+        field: 'applicationId',
+        message: 'Invalid application ID format',
+        code: 'INVALID_APPLICATION_ID'
+      }]);
+    }
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    try {
+      await job.removeApplication(applicationId, userId);
+      
+      // Optionally send notification email to employer
+      try {
+        const employer = await User.findById(job.employer);
+        const applicant = await User.findById(userId);
+        
+        if (employer && employer.email && EmailService.sendJobApplicationWithdrawalNotification) {
+          await EmailService.sendJobApplicationWithdrawalNotification(
+            employer.email,
+            {
+              jobTitle: job.title,
+              companyName: job.company.name,
+              applicantName: `${applicant.firstName} ${applicant.lastName}`,
+              applicantEmail: applicant.email
+            }
+          );
+        }
+      } catch (emailError) {
+        console.error('Failed to send withdrawal notification email:', emailError);
+        // Don't fail the withdrawal if email fails
+      }
+
+      return sendSuccess(res, null, 'Application withdrawn successfully');
+    } catch (applicationError) {
+      if (applicationError.message === 'Application not found') {
+        return sendNotFoundError(res, 'Application not found', 'APPLICATION_NOT_FOUND');
+      }
+      if (applicationError.message === 'Not authorized to withdraw this application') {
+        return res.status(403).json({
+          success: false,
+          message: 'You are not authorized to withdraw this application',
+          code: 'UNAUTHORIZED_WITHDRAWAL'
+        });
+      }
+      if (applicationError.message === 'Cannot withdraw an application that has been accepted') {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot withdraw an application that has been accepted',
+          code: 'CANNOT_WITHDRAW_HIRED'
+        });
+      }
+      throw applicationError;
+    }
+  } catch (error) {
+    console.error('Withdraw application error:', error);
+    return sendServerError(res, error, 'Failed to withdraw application', 'WITHDRAW_APPLICATION_ERROR');
   }
 };
 
@@ -1093,6 +1183,7 @@ module.exports = {
   getJobApplications,
   updateApplicationStatus,
   getMyApplications,
+  withdrawApplication,
   getMyJobs,
   uploadCompanyLogo,
   getJobStats,
