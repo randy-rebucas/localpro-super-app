@@ -660,7 +660,7 @@ const getJobApplications = async (req, res) => {
 const updateApplicationStatus = async (req, res) => {
   try {
     const { status, feedback } = req.body;
-    const { jobId, applicationId } = req.params;
+    const { id: jobId, applicationId } = req.params;
 
     const job = await Job.findById(jobId);
     if (!job) {
