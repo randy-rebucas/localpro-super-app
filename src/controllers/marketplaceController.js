@@ -170,9 +170,27 @@ const createService = async (req, res) => {
       filesCount: req.files?.length || 0
     });
 
+    logger.debug('Create service - Raw request data', {
+      userId: req.user.id,
+      body: req.body,
+      bodyType: typeof req.body,
+      bodyStringified: JSON.stringify(req.body, null, 2),
+      files: req.files ? req.files.map(f => ({
+        fieldname: f.fieldname,
+        originalname: f.originalname,
+        mimetype: f.mimetype,
+        size: f.size
+      })) : null
+    });
+
     // Handle both JSON and multipart/form-data
     const contentType = req.get('content-type') || '';
     const isMultipart = contentType.includes('multipart/form-data');
+    
+    logger.debug('Create service - Content type detection', {
+      contentType,
+      isMultipart
+    });
     
     // Parse service data from body
     let serviceData;
@@ -180,27 +198,62 @@ const createService = async (req, res) => {
       // For multipart/form-data, parse JSON fields if they're strings
       serviceData = { ...req.body };
       
+      logger.debug('Create service - Parsing multipart data', {
+        rawBody: req.body,
+        parsedFields: Object.keys(serviceData)
+      });
+      
       // Parse JSON fields that might be sent as strings in form-data
       const jsonFields = ['pricing', 'availability', 'serviceArea', 'estimatedDuration', 'warranty', 'insurance', 'emergencyService', 'servicePackages', 'addOns'];
       jsonFields.forEach(field => {
         if (serviceData[field] && typeof serviceData[field] === 'string') {
           try {
+            const originalValue = serviceData[field];
             serviceData[field] = JSON.parse(serviceData[field]);
+            logger.debug(`Create service - Parsed ${field} from JSON string`, {
+              field,
+              original: originalValue,
+              parsed: serviceData[field]
+            });
           } catch (e) {
             // If parsing fails, keep original value
-            logger.warn(`Failed to parse ${field} as JSON`, { value: serviceData[field] });
+            logger.warn(`Failed to parse ${field} as JSON`, { 
+              field,
+              value: serviceData[field],
+              error: e.message 
+            });
           }
         }
       });
     } else {
       // For JSON requests, use body directly
       serviceData = { ...req.body };
+      logger.debug('Create service - Using JSON body directly', {
+        serviceDataKeys: Object.keys(serviceData)
+      });
     }
+
+    logger.debug('Create service - Parsed service data', {
+      serviceData: JSON.stringify(serviceData, null, 2),
+      serviceAreaType: typeof serviceData.serviceArea,
+      serviceAreaValue: serviceData.serviceArea
+    });
 
     // Only validate basic required fields
     const { title, category } = serviceData;
 
+    logger.debug('Create service - Validating required fields', {
+      title: title ? `${title.substring(0, 50)}...` : null,
+      titleType: typeof title,
+      category,
+      categoryType: typeof category
+    });
+
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      logger.warn('Create service - Validation failed: title missing or invalid', {
+        title,
+        titleType: typeof title
+      });
       return res.status(400).json({
         success: false,
         message: 'Service title is required',
@@ -209,6 +262,10 @@ const createService = async (req, res) => {
     }
 
     if (!category || typeof category !== 'string' || category.trim().length === 0) {
+      logger.warn('Create service - Validation failed: category missing or invalid', {
+        category,
+        categoryType: typeof category
+      });
       return res.status(400).json({
         success: false,
         message: 'Service category is required',
@@ -218,20 +275,41 @@ const createService = async (req, res) => {
 
     // Set provider
     serviceData.provider = req.user.id;
+    logger.debug('Create service - Set provider', {
+      provider: serviceData.provider
+    });
 
     // Remove any file-related fields that shouldn't be in the service document
     delete serviceData.images;
     delete serviceData.files;
     delete serviceData.file;
+    logger.debug('Create service - Cleaned service data', {
+      serviceDataKeys: Object.keys(serviceData),
+      hasServiceArea: !!serviceData.serviceArea
+    });
 
     // Enhance serviceArea with geocoding if coordinates are not provided
     if (serviceData.serviceArea && Array.isArray(serviceData.serviceArea)) {
+      logger.debug('Create service - Processing serviceArea', {
+        serviceAreaLength: serviceData.serviceArea.length,
+        firstItemType: typeof serviceData.serviceArea[0],
+        firstItem: serviceData.serviceArea[0]
+      });
+      
       // If serviceArea is in new format (array of objects), geocode if needed
       if (serviceData.serviceArea.length > 0 && typeof serviceData.serviceArea[0] === 'object') {
-        for (let area of serviceData.serviceArea) {
+        for (let i = 0; i < serviceData.serviceArea.length; i++) {
+          const area = serviceData.serviceArea[i];
+          logger.debug(`Create service - Processing serviceArea[${i}]`, {
+            area,
+            hasName: !!area.name,
+            hasCoordinates: !!area.coordinates
+          });
+          
           // If area has name but no coordinates, try to geocode it
           if (area.name && !area.coordinates) {
             try {
+              logger.debug(`Create service - Geocoding area: ${area.name}`);
               const geocodeResult = await GoogleMapsService.geocodeAddress(area.name);
               if (geocodeResult.success && geocodeResult.coordinates) {
                 area.coordinates = geocodeResult.coordinates;
@@ -239,11 +317,22 @@ const createService = async (req, res) => {
                 if (!area.radius) {
                   area.radius = 50; // 50 kilometers default radius
                 }
+                logger.debug(`Create service - Geocoded successfully`, {
+                  area: area.name,
+                  coordinates: area.coordinates,
+                  radius: area.radius
+                });
+              } else {
+                logger.warn('Create service - Geocoding returned no coordinates', {
+                  area: area.name,
+                  geocodeResult
+                });
               }
             } catch (geocodeError) {
               logger.warn('Failed to geocode service area', {
                 area: area.name,
-                error: geocodeError.message
+                error: geocodeError.message,
+                stack: geocodeError.stack
               });
               // Continue without geocoding if it fails
             }
@@ -252,17 +341,49 @@ const createService = async (req, res) => {
       }
     }
 
+    logger.debug('Create service - Final service data before save', {
+      serviceData: JSON.stringify(serviceData, null, 2),
+      serviceAreaFinal: serviceData.serviceArea
+    });
+
     // Create the service first
+    logger.debug('Create service - Creating service in database');
     const service = await Service.create(serviceData);
+    logger.debug('Create service - Service created', {
+      serviceId: service._id,
+      serviceTitle: service.title,
+      serviceCategory: service.category,
+      serviceArea: service.serviceArea
+    });
 
     // Upload images if provided
     if (req.files && req.files.length > 0) {
+      logger.debug('Create service - Uploading images', {
+        filesCount: req.files.length,
+        files: req.files.map(f => ({
+          fieldname: f.fieldname,
+          originalname: f.originalname,
+          mimetype: f.mimetype,
+          size: f.size
+        }))
+      });
+      
       try {
         // Upload multiple files to Cloudinary
+        logger.debug('Create service - Calling CloudinaryService.uploadMultipleFiles');
         const uploadResult = await CloudinaryService.uploadMultipleFiles(
           req.files, 
           'localpro/marketplace'
         );
+
+        logger.debug('Create service - Cloudinary upload result', {
+          success: uploadResult.success,
+          dataLength: uploadResult.data?.length || 0,
+          errors: uploadResult.errors,
+          total: uploadResult.total,
+          successful: uploadResult.successful,
+          failed: uploadResult.failed
+        });
 
         if (uploadResult.success && uploadResult.data && uploadResult.data.length > 0) {
           // Ensure images array exists
@@ -280,8 +401,17 @@ const createService = async (req, res) => {
               alt: `Service image for ${service.title || 'Service'}`
             }));
 
+          logger.debug('Create service - Processed images', {
+            newImagesCount: newImages.length,
+            newImages: newImages.map(img => ({
+              url: img.url,
+              publicId: img.publicId
+            }))
+          });
+
           if (newImages.length > 0) {
             service.images.push(...newImages);
+            logger.debug('Create service - Saving service with images');
             await service.save();
 
             logger.info('Service images uploaded during creation', {
@@ -307,10 +437,13 @@ const createService = async (req, res) => {
         logger.error('Error uploading images during service creation', {
           serviceId: service._id,
           error: imageError.message,
-          stack: imageError.stack
+          stack: imageError.stack,
+          name: imageError.name
         });
         // Don't fail the service creation if image upload fails
       }
+    } else {
+      logger.debug('Create service - No images to upload');
     }
 
     logger.info('Service created successfully', {
@@ -376,26 +509,147 @@ const createService = async (req, res) => {
 // @access  Private (Provider)
 const updateService = async (req, res) => {
   try {
+    logger.info('Update service request', {
+      serviceId: req.params.id,
+      userId: req.user.id,
+      contentType: req.get('content-type'),
+      bodyKeys: Object.keys(req.body || {}),
+      hasFiles: !!req.files,
+      filesCount: req.files?.length || 0
+    });
+
+    logger.debug('Update service - Raw request data', {
+      serviceId: req.params.id,
+      userId: req.user.id,
+      body: req.body,
+      bodyStringified: JSON.stringify(req.body, null, 2)
+    });
+
     let service = await Service.findById(req.params.id);
 
     if (!service) {
+      logger.warn('Update service - Service not found', {
+        serviceId: req.params.id,
+        userId: req.user.id
+      });
       return res.status(404).json({
         success: false,
         message: 'Service not found'
       });
     }
 
-    // Check if user is the provider
-    if (service.provider.toString() !== req.user.id) {
+    logger.debug('Update service - Found service', {
+      serviceId: service._id,
+      currentTitle: service.title,
+      currentProvider: service.provider.toString(),
+      currentServiceArea: service.serviceArea
+    });
+
+    // Check if user is the provider or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+
+    logger.debug('Update service - Authorization check', {
+      isAdmin,
+      isProvider,
+      userRoles,
+      serviceProvider: service.provider.toString(),
+      userId: req.user.id
+    });
+
+    if (!isProvider && !isAdmin) {
+      logger.warn('Update service - Unauthorized', {
+        serviceId: req.params.id,
+        userId: req.user.id,
+        serviceProvider: service.provider.toString()
+      });
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this service'
       });
     }
 
+    // Handle both JSON and multipart/form-data
+    const contentType = req.get('content-type') || '';
+    const isMultipart = contentType.includes('multipart/form-data');
+    
+    logger.debug('Update service - Content type detection', {
+      contentType,
+      isMultipart
+    });
+    
+    // Parse service data from body
+    let updateData;
+    if (isMultipart) {
+      // For multipart/form-data, parse JSON fields if they're strings
+      updateData = { ...req.body };
+      
+      logger.debug('Update service - Parsing multipart data', {
+        rawBody: req.body,
+        parsedFields: Object.keys(updateData)
+      });
+      
+      // Parse JSON fields that might be sent as strings in form-data
+      const jsonFields = ['pricing', 'availability', 'serviceArea', 'estimatedDuration', 'warranty', 'insurance', 'emergencyService', 'servicePackages', 'addOns'];
+      jsonFields.forEach(field => {
+        if (updateData[field] && typeof updateData[field] === 'string') {
+          try {
+            const originalValue = updateData[field];
+            updateData[field] = JSON.parse(updateData[field]);
+            logger.debug(`Update service - Parsed ${field} from JSON string`, {
+              field,
+              original: originalValue,
+              parsed: updateData[field]
+            });
+          } catch (e) {
+            // If parsing fails, keep original value
+            logger.warn(`Failed to parse ${field} as JSON`, { 
+              field,
+              value: updateData[field],
+              error: e.message 
+            });
+          }
+        }
+      });
+    } else {
+      // For JSON requests, use body directly
+      updateData = { ...req.body };
+      logger.debug('Update service - Using JSON body directly', {
+        updateDataKeys: Object.keys(updateData)
+      });
+    }
+
+    logger.debug('Update service - Parsed update data', {
+      updateData: JSON.stringify(updateData, null, 2),
+      serviceAreaType: typeof updateData.serviceArea,
+      serviceAreaValue: updateData.serviceArea
+    });
+
+    // Remove fields that shouldn't be updated
+    const removedFields = [];
+    if (updateData._id) { removedFields.push('_id'); delete updateData._id; }
+    if (updateData.provider) { removedFields.push('provider'); delete updateData.provider; }
+    if (updateData.createdAt) { removedFields.push('createdAt'); delete updateData.createdAt; }
+    if (updateData.updatedAt) { removedFields.push('updatedAt'); delete updateData.updatedAt; }
+    if (updateData.rating) { removedFields.push('rating'); delete updateData.rating; }
+    if (updateData.images) { removedFields.push('images'); delete updateData.images; }
+    if (updateData.files) { removedFields.push('files'); delete updateData.files; }
+    if (updateData.file) { removedFields.push('file'); delete updateData.file; }
+
+    logger.debug('Update service - Cleaned update data', {
+      removedFields,
+      remainingFields: Object.keys(updateData),
+      hasServiceArea: !!updateData.serviceArea
+    });
+
     // Normalize serviceArea if provided (to handle both old and new formats)
-    const updateData = { ...req.body };
     if (updateData.serviceArea !== undefined) {
+      logger.debug('Update service - Normalizing serviceArea', {
+        originalServiceArea: updateData.serviceArea,
+        originalType: typeof updateData.serviceArea
+      });
+      
       // Import normalizeServiceArea helper
       const { normalizeServiceArea } = require('../utils/serviceAreaHelper');
       
@@ -403,7 +657,11 @@ const updateService = async (req, res) => {
       let serviceAreaData = updateData.serviceArea;
       if (typeof serviceAreaData === 'string') {
         try {
+          logger.debug('Update service - Parsing serviceArea string as JSON');
           serviceAreaData = JSON.parse(serviceAreaData);
+          logger.debug('Update service - Parsed serviceArea', {
+            parsed: serviceAreaData
+          });
         } catch (parseError) {
           logger.warn('Failed to parse serviceArea as JSON, treating as string', {
             serviceArea: serviceAreaData,
@@ -412,17 +670,108 @@ const updateService = async (req, res) => {
         }
       }
       
-      updateData.serviceArea = normalizeServiceArea(serviceAreaData);
+      const normalized = normalizeServiceArea(serviceAreaData);
+      logger.debug('Update service - Normalized serviceArea', {
+        normalized,
+        normalizedType: typeof normalized,
+        normalizedLength: Array.isArray(normalized) ? normalized.length : 'N/A'
+      });
+      
+      updateData.serviceArea = normalized;
     }
+
+    // Update serviceArea with geocoding if coordinates are not provided
+    if (updateData.serviceArea && Array.isArray(updateData.serviceArea)) {
+      logger.debug('Update service - Processing serviceArea for geocoding', {
+        serviceAreaLength: updateData.serviceArea.length,
+        firstItemType: typeof updateData.serviceArea[0],
+        firstItem: updateData.serviceArea[0]
+      });
+      
+      if (updateData.serviceArea.length > 0 && typeof updateData.serviceArea[0] === 'object') {
+        for (let i = 0; i < updateData.serviceArea.length; i++) {
+          const area = updateData.serviceArea[i];
+          logger.debug(`Update service - Processing serviceArea[${i}]`, {
+            area,
+            hasName: !!area.name,
+            hasCoordinates: !!area.coordinates
+          });
+          
+          // If area has name but no coordinates, try to geocode it
+          if (area.name && !area.coordinates) {
+            try {
+              logger.debug(`Update service - Geocoding area: ${area.name}`);
+              const geocodeResult = await GoogleMapsService.geocodeAddress(area.name);
+              if (geocodeResult.success && geocodeResult.coordinates) {
+                area.coordinates = geocodeResult.coordinates;
+                // Set default radius if not provided (50km default)
+                if (!area.radius) {
+                  area.radius = 50; // 50 kilometers default radius
+                }
+                logger.debug(`Update service - Geocoded successfully`, {
+                  area: area.name,
+                  coordinates: area.coordinates,
+                  radius: area.radius
+                });
+              } else {
+                logger.warn('Update service - Geocoding returned no coordinates', {
+                  area: area.name,
+                  geocodeResult
+                });
+              }
+            } catch (geocodeError) {
+              logger.warn('Failed to geocode service area', {
+                area: area.name,
+                error: geocodeError.message,
+                stack: geocodeError.stack
+              });
+              // Continue without geocoding if it fails
+            }
+          }
+        }
+      }
+    }
+
+    logger.debug('Update service - Final update data before save', {
+      updateData: JSON.stringify(updateData, null, 2),
+      serviceAreaFinal: updateData.serviceArea,
+      fieldsToUpdate: Object.keys(updateData)
+    });
 
     // Update the service document directly to ensure pre-save hooks run
     // This is better than findByIdAndUpdate for Mixed types
-    Object.assign(service, updateData);
+    const updatedFields = [];
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] !== undefined) {
+        const oldValue = service[key];
+        service[key] = updateData[key];
+        updatedFields.push({
+          field: key,
+          oldValue: oldValue,
+          newValue: updateData[key]
+        });
+      }
+    });
+
+    logger.debug('Update service - Fields updated', {
+      updatedFields: updatedFields.map(f => ({
+        field: f.field,
+        oldValueType: typeof f.oldValue,
+        newValueType: typeof f.newValue
+      }))
+    });
+
+    logger.debug('Update service - Saving service to database');
     await service.save();
+    logger.debug('Update service - Service saved', {
+      serviceId: service._id,
+      updatedServiceArea: service.serviceArea
+    });
 
     logger.info('Service updated successfully', {
       serviceId: service._id,
-      userId: req.user.id
+      userId: req.user.id,
+      updatedFields: Object.keys(updateData)
     });
 
     res.status(200).json({
@@ -436,7 +785,8 @@ const updateService = async (req, res) => {
       stack: error.stack,
       name: error.name,
       serviceId: req.params.id,
-      userId: req.user?.id
+      userId: req.user?.id,
+      bodyKeys: Object.keys(req.body || {})
     });
 
     // Handle Mongoose validation errors
@@ -461,7 +811,8 @@ const updateService = async (req, res) => {
         message: `Invalid data format for field: ${error.path}`,
         code: 'CAST_ERROR',
         field: error.path,
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        value: process.env.NODE_ENV === 'development' ? error.value : undefined
       });
     }
 
