@@ -109,6 +109,9 @@ async function initializeApplication() {
     
     logger.info('✅ Database connection verified successfully');
     
+    // Initialize automated services
+    initializeAutomatedServices();
+    
     // Start the server
     startServer();
     
@@ -503,6 +506,29 @@ function startServer() {
       logger.info(`🔍 Error monitoring active`);
       logger.info(`💬 Live Chat WebSocket available at ws://localhost:${PORT}/ws/live-chat`);
     });
+  }
+}
+
+// Initialize automated services
+function initializeAutomatedServices() {
+  try {
+    // Automated Backup Service
+    if (process.env.ENABLE_AUTOMATED_BACKUPS === 'true' || process.env.NODE_ENV === 'production') {
+      const automatedBackupService = require('./services/automatedBackupService');
+      automatedBackupService.start();
+      logger.info('✅ Automated backup service started');
+    }
+
+    // Add other automated services here as they are implemented
+    // Example:
+    // if (process.env.ENABLE_AUTOMATED_CLEANUP === 'true') {
+    //   const automatedLogCleanupService = require('./services/automatedLogCleanupService');
+    //   automatedLogCleanupService.start();
+    //   logger.info('✅ Automated log cleanup service started');
+    // }
+  } catch (error) {
+    logger.error('❌ Failed to initialize automated services:', error);
+    // Don't exit - allow server to start even if automation fails
   }
 }
 

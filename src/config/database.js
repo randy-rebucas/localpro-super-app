@@ -31,7 +31,9 @@ const connectDB = async () => {
       },
       
       // Read Preference
-      readPreference: 'primaryPreferred',
+      // Using 'primary' instead of 'primaryPreferred' to support transactions
+      // Transactions require 'primary' read preference
+      readPreference: 'primary',
       
       // Compression
       compressors: ['zlib'],

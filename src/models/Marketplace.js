@@ -62,17 +62,22 @@ const serviceSchema = new mongoose.Schema({
   },
   serviceArea: {
     coordinates: {
-      lat: {
-        type: Number,
-        required: true,
-        min: -90,
-        max: 90
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
       },
-      lng: {
-        type: Number,
+      coordinates: {
+        type: [Number], // [longitude, latitude] for GeoJSON
         required: true,
-        min: -180,
-        max: 180
+        validate: {
+          validator: function(arr) {
+            return arr.length === 2 && 
+                   arr[0] >= -180 && arr[0] <= 180 && // longitude
+                   arr[1] >= -90 && arr[1] <= 90;    // latitude
+          },
+          message: 'Coordinates must be [longitude, latitude] array'
+        }
       }
     },
     radius: {
@@ -321,6 +326,9 @@ serviceSchema.index({ provider: 1, isActive: 1 });
 serviceSchema.index({ 'rating.average': -1, 'rating.count': -1 });
 serviceSchema.index({ createdAt: -1, isActive: 1 });
 serviceSchema.index({ updatedAt: -1, isActive: 1 });
+// Geospatial index for serviceArea coordinates (2dsphere for geospatial queries)
+// Note: coordinates must be in GeoJSON format: { type: 'Point', coordinates: [lng, lat] }
+serviceSchema.index({ 'serviceArea.coordinates': '2dsphere' });
 
 // Text search index
 serviceSchema.index({
@@ -338,8 +346,12 @@ bookingSchema.index({ client: 1, status: 1 });
 bookingSchema.index({ provider: 1, status: 1 });
 bookingSchema.index({ service: 1, status: 1 });
 
+// Check if models already exist to avoid duplicate registration
+const Service = mongoose.models.Service || mongoose.model('Service', serviceSchema);
+const Booking = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);
+
 module.exports = {
-  Service: mongoose.model('Service', serviceSchema),
-  Booking: mongoose.model('Booking', bookingSchema)
+  Service,
+  Booking
 };
 

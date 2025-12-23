@@ -58,5 +58,8 @@ serviceCategorySchema.statics.getByKey = function(key) {
     .select('-__v -createdAt -updatedAt');
 };
 
-module.exports = mongoose.model('ServiceCategory', serviceCategorySchema);
+// Check if model already exists to avoid duplicate registration
+const ServiceCategory = mongoose.models.ServiceCategory || mongoose.model('ServiceCategory', serviceCategorySchema);
+
+module.exports = ServiceCategory;
 
