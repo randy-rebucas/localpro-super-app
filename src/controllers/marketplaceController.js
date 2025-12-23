@@ -326,12 +326,51 @@ const createService = async (req, res) => {
         message: 'Service area is required',
         code: 'SERVICE_AREA_REQUIRED'
       });
-    } else if (!Array.isArray(serviceArea) || serviceArea.length === 0) {
+    } else if (typeof serviceArea !== 'object' || Array.isArray(serviceArea)) {
       validationErrors.push({
         field: 'serviceArea',
-        message: 'Service area must be a non-empty array',
+        message: 'Service area must be an object with coordinates and radius',
         code: 'SERVICE_AREA_INVALID'
       });
+    } else {
+      // Validate coordinates
+      if (!serviceArea.coordinates || typeof serviceArea.coordinates !== 'object') {
+        validationErrors.push({
+          field: 'serviceArea.coordinates',
+          message: 'Service area coordinates are required',
+          code: 'SERVICE_AREA_COORDINATES_REQUIRED'
+        });
+      } else {
+        if (typeof serviceArea.coordinates.lat !== 'number' || 
+            serviceArea.coordinates.lat < -90 || 
+            serviceArea.coordinates.lat > 90) {
+          validationErrors.push({
+            field: 'serviceArea.coordinates.lat',
+            message: 'Latitude must be a number between -90 and 90',
+            code: 'SERVICE_AREA_LAT_INVALID'
+          });
+        }
+        if (typeof serviceArea.coordinates.lng !== 'number' || 
+            serviceArea.coordinates.lng < -180 || 
+            serviceArea.coordinates.lng > 180) {
+          validationErrors.push({
+            field: 'serviceArea.coordinates.lng',
+            message: 'Longitude must be a number between -180 and 180',
+            code: 'SERVICE_AREA_LNG_INVALID'
+          });
+        }
+      }
+      
+      // Validate radius
+      if (typeof serviceArea.radius !== 'number' || 
+          serviceArea.radius < 1 || 
+          serviceArea.radius > 1000) {
+        validationErrors.push({
+          field: 'serviceArea.radius',
+          message: 'Service radius must be a number between 1 and 1000 kilometers',
+          code: 'SERVICE_AREA_RADIUS_INVALID'
+        });
+      }
     }
 
     // Return validation errors if any
@@ -363,57 +402,47 @@ const createService = async (req, res) => {
       hasServiceArea: !!serviceData.serviceArea
     });
 
-    // Enhance serviceArea with geocoding if coordinates are not provided
-    if (serviceData.serviceArea && Array.isArray(serviceData.serviceArea)) {
-      logger.debug('Create service - Processing serviceArea', {
-        serviceAreaLength: serviceData.serviceArea.length,
-        firstItemType: typeof serviceData.serviceArea[0],
-        firstItem: serviceData.serviceArea[0]
-      });
-      
-      // If serviceArea is in new format (array of objects), geocode if needed
-      if (serviceData.serviceArea.length > 0 && typeof serviceData.serviceArea[0] === 'object') {
-        for (let i = 0; i < serviceData.serviceArea.length; i++) {
-          const area = serviceData.serviceArea[i];
-          logger.debug(`Create service - Processing serviceArea[${i}]`, {
-            area,
-            hasName: !!area.name,
-            hasCoordinates: !!area.coordinates
-          });
-          
-          // If area has name but no coordinates, try to geocode it
-          if (area.name && !area.coordinates) {
-            try {
-              logger.debug(`Create service - Geocoding area: ${area.name}`);
-              const geocodeResult = await GoogleMapsService.geocodeAddress(area.name);
-              if (geocodeResult.success && geocodeResult.coordinates) {
-                area.coordinates = geocodeResult.coordinates;
-                // Set default radius if not provided (50km default)
-                if (!area.radius) {
-                  area.radius = 50; // 50 kilometers default radius
-                }
-                logger.debug(`Create service - Geocoded successfully`, {
-                  area: area.name,
-                  coordinates: area.coordinates,
-                  radius: area.radius
-                });
-              } else {
-                logger.warn('Create service - Geocoding returned no coordinates', {
-                  area: area.name,
-                  geocodeResult
-                });
-              }
-            } catch (geocodeError) {
-              logger.warn('Failed to geocode service area', {
-                area: area.name,
-                error: geocodeError.message,
-                stack: geocodeError.stack
-              });
-              // Continue without geocoding if it fails
-            }
+    // Enhance serviceArea: if address is provided, geocode it to get coordinates
+    if (serviceData.serviceArea && serviceData.serviceArea.address && !serviceData.serviceArea.coordinates) {
+      try {
+        logger.debug('Create service - Geocoding service area address', {
+          address: serviceData.serviceArea.address
+        });
+        const geocodeResult = await GoogleMapsService.geocodeAddress(serviceData.serviceArea.address);
+        if (geocodeResult.success && geocodeResult.coordinates) {
+          serviceData.serviceArea.coordinates = geocodeResult.coordinates;
+          // Set default radius if not provided (50km default)
+          if (!serviceData.serviceArea.radius) {
+            serviceData.serviceArea.radius = 50; // 50 kilometers default radius
           }
+          // Remove address field as it's not part of the schema
+          delete serviceData.serviceArea.address;
+          logger.debug('Create service - Geocoded successfully', {
+            coordinates: serviceData.serviceArea.coordinates,
+            radius: serviceData.serviceArea.radius
+          });
+        } else {
+          logger.warn('Create service - Geocoding returned no coordinates', {
+            address: serviceData.serviceArea.address,
+            geocodeResult
+          });
         }
+      } catch (geocodeError) {
+        logger.warn('Failed to geocode service area', {
+          address: serviceData.serviceArea.address,
+          error: geocodeError.message,
+          stack: geocodeError.stack
+        });
+        // Continue without geocoding if it fails
       }
+    }
+    
+    // Ensure radius has a default if not provided
+    if (serviceData.serviceArea && serviceData.serviceArea.coordinates && !serviceData.serviceArea.radius) {
+      serviceData.serviceArea.radius = 50; // Default 50 km radius
+      logger.debug('Create service - Set default radius', {
+        radius: serviceData.serviceArea.radius
+      });
     }
 
     logger.debug('Create service - Final service data before save', {
@@ -726,92 +755,69 @@ const updateService = async (req, res) => {
       hasServiceArea: !!updateData.serviceArea
     });
 
-    // Normalize serviceArea if provided (to handle both old and new formats)
+    // Handle serviceArea update: if address is provided, geocode it to get coordinates
     if (updateData.serviceArea !== undefined) {
-      logger.debug('Update service - Normalizing serviceArea', {
+      logger.debug('Update service - Processing serviceArea', {
         originalServiceArea: updateData.serviceArea,
         originalType: typeof updateData.serviceArea
       });
       
-      // Import normalizeServiceArea helper
-      const { normalizeServiceArea } = require('../utils/serviceAreaHelper');
-      
       // Handle stringified JSON if needed
-      let serviceAreaData = updateData.serviceArea;
-      if (typeof serviceAreaData === 'string') {
+      if (typeof updateData.serviceArea === 'string') {
         try {
           logger.debug('Update service - Parsing serviceArea string as JSON');
-          serviceAreaData = JSON.parse(serviceAreaData);
+          updateData.serviceArea = JSON.parse(updateData.serviceArea);
           logger.debug('Update service - Parsed serviceArea', {
-            parsed: serviceAreaData
+            parsed: updateData.serviceArea
           });
         } catch (parseError) {
-          logger.warn('Failed to parse serviceArea as JSON, treating as string', {
-            serviceArea: serviceAreaData,
+          logger.warn('Failed to parse serviceArea as JSON', {
+            serviceArea: updateData.serviceArea,
             error: parseError.message
           });
         }
       }
       
-      const normalized = normalizeServiceArea(serviceAreaData);
-      logger.debug('Update service - Normalized serviceArea', {
-        normalized,
-        normalizedType: typeof normalized,
-        normalizedLength: Array.isArray(normalized) ? normalized.length : 'N/A'
-      });
-      
-      updateData.serviceArea = normalized;
-    }
-
-    // Update serviceArea with geocoding if coordinates are not provided
-    if (updateData.serviceArea && Array.isArray(updateData.serviceArea)) {
-      logger.debug('Update service - Processing serviceArea for geocoding', {
-        serviceAreaLength: updateData.serviceArea.length,
-        firstItemType: typeof updateData.serviceArea[0],
-        firstItem: updateData.serviceArea[0]
-      });
-      
-      if (updateData.serviceArea.length > 0 && typeof updateData.serviceArea[0] === 'object') {
-        for (let i = 0; i < updateData.serviceArea.length; i++) {
-          const area = updateData.serviceArea[i];
-          logger.debug(`Update service - Processing serviceArea[${i}]`, {
-            area,
-            hasName: !!area.name,
-            hasCoordinates: !!area.coordinates
+      // If address is provided but no coordinates, geocode it
+      if (updateData.serviceArea && updateData.serviceArea.address && !updateData.serviceArea.coordinates) {
+        try {
+          logger.debug('Update service - Geocoding service area address', {
+            address: updateData.serviceArea.address
           });
-          
-          // If area has name but no coordinates, try to geocode it
-          if (area.name && !area.coordinates) {
-            try {
-              logger.debug(`Update service - Geocoding area: ${area.name}`);
-              const geocodeResult = await GoogleMapsService.geocodeAddress(area.name);
-              if (geocodeResult.success && geocodeResult.coordinates) {
-                area.coordinates = geocodeResult.coordinates;
-                // Set default radius if not provided (50km default)
-                if (!area.radius) {
-                  area.radius = 50; // 50 kilometers default radius
-                }
-                logger.debug(`Update service - Geocoded successfully`, {
-                  area: area.name,
-                  coordinates: area.coordinates,
-                  radius: area.radius
-                });
-              } else {
-                logger.warn('Update service - Geocoding returned no coordinates', {
-                  area: area.name,
-                  geocodeResult
-                });
-              }
-            } catch (geocodeError) {
-              logger.warn('Failed to geocode service area', {
-                area: area.name,
-                error: geocodeError.message,
-                stack: geocodeError.stack
-              });
-              // Continue without geocoding if it fails
+          const geocodeResult = await GoogleMapsService.geocodeAddress(updateData.serviceArea.address);
+          if (geocodeResult.success && geocodeResult.coordinates) {
+            updateData.serviceArea.coordinates = geocodeResult.coordinates;
+            // Set default radius if not provided (50km default)
+            if (!updateData.serviceArea.radius) {
+              updateData.serviceArea.radius = 50; // 50 kilometers default radius
             }
+            // Remove address field as it's not part of the schema
+            delete updateData.serviceArea.address;
+            logger.debug('Update service - Geocoded successfully', {
+              coordinates: updateData.serviceArea.coordinates,
+              radius: updateData.serviceArea.radius
+            });
+          } else {
+            logger.warn('Update service - Geocoding returned no coordinates', {
+              address: updateData.serviceArea.address,
+              geocodeResult
+            });
           }
+        } catch (geocodeError) {
+          logger.warn('Failed to geocode service area', {
+            address: updateData.serviceArea.address,
+            error: geocodeError.message,
+            stack: geocodeError.stack
+          });
         }
+      }
+      
+      // Ensure radius has a default if not provided
+      if (updateData.serviceArea && updateData.serviceArea.coordinates && !updateData.serviceArea.radius) {
+        updateData.serviceArea.radius = 50; // Default 50 km radius
+        logger.debug('Update service - Set default radius', {
+          radius: updateData.serviceArea.radius
+        });
       }
     }
 

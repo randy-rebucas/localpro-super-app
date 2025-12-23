@@ -61,32 +61,25 @@ const serviceSchema = new mongoose.Schema({
     }
   },
   serviceArea: {
-    type: mongoose.Schema.Types.Mixed, // Supports both old format [String] and new format [Object]
-    required: true,
-    validate: {
-      validator: function(value) {
-        // Allow array of strings (old format) for backward compatibility
-        if (Array.isArray(value) && value.length > 0) {
-          // Check if it's old format (array of strings)
-          if (typeof value[0] === 'string') {
-            return true;
-          }
-          // Check if it's new format (array of objects)
-          if (typeof value[0] === 'object' && value[0] !== null) {
-            return value.every(area => {
-              // Each area object should have at least one of: name, coordinates, zipCodes, cities
-              return (
-                area.name || 
-                area.coordinates || 
-                (area.zipCodes && Array.isArray(area.zipCodes)) ||
-                (area.cities && Array.isArray(area.cities))
-              );
-            });
-          }
-        }
-        return false;
+    coordinates: {
+      lat: {
+        type: Number,
+        required: true,
+        min: -90,
+        max: 90
       },
-      message: 'serviceArea must be an array of strings (old format) or objects with name/coordinates/zipCodes/cities (new format)'
+      lng: {
+        type: Number,
+        required: true,
+        min: -180,
+        max: 180
+      }
+    },
+    radius: {
+      type: Number,
+      required: true,
+      min: 1, // Minimum 1 km
+      max: 1000 // Maximum 1000 km
     }
   },
   images: [{
