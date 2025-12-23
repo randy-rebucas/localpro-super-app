@@ -301,7 +301,17 @@ const searchServices = async (query, filters = {}) => {
     }
 
     if (filters.location) {
-      searchQuery.serviceArea = { $in: [new RegExp(filters.location, 'i')] };
+      // Use serviceAreaHelper for better location filtering
+      const { buildServiceAreaQuery } = require('../utils/serviceAreaHelper');
+      const serviceAreaQuery = buildServiceAreaQuery({
+        location: filters.location,
+        coordinates: filters.coordinates || null,
+        maxDistance: filters.maxDistance || null
+      });
+      
+      if (Object.keys(serviceAreaQuery).length > 0) {
+        Object.assign(searchQuery, serviceAreaQuery);
+      }
     }
 
     if (filters.minPrice || filters.maxPrice) {

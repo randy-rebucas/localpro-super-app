@@ -399,16 +399,53 @@ class GoogleMapsService {
       const zipCode = addressComponents.postalCode;
       const state = addressComponents.state;
 
+      // Normalize serviceAreas - handle both old format (array of strings) and new format (array of objects)
+      const normalizedAreas = Array.isArray(serviceAreas) && serviceAreas.length > 0
+        ? (typeof serviceAreas[0] === 'string' 
+          ? serviceAreas.map(area => ({ name: area, zipCodes: [], cities: [], coordinates: null, radius: null }))
+          : serviceAreas)
+        : [];
+
       // Check if any service area matches
-      const isInServiceArea = serviceAreas.some(area => {
-        const areaLower = area.toLowerCase();
-        return (
-          city && city.toLowerCase().includes(areaLower) ||
-          zipCode && zipCode.includes(area) ||
-          state && state.toLowerCase().includes(areaLower) ||
-          areaLower.includes(city?.toLowerCase()) ||
-          areaLower.includes(state?.toLowerCase())
-        );
+      const isInServiceArea = normalizedAreas.some(area => {
+        // Check zip code match
+        if (zipCode && area.zipCodes && Array.isArray(area.zipCodes)) {
+          if (area.zipCodes.includes(zipCode)) return true;
+        }
+        
+        // Check city name match
+        if (city && area.cities && Array.isArray(area.cities)) {
+          if (area.cities.some(c => 
+            c.toLowerCase().includes(city.toLowerCase()) || 
+            city.toLowerCase().includes(c.toLowerCase())
+          )) return true;
+        }
+        
+        // Check name match (for backward compatibility and old format)
+        if (area.name) {
+          const areaLower = area.name.toLowerCase();
+          if (
+            city && city.toLowerCase().includes(areaLower) ||
+            zipCode && zipCode.includes(area.name) ||
+            state && state.toLowerCase().includes(areaLower) ||
+            areaLower.includes(city?.toLowerCase()) ||
+            areaLower.includes(state?.toLowerCase())
+          ) return true;
+        }
+        
+        // Check geospatial match (if coordinates and radius are available)
+        if (area.coordinates && area.radius && 
+            area.coordinates.lat && area.coordinates.lng) {
+          const distance = this.calculateDistance(
+            coordinates.lat,
+            coordinates.lng,
+            area.coordinates.lat,
+            area.coordinates.lng
+          );
+          if (distance <= area.radius) return true;
+        }
+        
+        return false;
       });
 
       return {
@@ -428,6 +465,34 @@ class GoogleMapsService {
         error: error.message || 'Service area validation failed'
       };
     }
+  }
+  
+  /**
+   * Calculate distance between two coordinates using Haversine formula
+   * @param {number} lat1 - Latitude of first point
+   * @param {number} lon1 - Longitude of first point
+   * @param {number} lat2 - Latitude of second point
+   * @param {number} lon2 - Longitude of second point
+   * @returns {number} Distance in kilometers
+   */
+  calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = this.toRad(lat2 - lat1);
+    const dLon = this.toRad(lon2 - lon1);
+    
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    
+    return distance;
+  }
+  
+  toRad(degrees) {
+    return degrees * (Math.PI / 180);
   }
 
   /**

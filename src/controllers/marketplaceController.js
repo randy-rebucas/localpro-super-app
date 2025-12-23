@@ -14,6 +14,7 @@ const {
   sendServerError,
   createPagination 
 } = require('../utils/responseHelper');
+const { buildServiceAreaQuery } = require('../utils/serviceAreaHelper');
 
 // @desc    Get all services
 // @route   GET /api/marketplace/services
@@ -39,14 +40,21 @@ const getServices = async (req, res) => {
 
     if (category) filter.category = category;
     if (subcategory) filter.subcategory = subcategory;
-    if (location) {
-      // Enhanced location filtering with Google Maps
-      if (req.query.coordinates) {
-        // If coordinates are provided, find services within radius
-        // For now, use text-based filtering, but this could be enhanced with geospatial queries
-        filter.serviceArea = { $in: [new RegExp(location, 'i')] };
-      } else {
-        filter.serviceArea = { $in: [new RegExp(location, 'i')] };
+    if (location || req.query.coordinates) {
+      // Enhanced location filtering - supports both old and new serviceArea formats
+      const coordinates = req.query.coordinates 
+        ? JSON.parse(req.query.coordinates) 
+        : null;
+      
+      const serviceAreaQuery = buildServiceAreaQuery({
+        location,
+        coordinates,
+        maxDistance: req.query.maxDistance ? Number(req.query.maxDistance) : null
+      });
+      
+      // Merge serviceArea query into filter
+      if (Object.keys(serviceAreaQuery).length > 0) {
+        Object.assign(filter, serviceAreaQuery);
       }
     }
     if (minPrice || maxPrice) {
@@ -205,6 +213,34 @@ const createService = async (req, res) => {
     delete serviceData.files;
     delete serviceData.file;
 
+    // Enhance serviceArea with geocoding if coordinates are not provided
+    if (serviceData.serviceArea && Array.isArray(serviceData.serviceArea)) {
+      // If serviceArea is in new format (array of objects), geocode if needed
+      if (serviceData.serviceArea.length > 0 && typeof serviceData.serviceArea[0] === 'object') {
+        for (let area of serviceData.serviceArea) {
+          // If area has name but no coordinates, try to geocode it
+          if (area.name && !area.coordinates) {
+            try {
+              const geocodeResult = await GoogleMapsService.geocodeAddress(area.name);
+              if (geocodeResult.success && geocodeResult.coordinates) {
+                area.coordinates = geocodeResult.coordinates;
+                // Set default radius if not provided (50km default)
+                if (!area.radius) {
+                  area.radius = 50; // 50 kilometers default radius
+                }
+              }
+            } catch (geocodeError) {
+              logger.warn('Failed to geocode service area', {
+                area: area.name,
+                error: geocodeError.message
+              });
+              // Continue without geocoding if it fails
+            }
+          }
+        }
+      }
+    }
+
     const service = await Service.create(serviceData);
 
     logger.info('Service created successfully', {
@@ -286,9 +322,36 @@ const updateService = async (req, res) => {
       });
     }
 
-    service = await Service.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
+    // Normalize serviceArea if provided (to handle both old and new formats)
+    const updateData = { ...req.body };
+    if (updateData.serviceArea !== undefined) {
+      // Import normalizeServiceArea helper
+      const { normalizeServiceArea } = require('../utils/serviceAreaHelper');
+      
+      // Handle stringified JSON if needed
+      let serviceAreaData = updateData.serviceArea;
+      if (typeof serviceAreaData === 'string') {
+        try {
+          serviceAreaData = JSON.parse(serviceAreaData);
+        } catch (parseError) {
+          logger.warn('Failed to parse serviceArea as JSON, treating as string', {
+            serviceArea: serviceAreaData,
+            error: parseError.message
+          });
+        }
+      }
+      
+      updateData.serviceArea = normalizeServiceArea(serviceAreaData);
+    }
+
+    // Update the service document directly to ensure pre-save hooks run
+    // This is better than findByIdAndUpdate for Mixed types
+    Object.assign(service, updateData);
+    await service.save();
+
+    logger.info('Service updated successfully', {
+      serviceId: service._id,
+      userId: req.user.id
     });
 
     res.status(200).json({
@@ -297,10 +360,46 @@ const updateService = async (req, res) => {
       data: service
     });
   } catch (error) {
-    console.error('Update service error:', error);
+    logger.error('Update service error', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      serviceId: req.params.id,
+      userId: req.user?.id
+    });
+
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        code: 'VALIDATION_ERROR',
+        errors: errors
+      });
+    }
+
+    // Handle Cast errors (like the serviceArea casting issue)
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid data format for field: ${error.path}`,
+        code: 'CAST_ERROR',
+        field: error.path,
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+
+    // Generic server error
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Failed to update service',
+      code: 'SERVER_ERROR',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -1021,23 +1120,72 @@ const uploadServiceImages = async (req, res) => {
     );
 
     if (!uploadResult.success) {
+      logger.error('Failed to upload service images to Cloudinary', {
+        serviceId,
+        error: uploadResult.error,
+        errors: uploadResult.errors,
+        userId: req.user.id
+      });
       return res.status(500).json({
         success: false,
         message: 'Failed to upload service images',
-        error: uploadResult.error
+        error: uploadResult.error || uploadResult.errors,
+        code: 'UPLOAD_FAILED'
       });
     }
 
+    // Validate upload result data
+    if (!uploadResult.data || uploadResult.data.length === 0) {
+      logger.error('No files were successfully uploaded', {
+        serviceId,
+        total: uploadResult.total,
+        successful: uploadResult.successful,
+        failed: uploadResult.failed,
+        errors: uploadResult.errors
+      });
+      return res.status(500).json({
+        success: false,
+        message: 'No files were successfully uploaded',
+        code: 'NO_FILES_UPLOADED',
+        errors: uploadResult.errors
+      });
+    }
+
+    // Ensure images array exists
+    if (!service.images) {
+      service.images = [];
+    }
+
     // Add new images to service
-    const newImages = uploadResult.data.map(file => ({
-      url: file.secure_url,
-      publicId: file.public_id,
-      thumbnail: CloudinaryService.getOptimizedUrl(file.public_id, 'thumbnail'),
-      alt: `Service image for ${service.title}`
-    }));
+    const newImages = uploadResult.data
+      .filter(file => file && file.secure_url && file.public_id) // Filter out invalid files
+      .map(file => ({
+        url: file.secure_url,
+        publicId: file.public_id,
+        thumbnail: CloudinaryService.getOptimizedUrl(file.public_id, 'thumbnail'),
+        alt: `Service image for ${service.title || 'Service'}`
+      }));
+
+    if (newImages.length === 0) {
+      logger.error('No valid image data after processing', {
+        serviceId,
+        uploadedFiles: uploadResult.data
+      });
+      return res.status(500).json({
+        success: false,
+        message: 'No valid image data after processing',
+        code: 'INVALID_IMAGE_DATA'
+      });
+    }
 
     service.images.push(...newImages);
     await service.save();
+
+    logger.info('Service images uploaded successfully', {
+      serviceId,
+      imagesCount: newImages.length,
+      userId: req.user.id
+    });
 
     res.status(200).json({
       success: true,
@@ -1045,10 +1193,36 @@ const uploadServiceImages = async (req, res) => {
       data: newImages
     });
   } catch (error) {
-    console.error('Upload service images error:', error);
+    logger.error('Upload service images error', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      serviceId: req.params.id,
+      userId: req.user?.id,
+      filesCount: req.files?.length || 0
+    });
+
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        code: 'VALIDATION_ERROR',
+        errors: errors
+      });
+    }
+
+    // Generic server error
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Failed to upload service images',
+      code: 'SERVER_ERROR',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

@@ -61,8 +61,33 @@ const serviceSchema = new mongoose.Schema({
     }
   },
   serviceArea: {
-    type: [String], // Array of zip codes or cities
-    required: true
+    type: mongoose.Schema.Types.Mixed, // Supports both old format [String] and new format [Object]
+    required: true,
+    validate: {
+      validator: function(value) {
+        // Allow array of strings (old format) for backward compatibility
+        if (Array.isArray(value) && value.length > 0) {
+          // Check if it's old format (array of strings)
+          if (typeof value[0] === 'string') {
+            return true;
+          }
+          // Check if it's new format (array of objects)
+          if (typeof value[0] === 'object' && value[0] !== null) {
+            return value.every(area => {
+              // Each area object should have at least one of: name, coordinates, zipCodes, cities
+              return (
+                area.name || 
+                area.coordinates || 
+                (area.zipCodes && Array.isArray(area.zipCodes)) ||
+                (area.cities && Array.isArray(area.cities))
+              );
+            });
+          }
+        }
+        return false;
+      },
+      message: 'serviceArea must be an array of strings (old format) or objects with name/coordinates/zipCodes/cities (new format)'
+    }
   },
   images: [{
     url: String,
@@ -140,6 +165,28 @@ const serviceSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true
+});
+
+// Pre-save hook to normalize serviceArea format (backward compatibility)
+serviceSchema.pre('save', function(next) {
+  // If serviceArea is in old format (array of strings), convert to new format
+  if (Array.isArray(this.serviceArea) && this.serviceArea.length > 0 && typeof this.serviceArea[0] === 'string') {
+    // Convert old format to new format
+    this.serviceArea = this.serviceArea.map(area => {
+      // Check if it's a zip code (numeric) or city name
+      const isZipCode = /^\d{5}(-\d{4})?$/.test(area.trim());
+      
+      return {
+        name: area.trim(),
+        zipCodes: isZipCode ? [area.trim()] : [],
+        cities: isZipCode ? [] : [area.trim()],
+        // Note: coordinates and radius can be added later via geocoding
+        coordinates: null,
+        radius: null // in kilometers
+      };
+    });
+  }
+  next();
 });
 
 const bookingSchema = new mongoose.Schema({
