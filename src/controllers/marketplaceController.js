@@ -239,37 +239,112 @@ const createService = async (req, res) => {
       serviceAreaValue: serviceData.serviceArea
     });
 
-    // Only validate basic required fields
-    const { title, category } = serviceData;
+    // Validate all required fields before attempting to create
+    const { title, description, category, subcategory, pricing, serviceArea } = serviceData;
+    const validationErrors = [];
 
     logger.debug('Create service - Validating required fields', {
       title: title ? `${title.substring(0, 50)}...` : null,
       titleType: typeof title,
+      hasDescription: !!description,
+      descriptionType: typeof description,
       category,
-      categoryType: typeof category
+      categoryType: typeof category,
+      hasSubcategory: !!subcategory,
+      subcategoryType: typeof subcategory,
+      hasPricing: !!pricing,
+      pricingType: typeof pricing,
+      hasServiceArea: !!serviceArea,
+      serviceAreaType: typeof serviceArea,
+      serviceAreaIsArray: Array.isArray(serviceArea)
     });
 
+    // Validate title
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
-      logger.warn('Create service - Validation failed: title missing or invalid', {
-        title,
-        titleType: typeof title
-      });
-      return res.status(400).json({
-        success: false,
-        message: 'Service title is required',
-        code: 'VALIDATION_ERROR'
+      validationErrors.push({
+        field: 'title',
+        message: 'Service title is required and must be a non-empty string',
+        code: 'TITLE_REQUIRED'
       });
     }
 
+    // Validate description
+    if (!description || typeof description !== 'string' || description.trim().length === 0) {
+      validationErrors.push({
+        field: 'description',
+        message: 'Service description is required and must be a non-empty string',
+        code: 'DESCRIPTION_REQUIRED'
+      });
+    }
+
+    // Validate category
     if (!category || typeof category !== 'string' || category.trim().length === 0) {
-      logger.warn('Create service - Validation failed: category missing or invalid', {
-        category,
-        categoryType: typeof category
+      validationErrors.push({
+        field: 'category',
+        message: 'Service category is required and must be a valid category',
+        code: 'CATEGORY_REQUIRED'
+      });
+    }
+
+    // Validate subcategory
+    if (!subcategory || typeof subcategory !== 'string' || subcategory.trim().length === 0) {
+      validationErrors.push({
+        field: 'subcategory',
+        message: 'Service subcategory is required and must be a non-empty string',
+        code: 'SUBCATEGORY_REQUIRED'
+      });
+    }
+
+    // Validate pricing
+    if (!pricing || typeof pricing !== 'object') {
+      validationErrors.push({
+        field: 'pricing',
+        message: 'Pricing information is required',
+        code: 'PRICING_REQUIRED'
+      });
+    } else {
+      if (!pricing.type || !['hourly', 'fixed', 'per_sqft', 'per_item'].includes(pricing.type)) {
+        validationErrors.push({
+          field: 'pricing.type',
+          message: 'Pricing type is required and must be one of: hourly, fixed, per_sqft, per_item',
+          code: 'PRICING_TYPE_INVALID'
+        });
+      }
+      if (!pricing.basePrice || typeof pricing.basePrice !== 'number' || pricing.basePrice <= 0) {
+        validationErrors.push({
+          field: 'pricing.basePrice',
+          message: 'Pricing basePrice is required and must be a positive number',
+          code: 'PRICING_BASE_PRICE_INVALID'
+        });
+      }
+    }
+
+    // Validate serviceArea
+    if (!serviceArea) {
+      validationErrors.push({
+        field: 'serviceArea',
+        message: 'Service area is required',
+        code: 'SERVICE_AREA_REQUIRED'
+      });
+    } else if (!Array.isArray(serviceArea) || serviceArea.length === 0) {
+      validationErrors.push({
+        field: 'serviceArea',
+        message: 'Service area must be a non-empty array',
+        code: 'SERVICE_AREA_INVALID'
+      });
+    }
+
+    // Return validation errors if any
+    if (validationErrors.length > 0) {
+      logger.warn('Create service - Validation failed', {
+        validationErrors,
+        serviceData: JSON.stringify(serviceData, null, 2)
       });
       return res.status(400).json({
         success: false,
-        message: 'Service category is required',
-        code: 'VALIDATION_ERROR'
+        message: 'Validation error',
+        code: 'VALIDATION_ERROR',
+        errors: validationErrors
       });
     }
 
@@ -465,15 +540,23 @@ const createService = async (req, res) => {
       stack: error.stack,
       name: error.name,
       userId: req.user.id,
-      bodyKeys: Object.keys(req.body || {})
+      bodyKeys: Object.keys(req.body || {}),
+      serviceData: JSON.stringify(serviceData || {}, null, 2)
     });
 
     // Handle Mongoose validation errors
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => ({
         field: err.path,
-        message: err.message
+        message: err.message,
+        value: err.value,
+        kind: err.kind
       }));
+
+      logger.error('Create service - Mongoose validation error', {
+        errors,
+        serviceData: JSON.stringify(serviceData || {}, null, 2)
+      });
 
       return res.status(400).json({
         success: false,
