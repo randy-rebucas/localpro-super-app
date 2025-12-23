@@ -1,0 +1,32 @@
+{
+  "providerType": "business",
+  "businessInfo": {
+    "businessName": "Tech Solutions Inc.",
+    "businessAddress": {
+      "street": "789 Business Ave",
+      "city": "Makati",
+      "state": "Metro Manila",
+      "country": "Philippines"
+    },
+    "businessPhone": "+639171234567",
+    "businessEmail": "contact@techsolutions.com",
+    "website": "https://techsolutions.com"
+  },
+  "professionalInfo": {
+    "specialties": [
+      {
+        "category": "other",
+        "subcategories": ["software_development"],
+        "experience": 5,
+        "serviceAreas": [
+          {
+            "city": "Makati",
+            "state": "Metro Manila",
+            "radius": 25
+          }
+        ]
+      }
+    ]
+  }
+}
+

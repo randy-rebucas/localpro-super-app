@@ -183,7 +183,19 @@ const newService = {
     ],
     timezone: "UTC"
   },
-  serviceArea: ["10001", "10002", "10003"],
+  // Old format (still supported, automatically converted to new format)
+  // serviceArea: ["10001", "10002", "10003"],
+  
+  // New format (recommended - supports geospatial queries)
+  serviceArea: [
+    {
+      name: "Manhattan",
+      zipCodes: ["10001", "10002", "10003"],
+      cities: ["New York"],
+      radius: 50 // kilometers
+      // coordinates will be auto-geocoded if not provided
+    }
+  ],
   features: ["Eco-friendly products", "Insured", "Same-day service"],
   requirements: ["Access to water", "Parking space"],
   serviceType: "one_time",
