@@ -47,7 +47,7 @@ function normalizeServiceArea(serviceArea) {
  * @returns {Object} MongoDB query object
  */
 function buildServiceAreaQuery(options = {}) {
-  const { location, coordinates, maxDistance } = options;
+  const { location, coordinates } = options;
   
   if (!location && !coordinates) {
     return {};

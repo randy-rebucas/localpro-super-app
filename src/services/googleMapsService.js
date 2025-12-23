@@ -436,7 +436,7 @@ class GoogleMapsService {
         // Check geospatial match (if coordinates and radius are available)
         if (area.coordinates && area.radius && 
             area.coordinates.lat && area.coordinates.lng) {
-          const distance = this.calculateDistance(
+          const distance = this.calculateDistanceHaversine(
             coordinates.lat,
             coordinates.lng,
             area.coordinates.lat,
@@ -475,7 +475,7 @@ class GoogleMapsService {
    * @param {number} lon2 - Longitude of second point
    * @returns {number} Distance in kilometers
    */
-  calculateDistance(lat1, lon1, lat2, lon2) {
+  calculateDistanceHaversine(lat1, lon1, lat2, lon2) {
     const R = 6371; // Earth's radius in kilometers
     const dLat = this.toRad(lat2 - lat1);
     const dLon = this.toRad(lon2 - lon1);
