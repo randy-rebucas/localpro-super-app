@@ -91,7 +91,19 @@ router.get('/my-services', getMyServices);
 router.get('/my-bookings', getMyBookings);
 
 // Service routes
-router.post('/services', authorize('provider', 'admin'), createService);
+// Allow both JSON and multipart/form-data for service creation (with optional images)
+// Create conditional middleware that only applies multer for multipart requests
+const optionalImageUpload = (req, res, next) => {
+  const contentType = req.get('content-type') || '';
+  if (contentType.includes('multipart/form-data')) {
+    // Apply multer middleware for multipart requests
+    return uploaders.marketplace.array('images', 5)(req, res, next);
+  }
+  // Skip multer for JSON requests
+  next();
+};
+
+router.post('/services', authorize('provider', 'admin'), optionalImageUpload, createService);
 router.put('/services/:id', authorize('provider', 'admin'), updateService);
 router.patch('/services/:id/deactivate', authorize('provider', 'admin'), deactivateService);
 router.patch('/services/:id/activate', authorize('provider', 'admin'), activateService);

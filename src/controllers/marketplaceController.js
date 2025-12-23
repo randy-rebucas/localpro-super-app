@@ -170,22 +170,35 @@ const createService = async (req, res) => {
       filesCount: req.files?.length || 0
     });
 
-    // Ensure we're receiving JSON, not multipart/form-data
+    // Handle both JSON and multipart/form-data
     const contentType = req.get('content-type') || '';
-    if (contentType.includes('multipart/form-data')) {
-      logger.warn('Create service received multipart/form-data instead of JSON', {
-        contentType,
-        userId: req.user.id
+    const isMultipart = contentType.includes('multipart/form-data');
+    
+    // Parse service data from body
+    let serviceData;
+    if (isMultipart) {
+      // For multipart/form-data, parse JSON fields if they're strings
+      serviceData = { ...req.body };
+      
+      // Parse JSON fields that might be sent as strings in form-data
+      const jsonFields = ['pricing', 'availability', 'serviceArea', 'estimatedDuration', 'warranty', 'insurance', 'emergencyService', 'servicePackages', 'addOns'];
+      jsonFields.forEach(field => {
+        if (serviceData[field] && typeof serviceData[field] === 'string') {
+          try {
+            serviceData[field] = JSON.parse(serviceData[field]);
+          } catch (e) {
+            // If parsing fails, keep original value
+            logger.warn(`Failed to parse ${field} as JSON`, { value: serviceData[field] });
+          }
+        }
       });
-      return res.status(400).json({
-        success: false,
-        message: 'This endpoint expects JSON data. Use /api/marketplace/services/:id/images for file uploads.',
-        code: 'INVALID_CONTENT_TYPE'
-      });
+    } else {
+      // For JSON requests, use body directly
+      serviceData = { ...req.body };
     }
 
     // Only validate basic required fields
-    const { title, category } = req.body;
+    const { title, category } = serviceData;
 
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
       return res.status(400).json({
@@ -203,13 +216,11 @@ const createService = async (req, res) => {
       });
     }
 
-    const serviceData = {
-      ...req.body,
-      provider: req.user.id
-    };
+    // Set provider
+    serviceData.provider = req.user.id;
 
     // Remove any file-related fields that shouldn't be in the service document
-    delete serviceData.images; // Images should be uploaded separately
+    delete serviceData.images;
     delete serviceData.files;
     delete serviceData.file;
 
@@ -241,13 +252,73 @@ const createService = async (req, res) => {
       }
     }
 
+    // Create the service first
     const service = await Service.create(serviceData);
+
+    // Upload images if provided
+    if (req.files && req.files.length > 0) {
+      try {
+        // Upload multiple files to Cloudinary
+        const uploadResult = await CloudinaryService.uploadMultipleFiles(
+          req.files, 
+          'localpro/marketplace'
+        );
+
+        if (uploadResult.success && uploadResult.data && uploadResult.data.length > 0) {
+          // Ensure images array exists
+          if (!service.images) {
+            service.images = [];
+          }
+
+          // Add new images to service
+          const newImages = uploadResult.data
+            .filter(file => file && file.secure_url && file.public_id)
+            .map(file => ({
+              url: file.secure_url,
+              publicId: file.public_id,
+              thumbnail: CloudinaryService.getOptimizedUrl(file.public_id, 'thumbnail'),
+              alt: `Service image for ${service.title || 'Service'}`
+            }));
+
+          if (newImages.length > 0) {
+            service.images.push(...newImages);
+            await service.save();
+
+            logger.info('Service images uploaded during creation', {
+              serviceId: service._id,
+              imagesCount: newImages.length,
+              userId: req.user.id
+            });
+          } else {
+            logger.warn('No valid images after processing during service creation', {
+              serviceId: service._id,
+              uploadResult: uploadResult
+            });
+          }
+        } else {
+          logger.warn('Failed to upload images during service creation', {
+            serviceId: service._id,
+            error: uploadResult.error,
+            errors: uploadResult.errors
+          });
+          // Don't fail the service creation if image upload fails
+        }
+      } catch (imageError) {
+        logger.error('Error uploading images during service creation', {
+          serviceId: service._id,
+          error: imageError.message,
+          stack: imageError.stack
+        });
+        // Don't fail the service creation if image upload fails
+      }
+    }
 
     logger.info('Service created successfully', {
       serviceId: service._id,
       title: service.title,
       category: service.category,
-      providerId: req.user.id
+      providerId: req.user.id,
+      imagesUploaded: req.files?.length || 0
     });
 
     res.status(201).json({
