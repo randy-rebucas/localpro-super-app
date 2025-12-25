@@ -24,11 +24,30 @@ const colors = {
 // Tell winston that you want to link the colors
 winston.addColors(colors);
 
+// Helpers for env-driven config
+const getEnvBool = (name, defaultValue = false) => {
+  const v = process.env[name];
+  if (v === undefined || v === null || v === '') return defaultValue;
+  const s = String(v).toLowerCase();
+  if (['true', '1', 'yes', 'y'].includes(s)) return true;
+  if (['false', '0', 'no', 'n'].includes(s)) return false;
+  return defaultValue;
+};
+
+const LOG_FILE_MAX_SIZE = process.env.LOG_FILE_MAX_SIZE || '20m';
+const LOG_FILE_MAX_FILES = process.env.LOG_FILE_MAX_FILES || '14d';
+const LOG_HTTP_REQUESTS = getEnvBool('LOG_HTTP_REQUESTS', true);
+const DEFAULT_LOG_LEVEL =
+  process.env.NODE_ENV === 'test'
+    ? 'error'
+    : (process.env.LOG_LEVEL || (process.env.NODE_ENV === 'development' ? 'debug' : 'warn'));
+
 // Define which transports the logger must use to print out messages
 const transports = [
   // Console transport (silent during tests)
   new winston.transports.Console({
     silent: process.env.NODE_ENV === 'test', // Suppress console output during tests
+    level: DEFAULT_LOG_LEVEL,
     format: winston.format.combine(
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
       winston.format.colorize({ all: true }),
@@ -48,8 +67,8 @@ const transports = [
       winston.format.errors({ stack: true }),
       winston.format.json()
     ),
-    maxSize: '20m',
-    maxFiles: '14d',
+    maxSize: LOG_FILE_MAX_SIZE,
+    maxFiles: LOG_FILE_MAX_FILES,
   }),
   
   // Combined log file
@@ -61,27 +80,30 @@ const transports = [
       winston.format.errors({ stack: true }),
       winston.format.json()
     ),
-    maxSize: '20m',
-    maxFiles: '14d',
+    maxSize: LOG_FILE_MAX_SIZE,
+    maxFiles: LOG_FILE_MAX_FILES,
   }),
   
-  // HTTP requests log file
-  new DailyRotateFile({
-    filename: path.join('logs', 'http-%DATE%.log'),
-    datePattern: 'YYYY-MM-DD',
-    level: 'http',
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.json()
-    ),
-    maxSize: '20m',
-    maxFiles: '7d',
-  }),
+  // HTTP requests log file (optional)
+  ...(LOG_HTTP_REQUESTS ? [
+    new DailyRotateFile({
+      filename: path.join('logs', 'http-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      level: 'http',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+      ),
+      maxSize: LOG_FILE_MAX_SIZE,
+      // Keep HTTP logs shorter by default unless overridden
+      maxFiles: process.env.LOG_HTTP_MAX_FILES || '7d',
+    })
+  ] : []),
 
   // Database transport for storing logs in MongoDB (only if enabled)
   ...(process.env.LOG_DATABASE_ENABLED !== 'false' ? [
     new DatabaseTransport({
-      level: process.env.LOG_LEVEL || 'info',
+      level: DEFAULT_LOG_LEVEL,
       batchSize: parseInt(process.env.LOG_BATCH_SIZE) || 100,
       flushInterval: parseInt(process.env.LOG_FLUSH_INTERVAL) || 5000
     })
@@ -90,7 +112,9 @@ const transports = [
 
 // Create the logger instance
 const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'test' ? 'error' : (process.env.NODE_ENV === 'development' ? 'debug' : 'warn'),
+  // Keep the base logger permissive; transports control what is actually emitted.
+  // This avoids unintentionally suppressing HTTP/file transports when production log level is 'warn'.
+  level: process.env.NODE_ENV === 'test' ? 'error' : 'debug',
   levels,
   transports: process.env.NODE_ENV === 'test' 
     ? [] // No transports during tests to suppress all output
@@ -108,6 +132,7 @@ if (!fs.existsSync(logsDir)) {
 // Create a stream object with a 'write' function that will be used by morgan
 logger.stream = {
   write: (message) => {
+    if (!LOG_HTTP_REQUESTS) return;
     logger.http(message.trim());
   },
 };

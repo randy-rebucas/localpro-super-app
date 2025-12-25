@@ -24,28 +24,64 @@ const NOTIFICATION_TYPE_MAP = {
   booking_confirmed: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'high' },
   booking_cancelled: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'high' },
   booking_completed: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'medium' },
+  booking_confirmation_needed: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'high' },
+  booking_pending_soon: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'high' },
+  booking_overdue_completion: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'medium' },
+  booking_overdue_admin_alert: { category: 'systemUpdates', smsCategory: null, priority: 'high' },
   
   // Job notifications
   job_application: { category: 'jobMatches', smsCategory: null, priority: 'high' },
   application_status_update: { category: 'jobMatches', smsCategory: null, priority: 'high' },
   job_posted: { category: 'jobMatches', smsCategory: null, priority: 'medium' },
+  job_digest: { category: 'jobMatches', smsCategory: null, priority: 'low' },
+  job_application_followup: { category: 'jobMatches', smsCategory: null, priority: 'medium' },
   
   // Message notifications
   message_received: { category: 'newMessages', smsCategory: 'urgentMessages', priority: 'medium' },
+  message_moderation_flag: { category: 'systemUpdates', smsCategory: null, priority: 'medium' },
+  message_policy_warning: { category: 'systemUpdates', smsCategory: null, priority: 'low' },
   
   // Payment notifications
   payment_received: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'high' },
   payment_failed: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'urgent' },
   subscription_renewal: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'medium' },
   subscription_cancelled: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'high' },
+  subscription_dunning_reminder: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'medium' },
   
   // Referral notifications
   referral_reward: { category: 'referralUpdates', smsCategory: null, priority: 'medium' },
+  referral_tier_upgraded: { category: 'referralUpdates', smsCategory: null, priority: 'low' },
   
   // System notifications
   course_enrollment: { category: 'systemUpdates', smsCategory: null, priority: 'medium' },
   order_confirmation: { category: 'systemUpdates', smsCategory: null, priority: 'medium' },
   system_announcement: { category: 'systemUpdates', smsCategory: null, priority: 'low' },
+  academy_not_started: { category: 'systemUpdates', smsCategory: null, priority: 'low' },
+  academy_progress_stalled: { category: 'systemUpdates', smsCategory: null, priority: 'low' },
+  academy_certificate_pending: { category: 'systemUpdates', smsCategory: null, priority: 'medium' },
+  livechat_sla_alert: { category: 'systemUpdates', smsCategory: null, priority: 'high' },
+
+  // Supplies / Orders
+  order_payment_pending: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'medium' },
+  order_sla_alert: { category: 'systemUpdates', smsCategory: null, priority: 'medium' },
+  order_delivery_confirmation: { category: 'systemUpdates', smsCategory: null, priority: 'medium' },
+  order_delivery_late_alert: { category: 'systemUpdates', smsCategory: null, priority: 'high' },
+  order_auto_delivered: { category: 'systemUpdates', smsCategory: null, priority: 'medium' },
+  supplies_reorder_reminder: { category: 'systemUpdates', smsCategory: null, priority: 'low' },
+
+  // Escrow dispute escalation
+  escrow_dispute_unresolved: { category: 'systemUpdates', smsCategory: null, priority: 'high' },
+  escrow_dispute_evidence_needed: { category: 'systemUpdates', smsCategory: null, priority: 'medium' },
+
+  // Rentals
+  rental_due_soon: { category: 'systemUpdates', smsCategory: null, priority: 'medium' },
+  rental_overdue: { category: 'systemUpdates', smsCategory: null, priority: 'high' },
+
+  // Finance
+  loan_repayment_due: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'medium' },
+  loan_repayment_overdue: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'high' },
+  salary_advance_due: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'medium' },
+  salary_advance_overdue: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'high' },
   
   // Security notifications (always sent via SMS if enabled)
   security_alert: { category: 'systemUpdates', smsCategory: 'securityAlerts', priority: 'urgent' },

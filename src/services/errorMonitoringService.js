@@ -83,11 +83,12 @@ const ErrorTracking = mongoose.model('ErrorTracking', errorTrackingSchema);
 class ErrorMonitoringService {
   constructor() {
     this.errorCounts = new Map();
+    this.enabled = process.env.ERROR_MONITORING_ENABLED !== 'false';
     this.alertThresholds = {
-      critical: 1,
-      high: 5,
-      medium: 10,
-      low: 20
+      critical: parseInt(process.env.ERROR_ALERT_THRESHOLDS_CRITICAL) || 1,
+      high: parseInt(process.env.ERROR_ALERT_THRESHOLDS_HIGH) || 5,
+      medium: parseInt(process.env.ERROR_ALERT_THRESHOLDS_MEDIUM) || 10,
+      low: parseInt(process.env.ERROR_ALERT_THRESHOLDS_LOW) || 20
     };
   }
 
@@ -144,6 +145,9 @@ class ErrorMonitoringService {
   // Track and log error
   async trackError(error, req = null, additionalInfo = {}) {
     try {
+      if (!this.enabled) {
+        return null;
+      }
       const errorId = this.generateErrorId(error, req);
       const severity = this.determineSeverity(error, req);
       const errorType = this.determineErrorType(error, req);

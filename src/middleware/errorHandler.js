@@ -9,6 +9,7 @@ const {
   sendServerError
 } = require('../utils/responseHelper');
 const logger = require('../config/logger');
+const errorMonitoringService = require('../services/errorMonitoringService');
 
 /**
  * Async error wrapper
@@ -45,6 +46,15 @@ const errorHandler = (error, req, res, _next) => {
     userAgent: req.get('User-Agent'), // eslint-disable-line no-undef
     userId: req.user?.id // eslint-disable-line no-undef
   });
+
+  // Production-grade error monitoring (best-effort, never blocks response)
+  try {
+    Promise.resolve(
+      errorMonitoringService.trackError(error, req, { code })
+    ).catch(() => {});
+  } catch {
+    // ignore
+  }
 
   // Handle specific error types
   if (error.name === 'ValidationError') {

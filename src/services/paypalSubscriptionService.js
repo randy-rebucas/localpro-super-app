@@ -4,9 +4,11 @@ const logger = require('../config/logger');
 
 class PayPalSubscriptionService {
   constructor() {
-    this.baseURL = process.env.PAYPAL_MODE === 'production' 
-      ? 'https://api-m.paypal.com'
-      : 'https://api-m.sandbox.paypal.com';
+    const paypalMode = (process.env.PAYPAL_MODE || 'sandbox').toLowerCase();
+    // Accept both "live" (documented) and legacy "production" as production aliases.
+    const isPayPalLive = paypalMode === 'live' || paypalMode === 'production';
+
+    this.baseURL = isPayPalLive ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
     
     this.clientId = process.env.PAYPAL_CLIENT_ID;
     this.clientSecret = process.env.PAYPAL_CLIENT_SECRET;

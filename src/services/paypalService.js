@@ -3,9 +3,11 @@ const PayPalSubscriptionService = require('./paypalSubscriptionService');
 const logger = require('../config/logger');
 
 // Configure PayPal SDK
-const environment = process.env.PAYPAL_MODE === 'production' 
-  ? paypal.Environment.Production
-  : paypal.Environment.Sandbox;
+const paypalMode = (process.env.PAYPAL_MODE || 'sandbox').toLowerCase();
+// Accept both "live" (documented in env validation) and legacy "production" as production aliases.
+const isPayPalLive = paypalMode === 'live' || paypalMode === 'production';
+
+const environment = isPayPalLive ? paypal.Environment.Production : paypal.Environment.Sandbox;
 
 const client = new paypal.Client({
   environment: environment,

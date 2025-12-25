@@ -218,7 +218,9 @@ function startServer() {
   app.use(metricsMiddleware);
 
   // Audit logging middleware
-  app.use(auditGeneralOperations);
+  if (process.env.AUDIT_LOGGING_ENABLED !== 'false') {
+    app.use(auditGeneralOperations);
+  }
 
   // Activity tracking middleware (tracks user activities automatically)
   app.use(activityTracker({
@@ -559,6 +561,125 @@ function initializeAutomatedServices() {
       const automatedLifecycleMarketingService = require('./services/automatedLifecycleMarketingService');
       automatedLifecycleMarketingService.start();
       logger.info('✅ Automated lifecycle marketing service started');
+    }
+
+    // Automated Messaging Nudges (unread message reminders)
+    if (process.env.ENABLE_AUTOMATED_MESSAGE_NUDGES === 'true') {
+      const automatedMessagingNudgeService = require('./services/automatedMessagingNudgeService');
+      automatedMessagingNudgeService.start();
+      logger.info('✅ Automated messaging nudge service started');
+    }
+
+    // Automated Orders Automations (supplies)
+    if (process.env.ENABLE_AUTOMATED_ORDERS_AUTOMATIONS === 'true') {
+      const automatedOrdersAutomationService = require('./services/automatedOrdersAutomationService');
+      automatedOrdersAutomationService.start();
+      logger.info('✅ Automated orders automation service started');
+    }
+
+    // Automated Finance Reminders (loans / salary advances)
+    if (process.env.ENABLE_AUTOMATED_FINANCE_REMINDERS === 'true') {
+      const automatedFinanceReminderService = require('./services/automatedFinanceReminderService');
+      automatedFinanceReminderService.start();
+      logger.info('✅ Automated finance reminder service started');
+    }
+
+    // Automated Rental Reminders (due soon / overdue)
+    if (process.env.ENABLE_AUTOMATED_RENTAL_REMINDERS === 'true') {
+      const automatedRentalReminderService = require('./services/automatedRentalReminderService');
+      automatedRentalReminderService.start();
+      logger.info('✅ Automated rental reminder service started');
+    }
+
+    // Automated Job Board Digest
+    if (process.env.ENABLE_AUTOMATED_JOB_DIGEST === 'true') {
+      const automatedJobBoardDigestService = require('./services/automatedJobBoardDigestService');
+      automatedJobBoardDigestService.start();
+      logger.info('✅ Automated job digest service started');
+    }
+
+    // Automated Academy Engagement
+    if (process.env.ENABLE_AUTOMATED_ACADEMY_ENGAGEMENT === 'true') {
+      const automatedAcademyEngagementService = require('./services/automatedAcademyEngagementService');
+      automatedAcademyEngagementService.start();
+      logger.info('✅ Automated academy engagement service started');
+    }
+
+    // Automated Live Chat SLA Alerts
+    if (process.env.ENABLE_AUTOMATED_LIVECHAT_SLA === 'true') {
+      const automatedLiveChatSlaService = require('./services/automatedLiveChatSlaService');
+      automatedLiveChatSlaService.start();
+      logger.info('✅ Automated live chat SLA service started');
+    }
+
+    // Marketplace booking follow-ups (extra nudges, no state changes)
+    if (process.env.ENABLE_AUTOMATED_BOOKING_FOLLOWUPS === 'true') {
+      const automatedMarketplaceBookingFollowUpService = require('./services/automatedMarketplaceBookingFollowUpService');
+      automatedMarketplaceBookingFollowUpService.start();
+      logger.info('✅ Automated marketplace booking follow-up service started');
+    }
+
+    // Supplies fulfillment / delivery confirmation reminders
+    if (process.env.ENABLE_AUTOMATED_SUPPLIES_FULFILLMENT === 'true') {
+      const automatedSuppliesFulfillmentService = require('./services/automatedSuppliesFulfillmentService');
+      automatedSuppliesFulfillmentService.start();
+      logger.info('✅ Automated supplies fulfillment service started');
+    }
+
+    // Academy certificates pending alerts (admin)
+    if (process.env.ENABLE_AUTOMATED_ACADEMY_CERTIFICATES === 'true') {
+      const automatedAcademyCertificateService = require('./services/automatedAcademyCertificateService');
+      automatedAcademyCertificateService.start();
+      logger.info('✅ Automated academy certificate service started');
+    }
+
+    // Job application follow-ups (employer reminders)
+    if (process.env.ENABLE_AUTOMATED_JOB_APPLICATION_FOLLOWUPS === 'true') {
+      const automatedJobApplicationFollowUpService = require('./services/automatedJobApplicationFollowUpService');
+      automatedJobApplicationFollowUpService.start();
+      logger.info('✅ Automated job application follow-up service started');
+    }
+
+    // Escrow dispute escalation (admin + party nudges)
+    if (process.env.ENABLE_AUTOMATED_ESCROW_DISPUTE_ESCALATIONS === 'true') {
+      const automatedEscrowDisputeEscalationService = require('./services/automatedEscrowDisputeEscalationService');
+      automatedEscrowDisputeEscalationService.start();
+      logger.info('✅ Automated escrow dispute escalation service started');
+    }
+
+    // Referral tier milestones
+    if (process.env.ENABLE_AUTOMATED_REFERRAL_TIER_MILESTONES === 'true') {
+      const automatedReferralTierMilestoneService = require('./services/automatedReferralTierMilestoneService');
+      automatedReferralTierMilestoneService.start();
+      logger.info('✅ Automated referral tier milestone service started');
+    }
+
+    // Marketplace booking no-show / overdue detection
+    if (process.env.ENABLE_AUTOMATED_BOOKING_NO_SHOW === 'true') {
+      const automatedMarketplaceNoShowService = require('./services/automatedMarketplaceNoShowService');
+      automatedMarketplaceNoShowService.start();
+      logger.info('✅ Automated marketplace booking no-show service started');
+    }
+
+    // Supplies reorder reminders
+    if (process.env.ENABLE_AUTOMATED_SUPPLIES_REORDER_REMINDERS === 'true') {
+      const automatedSuppliesReorderReminderService = require('./services/automatedSuppliesReorderReminderService');
+      automatedSuppliesReorderReminderService.start();
+      logger.info('✅ Automated supplies reorder reminder service started');
+    }
+
+    // Messaging moderation (flag contact leakage)
+    if (process.env.ENABLE_AUTOMATED_MESSAGE_MODERATION === 'true') {
+      const automatedMessagingModerationService = require('./services/automatedMessagingModerationService');
+      automatedMessagingModerationService.start();
+      logger.info('✅ Automated messaging moderation service started');
+    }
+
+    // LocalPro Plus subscription dunning reminders
+    if (process.env.ENABLE_AUTOMATED_SUBSCRIPTION_DUNNING === 'true') {
+      const automatedLocalProPlusDunningService = require('./services/automatedLocalProPlusDunningService');
+      automatedLocalProPlusDunningService.start();
+      logger.info('✅ Automated LocalPro Plus dunning service started');
     }
 
     // Automated Log & Audit Cleanup Service

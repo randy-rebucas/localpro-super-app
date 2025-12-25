@@ -159,7 +159,42 @@ const notificationSchema = new mongoose.Schema({
       'job_application', 'application_status_update', 'job_posted',
       'message_received', 'payment_received', 'payment_failed',
       'referral_reward', 'course_enrollment', 'order_confirmation',
-      'subscription_renewal', 'subscription_cancelled', 'system_announcement'
+      'subscription_renewal', 'subscription_cancelled', 'system_announcement',
+      // Supplies / Orders
+      'order_payment_pending', 'order_sla_alert',
+      // Rentals
+      'rental_due_soon', 'rental_overdue',
+      // Finance
+      'loan_repayment_due', 'loan_repayment_overdue', 'salary_advance_due', 'salary_advance_overdue',
+      // Job board
+      'job_digest',
+      // Academy
+      'academy_not_started', 'academy_progress_stalled',
+      // Live chat
+      'livechat_sla_alert',
+      // Marketplace booking follow-ups
+      'booking_confirmation_needed', 'booking_pending_soon',
+      // Supplies fulfillment / delivery confirmations
+      'order_delivery_confirmation', 'order_delivery_late_alert',
+      // Academy certificates
+      'academy_certificate_pending',
+      // Job application follow-ups
+      'job_application_followup',
+      // Escrow dispute escalation
+      'escrow_dispute_unresolved', 'escrow_dispute_evidence_needed',
+      // Supplies auto-deliver
+      'order_auto_delivered',
+      // Referral tier milestone
+      'referral_tier_upgraded'
+      ,
+      // Marketplace no-show / overdue bookings
+      'booking_overdue_completion', 'booking_overdue_admin_alert',
+      // Supplies reorder reminders
+      'supplies_reorder_reminder',
+      // Messaging moderation
+      'message_moderation_flag', 'message_policy_warning',
+      // Subscription dunning
+      'subscription_dunning_reminder'
     ],
     required: true
   },
