@@ -682,6 +682,13 @@ function initializeAutomatedServices() {
       logger.info('✅ Automated LocalPro Plus dunning service started');
     }
 
+    // Mobile-first lifecycle notifications (Option A)
+    if (process.env.ENABLE_AUTOMATED_MOBILE_LIFECYCLE === 'true') {
+      const automatedLifecycleMobileNotificationsService = require('./services/automatedLifecycleMobileNotificationsService');
+      automatedLifecycleMobileNotificationsService.start();
+      logger.info('✅ Automated lifecycle mobile notifications service started');
+    }
+
     // Automated Log & Audit Cleanup Service
     if (process.env.ENABLE_AUTOMATED_CLEANUP !== 'false') {
       const automatedLogCleanupService = require('./services/automatedLogCleanupService');

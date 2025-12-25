@@ -24,6 +24,7 @@ const NOTIFICATION_TYPE_MAP = {
   booking_confirmed: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'high' },
   booking_cancelled: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'high' },
   booking_completed: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'medium' },
+  booking_in_progress: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'medium' },
   booking_confirmation_needed: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'high' },
   booking_pending_soon: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'high' },
   booking_overdue_completion: { category: 'bookingUpdates', smsCategory: 'bookingReminders', priority: 'medium' },
@@ -40,6 +41,15 @@ const NOTIFICATION_TYPE_MAP = {
   message_received: { category: 'newMessages', smsCategory: 'urgentMessages', priority: 'medium' },
   message_moderation_flag: { category: 'systemUpdates', smsCategory: null, priority: 'medium' },
   message_policy_warning: { category: 'systemUpdates', smsCategory: null, priority: 'low' },
+
+  // Mobile-first lifecycle (Option A)
+  marketing_reengagement: { category: 'marketing', smsCategory: null, priority: 'low' },
+  marketing_weekly_digest: { category: 'marketing', smsCategory: null, priority: 'low' },
+  welcome_followup_day2: { category: 'systemUpdates', smsCategory: null, priority: 'low' },
+  welcome_followup_day7: { category: 'systemUpdates', smsCategory: null, priority: 'low' },
+  referral_nudge: { category: 'referralUpdates', smsCategory: null, priority: 'low' },
+  provider_activation_nudge: { category: 'systemUpdates', smsCategory: null, priority: 'low' },
+  subscription_expiring_soon: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'medium' },
   
   // Payment notifications
   payment_received: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'high' },

@@ -536,4 +536,18 @@ These aren’t “business workflows”, but they run automatically and can affe
 - **Config**:
   - `SUBSCRIPTION_DUNNING_SCHEDULE`, `SUBSCRIPTION_DUNNING_LOOKBACK_DAYS`, `SUBSCRIPTION_DUNNING_REMIND_DAYS`, `SUBSCRIPTION_DUNNING_DEDUP_HOURS`, `SUBSCRIPTION_DUNNING_LIMIT`
 
+### Mobile-first Lifecycle Notifications (Option A) — `src/services/automatedLifecycleMobileNotificationsService.js`
+- **What it does**: Mobile-first replacements for email-only lifecycle marketing; sends **in-app + push** via `NotificationService`.
+- **Enable (master)**:
+  - `ENABLE_AUTOMATED_MOBILE_LIFECYCLE=true`
+- **Enable (per automation)**:
+  - `ENABLE_MOBILE_REENGAGEMENT=true` (targets `push.marketing` opted-in inactive users)
+  - `ENABLE_MOBILE_WEEKLY_DIGEST=true` (targets `push.marketing` opted-in users)
+  - `ENABLE_MOBILE_WELCOME_FOLLOWUPS=true` (targets `push.systemUpdates` opted-in users)
+  - `ENABLE_MOBILE_REFERRAL_NUDGES=true` (targets `push.referralUpdates` opted-in users)
+  - `ENABLE_MOBILE_PROVIDER_ACTIVATION=true` (targets `push.systemUpdates` opted-in providers)
+  - `ENABLE_MOBILE_SUBSCRIPTION_EXPIRING_SOON=true` (targets `push.paymentUpdates` opted-in users)
+- **Notes**:
+  - Requires Firebase + FCM tokens for push delivery; still creates in-app notifications.
+
 

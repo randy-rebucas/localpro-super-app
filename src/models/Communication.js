@@ -156,6 +156,7 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     enum: [
       'booking_created', 'booking_confirmed', 'booking_cancelled', 'booking_completed',
+      'booking_in_progress',
       'job_application', 'application_status_update', 'job_posted',
       'message_received', 'payment_received', 'payment_failed',
       'referral_reward', 'course_enrollment', 'order_confirmation',
@@ -195,6 +196,16 @@ const notificationSchema = new mongoose.Schema({
       'message_moderation_flag', 'message_policy_warning',
       // Subscription dunning
       'subscription_dunning_reminder'
+      ,
+      // Mobile-first lifecycle notifications (Option A)
+      'marketing_reengagement', 'marketing_weekly_digest',
+      'welcome_followup_day2', 'welcome_followup_day7',
+      'referral_nudge',
+      'provider_activation_nudge',
+      'subscription_expiring_soon'
+      ,
+      // Security (used by NotificationService)
+      'security_alert'
     ],
     required: true
   },

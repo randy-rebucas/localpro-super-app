@@ -4,6 +4,7 @@ const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const GoogleMapsService = require('../services/googleMapsService');
 const PayPalService = require('../services/paypalService');
+const NotificationService = require('../services/notificationService');
 const mongoose = require('mongoose');
 const { ReadPreference } = require('mongodb');
 const logger = require('../config/logger');
@@ -1672,6 +1673,34 @@ const createBooking = async (req, res) => {
         { path: 'provider', select: 'firstName lastName email profile.businessName' }
       ]);
 
+      // Real-time notifications (mobile-first): new booking
+      // Provider gets "new booking request"; client gets confirmation that request was sent.
+      try {
+        await Promise.allSettled([
+          NotificationService.sendNotification({
+            userId: createdBooking.provider,
+            type: 'booking_created',
+            title: 'New booking request',
+            message: `You have a new booking request for "${createdBooking.service?.title || 'a service'}".`,
+            data: { bookingId: createdBooking._id, serviceId: createdBooking.service?._id },
+            priority: 'high'
+          }),
+          NotificationService.sendNotification({
+            userId: createdBooking.client,
+            type: 'booking_created',
+            title: 'Booking requested',
+            message: `Your booking request for "${createdBooking.service?.title || 'a service'}" was sent to the provider.`,
+            data: { bookingId: createdBooking._id, serviceId: createdBooking.service?._id },
+            priority: 'medium'
+          })
+        ]);
+      } catch (notifyError) {
+        logger.warn('Booking created notification failed', {
+          bookingId: createdBooking._id,
+          error: notifyError.message
+        });
+      }
+
       logger.info('Booking created successfully', {
         bookingId: createdBooking._id,
         serviceId: serviceId,
@@ -2086,6 +2115,38 @@ const updateBookingStatus = async (req, res) => {
       newStatus: status,
       userId
     });
+
+    // Real-time notifications for status changes (mobile-first)
+    try {
+      const typeMap = {
+        confirmed: 'booking_confirmed',
+        in_progress: 'booking_in_progress',
+        completed: 'booking_completed',
+        cancelled: 'booking_cancelled'
+      };
+      const notifType = typeMap[status] || null;
+
+      if (notifType) {
+        const recipients = [booking.client, booking.provider].filter(Boolean);
+        await Promise.allSettled(
+          recipients.map(uid =>
+            NotificationService.sendNotification({
+              userId: uid,
+              type: notifType,
+              title: `Booking ${status.replace('_', ' ')}`,
+              message: `Booking status updated to ${status.replace('_', ' ')}.`,
+              data: { bookingId: booking._id, status },
+              priority: status === 'cancelled' ? 'high' : 'medium'
+            })
+          )
+        );
+      }
+    } catch (notifyError) {
+      logger.warn('Booking status notification failed', {
+        bookingId: booking._id,
+        error: notifyError.message
+      });
+    }
 
     return sendSuccess(res, booking, 'Booking status updated successfully');
   } catch (error) {

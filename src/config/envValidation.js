@@ -757,6 +757,72 @@ const ENV_SCHEMA = {
     description: 'Cron schedule for subscription dunning'
   },
 
+  ENABLE_AUTOMATED_MOBILE_LIFECYCLE: {
+    required: false,
+    type: 'boolean',
+    description: 'Enable mobile-first lifecycle notifications (Option A)'
+  },
+  ENABLE_MOBILE_REENGAGEMENT: {
+    required: false,
+    type: 'boolean',
+    description: 'Enable mobile re-engagement notifications'
+  },
+  MOBILE_REENGAGEMENT_SCHEDULE: {
+    required: false,
+    type: 'cron',
+    description: 'Cron schedule for mobile re-engagement'
+  },
+  ENABLE_MOBILE_WEEKLY_DIGEST: {
+    required: false,
+    type: 'boolean',
+    description: 'Enable mobile weekly digest notifications'
+  },
+  MOBILE_WEEKLY_DIGEST_SCHEDULE: {
+    required: false,
+    type: 'cron',
+    description: 'Cron schedule for mobile weekly digest'
+  },
+  ENABLE_MOBILE_WELCOME_FOLLOWUPS: {
+    required: false,
+    type: 'boolean',
+    description: 'Enable mobile welcome follow-ups'
+  },
+  MOBILE_WELCOME_SERIES_SCHEDULE: {
+    required: false,
+    type: 'cron',
+    description: 'Cron schedule for mobile welcome follow-ups'
+  },
+  ENABLE_MOBILE_REFERRAL_NUDGES: {
+    required: false,
+    type: 'boolean',
+    description: 'Enable mobile referral nudges'
+  },
+  MOBILE_REFERRAL_NUDGE_SCHEDULE: {
+    required: false,
+    type: 'cron',
+    description: 'Cron schedule for mobile referral nudges'
+  },
+  ENABLE_MOBILE_PROVIDER_ACTIVATION: {
+    required: false,
+    type: 'boolean',
+    description: 'Enable mobile provider activation nudges'
+  },
+  MOBILE_PROVIDER_ACTIVATION_SCHEDULE: {
+    required: false,
+    type: 'cron',
+    description: 'Cron schedule for mobile provider activation'
+  },
+  ENABLE_MOBILE_SUBSCRIPTION_EXPIRING_SOON: {
+    required: false,
+    type: 'boolean',
+    description: 'Enable mobile subscription expiring-soon reminders'
+  },
+  MOBILE_SUBSCRIPTION_EXPIRING_SCHEDULE: {
+    required: false,
+    type: 'cron',
+    description: 'Cron schedule for subscription expiring-soon reminders'
+  },
+
   // Automated marketing (high-level toggles + a few core tuning values)
   ENABLE_AUTOMATED_MARKETING: {
     required: false,

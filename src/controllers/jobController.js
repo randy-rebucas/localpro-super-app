@@ -4,6 +4,7 @@ const User = require('../models/User');
 const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const GoogleMapsService = require('../services/googleMapsService');
+const NotificationService = require('../services/notificationService');
 const mongoose = require('mongoose');
 const logger = require('../config/logger');
 const { 
@@ -347,6 +348,20 @@ const createJob = async (req, res) => {
     }
 
     const job = await Job.create(jobData);
+
+    // Mobile-first: notify employer that job is posted (in-app + push if enabled)
+    try {
+      await NotificationService.sendNotification({
+        userId: req.user.id,
+        type: 'job_posted',
+        title: 'Job posted',
+        message: `Your job "${job.title}" has been posted successfully.`,
+        data: { jobId: job._id },
+        priority: 'low'
+      });
+    } catch (notifyError) {
+      logger.warn('Job posted notification failed', { jobId: job._id, error: notifyError.message });
+    }
 
     res.status(201).json({
       success: true,
@@ -694,6 +709,24 @@ const updateApplicationStatus = async (req, res) => {
     }
 
     await job.save();
+
+    // Mobile-first: notify applicant about application status update (in-app + push if enabled)
+    try {
+      await NotificationService.sendNotification({
+        userId: application.applicant,
+        type: 'application_status_update',
+        title: 'Application status updated',
+        message: `Your application for "${job.title}" is now: ${status}.`,
+        data: { jobId: job._id, applicationId: application._id, status, feedback },
+        priority: 'medium'
+      });
+    } catch (notifyError) {
+      logger.warn('Application status notification failed', {
+        jobId: job._id,
+        applicationId: application._id,
+        error: notifyError.message
+      });
+    }
 
     // Send notification email to applicant
     try {
