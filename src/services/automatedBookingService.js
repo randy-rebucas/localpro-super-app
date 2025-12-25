@@ -1,7 +1,5 @@
 const cron = require('node-cron');
-const mongoose = require('mongoose');
 const { Booking } = require('../models/Marketplace');
-const User = require('../models/User');
 const NotificationService = require('./notificationService');
 const EmailService = require('./emailService');
 const logger = require('../config/logger');

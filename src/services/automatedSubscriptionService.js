@@ -1,6 +1,5 @@
 const cron = require('node-cron');
 const { UserSubscription, Payment } = require('../models/LocalProPlus');
-const User = require('../models/User');
 const NotificationService = require('./notificationService');
 const EmailService = require('./emailService');
 const PayPalService = require('./paypalService');

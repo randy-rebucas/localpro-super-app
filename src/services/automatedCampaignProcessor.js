@@ -208,25 +208,27 @@ class AutomatedCampaignProcessor {
         // Send if last sent was more than 24 hours ago
         return (now - lastSentDate) >= 24 * 60 * 60 * 1000;
         
-      case 'weekly':
+      case 'weekly': {
         // Send if it's the right day of week and last sent was more than 7 days ago
         const dayOfWeek = now.getDay();
         if (recurring.dayOfWeek !== undefined && dayOfWeek !== recurring.dayOfWeek) {
           return false;
         }
         return (now - lastSentDate) >= 7 * 24 * 60 * 60 * 1000;
+      }
         
       case 'biweekly':
         // Send if last sent was more than 14 days ago
         return (now - lastSentDate) >= 14 * 24 * 60 * 60 * 1000;
         
-      case 'monthly':
+      case 'monthly': {
         // Send if it's the right day of month and last sent was more than 30 days ago
         const dayOfMonth = now.getDate();
         if (recurring.dayOfMonth !== undefined && dayOfMonth !== recurring.dayOfMonth) {
           return false;
         }
         return (now - lastSentDate) >= 30 * 24 * 60 * 60 * 1000;
+      }
         
       default:
         return false;
