@@ -519,6 +519,34 @@ function initializeAutomatedServices() {
       logger.info('✅ Automated backup service started');
     }
 
+    // Automated Booking Service (reminders, status transitions, review requests)
+    if (process.env.ENABLE_AUTOMATED_BOOKINGS !== 'false') {
+      const automatedBookingService = require('./services/automatedBookingService');
+      automatedBookingService.start();
+      logger.info('✅ Automated booking service started');
+    }
+
+    // Automated Email Campaign Processor
+    if (process.env.ENABLE_AUTOMATED_CAMPAIGNS !== 'false') {
+      const automatedCampaignProcessor = require('./services/automatedCampaignProcessor');
+      automatedCampaignProcessor.start();
+      logger.info('✅ Automated campaign processor started');
+    }
+
+    // Automated Subscription Renewal Service
+    if (process.env.ENABLE_AUTOMATED_SUBSCRIPTIONS !== 'false') {
+      const automatedSubscriptionService = require('./services/automatedSubscriptionService');
+      automatedSubscriptionService.start();
+      logger.info('✅ Automated subscription service started');
+    }
+
+    // Automated Escrow Status Management Service
+    if (process.env.ENABLE_AUTOMATED_ESCROWS !== 'false') {
+      const automatedEscrowService = require('./services/automatedEscrowService');
+      automatedEscrowService.start();
+      logger.info('✅ Automated escrow service started');
+    }
+
     // Add other automated services here as they are implemented
     // Example:
     // if (process.env.ENABLE_AUTOMATED_CLEANUP === 'true') {

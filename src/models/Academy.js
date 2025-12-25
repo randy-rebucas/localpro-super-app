@@ -21,7 +21,6 @@ const academyCategorySchema = new mongoose.Schema({
   timestamps: true
 });
 
-academyCategorySchema.index({ name: 1 }, { unique: true });
 academyCategorySchema.index({ isActive: 1 });
 
 const courseSchema = new mongoose.Schema({

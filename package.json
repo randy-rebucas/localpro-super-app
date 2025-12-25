@@ -49,6 +49,7 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^2.2.1",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.9",
     "prom-client": "^13.2.0",
     "resend": "^6.1.2",
