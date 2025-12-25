@@ -276,8 +276,11 @@ const handleSubscriptionPaymentFailed = async (resource) => {
         type: 'renewal',
         status: 'failed',
         paymentMethod: 'paypal',
-        paypalSubscriptionId: subscriptionId,
-        paypalOrderId: resource.id,
+        paymentDetails: {
+          paypalSubscriptionId: subscriptionId,
+          paypalOrderId: resource.id,
+          transactionId: resource.id
+        },
         description: `Failed subscription renewal for ${subscription.plan.name}`
       });
 
@@ -295,12 +298,16 @@ const handleSubscriptionPaymentFailed = async (resource) => {
 // Update payment status across different models
 const updatePaymentStatus = async (orderId, status, transactionId = null) => {
   try {
+    const normalizedStatus = String(status || '').toLowerCase();
+
     // Check LocalPro Plus payments
-    const localProPayment = await Payment.findOne({ paypalOrderId: orderId });
+    const localProPayment = await Payment.findOne({ 'paymentDetails.paypalOrderId': orderId });
     if (localProPayment) {
-      localProPayment.status = status;
+      localProPayment.status = normalizedStatus;
       if (transactionId) {
-        localProPayment.paypalTransactionId = transactionId;
+        localProPayment.paymentDetails = localProPayment.paymentDetails || {};
+        localProPayment.paymentDetails.paypalPaymentId = transactionId;
+        localProPayment.paymentDetails.transactionId = transactionId;
       }
       await localProPayment.save();
       return;
@@ -320,11 +327,18 @@ const updatePaymentStatus = async (orderId, status, transactionId = null) => {
     // Check Marketplace bookings
     const booking = await Booking.findOne({ 'payment.paypalOrderId': orderId });
     if (booking) {
-      booking.payment.status = status;
+      // booking payment schema expects: pending/paid/refunded/failed
+      const mapped =
+        normalizedStatus === 'completed' ? 'paid' :
+        normalizedStatus === 'refunded' ? 'refunded' :
+        normalizedStatus === 'failed' || normalizedStatus === 'denied' || normalizedStatus === 'cancelled' ? 'failed' :
+        'pending';
+
+      booking.payment.status = mapped;
       if (transactionId) {
         booking.payment.paypalTransactionId = transactionId;
       }
-      if (status === 'completed') {
+      if (mapped === 'paid') {
         booking.payment.paidAt = new Date();
       }
       await booking.save();
@@ -334,11 +348,17 @@ const updatePaymentStatus = async (orderId, status, transactionId = null) => {
     // Check Supplies orders
     const order = await Order.findOne({ 'payment.paypalOrderId': orderId });
     if (order) {
-      order.payment.status = status;
+      const mapped =
+        normalizedStatus === 'completed' ? 'paid' :
+        normalizedStatus === 'refunded' ? 'refunded' :
+        normalizedStatus === 'failed' || normalizedStatus === 'denied' || normalizedStatus === 'cancelled' ? 'failed' :
+        'pending';
+
+      order.payment.status = mapped;
       if (transactionId) {
         order.payment.paypalTransactionId = transactionId;
       }
-      if (status === 'completed') {
+      if (mapped === 'paid') {
         order.payment.paidAt = new Date();
         order.status = 'confirmed';
       }

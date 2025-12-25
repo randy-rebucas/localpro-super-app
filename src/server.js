@@ -547,11 +547,32 @@ function initializeAutomatedServices() {
       logger.info('✅ Automated escrow service started');
     }
 
+    // Automated Payment Status Synchronization (PayPal, PayMongo, etc.)
+    if (process.env.ENABLE_AUTOMATED_PAYMENT_SYNC === 'true') {
+      const { automatedPaymentSyncService } = require('./services/automatedPaymentSyncService');
+      automatedPaymentSyncService.start();
+      logger.info('✅ Automated payment sync service started');
+    }
+
+    // Automated Lifecycle Marketing (opt-in marketing automations)
+    if (process.env.ENABLE_AUTOMATED_MARKETING === 'true') {
+      const automatedLifecycleMarketingService = require('./services/automatedLifecycleMarketingService');
+      automatedLifecycleMarketingService.start();
+      logger.info('✅ Automated lifecycle marketing service started');
+    }
+
     // Automated Log & Audit Cleanup Service
     if (process.env.ENABLE_AUTOMATED_CLEANUP !== 'false') {
       const automatedLogCleanupService = require('./services/automatedLogCleanupService');
       automatedLogCleanupService.start();
       logger.info('✅ Automated log cleanup service started');
+    }
+
+    // Automated Index Management Service (runs scripts; optional on startup + scheduled)
+    if (process.env.VALIDATE_INDEXES_ON_STARTUP === 'true' || process.env.ENABLE_AUTOMATED_INDEXES === 'true') {
+      const automatedIndexManagementService = require('./services/automatedIndexManagementService');
+      automatedIndexManagementService.start();
+      logger.info('✅ Automated index management service started');
     }
 
     // Add other automated services here as they are implemented
