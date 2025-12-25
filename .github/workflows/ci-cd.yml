@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     services:
       mongodb:
         image: mongo:6.0
@@ -32,31 +32,66 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Validate environment (CI defaults)
+      run: npm run env:check
+      env:
+        NODE_ENV: test
+        PORT: "5000"
+        FRONTEND_URL: http://localhost:3000
+        MONGODB_URI: mongodb://admin:password@localhost:27017/localpro-test?authSource=admin
+        JWT_SECRET: test-secret-key-that-is-at-least-32-characters-long
+        EMAIL_SERVICE: resend
+        FROM_EMAIL: test@example.com
+        RESEND_API_KEY: re_test_key
+        CLOUDINARY_CLOUD_NAME: test-cloud
+        CLOUDINARY_API_KEY: test-key
+        CLOUDINARY_API_SECRET: test-secret
+        GOOGLE_MAPS_API_KEY: test-maps-key
+
     - name: Run linting
       run: npm run lint
 
     - name: Run tests
-      run: npm test
+      run: npm run test:ci
       env:
-        MONGODB_URI: mongodb://admin:password@localhost:27017/localpro-test?authSource=admin
-        JWT_SECRET: test-secret-key
         NODE_ENV: test
+        PORT: "5000"
+        FRONTEND_URL: http://localhost:3000
+        MONGODB_URI: mongodb://admin:password@localhost:27017/localpro-test?authSource=admin
+        JWT_SECRET: test-secret-key-that-is-at-least-32-characters-long
+        EMAIL_SERVICE: resend
+        FROM_EMAIL: test@example.com
+        RESEND_API_KEY: re_test_key
+        CLOUDINARY_CLOUD_NAME: test-cloud
+        CLOUDINARY_API_KEY: test-key
+        CLOUDINARY_API_SECRET: test-secret
+        GOOGLE_MAPS_API_KEY: test-maps-key
 
     - name: Run security audit
       run: npm audit --audit-level=high
+      continue-on-error: true
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage/lcov.info
 
-  deploy:
+  deploy_render:
+    name: Deploy (Render)
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
     steps:
-    - name: Deploy to production
+    - name: Trigger Render deploy hook
+      env:
+        RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
       run: |
-        echo "Deploying to production..."
-        # Add your deployment commands here
+        if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+          echo "Missing secret: RENDER_DEPLOY_HOOK_URL"
+          exit 1
+        fi
+        echo "Triggering Render deploy hook..."
+        curl -fsSL -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+

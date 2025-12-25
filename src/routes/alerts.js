@@ -7,13 +7,25 @@ const {
 const logger = require('../config/logger');
 
 // Alert configuration
-const alertThresholds = {
-  responseTime: 5000, // 5 seconds
-  errorRate: 10, // 10 errors per minute
-  memoryUsage: 0.9, // 90% memory usage
-  cpuUsage: 80, // 80% CPU usage
-  activeConnections: 1000 // 1000 active connections
-};
+const getAlertThresholds = () => ({
+  responseTime: parseInt(process.env.ALERT_RESPONSE_TIME_MS || '5000'), // ms
+  errorRate: parseInt(process.env.ALERT_ERROR_RATE_PER_MIN || '10'), // errors
+  heapUsageRatio: parseFloat(process.env.ALERT_HEAP_USAGE_RATIO || '0.9'), // heapUsed/heapTotal
+  heapMinTotalMb: parseInt(process.env.ALERT_HEAP_MIN_TOTAL_MB || '128'), // only alert if heapTotal >= this MB
+  rssMb: parseInt(process.env.ALERT_RSS_MB || '0'), // 0 disables
+  systemMemoryPercent: parseFloat(process.env.ALERT_SYSTEM_MEMORY_PERCENT || '0'), // 0 disables
+  cpuUsage: parseFloat(process.env.ALERT_CPU_PERCENT || '80'),
+  activeConnections: parseInt(process.env.ALERT_ACTIVE_CONNECTIONS || '1000')
+});
+
+const ALERT_DEDUP_WINDOW_MS = parseInt(process.env.ALERT_DEDUP_WINDOW_MS || String(10 * 60 * 1000)); // 10 min
+// Runtime overrides set via API (useful in dev); env vars remain the baseline.
+let alertThresholdOverrides = {};
+
+const getEffectiveAlertThresholds = () => ({
+  ...getAlertThresholds(),
+  ...alertThresholdOverrides
+});
 
 // Alert history storage (in production, use database)
 // Maximum number of alerts to keep in memory (prevents unbounded growth)
@@ -39,6 +51,7 @@ const cleanupAlertHistory = () => {
 // Check for alerts based on current metrics
 const checkAlerts = async () => {
   try {
+    const alertThresholds = getEffectiveAlertThresholds();
     const metrics = await getMetricsAsJSON();
     const alerts = [];
     
@@ -76,16 +89,53 @@ const checkAlerts = async () => {
     if (memoryUsage) {
       const heapUsed = memoryUsage.values.find(v => v.labels.type === 'heapUsed')?.value || 0;
       const heapTotal = memoryUsage.values.find(v => v.labels.type === 'heapTotal')?.value || 0;
+      const rss = memoryUsage.values.find(v => v.labels.type === 'rss')?.value || 0;
       
-      if (heapTotal > 0 && (heapUsed / heapTotal) > alertThresholds.memoryUsage) {
+      const heapTotalMb = heapTotal / 1024 / 1024;
+      const heapUsedMb = heapUsed / 1024 / 1024;
+
+      if (heapTotal > 0 && heapTotalMb >= alertThresholds.heapMinTotalMb && (heapUsed / heapTotal) > alertThresholds.heapUsageRatio) {
         alerts.push({
           type: 'memory_usage',
           severity: 'warning',
-          message: `High memory usage: ${((heapUsed / heapTotal) * 100).toFixed(2)}%`,
-          threshold: alertThresholds.memoryUsage,
+          message: `High heap usage: ${((heapUsed / heapTotal) * 100).toFixed(2)}% (${heapUsedMb.toFixed(0)}MB/${heapTotalMb.toFixed(0)}MB)`,
+          threshold: alertThresholds.heapUsageRatio,
           value: heapUsed / heapTotal,
           timestamp: new Date().toISOString()
         });
+      }
+
+      // Optional: alert on process RSS (more correlated with container OOM)
+      if (alertThresholds.rssMb > 0) {
+        const rssMb = rss / 1024 / 1024;
+        if (rssMb > alertThresholds.rssMb) {
+          alerts.push({
+            type: 'process_rss',
+            severity: 'warning',
+            message: `High process RSS: ${rssMb.toFixed(0)}MB`,
+            threshold: alertThresholds.rssMb,
+            value: rssMb,
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
+    }
+
+    // Optional: check system memory usage percent (host/container level)
+    if (alertThresholds.systemMemoryPercent > 0) {
+      const systemMem = metrics.find(m => m.name === 'system_memory_usage_percent');
+      const systemMemPercent = systemMem?.values?.[0]?.value;
+      if (typeof systemMemPercent === 'number' && !isNaN(systemMemPercent)) {
+        if (systemMemPercent > alertThresholds.systemMemoryPercent) {
+          alerts.push({
+            type: 'system_memory',
+            severity: 'warning',
+            message: `High system memory usage: ${systemMemPercent.toFixed(2)}%`,
+            threshold: alertThresholds.systemMemoryPercent,
+            value: systemMemPercent / 100,
+            timestamp: new Date().toISOString()
+          });
+        }
       }
     }
     
@@ -119,8 +169,15 @@ const checkAlerts = async () => {
     alerts.forEach(alert => {
       alertHistory.push(alert);
       
-      // Log alert
-      logger.warn('Performance Alert', alert);
+      // Log alert (dedupe to avoid spamming the same alert every minute)
+      const lastSame = [...alertHistory]
+        .reverse()
+        .find(a => a.type === alert.type && a.severity === alert.severity && a.message === alert.message && a !== alert);
+
+      const shouldLog = !lastSame || (Date.now() - new Date(lastSame.timestamp).getTime()) > ALERT_DEDUP_WINDOW_MS;
+      if (shouldLog) {
+        logger.warn('Performance Alert', alert);
+      }
       
       // Record as business event
       recordBusinessEvent('alert_triggered', 'monitoring');
@@ -183,18 +240,22 @@ router.post('/alerts/thresholds', (req, res) => {
       return res.status(400).json({ error: 'Invalid thresholds object' });
     }
     
-    // Update thresholds
+    const base = getAlertThresholds();
+    const nextOverrides = { ...alertThresholdOverrides };
+
     Object.keys(thresholds).forEach(key => {
-      if (alertThresholds.hasOwnProperty(key)) {
-        alertThresholds[key] = thresholds[key];
+      if (Object.prototype.hasOwnProperty.call(base, key)) {
+        nextOverrides[key] = thresholds[key];
       }
     });
+
+    alertThresholdOverrides = nextOverrides;
     
     logger.info('Alert thresholds updated', { thresholds });
     
     res.json({
       message: 'Alert thresholds updated successfully',
-      thresholds: alertThresholds
+      thresholds: getEffectiveAlertThresholds()
     });
   } catch (error) {
     logger.error('Error updating alert thresholds:', error);
@@ -206,7 +267,7 @@ router.post('/alerts/thresholds', (req, res) => {
 router.get('/alerts/thresholds', (req, res) => {
   res.json({
     timestamp: new Date().toISOString(),
-    thresholds: alertThresholds
+    thresholds: getEffectiveAlertThresholds()
   });
 });
 
@@ -264,6 +325,10 @@ let alertMonitoringInterval;
 let cleanupInterval;
 
 const startAlertMonitoring = () => {
+  if (process.env.ENABLE_ALERT_MONITORING === 'false') {
+    return;
+  }
+
   // Skip in test environment
   if (process.env.NODE_ENV === 'test') {
     return;
@@ -277,13 +342,15 @@ const startAlertMonitoring = () => {
     clearInterval(cleanupInterval);
   }
   
+  const intervalMs = parseInt(process.env.ALERT_CHECK_INTERVAL_MS || '60000');
+
   alertMonitoringInterval = setInterval(async () => {
     try {
       await checkAlerts();
     } catch (error) {
       logger.error('Error in alert monitoring:', error);
     }
-  }, 60000); // Check every minute
+  }, intervalMs); // Default: every minute
   
   // Clean up alert history every hour to prevent memory leaks
   cleanupInterval = setInterval(() => {

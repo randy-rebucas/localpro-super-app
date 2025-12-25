@@ -12,6 +12,7 @@
     "test:unit": "jest --testPathPattern=__tests__/unit",
     "test:integration": "jest --testPathPattern=__tests__/integration",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "env:check": "node scripts/env-check.js",
     "setup": "node setup-app.js",
     "setup:install": "node setup-install.js",
     "setup:auto": "node setup-auto.js",

@@ -52,6 +52,11 @@ const memoryUsage = new promClient.Gauge({
   labelNames: ['type']
 });
 
+const systemMemoryUsagePercent = new promClient.Gauge({
+  name: 'system_memory_usage_percent',
+  help: 'System memory usage percentage'
+});
+
 const cpuUsage = new promClient.Gauge({
   name: 'cpu_usage_percent',
   help: 'CPU usage percentage'
@@ -88,6 +93,7 @@ register.registerMetric(activeConnections);
 register.registerMetric(databaseQueryDuration);
 register.registerMetric(databaseConnections);
 register.registerMetric(memoryUsage);
+register.registerMetric(systemMemoryUsagePercent);
 register.registerMetric(cpuUsage);
 register.registerMetric(diskUsage);
 register.registerMetric(errorRate);
@@ -105,6 +111,21 @@ const collectSystemMetrics = async () => {
     if (memUsage.heapTotal !== undefined) memoryUsage.set({ type: 'heapTotal' }, memUsage.heapTotal);
     if (memUsage.heapUsed !== undefined) memoryUsage.set({ type: 'heapUsed' }, memUsage.heapUsed);
     if (memUsage.external !== undefined) memoryUsage.set({ type: 'external' }, memUsage.external);
+
+    // System memory usage (host-level)
+    try {
+      const memInfo = await systeminformation.mem();
+      // memInfo.active / memInfo.total is usually the best signal; fall back to used/total
+      const used = typeof memInfo.active === 'number' ? memInfo.active : memInfo.used;
+      if (memInfo && typeof used === 'number' && typeof memInfo.total === 'number' && memInfo.total > 0) {
+        const percent = (used / memInfo.total) * 100;
+        if (!isNaN(percent)) {
+          systemMemoryUsagePercent.set(percent);
+        }
+      }
+    } catch (memError) {
+      console.warn('Error collecting memory metrics:', memError.message);
+    }
 
     // CPU usage
     try {

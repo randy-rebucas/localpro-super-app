@@ -31,9 +31,9 @@ const connectDB = async () => {
       },
       
       // Read Preference
-      // Using 'primary' instead of 'primaryPreferred' to support transactions
-      // Transactions require 'primary' read preference
-      readPreference: 'primary',
+      // Default to 'primaryPreferred' for better read availability.
+      // Override via env if you need strict 'primary' for specific workloads.
+      readPreference: process.env.MONGODB_READ_PREFERENCE || 'primaryPreferred',
       
       // Compression
       compressors: ['zlib'],

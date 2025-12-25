@@ -4,6 +4,7 @@ const TwilioService = require('../services/twilioService');
 const CloudinaryService = require('../services/cloudinaryService');
 const NotificationService = require('../services/notificationService');
 const User = require('../models/User');
+const { isValidObjectId } = require('../utils/objectIdUtils');
 
 // @desc    Get user conversations
 // @route   GET /api/communication/conversations
@@ -919,6 +920,13 @@ const markNotificationAsRead = async (req, res) => {
   try {
     const { notificationId } = req.params;
 
+    if (!isValidObjectId(notificationId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid notificationId is required'
+      });
+    }
+
     const notification = await Notification.findOne({
       _id: notificationId,
       user: req.user.id
@@ -987,6 +995,13 @@ const markAllNotificationsAsRead = async (req, res) => {
 const deleteNotification = async (req, res) => {
   try {
     const { notificationId } = req.params;
+
+    if (!isValidObjectId(notificationId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid notificationId is required'
+      });
+    }
 
     const notification = await Notification.findOneAndDelete({
       _id: notificationId,

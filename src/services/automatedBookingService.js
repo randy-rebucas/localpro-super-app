@@ -126,8 +126,7 @@ class AutomatedBookingService {
           booking.timeline.push({
             status: booking.status,
             timestamp: new Date(),
-            note: '24-hour reminder sent',
-            updatedBy: 'system'
+            note: '24-hour reminder sent'
           });
           await booking.save();
         } catch (error) {
@@ -152,8 +151,7 @@ class AutomatedBookingService {
           booking.timeline.push({
             status: booking.status,
             timestamp: new Date(),
-            note: '2-hour reminder sent',
-            updatedBy: 'system'
+            note: '2-hour reminder sent'
           });
           await booking.save();
         } catch (error) {
@@ -302,8 +300,7 @@ class AutomatedBookingService {
           booking.timeline.push({
             status: 'confirmed',
             timestamp: new Date(),
-            note: 'Auto-confirmed after 24 hours (no provider response)',
-            updatedBy: 'system'
+            note: 'Auto-confirmed after 24 hours (no provider response)'
           });
           await booking.save();
 
@@ -351,8 +348,7 @@ class AutomatedBookingService {
             booking.timeline.push({
               status: 'completed',
               timestamp: new Date(),
-              note: 'Auto-completed after scheduled end time',
-              updatedBy: 'system'
+              note: 'Auto-completed after scheduled end time'
             });
             await booking.save();
 
@@ -379,8 +375,7 @@ class AutomatedBookingService {
           booking.timeline.push({
             status: 'cancelled',
             timestamp: new Date(),
-            note: 'Auto-cancelled after 48 hours (not confirmed)',
-            updatedBy: 'system'
+            note: 'Auto-cancelled after 48 hours (not confirmed)'
           });
           await booking.save();
 
@@ -452,8 +447,7 @@ class AutomatedBookingService {
             booking.timeline.push({
               status: booking.status,
               timestamp: new Date(),
-              note: 'Review request sent',
-              updatedBy: 'system'
+              note: 'Review request sent'
             });
             await booking.save();
 

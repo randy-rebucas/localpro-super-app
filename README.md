@@ -41,6 +41,29 @@ The setup script will:
 
 For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
 
+## 🚀 Deploying on Render
+
+### Render service settings (recommended)
+- **Service type**: Web Service
+- **Runtime**: Node
+- **Build command**: `npm ci`
+- **Start command**: `npm run start`
+- **Health check path**: `/health`
+- **Environment variables**: copy from `env.production` (and replace placeholders with real secrets)
+
+### GitHub Actions → Render auto-deploy (via Deploy Hook)
+
+This repo’s CI workflow (`.github/workflows/ci-cd.yml`) can trigger Render deployments after tests pass on `main`.
+
+1. In Render, open your service → **Settings** → **Deploy Hook** → create a hook and copy the URL.
+2. In GitHub repo settings → **Secrets and variables** → **Actions** → add secret:
+   - **Name**: `RENDER_DEPLOY_HOOK_URL`
+   - **Value**: (the deploy hook URL from Render)
+
+After that, every push to `main` will:
+- run lint + tests in CI
+- **trigger Render deploy** only if CI passes
+
 ## 🚀 Features
 
 ### Core Modules

@@ -547,13 +547,14 @@ function initializeAutomatedServices() {
       logger.info('✅ Automated escrow service started');
     }
 
+    // Automated Log & Audit Cleanup Service
+    if (process.env.ENABLE_AUTOMATED_CLEANUP !== 'false') {
+      const automatedLogCleanupService = require('./services/automatedLogCleanupService');
+      automatedLogCleanupService.start();
+      logger.info('✅ Automated log cleanup service started');
+    }
+
     // Add other automated services here as they are implemented
-    // Example:
-    // if (process.env.ENABLE_AUTOMATED_CLEANUP === 'true') {
-    //   const automatedLogCleanupService = require('./services/automatedLogCleanupService');
-    //   automatedLogCleanupService.start();
-    //   logger.info('✅ Automated log cleanup service started');
-    // }
   } catch (error) {
     logger.error('❌ Failed to initialize automated services:', error);
     // Don't exit - allow server to start even if automation fails

@@ -19,3 +19,16 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# local backups / generated artifacts
+backups/
+template-output/
+setup-report.json
+setup-auto-report.json
+setup-install-report.json
+setup-monitoring-report.json
+setup-paymaya-report.json
+setup-subscription-report.json
+setup-twilio-report.json
+setup-auto-report*.json
+setup-install-report*.json
