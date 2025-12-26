@@ -287,21 +287,75 @@ class EmailService {
 
   /**
    * Generic email sending method
-   * @param {string} to - Recipient email
-   * @param {string} subject - Email subject
-   * @param {string} html - Email HTML content
+   * Supports two calling patterns:
+   * 1. sendEmail(to, subject, html) - Direct HTML content
+   * 2. sendEmail({ to, subject, template, data }) - Template-based
+   * @param {string|object} toOrOptions - Recipient email (string) or options object
+   * @param {string} subject - Email subject (if first param is string)
+   * @param {string} html - Email HTML content (if first param is string)
    * @returns {Promise<object>} Send result
    */
-  async sendEmail(to, subject, html) {
+  async sendEmail(toOrOptions, subject, html) {
     try {
+      let to, finalSubject, finalHtml;
+
+      // Detect calling pattern: object vs separate parameters
+      if (typeof toOrOptions === 'object' && toOrOptions !== null && !Array.isArray(toOrOptions)) {
+        // Pattern 2: sendEmail({ to, subject, template, data })
+        const options = toOrOptions;
+        to = options.to;
+        finalSubject = options.subject;
+
+        // If template is provided, render it; otherwise use html if provided
+        if (options.template) {
+          try {
+            finalHtml = templateEngine.render(options.template, options.data || {});
+          } catch (templateError) {
+            logger.error(`Error rendering template '${options.template}':`, templateError);
+            throw new Error(`Failed to render email template '${options.template}': ${templateError.message}`);
+          }
+        } else if (options.html) {
+          finalHtml = options.html;
+        } else {
+          throw new Error('Either template or html must be provided');
+        }
+      } else {
+        // Pattern 1: sendEmail(to, subject, html)
+        to = toOrOptions;
+        finalSubject = subject;
+        finalHtml = html;
+      }
+
+      // Validate email address
+      if (!to || typeof to !== 'string' || !to.trim()) {
+        throw new Error('Invalid email address: recipient email is required and must be a string');
+      }
+
+      // Basic email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const normalizedTo = to.trim();
+      if (!emailRegex.test(normalizedTo)) {
+        throw new Error(`Invalid email format: ${normalizedTo}`);
+      }
+
+      // Validate subject
+      if (!finalSubject || typeof finalSubject !== 'string' || !finalSubject.trim()) {
+        throw new Error('Email subject is required and must be a string');
+      }
+
+      // Validate HTML content
+      if (!finalHtml || typeof finalHtml !== 'string') {
+        throw new Error('Email HTML content is required and must be a string');
+      }
+
       switch (this.emailService) {
         case 'resend':
-          return await this.sendViaResend(to, subject, html);
+          return await this.sendViaResend(normalizedTo, finalSubject.trim(), finalHtml);
         case 'sendgrid':
-          return await this.sendViaSendGrid(to, subject, html);
+          return await this.sendViaSendGrid(normalizedTo, finalSubject.trim(), finalHtml);
         case 'hostinger':
         case 'smtp':
-          return await this.sendViaSMTP(to, subject, html);
+          return await this.sendViaSMTP(normalizedTo, finalSubject.trim(), finalHtml);
         default:
           throw new Error(`Unsupported email service: ${this.emailService}`);
       }
@@ -326,12 +380,19 @@ class EmailService {
       throw new Error('Resend client not initialized. Check your RESEND_API_KEY.');
     }
 
+    // Ensure 'to' is a valid string (should already be validated in sendEmail)
+    if (!to || typeof to !== 'string') {
+      throw new Error('Recipient email must be a valid string');
+    }
+
     logger.info(`[Resend] Sending email to: ${to}`);
     logger.info(`[Resend] Subject: ${subject}`);
 
+    // Resend accepts either a string or array of strings for 'to'
+    // Using string directly as it's more efficient for single recipient
     const { data, error } = await this.resend.emails.send({
       from: this.fromEmail,
-      to: [to],
+      to: to, // Use string directly instead of array
       subject: subject,
       html: html,
     });

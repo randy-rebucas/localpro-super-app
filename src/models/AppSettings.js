@@ -810,10 +810,13 @@ appSettingsSchema.methods.updateSettings = function(updates) {
 
 // Static method to get current app settings
 appSettingsSchema.statics.getCurrentSettings = async function() {
-  let settings = await this.findOne();
+  // Use lean() for faster query and select only needed fields
+  let settings = await this.findOne().lean().maxTimeMS(1500); // 1.5 second max query time
   if (!settings) {
+    // Create default settings document
     settings = new this();
     await settings.save();
+    return settings.toObject(); // Convert to plain object for consistency
   }
   return settings;
 };

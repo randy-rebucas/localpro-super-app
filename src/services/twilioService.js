@@ -100,22 +100,46 @@ class TwilioService {
         throw new Error('Twilio SMS not configured. Please configure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER environment variables.');
       }
 
+      // Normalize phone numbers for comparison (remove spaces, dashes, etc.)
+      const normalizePhone = (phone) => phone ? phone.replace(/[\s\-()]/g, '') : '';
+      const fromNumber = normalizePhone(process.env.TWILIO_PHONE_NUMBER);
+      const toNumber = normalizePhone(to);
+
+      // Check if 'to' and 'from' numbers are the same
+      if (fromNumber === toNumber) {
+        logger.warn(`⚠️ Skipping SMS: Cannot send SMS from and to the same number (${fromNumber.substring(0, 5)}***)`);
+        return {
+          success: false,
+          error: 'Cannot send SMS to the same number as the sender',
+          code: 'SAME_NUMBER_ERROR',
+          skipped: true
+        };
+      }
+
+      // Validate phone number format
+      if (!this._isValidPhoneNumber(to)) {
+        throw new Error(`Invalid phone number format: ${to}`);
+      }
+
       const sms = await client.messages.create({
         body: message,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: to
       });
 
+      logger.info(`✅ SMS sent to ${toNumber.substring(0, 5)}***`);
+      
       return {
         success: true,
         sid: sms.sid,
         status: sms.status
       };
     } catch (error) {
-      console.error('Twilio SMS error:', error);
+      logger.error('❌ Twilio SMS error:', error.message);
       return {
         success: false,
-        error: error.message
+        error: error.message,
+        code: error.code || 'UNKNOWN_ERROR'
       };
     }
   }

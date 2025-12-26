@@ -409,7 +409,7 @@ const getDefaultPublicSettings = () => ({
 // Get public app settings (no auth required)
 const getPublicAppSettings = async (req, res) => {
   const startTime = Date.now();
-  const TIMEOUT_MS = 5000; // 5 second timeout
+  const TIMEOUT_MS = 2000; // 2 second timeout (reduced for faster fallback)
   
   try {
     // Check cache first
@@ -447,10 +447,42 @@ const getPublicAppSettings = async (req, res) => {
     }
 
     // Race between the database query and timeout
-    const appSettings = await Promise.race([
-      AppSettings.getCurrentSettings(),
-      createTimeout(TIMEOUT_MS)
-    ]);
+    let appSettings;
+    try {
+      appSettings = await Promise.race([
+        AppSettings.getCurrentSettings(),
+        createTimeout(TIMEOUT_MS)
+      ]);
+      
+      // Check if we got a timeout error (timeout promise won)
+      if (!appSettings || appSettings.message === 'Request timeout') {
+        throw new Error('Request timeout');
+      }
+    } catch (timeoutError) {
+      // If timeout wins the race, use defaults immediately
+      if (timeoutError.message === 'Request timeout' || timeoutError.message?.includes('timeout')) {
+        const duration = Date.now() - startTime;
+        logger.warn('Database query timed out, using defaults', {
+          timeout: TIMEOUT_MS,
+          duration,
+          endpoint: '/api/settings/app/public'
+        });
+        const fallbackData = publicSettingsCache.data || getDefaultPublicSettings();
+        
+        // Cache the defaults for next time
+        publicSettingsCache.data = fallbackData;
+        publicSettingsCache.timestamp = Date.now();
+        
+        return res.status(200).json({
+          success: true,
+          data: fallbackData,
+          cached: !!publicSettingsCache.data,
+          fallback: true,
+          warning: 'Using cached/default settings due to database timeout'
+        });
+      }
+      throw timeoutError; // Re-throw if it's not a timeout error
+    }
     
     // Only return public settings
     const publicSettings = {
