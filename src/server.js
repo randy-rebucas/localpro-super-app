@@ -60,6 +60,7 @@ const emailMarketingRoutes = require('./routes/emailMarketing');
 const partnersRoutes = require('./routes/partners');
 const staffRoutes = require('./routes/staff');
 const permissionsRoutes = require('./routes/permissions');
+const apiKeysRoutes = require('./routes/apiKeys');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 const { generalLimiter, marketplaceLimiter } = require('./middleware/rateLimiter');
 const liveChatWebSocketService = require('./services/liveChatWebSocketService');
@@ -436,6 +437,7 @@ function startServer() {
 
   // API Routes
   app.use('/api/auth', authRoutes);
+  app.use('/api/api-keys', apiKeysRoutes);
   app.use('/api/marketplace', marketplaceRoutes);
   app.use('/api/supplies', suppliesRoutes);
   app.use('/api/academy', academyRoutes);

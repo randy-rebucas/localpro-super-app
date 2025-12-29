@@ -1,14 +1,30 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { apiKeyAuth } = require('./apiKeyAuth');
 
+/**
+ * Universal authentication middleware that supports both JWT and API key authentication
+ * Tries API key authentication first, then falls back to JWT
+ */
 const auth = async (req, res, next) => {
   try {
+    // Check if API key authentication is being used
+    const accessKey = req.headers['x-api-key'] || req.headers['api-key'] || req.query.apiKey;
+    const secretKey = req.headers['x-api-secret'] || req.headers['api-secret'] || req.query.apiSecret;
+
+    if (accessKey && secretKey) {
+      // Use API key authentication
+      return apiKeyAuth(req, res, next);
+    }
+
+    // Fall back to JWT authentication
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'No token, authorization denied'
+        message: 'No token or API key, authorization denied',
+        code: 'MISSING_AUTH'
       });
     }
 
@@ -43,6 +59,7 @@ const auth = async (req, res, next) => {
     }
 
     req.user = user;
+    req.authType = 'jwt';
     next();
   } catch (error) {
     // Provide specific error messages for different JWT errors

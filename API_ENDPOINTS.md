@@ -5,7 +5,8 @@ Complete list of all API endpoints in the LocalPro Super App.
 ## Table of Contents
 
 1. [Authentication](#authentication)
-2. [Marketplace](#marketplace)
+2. [API Keys](#api-keys)
+3. [Marketplace](#marketplace)
 3. [Supplies](#supplies)
 4. [Academy](#academy)
 5. [Finance](#finance)
@@ -53,6 +54,10 @@ Complete list of all API endpoints in the LocalPro Super App.
 
 **Base Path:** `/api/auth`
 
+The API supports two authentication methods:
+- **JWT Token**: For user-facing applications (see endpoints below)
+- **API Key/Secret**: For third-party integrations (see [API Keys](#api-keys) section)
+
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | POST | `/send-code` | Send verification code | No |
@@ -67,6 +72,129 @@ Complete list of all API endpoints in the LocalPro Super App.
 | POST | `/upload-avatar` | Upload avatar | Yes | 
 | POST | `/upload-portfolio` | Upload portfolio images | Yes |
 | POST | `/logout` | Logout user | Yes |
+
+---
+
+## API Keys
+
+**Base Path:** `/api/api-keys`
+
+The API Keys feature allows third-party applications to integrate with the LocalPro Super App using API key and secret authentication. This is ideal for server-to-server integrations.
+
+### Authentication Methods
+
+The API supports two authentication methods:
+
+1. **JWT Token Authentication** (for user-facing applications)
+   ```http
+   Authorization: Bearer <jwt_token>
+   ```
+
+2. **API Key Authentication** (for third-party integrations)
+   ```http
+   X-API-Key: <access_key>
+   X-API-Secret: <secret_key>
+   ```
+   
+   Or via query parameters:
+   ```
+   ?apiKey=<access_key>&apiSecret=<secret_key>
+   ```
+
+### API Key Management Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/` | Create a new API key | Yes |
+| GET | `/` | Get all API keys for user | Yes |
+| GET | `/stats` | Get API key statistics | Yes |
+| GET | `/:id` | Get single API key by ID | Yes |
+| PUT | `/:id` | Update API key | Yes |
+| DELETE | `/:id` | Revoke/Delete API key | Yes |
+| POST | `/:id/regenerate-secret` | Regenerate secret key | Yes |
+
+### Creating an API Key
+
+**Request:**
+```http
+POST /api/api-keys
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+
+{
+  "name": "My Third-Party App",
+  "description": "API key for integration with my app",
+  "expiresAt": "2025-12-31T23:59:59Z",
+  "rateLimit": 1000,
+  "allowedIPs": ["192.168.1.1", "10.0.0.1"],
+  "scopes": ["read", "write"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "API key created successfully",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "My Third-Party App",
+    "accessKey": "lp_abc123def456...",
+    "secretKey": "xyz789uvw012...",
+    "expiresAt": "2025-12-31T23:59:59Z",
+    "rateLimit": 1000,
+    "allowedIPs": ["192.168.1.1", "10.0.0.1"],
+    "scopes": ["read", "write"],
+    "createdAt": "2024-01-01T00:00:00Z",
+    "warning": "Save this secret key now. It will not be shown again."
+  }
+}
+```
+
+### Using API Key Authentication
+
+Once you have your API key and secret, you can use them to authenticate requests:
+
+**Example with Headers:**
+```http
+GET /api/marketplace/services
+X-API-Key: lp_abc123def456...
+X-API-Secret: xyz789uvw012...
+```
+
+**Example with Query Parameters:**
+```http
+GET /api/marketplace/services?apiKey=lp_abc123def456...&apiSecret=xyz789uvw012...
+```
+
+### API Key Features
+
+- **Access Key**: Public identifier (starts with `lp_`)
+- **Secret Key**: Private key (only shown once during creation)
+- **IP Restrictions**: Optional IP whitelist for enhanced security
+- **Rate Limiting**: Configurable requests per hour
+- **Scopes**: Fine-grained permissions (read, write, admin)
+- **Expiration**: Optional expiration date
+- **Usage Tracking**: Last used timestamp and IP address
+
+### Security Best Practices
+
+1. **Store secrets securely**: Never commit API secrets to version control
+2. **Use IP restrictions**: Limit API keys to specific IP addresses when possible
+3. **Set expiration dates**: Regularly rotate API keys
+4. **Use minimal scopes**: Only grant necessary permissions
+5. **Monitor usage**: Regularly check API key statistics and last used information
+6. **Rotate keys**: Regenerate secrets periodically
+
+### Error Codes
+
+- `MISSING_API_CREDENTIALS`: API key or secret not provided
+- `INVALID_API_KEY`: API key not found
+- `INVALID_API_SECRET`: Secret key does not match
+- `API_KEY_INACTIVE`: API key has been deactivated
+- `API_KEY_EXPIRED`: API key has expired
+- `IP_NOT_ALLOWED`: Request IP is not in the allowed list
+- `USER_INACTIVE`: User account associated with API key is inactive
 
 ---
 
