@@ -4,6 +4,13 @@
 
 The Users feature provides comprehensive user management functionality for the LocalPro Super App platform. This feature handles user registration, authentication, profile management, verification, trust scoring, and role-based access control across all user types in the ecosystem.
 
+## Quick Links
+
+- Data Entities: [data-entities.md](./data-entities.md) - Detailed schema documentation
+- API Endpoints: [api-endpoints.md](./api-endpoints.md) - Complete API reference
+- Usage Examples: [usage-examples.md](./usage-examples.md) - Practical implementation examples
+- Best Practices: [best-practices.md](./best-practices.md) - Development guidelines
+
 ## Key Features
 
 - **User Registration & Authentication**: Phone-based registration with SMS verification

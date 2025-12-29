@@ -4,12 +4,19 @@
 
 The Bookings feature provides a comprehensive service booking and management system that connects service providers with clients. This feature enables users to book services, manage appointments, process payments, and track service delivery through a complete booking lifecycle.
 
+## Quick Links
+
+- Data Entities: [data-entities.md](./data-entities.md) - ✅ Updated with PayMongo fields
+- API Endpoints: [api-endpoints.md](./api-endpoints.md) - ✅ Updated with PayMongo endpoints
+- Usage Examples: [usage-examples.md](./usage-examples.md) - Code samples and patterns
+- Best Practices: [best-practices.md](./best-practices.md) - Development guidelines
+
 ## 🏗️ Architecture
 
 ### Core Components
 
 - **Service Booking** - Complete booking creation and management system
-- **Payment Processing** - Multi-payment method support including PayPal and PayMaya
+- **Payment Processing** - Multi-payment method support including PayMongo, PayPal, and PayMaya
 - **Status Management** - Real-time booking status tracking and updates
 - **Communication System** - Built-in messaging between clients and providers
 - **Review System** - Comprehensive feedback and rating system

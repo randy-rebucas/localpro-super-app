@@ -8,6 +8,13 @@ The Analytics feature tracks events and produces insights at four levels:
 - Service/Marketplace Analytics (per-service performance)
 - Platform Analytics (global KPIs)
 
+## Quick Links
+
+- Data Entities: [data-entities.md](./data-entities.md) - Detailed schema documentation
+- API Endpoints: [api-endpoints.md](./api-endpoints.md) - Complete API reference
+- Usage Examples: [usage-examples.md](./usage-examples.md) - Practical implementation examples
+- Best Practices: [best-practices.md](./best-practices.md) - Development guidelines
+
 ## Key Capabilities
 - Event tracking with flexible payloads and metadata
 - Time-window analytics with daily/monthly breakdowns

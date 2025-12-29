@@ -51,7 +51,8 @@ describe('Auth Middleware', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'Token is not valid'
+        message: 'Token verification failed',
+        code: 'TOKEN_VERIFICATION_FAILED'
       });
       expect(next).not.toHaveBeenCalled();
     });
@@ -67,13 +68,14 @@ describe('Auth Middleware', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'Token is not valid'
+        message: 'Token is not valid',
+        code: 'USER_NOT_FOUND'
       });
       expect(next).not.toHaveBeenCalled();
     });
 
     test('should set req.user and call next on valid token', async () => {
-      const mockUser = { _id: 'user-id', email: 'test@example.com' };
+      const mockUser = { _id: 'user-id', email: 'test@example.com', isActive: true };
       req.header.mockReturnValue('Bearer valid-token');
       jwt.verify.mockReturnValue({ id: 'user-id' });
       const mockSelect = jest.fn().mockResolvedValue(mockUser);
@@ -91,7 +93,7 @@ describe('Auth Middleware', () => {
     });
 
     test('should extract token from Authorization header', async () => {
-      const mockUser = { _id: 'user-id', email: 'test@example.com' };
+      const mockUser = { _id: 'user-id', email: 'test@example.com', isActive: true };
       req.header.mockReturnValue('Bearer token123');
       jwt.verify.mockReturnValue({ id: 'user-id' });
       const mockSelect = jest.fn().mockResolvedValue(mockUser);

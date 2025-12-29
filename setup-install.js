@@ -270,6 +270,7 @@ class SetupInstaller {
           payments: {
             paypal: { enabled: true },
             paymaya: { enabled: true },
+            paymongo: { enabled: true },
             gcash: { enabled: true },
             bankTransfer: { enabled: true }
           },
@@ -1224,7 +1225,7 @@ class SetupInstaller {
         'Start the server: npm run dev',
         'Test API endpoints using the Postman collection',
         'Access admin panel with admin credentials',
-        'Configure external services (PayPal, PayMaya, etc.)',
+        'Configure external services (PayPal, PayMaya, PayMongo, etc.)',
         'Set up email and SMS services',
         'Configure Cloudinary for file uploads',
         'Set up Google Maps API for location services'

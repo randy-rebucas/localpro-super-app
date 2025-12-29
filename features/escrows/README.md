@@ -4,6 +4,15 @@
 
 The Escrow feature provides a secure payment holding system for LocalPro bookings. It ensures that client funds are protected until the provider completes the work and the client approves the outcome.
 
+## Quick Links
+
+- Data Entities: [data-entities.md](./data-entities.md) - Database schemas
+- API Endpoints: [api-endpoints.md](./api-endpoints.md) - Complete API reference
+- Usage Examples: [usage-examples.md](./usage-examples.md) - Code examples and patterns
+- Best Practices: [best-practices.md](./best-practices.md) - Implementation guide
+- PayMongo Integration: [PAYMONGO_INTEGRATION.md](./PAYMONGO_INTEGRATION.md) - Setup guide ⭐
+- PayMongo Testing: [PAYMONGO_TESTING.md](./PAYMONGO_TESTING.md) - Test procedures ⭐
+
 ### How It Works
 
 1. **Client requests service** → Provider submits quote

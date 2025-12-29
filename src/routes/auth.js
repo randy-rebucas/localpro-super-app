@@ -5,6 +5,11 @@ const { smsLimiter, authLimiter, uploadLimiter } = require('../middleware/rateLi
 const {
   sendVerificationCode,
   verifyCode,
+  registerWithEmail,
+  loginWithEmail,
+  verifyEmailOTP,
+  checkEmail,
+  setPassword,
   completeOnboarding,
   getProfileCompletionStatus,
   getProfileCompleteness,
@@ -12,6 +17,7 @@ const {
   updateProfile,
   uploadAvatar,
   uploadPortfolioImages,
+  refreshToken,
   logout
 } = require('../controllers/authController');
 const { uploaders } = require('../config/cloudinary');
@@ -23,10 +29,22 @@ if (process.env.NODE_ENV === 'test') {
   // In test mode, skip rate limiters for easier validation testing
   router.post('/send-code', sendVerificationCode);
   router.post('/verify-code', verifyCode);
+  router.post('/register-email', registerWithEmail);
+  router.post('/login-email', loginWithEmail);
+  router.post('/verify-email-otp', verifyEmailOTP);
+  router.post('/check-email', checkEmail);
+  router.post('/set-password', setPassword);
+  router.post('/refresh', refreshToken);
 } else {
   // Production: apply rate limiters
   router.post('/send-code', smsLimiter, sendVerificationCode);
   router.post('/verify-code', authLimiter, verifyCode);
+  router.post('/register-email', authLimiter, registerWithEmail);
+  router.post('/login-email', authLimiter, loginWithEmail);
+  router.post('/verify-email-otp', authLimiter, verifyEmailOTP);
+  router.post('/check-email', authLimiter, checkEmail);
+  router.post('/set-password', authLimiter, setPassword);
+  router.post('/refresh', authLimiter, refreshToken);
 }
 
 // Minimal endpoints to satisfy auth-protected route expectations in tests

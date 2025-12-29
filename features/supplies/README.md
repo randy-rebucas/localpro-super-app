@@ -4,6 +4,13 @@
 
 The Supplies feature provides a comprehensive marketplace for equipment, tools, materials, and cleaning supplies. This feature enables suppliers to list their products and customers to browse, order, and review supplies through a robust e-commerce system.
 
+## Quick Links
+
+- Data Entities: [data-entities.md](./data-entities.md) - Detailed schema documentation
+- API Endpoints: [api-endpoints.md](./api-endpoints.md) - Complete API reference
+- Usage Examples: [usage-examples.md](./usage-examples.md) - Practical implementation examples
+- Best Practices: [best-practices.md](./best-practices.md) - Development guidelines
+
 ## 🏗️ Architecture
 
 ### Core Components

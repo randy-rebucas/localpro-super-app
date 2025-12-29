@@ -13,22 +13,59 @@ const auth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Check if token is an access token (not a refresh token)
+    if (decoded.type && decoded.type !== 'access') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token type. Access token required.',
+        code: 'INVALID_TOKEN_TYPE'
+      });
+    }
+    
     const user = await User.findById(decoded.id).select('-password');
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Token is not valid'
+        message: 'Token is not valid',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'User account is inactive',
+        code: 'USER_INACTIVE'
       });
     }
 
     req.user = user;
     next();
   } catch (error) {
-    res.status(401).json({
-      success: false,
-      message: 'Token is not valid'
-    });
+    // Provide specific error messages for different JWT errors
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token has expired. Please refresh your token.',
+        code: 'TOKEN_EXPIRED',
+        expiredAt: error.expiredAt
+      });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token is not valid',
+        code: 'INVALID_TOKEN'
+      });
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: 'Token verification failed',
+        code: 'TOKEN_VERIFICATION_FAILED'
+      });
+    }
   }
 };
 

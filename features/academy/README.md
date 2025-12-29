@@ -4,6 +4,13 @@
 
 The Academy feature provides a comprehensive online learning platform for the LocalPro Super App. This feature enables course creation, enrollment management, progress tracking, and certification issuance for professional development and skill enhancement across various service industries.
 
+## Quick Links
+
+- Data Entities: [data-entities.md](./data-entities.md) - Detailed schema documentation
+- API Endpoints: [api-endpoints.md](./api-endpoints.md) - Complete API reference
+- Usage Examples: [usage-examples.md](./usage-examples.md) - Practical implementation examples
+- Best Practices: [best-practices.md](./best-practices.md) - Development guidelines
+
 ## Key Features
 
 - **Course Management**: Create, update, and manage comprehensive courses with multimedia content

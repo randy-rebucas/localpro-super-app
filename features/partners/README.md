@@ -4,6 +4,13 @@
 
 The Partners feature enables third-party companies and applications to integrate with the LocalPro Super App platform. Partners can onboard through a structured process, receive API credentials, and access the platform programmatically through REST APIs and webhooks.
 
+## Quick Links
+
+- Data Entities: [data-entities.md](./data-entities.md) - Detailed schema documentation
+- API Endpoints: [api-endpoints.md](./api-endpoints.md) - Complete API reference
+- Usage Examples: [usage-examples.md](./usage-examples.md) - Practical implementation examples
+- Best Practices: [best-practices.md](./best-practices.md) - Development guidelines
+
 ## Key Features
 
 - **Partner Onboarding**: Multi-step onboarding process for new partners

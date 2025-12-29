@@ -11,6 +11,14 @@ class EmailService {
     this.fromEmail = process.env.FROM_EMAIL || 'noreply@localpro.com';
     this.emailService = process.env.EMAIL_SERVICE || 'resend';
     
+    // For SMTP, use SMTP_USER as from address if available (to match authenticated user)
+    // This prevents "Sender address rejected: not owned by user" errors
+    if (this.emailService === 'smtp' || this.emailService === 'hostinger') {
+      if (process.env.SMTP_USER) {
+        this.fromEmail = process.env.SMTP_USER;
+      }
+    }
+    
     // Initialize email service based on configuration
     this.initializeEmailService();
   }
@@ -445,8 +453,16 @@ class EmailService {
       throw new Error('SMTP transporter not initialized. Check your SMTP configuration.');
     }
 
+    // Use SMTP_USER as from address to match authenticated user
+    // This prevents "Sender address rejected: not owned by user" errors
+    // If FROM_EMAIL is different, use it as display name: "Display Name <email@domain.com>"
+    const fromAddress = process.env.SMTP_USER || this.fromEmail;
+    const fromEmail = this.fromEmail !== fromAddress 
+      ? `LocalPro <${fromAddress}>` 
+      : fromAddress;
+
     const mailOptions = {
-      from: this.fromEmail,
+      from: fromEmail,
       to: to,
       subject: subject,
       html: html
@@ -606,6 +622,60 @@ class EmailService {
     } catch (error) {
       logger.error('Error sending referral reward notification:', error);
       return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Send email OTP (One-Time Password) for authentication
+   * @param {string} to - Recipient email
+   * @param {string} otpCode - 6-digit OTP code
+   * @param {string} firstName - User's first name (optional)
+   * @returns {Promise<object>} Send result
+   */
+  async sendEmailOTP(to, otpCode, firstName = 'User') {
+    const subject = 'Your LocalPro Verification Code';
+    
+    try {
+      // Try to use template engine first
+      const html = await templateEngine.renderTemplate('email-otp', {
+        firstName,
+        otpCode,
+        subject,
+        expiresIn: '10 minutes'
+      });
+
+      return await this.sendEmail(to, subject, html);
+    } catch (error) {
+      logger.error('Error rendering email OTP template:', error);
+      // Fallback to simple HTML
+      const fallbackHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px; text-align: center;">
+            <h1 style="color: #2c3e50; margin-bottom: 20px;">Verification Code</h1>
+            <p style="color: #555; font-size: 16px; margin-bottom: 30px;">
+              Hi ${firstName},
+            </p>
+            <p style="color: #555; font-size: 16px; margin-bottom: 20px;">
+              Your verification code is:
+            </p>
+            <div style="background-color: #ffffff; border: 2px solid #3498db; border-radius: 8px; padding: 20px; margin: 30px 0;">
+              <h1 style="color: #3498db; font-size: 48px; letter-spacing: 8px; margin: 0; font-family: 'Courier New', monospace;">
+                ${otpCode}
+              </h1>
+            </div>
+            <p style="color: #888; font-size: 14px; margin-top: 30px;">
+              This code will expire in 10 minutes.
+            </p>
+            <p style="color: #888; font-size: 14px; margin-top: 10px;">
+              If you didn't request this code, please ignore this email.
+            </p>
+          </div>
+          <p style="color: #888; font-size: 12px; text-align: center; margin-top: 30px;">
+            © ${new Date().getFullYear()} LocalPro Super App. All rights reserved.
+          </p>
+        </div>
+      `;
+      return await this.sendEmail(to, subject, fallbackHtml);
     }
   }
 

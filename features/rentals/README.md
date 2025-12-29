@@ -6,6 +6,13 @@ This directory contains comprehensive documentation for the equipment rentals fe
 
 The rentals system allows users to list, search, and book equipment for short-term or long-term use. It provides a marketplace for equipment owners to monetize their tools and for renters to access equipment they need.
 
+## Quick Links
+
+- Data Entities: [data-entities.md](./data-entities.md) - Complete data model documentation
+- API Endpoints: [api-endpoints.md](./api-endpoints.md) - API response structure and endpoints
+- Usage Examples: [usage-examples.md](./usage-examples.md) - Practical implementation examples
+- Best Practices: [best-practices.md](./best-practices.md) - Development guidelines and patterns
+
 ## Documentation Structure
 
 - **[Data Entities](./data-entities.md)** - Complete data model documentation

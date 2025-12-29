@@ -4,6 +4,13 @@
 
 The User Settings feature provides comprehensive personalization and configuration management for users of the LocalPro Super App. This feature allows users to customize their experience, manage privacy preferences, configure notifications, and set up their service preferences.
 
+## Quick Links
+
+- Data Entities: [data-entities.md](./data-entities.md) - Detailed schema documentation
+- API Endpoints: [api-endpoints.md](./api-endpoints.md) - Complete API reference
+- Usage Examples: [usage-examples.md](./usage-examples.md) - Practical implementation examples
+- Best Practices: [best-practices.md](./best-practices.md) - Development guidelines
+
 ## Key Features
 
 - **Privacy Controls**: Manage profile visibility and data sharing preferences

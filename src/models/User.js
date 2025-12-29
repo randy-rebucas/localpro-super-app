@@ -21,6 +21,18 @@ const userSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
+  password: {
+    type: String,
+    select: false // Don't include password in queries by default
+  },
+  emailVerificationCode: {
+    type: String,
+    expires: '10m' // Email OTP expires in 10 minutes
+  },
+  lastEmailOTPSent: {
+    type: Date,
+    default: null
+  },
   firstName: {
     type: String,
     trim: true
@@ -39,7 +51,7 @@ const userSchema = new mongoose.Schema({
   },
   roles: {
     type: [String],
-    enum: ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner'],
+    enum: ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner', 'staff'],
     default: ['client']
   },
   isVerified: {
@@ -51,6 +63,14 @@ const userSchema = new mongoose.Schema({
     expires: '5m'
   },
   lastVerificationSent: {
+    type: Date,
+    default: null
+  },
+  refreshToken: {
+    type: String,
+    default: null
+  },
+  refreshTokenExpiresAt: {
     type: Date,
     default: null
   },
@@ -150,6 +170,7 @@ const userSchema = new mongoose.Schema({
 
 // Index for better performance (phoneNumber and email already have unique indexes)
 userSchema.index({ roles: 1 }); // Multi-role index
+userSchema.index({ refreshToken: 1 }); // Refresh token lookup
 // Note: Status indexes are now in UserManagement model
 userSchema.index({ management: 1 });
 userSchema.index({ agency: 1 }); // Agency relationship index
@@ -393,7 +414,7 @@ userSchema.methods.addRole = function(role) {
   if (!this.roles) {
     this.roles = [];
   }
-  const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner'];
+  const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner', 'staff'];
   if (validRoles.includes(role) && !this.roles.includes(role)) {
     this.roles.push(role);
     // Ensure 'client' is always present if user has other roles
@@ -427,7 +448,7 @@ userSchema.methods.setRoles = function(roles) {
   if (!Array.isArray(roles)) {
     roles = [roles];
   }
-  const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner'];
+  const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner', 'staff'];
   this.roles = roles.filter(role => validRoles.includes(role));
   // Ensure 'client' is always present
   if (!this.roles.includes('client')) {
@@ -1063,6 +1084,37 @@ userSchema.methods.addWalletCredit = async function(data) {
 userSchema.methods.addWalletDebit = async function(data) {
   const wallet = await this.ensureWallet();
   return wallet.addDebit(data);
+};
+
+// Password hashing methods
+const bcrypt = require('bcryptjs');
+
+// Hash password before saving
+userSchema.pre('save', async function(next) {
+  // Only hash password if it's been modified (or is new)
+  if (!this.isModified('password')) {
+    return next();
+  }
+  
+  // Hash password with cost of 10
+  if (this.password) {
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+    } catch (error) {
+      return next(error);
+    }
+  }
+  
+  next();
+});
+
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  if (!this.password) {
+    return false;
+  }
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
 module.exports = mongoose.model('User', userSchema);

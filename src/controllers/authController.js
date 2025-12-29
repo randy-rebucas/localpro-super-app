@@ -6,19 +6,52 @@ const EmailService = require('../services/emailService');
 const logger = require('../config/logger');
 const activityService = require('../services/activityService');
 
-// Generate JWT Token with enhanced payload for mobile
+// Generate JWT Access Token with expiration
 const generateToken = (user) => {
   const payload = {
     id: user._id,
     phoneNumber: user.phoneNumber,
     roles: user.roles || ['client'],
-    isVerified: user.isVerified
+    isVerified: user.isVerified,
+    type: 'access'
   };
+  
+  // Access token expires in 15 minutes
+  const expiresIn = process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '15m';
   
   return jwt.sign(payload, process.env.JWT_SECRET, {
     issuer: 'localpro-api',
-    audience: 'localpro-mobile'
+    audience: 'localpro-mobile',
+    expiresIn
   });
+};
+
+// Generate Refresh Token
+const generateRefreshToken = () => {
+  // Refresh token is a random string, not a JWT
+  // It expires in 7 days by default
+  const crypto = require('crypto');
+  return crypto.randomBytes(64).toString('hex');
+};
+
+// Save refresh token to user
+const saveRefreshToken = async (user, refreshToken) => {
+  const expiresInDays = parseInt(process.env.JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS || '7');
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + expiresInDays);
+  
+  user.refreshToken = refreshToken;
+  user.refreshTokenExpiresAt = expiresAt;
+  await user.save({ validateBeforeSave: false });
+  
+  return expiresAt;
+};
+
+// Clear refresh token from user
+const clearRefreshToken = async (user) => {
+  user.refreshToken = null;
+  user.refreshTokenExpiresAt = null;
+  await user.save({ validateBeforeSave: false });
 };
 
 // Helper function to check if user has completed onboarding
@@ -35,6 +68,24 @@ const validatePhoneNumber = (phoneNumber) => {
 // Helper function to validate verification code format
 const validateVerificationCode = (code) => {
   return code && code.length === 6 && /^\d{6}$/.test(code);
+};
+
+// Helper function to validate email format
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+// Helper function to validate password strength
+const validatePassword = (password) => {
+  // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+  return passwordRegex.test(password);
+};
+
+// Helper function to generate 6-digit OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 // Helper function to get client IP and user agent
@@ -310,8 +361,10 @@ const verifyCode = async (req, res) => {
         user._skipRelatedDocumentsCreation = false;
       }
 
-      // Generate token
+      // Generate tokens
       const token = generateToken(user);
+      const refreshToken = generateRefreshToken();
+      await saveRefreshToken(user, refreshToken);
 
       logger.info('Existing user login successful', {
         userId: user._id,
@@ -331,6 +384,7 @@ const verifyCode = async (req, res) => {
         success: true,
         message: 'Login successful',
         token,
+        refreshToken,
         user: {
           id: user._id,
           phoneNumber: user.phoneNumber,
@@ -364,8 +418,10 @@ const verifyCode = async (req, res) => {
       await user.updateLoginInfo(clientInfo.ip, clientInfo.userAgent);
       await user.updateStatus('active', null, null);
 
-      // Generate token
+      // Generate tokens
       const token = generateToken(user);
+      const refreshToken = generateRefreshToken();
+      await saveRefreshToken(user, refreshToken);
 
       logger.info('New user registration successful', {
         userId: user._id,
@@ -386,6 +442,7 @@ const verifyCode = async (req, res) => {
         success: true,
         message: 'User registered and logged in successfully',
         token,
+        refreshToken,
         user: {
           id: user._id,
           phoneNumber: user.phoneNumber,
@@ -675,8 +732,10 @@ const completeOnboarding = async (req, res) => {
       });
     }
 
-    // Generate new token with updated user info
+    // Generate new tokens with updated user info
     const token = generateToken(user);
+    const refreshToken = generateRefreshToken();
+    await saveRefreshToken(user, refreshToken);
 
     logger.info('Onboarding completed successfully', {
       userId: user._id,
@@ -690,6 +749,7 @@ const completeOnboarding = async (req, res) => {
       success: true,
       message: 'Onboarding completed successfully',
       token,
+      refreshToken,
       user: {
         id: user._id,
         phoneNumber: user.phoneNumber,
@@ -1393,24 +1453,920 @@ const uploadPortfolioImages = async (req, res) => {
   }
 };
 
+// @desc    Refresh access token
+// @route   POST /api/auth/refresh
+// @access  Public
+const refreshToken = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+  
+  try {
+    const { refreshToken: providedRefreshToken } = req.body;
+
+    if (!providedRefreshToken) {
+      logger.warn('Refresh token failed: Missing refresh token', {
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Refresh token is required',
+        code: 'MISSING_REFRESH_TOKEN'
+      });
+    }
+
+    // Find user by refresh token
+    const user = await User.findOne({
+      refreshToken: providedRefreshToken,
+      refreshTokenExpiresAt: { $gt: new Date() }
+    });
+
+    if (!user) {
+      logger.warn('Refresh token failed: Invalid or expired refresh token', {
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired refresh token',
+        code: 'INVALID_REFRESH_TOKEN'
+      });
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      logger.warn('Refresh token failed: User is inactive', {
+        userId: user._id,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(403).json({
+        success: false,
+        message: 'User account is inactive',
+        code: 'USER_INACTIVE'
+      });
+    }
+
+    // Generate new access token
+    const newAccessToken = generateToken(user);
+
+    // Optionally rotate refresh token (security best practice)
+    const rotateRefreshToken = process.env.ROTATE_REFRESH_TOKEN !== 'false';
+    let newRefreshToken = providedRefreshToken;
+    
+    if (rotateRefreshToken) {
+      newRefreshToken = generateRefreshToken();
+      await saveRefreshToken(user, newRefreshToken);
+    }
+
+    logger.info('Token refreshed successfully', {
+      userId: user._id,
+      tokenRotated: rotateRefreshToken,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Token refreshed successfully',
+      token: newAccessToken,
+      refreshToken: newRefreshToken
+    });
+  } catch (error) {
+    logger.error('Refresh token error', {
+      error: error.message,
+      stack: error.stack,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      code: 'INTERNAL_SERVER_ERROR',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
+  }
+};
+
 // @desc    Logout user
 // @route   POST /api/auth/logout
 // @access  Private
 const logout = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+  
   try {
-    // In a JWT-based system, logout is typically handled client-side
-    // by removing the token. However, we can implement token blacklisting
-    // or other server-side logout mechanisms here if needed.
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    if (user) {
+      // Clear refresh token
+      await clearRefreshToken(user);
+      
+      logger.info('User logged out successfully', {
+        userId,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+    }
     
     res.status(200).json({
       success: true,
       message: 'Logged out successfully'
     });
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error('Logout error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.id,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      code: 'INTERNAL_SERVER_ERROR'
+    });
+  }
+};
+
+// @desc    Register with email and password (sends email OTP)
+// @route   POST /api/auth/register-email
+// @access  Public
+const registerWithEmail = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+  
+  try {
+    const { email, password, firstName, lastName } = req.body;
+
+    // Input validation
+    if (!email || !password) {
+      logger.warn('Register with email failed: Missing required fields', {
+        hasEmail: !!email,
+        hasPassword: !!password,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required',
+        code: 'MISSING_REQUIRED_FIELDS'
+      });
+    }
+
+    // Validate email format
+    if (!validateEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format',
+        code: 'INVALID_EMAIL_FORMAT'
+      });
+    }
+
+    // Validate password strength
+    if (!validatePassword(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number',
+        code: 'WEAK_PASSWORD'
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+
+    if (existingUser) {
+      // Check if user already has password set
+      if (existingUser.password) {
+        logger.warn('Register with email failed: Email already registered with password', {
+          email: email.substring(0, 3) + '***@' + email.split('@')[1],
+          clientInfo,
+          duration: Date.now() - startTime
+        });
+        return res.status(400).json({
+          success: false,
+          message: 'Email is already registered. Please use login instead.',
+          code: 'EMAIL_ALREADY_EXISTS'
+        });
+      }
+
+      // User exists but no password - allow adding password auth
+      // Rate limiting check
+      const lastOTPSent = existingUser.lastEmailOTPSent;
+      if (lastOTPSent) {
+        const now = new Date();
+        const timeDiff = now - lastOTPSent;
+        
+        // Allow only one OTP per minute
+        if (timeDiff < 60000) {
+          logger.warn('Register with email failed: Rate limit exceeded', {
+            email: email.substring(0, 3) + '***@' + email.split('@')[1],
+            clientInfo,
+            duration: Date.now() - startTime
+          });
+          return res.status(429).json({
+            success: false,
+            message: 'Please wait before requesting another verification code',
+            code: 'RATE_LIMIT_EXCEEDED',
+            retryAfter: Math.ceil((60000 - timeDiff) / 1000)
+          });
+        }
+      }
+
+      // Generate OTP
+      const otpCode = generateOTP();
+
+      // Update existing user with password
+      existingUser.password = password; // Will be hashed by pre-save hook
+      existingUser.emailVerificationCode = otpCode;
+      existingUser.lastEmailOTPSent = new Date();
+      if (firstName) existingUser.firstName = firstName.trim();
+      if (lastName) existingUser.lastName = lastName.trim();
+      existingUser._skipRelatedDocumentsCreation = true;
+      await existingUser.save({ validateBeforeSave: false });
+      existingUser._skipRelatedDocumentsCreation = false;
+      
+      const user = existingUser;
+
+      // Send OTP email
+      const emailResult = await EmailService.sendEmailOTP(
+        email.toLowerCase().trim(),
+        otpCode,
+        user.firstName || 'User'
+      );
+
+      if (!emailResult.success) {
+        logger.error('Failed to send email OTP', {
+          email: email.substring(0, 3) + '***@' + email.split('@')[1],
+          error: emailResult.error,
+          clientInfo,
+          duration: Date.now() - startTime
+        });
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to send verification email. Please try again.',
+          code: 'EMAIL_SEND_FAILED'
+        });
+      }
+
+      logger.info('Email OTP sent for registration (existing user)', {
+        userId: user._id,
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Verification code sent to your email',
+        email: email.substring(0, 3) + '***@' + email.split('@')[1] // Partially masked email
+      });
+    }
+
+    // New user - create account
+    // Generate OTP
+    const otpCode = generateOTP();
+
+    // Generate a unique placeholder phone number for email-only users
+    // Format: +email-{hash} where hash is derived from email and timestamp
+    const crypto = require('crypto');
+    const emailHash = crypto.createHash('md5').update(email.toLowerCase().trim() + Date.now()).digest('hex').substring(0, 10);
+    const placeholderPhoneNumber = `+email-${emailHash}`;
+
+    // Create new user
+    const user = await User.create({
+      phoneNumber: placeholderPhoneNumber, // Placeholder for email-only users
+      email: email.toLowerCase().trim(),
+      password, // Will be hashed by pre-save hook
+      firstName: firstName?.trim() || null,
+      lastName: lastName?.trim() || null,
+      emailVerificationCode: otpCode,
+      lastEmailOTPSent: new Date(),
+      isVerified: false // Will be verified after OTP confirmation
+    });
+
+    // Send OTP email
+    const emailResult = await EmailService.sendEmailOTP(
+      email.toLowerCase().trim(),
+      otpCode,
+      user.firstName || 'User'
+    );
+
+    if (!emailResult.success) {
+      logger.error('Failed to send email OTP', {
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        error: emailResult.error,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please try again.',
+        code: 'EMAIL_SEND_FAILED'
+      });
+    }
+
+    logger.info('Email OTP sent for registration', {
+      userId: user._id,
+      email: email.substring(0, 3) + '***@' + email.split('@')[1],
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Verification code sent to your email',
+      email: email.substring(0, 3) + '***@' + email.split('@')[1] // Partially masked email
+    });
+  } catch (error) {
+    logger.error('Register with email error', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body?.email ? req.body.email.substring(0, 3) + '***@' + req.body.email.split('@')[1] : 'unknown',
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      code: 'INTERNAL_SERVER_ERROR',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
+  }
+};
+
+// @desc    Login with email and password (sends email OTP)
+// @route   POST /api/auth/login-email
+// @access  Public
+const loginWithEmail = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+  
+  try {
+    const { email, password } = req.body;
+
+    // Input validation
+    if (!email || !password) {
+      logger.warn('Login with email failed: Missing required fields', {
+        hasEmail: !!email,
+        hasPassword: !!password,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required',
+        code: 'MISSING_REQUIRED_FIELDS'
+      });
+    }
+
+    // Validate email format
+    if (!validateEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format',
+        code: 'INVALID_EMAIL_FORMAT'
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+
+    if (!user) {
+      logger.warn('Login with email failed: User not found', {
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password',
+        code: 'INVALID_CREDENTIALS'
+      });
+    }
+
+    // Check if user has password set
+    if (!user.password) {
+      return res.status(401).json({
+        success: false,
+        message: 'Password not set for this email',
+        code: 'PASSWORD_NOT_SET'
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await user.comparePassword(password);
+
+    if (!isPasswordValid) {
+      logger.warn('Login with email failed: Invalid password', {
+        userId: user._id,
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password',
+        code: 'INVALID_CREDENTIALS'
+      });
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'User account is inactive',
+        code: 'USER_INACTIVE'
+      });
+    }
+
+    // Rate limiting check
+    const lastOTPSent = user.lastEmailOTPSent;
+    if (lastOTPSent) {
+      const now = new Date();
+      const timeDiff = now - lastOTPSent;
+      
+      // Allow only one OTP per minute
+      if (timeDiff < 60000) {
+        logger.warn('Login with email failed: Rate limit exceeded', {
+          userId: user._id,
+          email: email.substring(0, 3) + '***@' + email.split('@')[1],
+          clientInfo,
+          duration: Date.now() - startTime
+        });
+        return res.status(429).json({
+          success: false,
+          message: 'Please wait before requesting another verification code',
+          code: 'RATE_LIMIT_EXCEEDED',
+          retryAfter: Math.ceil((60000 - timeDiff) / 1000)
+        });
+      }
+    }
+
+    // Generate OTP
+    const otpCode = generateOTP();
+
+    // Update user with OTP
+    user.emailVerificationCode = otpCode;
+    user.lastEmailOTPSent = new Date();
+    user._skipRelatedDocumentsCreation = true;
+    await user.save({ validateBeforeSave: false });
+    user._skipRelatedDocumentsCreation = false;
+
+    // Send OTP email
+    const emailResult = await EmailService.sendEmailOTP(
+      email.toLowerCase().trim(),
+      otpCode,
+      user.firstName || 'User'
+    );
+
+    if (!emailResult.success) {
+      logger.error('Failed to send email OTP', {
+        userId: user._id,
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        error: emailResult.error,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please try again.',
+        code: 'EMAIL_SEND_FAILED'
+      });
+    }
+
+    logger.info('Email OTP sent for login', {
+      userId: user._id,
+      email: email.substring(0, 3) + '***@' + email.split('@')[1],
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Verification code sent to your email',
+      email: email.substring(0, 3) + '***@' + email.split('@')[1] // Partially masked email
+    });
+  } catch (error) {
+    logger.error('Login with email error', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body?.email ? req.body.email.substring(0, 3) + '***@' + req.body.email.split('@')[1] : 'unknown',
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      code: 'INTERNAL_SERVER_ERROR',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
+  }
+};
+
+// @desc    Verify email OTP and authenticate user
+// @route   POST /api/auth/verify-email-otp
+// @access  Public
+const verifyEmailOTP = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+  
+  try {
+    const { email, otpCode } = req.body;
+
+    // Input validation
+    if (!email || !otpCode) {
+      logger.warn('Verify email OTP failed: Missing required fields', {
+        hasEmail: !!email,
+        hasOTP: !!otpCode,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Email and OTP code are required',
+        code: 'MISSING_REQUIRED_FIELDS'
+      });
+    }
+
+    // Validate email format
+    if (!validateEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format',
+        code: 'INVALID_EMAIL_FORMAT'
+      });
+    }
+
+    // Validate OTP format
+    if (!validateVerificationCode(otpCode)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP format. Please enter a 6-digit code',
+        code: 'INVALID_OTP_FORMAT'
+      });
+    }
+
+    // Find user by email and OTP code
+    const user = await User.findOne({
+      email: email.toLowerCase().trim(),
+      emailVerificationCode: otpCode
+    });
+
+    if (!user) {
+      logger.warn('Verify email OTP failed: Invalid OTP', {
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired OTP code',
+        code: 'INVALID_OTP'
+      });
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'User account is inactive',
+        code: 'USER_INACTIVE'
+      });
+    }
+
+    // Clear OTP code
+    user.emailVerificationCode = undefined;
+    user.isVerified = true;
+    await user.verify('email');
+    
+    // Update login info
+    await user.updateLoginInfo(clientInfo.ip, clientInfo.userAgent);
+    await user.updateStatus('active', null, null);
+    
+    user._skipRelatedDocumentsCreation = true;
+    await user.save({ validateBeforeSave: false });
+    user._skipRelatedDocumentsCreation = false;
+
+    // Generate tokens
+    const token = generateToken(user);
+    const refreshToken = generateRefreshToken();
+    await saveRefreshToken(user, refreshToken);
+
+    const isNewUser = !user.firstName || !user.lastName;
+
+    logger.info('Email OTP verified successfully', {
+      userId: user._id,
+      email: email.substring(0, 3) + '***@' + email.split('@')[1],
+      isNewUser,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    // Track activity
+    if (isNewUser) {
+      activityService.trackRegistration(user._id, {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        method: 'email'
+      }).catch(err => logger.warn('Failed to track registration activity', { error: err.message }));
+    } else {
+      activityService.trackLogin(user._id, {
+        ipAddress: clientInfo.ip,
+        userAgent: clientInfo.userAgent,
+        device: getDeviceType(clientInfo.userAgent)
+      }).catch(err => logger.warn('Failed to track login activity', { error: err.message }));
+    }
+
+    res.status(isNewUser ? 201 : 200).json({
+      success: true,
+      message: isNewUser ? 'Registration successful' : 'Login successful',
+      token,
+      refreshToken,
+      user: {
+        id: user._id,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        roles: user.roles || ['client'],
+        isVerified: user.isVerified,
+        subscription: user.localProPlusSubscription || null,
+        trustScore: (await user.ensureTrust()).trustScore,
+        profile: {
+          avatar: user.profile?.avatar,
+          bio: user.profile?.bio
+        }
+      },
+      isNewUser
+    });
+  } catch (error) {
+    logger.error('Verify email OTP error', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body?.email ? req.body.email.substring(0, 3) + '***@' + req.body.email.split('@')[1] : 'unknown',
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      code: 'INTERNAL_SERVER_ERROR',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
+  }
+};
+
+// @desc    Check if email exists and if password is set
+// @route   POST /api/auth/check-email
+// @access  Public
+const checkEmail = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+  
+  try {
+    const { email } = req.body;
+
+    // Input validation
+    if (!email) {
+      logger.warn('Check email failed: Missing email', {
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required',
+        code: 'MISSING_EMAIL'
+      });
+    }
+
+    // Validate email format
+    if (!validateEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format',
+        code: 'INVALID_EMAIL_FORMAT'
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+
+    if (!user) {
+      logger.info('Check email: Email not found', {
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(200).json({
+        success: true,
+        exists: false,
+        hasPassword: false,
+        message: 'Email is available for registration'
+      });
+    }
+
+    // Check if user has password set
+    const hasPassword = !!user.password;
+
+    logger.info('Check email: Email found', {
+      userId: user._id,
+      email: email.substring(0, 3) + '***@' + email.split('@')[1],
+      hasPassword,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      exists: true,
+      hasPassword,
+      message: hasPassword 
+        ? 'Email exists and has password set' 
+        : 'Email exists but password not set',
+      ...(hasPassword && {
+        code: 'EMAIL_EXISTS_WITH_PASSWORD'
+      }),
+      ...(!hasPassword && {
+        code: 'EMAIL_EXISTS_NO_PASSWORD'
+      })
+    });
+  } catch (error) {
+    logger.error('Check email error', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body?.email ? req.body.email.substring(0, 3) + '***@' + req.body.email.split('@')[1] : 'unknown',
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      code: 'INTERNAL_SERVER_ERROR',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
+  }
+};
+
+// @desc    Set password for user (sends email OTP for verification)
+// @route   POST /api/auth/set-password
+// @access  Public
+const setPassword = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+  
+  try {
+    const { email, password } = req.body;
+
+    // Input validation
+    if (!email || !password) {
+      logger.warn('Set password failed: Missing required fields', {
+        hasEmail: !!email,
+        hasPassword: !!password,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required',
+        code: 'MISSING_REQUIRED_FIELDS'
+      });
+    }
+
+    // Validate email format
+    if (!validateEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format',
+        code: 'INVALID_EMAIL_FORMAT'
+      });
+    }
+
+    // Validate password strength
+    if (!validatePassword(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number',
+        code: 'WEAK_PASSWORD'
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+
+    if (!user) {
+      logger.warn('Set password failed: User not found', {
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(404).json({
+        success: false,
+        message: 'User not found with this email address',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'User account is inactive',
+        code: 'USER_INACTIVE'
+      });
+    }
+
+    // Check if user already has a password
+    if (user.password) {
+      logger.warn('Set password failed: Password already set', {
+        userId: user._id,
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Password is already set for this account. Use change password instead.',
+        code: 'PASSWORD_ALREADY_SET'
+      });
+    }
+
+    // Rate limiting check
+    const lastOTPSent = user.lastEmailOTPSent;
+    if (lastOTPSent) {
+      const now = new Date();
+      const timeDiff = now - lastOTPSent;
+      
+      // Allow only one OTP per minute
+      if (timeDiff < 60000) {
+        logger.warn('Set password failed: Rate limit exceeded', {
+          email: email.substring(0, 3) + '***@' + email.split('@')[1],
+          clientInfo,
+          duration: Date.now() - startTime
+        });
+        return res.status(429).json({
+          success: false,
+          message: 'Please wait before requesting another verification code',
+          code: 'RATE_LIMIT_EXCEEDED',
+          retryAfter: Math.ceil((60000 - timeDiff) / 1000)
+        });
+      }
+    }
+
+    // Generate OTP
+    const otpCode = generateOTP();
+
+    // Set password (will be hashed by pre-save hook) and OTP
+    user.password = password;
+    user.emailVerificationCode = otpCode;
+    user.lastEmailOTPSent = new Date();
+    user._skipRelatedDocumentsCreation = true;
+    await user.save({ validateBeforeSave: false });
+    user._skipRelatedDocumentsCreation = false;
+
+    // Send OTP email
+    const emailResult = await EmailService.sendEmailOTP(
+      email.toLowerCase().trim(),
+      otpCode,
+      user.firstName || 'User'
+    );
+
+    if (!emailResult.success) {
+      logger.error('Failed to send email OTP for set password', {
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        error: emailResult.error,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      // Don't fail the request, password is already set, just log the error
+    }
+
+    logger.info('Password set and OTP sent', {
+      userId: user._id,
+      email: email.substring(0, 3) + '***@' + email.split('@')[1],
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Password set successfully. Please verify your email with the OTP code sent to your email address.',
+      email: email.substring(0, 3) + '***@' + email.split('@')[1] // Partially masked email
+    });
+  } catch (error) {
+    logger.error('Set password error', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body?.email ? req.body.email.substring(0, 3) + '***@' + req.body.email.split('@')[1] : 'unknown',
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      code: 'INTERNAL_SERVER_ERROR',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -1418,6 +2374,11 @@ const logout = async (req, res) => {
 module.exports = {
   sendVerificationCode,
   verifyCode,
+  registerWithEmail,
+  loginWithEmail,
+  verifyEmailOTP,
+  checkEmail,
+  setPassword,
   completeOnboarding,
   getProfileCompletionStatus,
   getProfileCompleteness,
@@ -1425,5 +2386,6 @@ module.exports = {
   updateProfile,
   uploadAvatar,
   uploadPortfolioImages,
+  refreshToken,
   logout
 };

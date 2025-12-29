@@ -4,6 +4,13 @@
 
 The Courses feature (Academy) provides a comprehensive online learning platform that enables instructors to create and manage courses, students to enroll and track their progress, and the system to issue certifications upon completion. This feature supports structured learning paths with video content, quizzes, practical exercises, and certification programs.
 
+## Quick Links
+
+- Data Entities: [data-entities.md](./data-entities.md) - Detailed schema documentation
+- API Endpoints: [api-endpoints.md](./api-endpoints.md) - Complete API reference
+- Usage Examples: [usage-examples.md](./usage-examples.md) - Practical implementation examples
+- Best Practices: [best-practices.md](./best-practices.md) - Development guidelines
+
 ## 🏗️ Architecture
 
 ### Core Components

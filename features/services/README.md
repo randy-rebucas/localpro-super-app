@@ -4,6 +4,13 @@
 
 The Services feature (Marketplace) provides a comprehensive service marketplace platform that enables service providers to list their services and clients to discover, book, and manage service appointments. This feature supports a wide range of service categories with advanced filtering, location-based search, payment processing, and review systems.
 
+## Quick Links
+
+- Data Entities: [data-entities.md](./data-entities.md) - Detailed data model documentation
+- API Endpoints: [api-endpoints.md](./api-endpoints.md) - API endpoints and response formats
+- Usage Examples: [usage-examples.md](./usage-examples.md) - Implementation examples and patterns
+- Best Practices: [best-practices.md](./best-practices.md) - Development guidelines and patterns
+
 ## 🏗️ Architecture
 
 ### Core Components
