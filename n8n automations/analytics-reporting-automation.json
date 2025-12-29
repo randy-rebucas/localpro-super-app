@@ -1,0 +1,249 @@
+{
+  "name": "Analytics Reporting Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule - Weekly Monday 8 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/analytics/overview",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "timeframe",
+                "value": "7d"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-analytics",
+      "name": "Get Weekly Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/analytics/marketplace",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "timeframe",
+                "value": "7d"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-marketplace",
+      "name": "Get Marketplace Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/analytics/users",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "timeframe",
+                "value": "7d"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-users",
+      "name": "Get User Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compile analytics report\nconst analytics = $input.first().json;\nconst marketplace = $input.all()[1]?.json || {};\nconst users = $input.all()[2]?.json || {};\n\nconst report = {\n  period: 'Weekly Report',\n  generatedAt: new Date().toISOString(),\n  overview: {\n    totalUsers: analytics.totalUsers || 0,\n    activeUsers: analytics.activeUsers || 0,\n    totalBookings: analytics.totalBookings || 0,\n    totalRevenue: analytics.totalRevenue || 0\n  },\n  marketplace: {\n    totalServices: marketplace.totalServices || 0,\n    totalBookings: marketplace.totalBookings || 0,\n    completedBookings: marketplace.completedBookings || 0,\n    revenue: marketplace.revenue || 0\n  },\n  users: {\n    newUsers: users.newUsers || 0,\n    activeUsers: users.activeUsers || 0,\n    providers: users.providers || 0,\n    clients: users.clients || 0\n  }\n};\n\nreturn report;"
+      },
+      "id": "compile-report",
+      "name": "Compile Analytics Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/communication/notifications/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $env.ADMIN_EMAIL }}"
+            },
+            {
+              "name": "subject",
+              "value": "Weekly Analytics Report - {{ $json.period }}"
+            },
+            {
+              "name": "template",
+              "value": "analytics-report"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-report",
+      "name": "Send Analytics Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Schedule - Weekly Monday 8 AM": {
+      "main": [
+        [
+          {
+            "node": "Get Weekly Analytics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Marketplace Analytics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get User Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Weekly Analytics": {
+      "main": [
+        [
+          {
+            "node": "Compile Analytics Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Marketplace Analytics": {
+      "main": [
+        [
+          {
+            "node": "Compile Analytics Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Analytics": {
+      "main": [
+        [
+          {
+            "node": "Compile Analytics Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compile Analytics Report": {
+      "main": [
+        [
+          {
+            "node": "Send Analytics Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}
+

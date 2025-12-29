@@ -1,0 +1,238 @@
+{
+  "name": "Referral Processing Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule - Hourly Check",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/referrals/process",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "check_pending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "check-pending-referrals",
+      "name": "Check Pending Referrals",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.pendingCount }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "has-pending",
+      "name": "Has Pending Referrals?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process each pending referral\nconst referrals = $input.all();\nconst results = [];\n\nfor (const referral of referrals) {\n  if (referral.json.status === 'pending') {\n    // Check if referral completion criteria met\n    const completed = referral.json.referredUser && \n                      referral.json.referredUser.completedActions &&\n                      referral.json.referredUser.completedActions.length > 0;\n    \n    if (completed) {\n      results.push({\n        referralId: referral.json._id,\n        referrerId: referral.json.referrerId,\n        referredUserId: referral.json.referredUserId,\n        rewardAmount: referral.json.rewardAmount || 0,\n        status: 'completed'\n      });\n    }\n  }\n}\n\nreturn results;"
+      },
+      "id": "process-referrals",
+      "name": "Process Referrals",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/referrals/process",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "referralId",
+              "value": "={{ $json.referralId }}"
+            },
+            {
+              "name": "action",
+              "value": "complete"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "complete-referral",
+      "name": "Complete Referral",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/communication/notifications",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $json.referrerId }}"
+            },
+            {
+              "name": "type",
+              "value": "referral_reward"
+            },
+            {
+              "name": "title",
+              "value": "Referral Reward Earned!"
+            },
+            {
+              "name": "message",
+              "value": "You earned ${{ $json.rewardAmount }} for your referral"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-reward-notification",
+      "name": "Send Reward Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 200]
+    }
+  ],
+  "connections": {
+    "Schedule - Hourly Check": {
+      "main": [
+        [
+          {
+            "node": "Check Pending Referrals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Pending Referrals": {
+      "main": [
+        [
+          {
+            "node": "Has Pending Referrals?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Pending Referrals?": {
+      "main": [
+        [
+          {
+            "node": "Process Referrals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Referrals": {
+      "main": [
+        [
+          {
+            "node": "Complete Referral",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Referral": {
+      "main": [
+        [
+          {
+            "node": "Send Reward Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}
+

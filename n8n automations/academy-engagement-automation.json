@@ -1,0 +1,238 @@
+{
+  "name": "Academy Engagement Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule - Daily at 9:30 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/academy/enrollments",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "status",
+                "value": "enrolled"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-enrollments",
+      "name": "Get Active Enrollments",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter enrollments needing engagement\nconst enrollments = $input.all();\nconst now = new Date();\nconst threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);\nconst fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);\n\nconst needsEngagement = [];\n\nfor (const enrollment of enrollments) {\n  const enrolledDate = new Date(enrollment.json.enrolledAt);\n  const lastProgress = enrollment.json.lastProgressDate ? \n    new Date(enrollment.json.lastProgressDate) : enrolledDate;\n  \n  // Not started (enrolled > 3 days ago, no progress)\n  if (!enrollment.json.progress || enrollment.json.progress === 0) {\n    if (enrolledDate < threeDaysAgo) {\n      needsEngagement.push({\n        ...enrollment.json,\n        engagementType: 'not_started'\n      });\n    }\n  }\n  // Progress stalled (last progress > 5 days ago)\n  else if (lastProgress < fiveDaysAgo) {\n    needsEngagement.push({\n      ...enrollment.json,\n      engagementType: 'stalled'\n    });\n  }\n}\n\nreturn needsEngagement;"
+      },
+      "id": "filter-engagement",
+      "name": "Filter Needs Engagement",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.engagementType }}",
+              "operation": "equals",
+              "value2": "not_started"
+            }
+          ]
+        }
+      },
+      "id": "check-type",
+      "name": "Not Started or Stalled?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/communication/notifications",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $json.userId }}"
+            },
+            {
+              "name": "type",
+              "value": "academy_not_started"
+            },
+            {
+              "name": "title",
+              "value": "Start Your Course"
+            },
+            {
+              "name": "message",
+              "value": "You enrolled in {{ $json.courseTitle }} but haven't started yet. Begin your learning journey today!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-not-started",
+      "name": "Send Not Started Nudge",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/communication/notifications",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $json.userId }}"
+            },
+            {
+              "name": "type",
+              "value": "academy_progress_stalled"
+            },
+            {
+              "name": "title",
+              "value": "Continue Your Course"
+            },
+            {
+              "name": "message",
+              "value": "You're making great progress in {{ $json.courseTitle }}! Continue where you left off."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-stalled",
+      "name": "Send Progress Stalled Nudge",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 400]
+    }
+  ],
+  "connections": {
+    "Schedule - Daily at 9:30 AM": {
+      "main": [
+        [
+          {
+            "node": "Get Active Enrollments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Active Enrollments": {
+      "main": [
+        [
+          {
+            "node": "Filter Needs Engagement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Needs Engagement": {
+      "main": [
+        [
+          {
+            "node": "Not Started or Stalled?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not Started or Stalled?": {
+      "main": [
+        [
+          {
+            "node": "Send Not Started Nudge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Progress Stalled Nudge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}
+

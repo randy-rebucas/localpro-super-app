@@ -1,0 +1,287 @@
+{
+  "name": "Escrow Management Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule - Every 6 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/escrows/admin/all",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "status",
+                "value": "pending_capture,work_in_progress"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-pending-escrows",
+      "name": "Get Pending Escrows",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check escrows ready for capture or release\nconst escrows = $input.all();\nconst now = new Date();\n\nconst readyForAction = escrows.filter(escrow => {\n  if (escrow.json.status === 'pending_capture') {\n    // Check if work is completed\n    return escrow.json.workCompleted === true;\n  }\n  if (escrow.json.status === 'work_in_progress') {\n    // Check if deadline passed or work completed\n    const deadline = new Date(escrow.json.deadline);\n    return deadline < now || escrow.json.workCompleted === true;\n  }\n  return false;\n});\n\nreturn readyForAction.map(escrow => escrow.json);"
+      },
+      "id": "check-ready",
+      "name": "Check Ready for Action",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "operation": "equals",
+              "value2": "work_in_progress"
+            }
+          ]
+        }
+      },
+      "id": "check-status",
+      "name": "Work Completed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/escrows/{{ $json._id }}/capture",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "amount",
+              "value": "={{ $json.amount }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "capture-payment",
+      "name": "Capture Payment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/escrows/{{ $json._id }}/payout",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "amount",
+              "value": "={{ $json.amount }}"
+            },
+            {
+              "name": "recipientId",
+              "value": "={{ $json.providerId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "release-payment",
+      "name": "Release Payment to Provider",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 400]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/communication/notifications",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $json.providerId }}"
+            },
+            {
+              "name": "type",
+              "value": "escrow_released"
+            },
+            {
+              "name": "title",
+              "value": "Payment Released"
+            },
+              {
+              "name": "message",
+              "value": "Your payment of ${{ $json.amount }} has been released"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "notify-provider",
+      "name": "Notify Provider",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Schedule - Every 6 Hours": {
+      "main": [
+        [
+          {
+            "node": "Get Pending Escrows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pending Escrows": {
+      "main": [
+        [
+          {
+            "node": "Check Ready for Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Ready for Action": {
+      "main": [
+        [
+          {
+            "node": "Work Completed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Work Completed?": {
+      "main": [
+        [
+          {
+            "node": "Capture Payment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Release Payment to Provider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture Payment": {
+      "main": [
+        [
+          {
+            "node": "Release Payment to Provider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Release Payment to Provider": {
+      "main": [
+        [
+          {
+            "node": "Notify Provider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}
+
