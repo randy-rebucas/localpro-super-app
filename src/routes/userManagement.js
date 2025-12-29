@@ -12,7 +12,15 @@ const {
   getUserStats,
   bulkUpdateUsers,
   deleteUser,
-  restoreUser
+  restoreUser,
+  banUser,
+  getUserRoles,
+  updateUserRoles,
+  getUserBadges,
+  deleteUserBadge,
+  resetUserPassword,
+  sendEmailToUser,
+  exportUserData
 } = require('../controllers/userManagementController');
 
 const router = express.Router();
@@ -106,6 +114,70 @@ router.patch('/:id/restore',
 router.delete('/:id',
   authorize(['admin']),
   deleteUser
+);
+
+// @desc    Ban user
+// @route   POST /api/users/:id/ban
+// @access  Admin - [ADMIN ONLY]
+router.post('/:id/ban',
+  authorize(['admin']),
+  banUser
+);
+
+// @desc    Get user roles
+// @route   GET /api/users/:id/roles
+// @access  Admin/Manager - [ADMIN/AGENCY ONLY]
+router.get('/:id/roles',
+  authorize(['admin', 'agency_admin', 'agency_owner']),
+  getUserRoles
+);
+
+// @desc    Update user roles
+// @route   PUT /api/users/:id/roles
+// @access  Admin - [ADMIN ONLY]
+router.put('/:id/roles',
+  authorize(['admin']),
+  updateUserRoles
+);
+
+// @desc    Get user badges
+// @route   GET /api/users/:id/badges
+// @access  Admin/Manager - [ADMIN/AGENCY ONLY]
+router.get('/:id/badges',
+  authorize(['admin', 'agency_admin', 'agency_owner']),
+  getUserBadges
+);
+
+// @desc    Delete user badge
+// @route   DELETE /api/users/:id/badges/:badgeId
+// @access  Admin/Manager - [ADMIN/AGENCY ONLY]
+router.delete('/:id/badges/:badgeId',
+  authorize(['admin', 'agency_admin']),
+  deleteUserBadge
+);
+
+// @desc    Reset user password
+// @route   POST /api/users/:id/reset-password
+// @access  Admin - [ADMIN ONLY]
+router.post('/:id/reset-password',
+  authorize(['admin']),
+  resetUserPassword
+);
+
+// @desc    Send email to user
+// @route   POST /api/users/:id/send-email
+// @access  Admin/Manager - [ADMIN/AGENCY ONLY]
+router.post('/:id/send-email',
+  authorize(['admin', 'agency_admin', 'agency_owner']),
+  sendEmailToUser
+);
+
+// @desc    Export user data
+// @route   GET /api/users/:id/export
+// @access  Admin - [ADMIN ONLY]
+router.get('/:id/export',
+  authorize(['admin']),
+  exportUserData
 );
 
 module.exports = router;

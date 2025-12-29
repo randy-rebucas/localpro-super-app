@@ -304,6 +304,69 @@ class AuditLogger {
       { category: settingCategory, ...metadata }
     );
   }
+
+  // Generic log method that accepts an object and routes to appropriate method
+  async log(logData) {
+    try {
+      const {
+        action,
+        userId,
+        resourceType,
+        resourceId,
+        metadata = {},
+        category,
+        req: providedReq
+      } = logData;
+
+      // Use provided req or create a minimal one
+      let req = providedReq;
+      
+      if (!req) {
+        // Create minimal req object from provided data
+        req = {
+          user: { 
+            id: userId, 
+            _id: userId,
+            email: logData.email,
+            role: logData.role
+          },
+          ip: logData.ip || 'unknown',
+          get: (header) => {
+            if (header === 'User-Agent') return logData.userAgent || 'unknown';
+            return null;
+          },
+          method: logData.method || 'UNKNOWN',
+          originalUrl: logData.url || 'unknown',
+          params: logData.params || {},
+          query: logData.query || {}
+        };
+      } else if (userId && !req.user) {
+        // If req is provided but doesn't have user, add it
+        req.user = {
+          id: userId,
+          _id: userId,
+          email: logData.email,
+          role: logData.role
+        };
+      }
+
+      // Determine category from resourceType or use provided/default
+      const logCategory = category || resourceType || 'system';
+
+      // Create target object
+      const target = resourceId 
+        ? { type: resourceType || logCategory, id: resourceId, name: resourceType || logCategory }
+        : { type: resourceType || logCategory, id: null, name: resourceType || logCategory };
+
+      // Route to logCustom for flexibility
+      return await this.logCustom(action, logCategory, req, target, {}, metadata);
+    } catch (error) {
+      logger.error('Generic audit logging failed', error, {
+        context: this.context,
+        logData
+      });
+    }
+  }
 }
 
 // Create default audit logger instance

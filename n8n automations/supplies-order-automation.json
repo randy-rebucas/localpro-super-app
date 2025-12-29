@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/supplies/my-orders",
+        "url": "={{ $vars.BASE_URL }}/api/supplies/my-orders",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
@@ -28,7 +28,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
+              "value": "Bearer {{ $vars.API_TOKEN }}"
             }
           ]
         },
@@ -79,16 +79,24 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/communication/notifications",
+        "url": "={{ $vars.BASE_URL }}/api/communication/notifications",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "genericAuthProperties": {
+          "headers": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $vars.API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $vars.API_SECRET }}"
+            }
+          ]
+        },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -126,16 +134,24 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/communication/notifications",
+        "url": "={{ $vars.BASE_URL }}/api/communication/notifications",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "genericAuthProperties": {
+          "headers": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $vars.API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $vars.API_SECRET }}"
+            }
+          ]
+        },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"

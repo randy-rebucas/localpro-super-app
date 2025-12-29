@@ -680,6 +680,180 @@ class EmailService {
   }
 
   /**
+   * Send password reset email with temporary password
+   * @param {string} to - Recipient email
+   * @param {string} firstName - User's first name
+   * @param {string} tempPassword - Temporary password
+   * @returns {Promise<object>} Send result
+   */
+  async sendPasswordResetEmail(to, firstName, tempPassword) {
+    const subject = 'Your Password Has Been Reset - LocalPro';
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px;">
+          <h1 style="color: #2c3e50; margin-bottom: 20px;">Password Reset</h1>
+          <p style="color: #555; font-size: 16px; margin-bottom: 20px;">
+            Hi ${firstName},
+          </p>
+          <p style="color: #555; font-size: 16px; margin-bottom: 20px;">
+            Your password has been reset by an administrator. Please use the following temporary password to log in:
+          </p>
+          <div style="background-color: #ffffff; border: 2px solid #e74c3c; border-radius: 8px; padding: 20px; margin: 30px 0; text-align: center;">
+            <p style="color: #555; font-size: 14px; margin-bottom: 10px;">Temporary Password:</p>
+            <h2 style="color: #e74c3c; font-size: 24px; letter-spacing: 4px; margin: 0; font-family: 'Courier New', monospace;">
+              ${tempPassword}
+            </h2>
+          </div>
+          <p style="color: #e74c3c; font-size: 14px; margin-top: 20px; font-weight: bold;">
+            ⚠️ Please change this password immediately after logging in for security.
+          </p>
+          <p style="color: #888; font-size: 14px; margin-top: 30px;">
+            If you didn't request this password reset, please contact support immediately.
+          </p>
+        </div>
+      </div>
+    `;
+    
+    return await this.sendEmail(to, subject, html);
+  }
+
+  /**
+   * Send account activated notification email
+   * @param {string} to - Recipient email
+   * @param {string} firstName - User's first name
+   * @returns {Promise<object>} Send result
+   */
+  async sendAccountActivatedEmail(to, firstName) {
+    const subject = 'Account Activated - LocalPro';
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px;">
+          <h1 style="color: #27ae60; margin-bottom: 20px;">Account Activated</h1>
+          <p style="color: #555; font-size: 16px; margin-bottom: 20px;">
+            Hi ${firstName},
+          </p>
+          <p style="color: #555; font-size: 16px; margin-bottom: 20px;">
+            Great news! Your LocalPro Super App account has been activated.
+          </p>
+          <p style="color: #555; font-size: 16px; margin-bottom: 20px;">
+            You can now access all features and services on our platform.
+          </p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL || 'https://localpro.com'}/login" 
+               style="background-color: #27ae60; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+              Log In to Your Account
+            </a>
+          </div>
+          <p style="color: #888; font-size: 14px; margin-top: 30px;">
+            If you have any questions, please don't hesitate to contact our support team.
+          </p>
+        </div>
+      </div>
+    `;
+    
+    return await this.sendEmail(to, subject, html);
+  }
+
+  /**
+   * Send account deactivated notification email
+   * @param {string} to - Recipient email
+   * @param {string} firstName - User's first name
+   * @param {string} reason - Deactivation reason (optional)
+   * @returns {Promise<object>} Send result
+   */
+  async sendAccountDeactivatedEmail(to, firstName, reason) {
+    const subject = 'Account Deactivated - LocalPro';
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px;">
+          <h1 style="color: #e74c3c; margin-bottom: 20px;">Account Deactivated</h1>
+          <p style="color: #555; font-size: 16px; margin-bottom: 20px;">
+            Hi ${firstName},
+          </p>
+          <p style="color: #555; font-size: 16px; margin-bottom: 20px;">
+            Your LocalPro Super App account has been deactivated.
+          </p>
+          ${reason ? `
+            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+              <p style="color: #856404; font-size: 14px; margin: 0;"><strong>Reason:</strong> ${reason}</p>
+            </div>
+          ` : ''}
+          <p style="color: #888; font-size: 14px; margin-top: 30px;">
+            If you believe this is an error or would like to reactivate your account, please contact our support team.
+          </p>
+          <p style="color: #888; font-size: 14px; margin-top: 10px;">
+            <a href="${process.env.FRONTEND_URL || 'https://localpro.com'}/support" style="color: #3498db;">Contact Support</a>
+          </p>
+        </div>
+      </div>
+    `;
+    
+    return await this.sendEmail(to, subject, html);
+  }
+
+  /**
+   * Send account banned notification email
+   * @param {string} to - Recipient email
+   * @param {string} firstName - User's first name
+   * @param {string} reason - Ban reason
+   * @returns {Promise<object>} Send result
+   */
+  async sendAccountBannedEmail(to, firstName, reason) {
+    const subject = 'Account Banned - LocalPro';
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px;">
+          <h1 style="color: #e74c3c; margin-bottom: 20px;">Account Banned</h1>
+          <p style="color: #555; font-size: 16px; margin-bottom: 20px;">
+            Hi ${firstName},
+          </p>
+          <p style="color: #555; font-size: 16px; margin-bottom: 20px;">
+            Your account has been banned from LocalPro Super App.
+          </p>
+          ${reason ? `
+            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+              <p style="color: #856404; font-size: 14px; margin: 0;"><strong>Reason:</strong> ${reason}</p>
+            </div>
+          ` : ''}
+          <p style="color: #888; font-size: 14px; margin-top: 30px;">
+            If you believe this is an error, please contact our support team.
+          </p>
+        </div>
+      </div>
+    `;
+    
+    return await this.sendEmail(to, subject, html);
+  }
+
+  /**
+   * Send templated email
+   * @param {string} to - Recipient email
+   * @param {string} subject - Email subject
+   * @param {string} template - Template name
+   * @param {object} data - Template data
+   * @returns {Promise<object>} Send result
+   */
+  async sendTemplatedEmail(to, subject, template, data = {}) {
+    try {
+      const html = await templateEngine.renderTemplate(template, data);
+      return await this.sendEmail(to, subject, html);
+    } catch (error) {
+      logger.error('Error rendering email template:', error);
+      // Fallback to plain message if template fails
+      const fallbackHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <p>${data.message || 'Please check the email content.'}</p>
+        </div>
+      `;
+      return await this.sendEmail(to, subject, fallbackHtml);
+    }
+  }
+
+  /**
    * Test email configuration
    * @returns {Promise<object>} Test result
    */

@@ -20,16 +20,24 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/logs/cleanup",
+        "url": "={{ $vars.BASE_URL }}/api/logs/cleanup",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "genericAuthProperties": {
+          "headers": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $vars.API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $vars.API_SECRET }}"
+            }
+          ]
+        },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -59,16 +67,24 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/audit-logs/cleanup",
+        "url": "={{ $vars.BASE_URL }}/api/audit-logs/cleanup",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "genericAuthProperties": {
+          "headers": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $vars.API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $vars.API_SECRET }}"
+            }
+          ]
+        },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -94,17 +110,24 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/logs/stats",
+        "url": "={{ $vars.BASE_URL }}/api/logs/stats",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "genericAuthProperties": {
+          "headers": [
             {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
+              "name": "X-API-Key",
+              "value": "={{ $vars.API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $vars.API_SECRET }}"
             }
           ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": []
         },
         "options": {}
       },

@@ -244,20 +244,29 @@ const getUserById = async (req, res) => {
     const { id } = req.params;
     const { includeDeleted = false } = req.query;
     
+    // Populate all referenced collections
     const user = await User.findById(id)
-      .select('-verificationCode')
+      .select('-password -refreshToken -verificationCode -emailVerificationCode')
+      .populate('localProPlusSubscription')
+      .populate('wallet')
+      .populate('trust')
+      .populate({
+        path: 'referral',
+        populate: { 
+          path: 'referredBy', 
+          select: 'firstName lastName email phoneNumber' 
+        }
+      })
+      .populate('settings')
+      .populate('management')
+      .populate('activity')
       .populate({
         path: 'agency',
         populate: {
           path: 'agencyId',
-          select: 'name type contact.address'
+          select: 'name type contact address description'
         }
-      })
-      .populate({
-        path: 'referral',
-        populate: { path: 'referredBy', select: 'firstName lastName email' }
-      })
-      .populate('settings');
+      });
 
     if (!user) {
       return res.status(200).json({
@@ -277,8 +286,10 @@ const getUserById = async (req, res) => {
       }
     }
 
-    // Fetch provider data if user has provider role
+    // Convert to object for manipulation
     const userObj = user.toObject ? user.toObject() : user;
+
+    // Fetch provider data if user has provider role
     if (userObj.roles && userObj.roles.includes('provider')) {
       try {
         const provider = await Provider.findOne({ userId: id })
@@ -305,25 +316,78 @@ const getUserById = async (req, res) => {
       } catch (providerError) {
         // If provider fetch fails, continue without provider data
         console.error('Error fetching provider data:', providerError);
+        userObj.provider = null;
       }
     }
 
-    // Attach lastLoginAt from UserManagement
-    const UserManagement = require('../models/UserManagement');
-    const mgmt = await UserManagement.findOne({ user: userObj._id }).lean();
-    userObj.lastLoginAt = mgmt && mgmt.lastLoginAt ? mgmt.lastLoginAt : null;
-    userObj.lastLoginDisplay = mgmt && mgmt.lastLoginAt ? mgmt.lastLoginAt : 'Never';
-    // Add status management fields
-    userObj.status = mgmt && mgmt.status ? mgmt.status : null;
-    userObj.statusReason = mgmt && mgmt.statusReason ? mgmt.statusReason : null;
-    userObj.statusUpdatedAt = mgmt && mgmt.statusUpdatedAt ? mgmt.statusUpdatedAt : null;
-    userObj.statusUpdatedBy = mgmt && mgmt.statusUpdatedBy ? mgmt.statusUpdatedBy : null;
-    userObj.isDeleted = mgmt && mgmt.deletedAt ? true : false;
+    // Fetch API keys (if user has any)
+    try {
+      const ApiKey = require('../models/ApiKey');
+      const apiKeys = await ApiKey.find({ userId: id })
+        .select('-secretKey -secretKeyHash')
+        .sort({ createdAt: -1 })
+        .lean();
+      userObj.apiKeys = apiKeys || [];
+    } catch (apiKeyError) {
+      console.error('Error fetching API keys:', apiKeyError);
+      userObj.apiKeys = [];
+    }
+
+    // Fetch access tokens (if user has any)
+    try {
+      const AccessToken = require('../models/AccessToken');
+      const accessTokens = await AccessToken.find({ userId: id })
+        .populate('apiKeyId', 'name description scopes')
+        .select('-token -tokenHash -refreshToken -refreshTokenHash')
+        .sort({ createdAt: -1 })
+        .limit(10) // Limit to recent 10 tokens
+        .lean();
+      userObj.accessTokens = accessTokens || [];
+    } catch (accessTokenError) {
+      console.error('Error fetching access tokens:', accessTokenError);
+      userObj.accessTokens = [];
+    }
+
+    // Attach management fields if not already populated
+    if (!userObj.management) {
+      const UserManagement = require('../models/UserManagement');
+      const mgmt = await UserManagement.findOne({ user: userObj._id }).lean();
+      if (mgmt) {
+        userObj.management = mgmt;
+        userObj.lastLoginAt = mgmt.lastLoginAt || null;
+        userObj.lastLoginDisplay = mgmt.lastLoginAt ? mgmt.lastLoginAt : 'Never';
+        userObj.status = mgmt.status || null;
+        userObj.statusReason = mgmt.statusReason || null;
+        userObj.statusUpdatedAt = mgmt.statusUpdatedAt || null;
+        userObj.statusUpdatedBy = mgmt.statusUpdatedBy || null;
+        userObj.isDeleted = mgmt.deletedAt ? true : false;
+      } else {
+        userObj.lastLoginAt = null;
+        userObj.lastLoginDisplay = 'Never';
+        userObj.status = null;
+        userObj.statusReason = null;
+        userObj.statusUpdatedAt = null;
+        userObj.statusUpdatedBy = null;
+        userObj.isDeleted = false;
+      }
+    } else {
+      // Management already populated, extract fields
+      const mgmt = userObj.management;
+      userObj.lastLoginAt = mgmt.lastLoginAt || null;
+      userObj.lastLoginDisplay = mgmt.lastLoginAt ? mgmt.lastLoginAt : 'Never';
+      userObj.status = mgmt.status || null;
+      userObj.statusReason = mgmt.statusReason || null;
+      userObj.statusUpdatedAt = mgmt.statusUpdatedAt || null;
+      userObj.statusUpdatedBy = mgmt.statusUpdatedBy || null;
+      userObj.isDeleted = mgmt.deletedAt ? true : false;
+    }
+
     res.status(200).json({
       success: true,
       data: userObj
     });
-  } catch (_error) {
+  } catch (error) {
+    console.error('Get user by ID error:', error);
     res.status(200).json({
       success: true,
       data: {}
@@ -788,6 +852,15 @@ const addUserBadge = async (req, res) => {
     const { id } = req.params;
     const { type, description } = req.body;
 
+    // Validate badge type
+    const validBadgeTypes = ['verified_provider', 'top_rated', 'fast_response', 'reliable', 'expert', 'newcomer', 'trusted'];
+    if (!type || !validBadgeTypes.includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid badge type. Valid types are: ${validBadgeTypes.join(', ')}`
+      });
+    }
+
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({
@@ -1074,6 +1147,464 @@ const restoreUser = async (req, res) => {
   }
 };
 
+// @desc    Ban user
+// @route   POST /api/users/:id/ban
+// @access  Admin
+const banUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update UserManagement status
+    const management = await user.ensureManagement();
+    await management.updateStatus('banned', reason || 'Banned by administrator', req.user._id);
+
+    user.isActive = false;
+    await user.save();
+
+    // Send notification
+    if (user.email) {
+      try {
+        await EmailService.sendAccountBannedEmail(user.email, user.firstName, reason);
+      } catch (emailError) {
+        console.error('Failed to send ban notification email:', emailError);
+      }
+    }
+
+    // Audit log
+    await auditLogger.logUser('user_ban', req, { type: 'user', id: id, name: 'User' }, {}, { reason });
+
+    res.status(200).json({
+      success: true,
+      message: 'User banned successfully',
+      data: { isActive: false, status: 'banned' }
+    });
+  } catch (error) {
+    console.error('Ban user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Get user roles
+// @route   GET /api/users/:id/roles
+// @access  Admin/Manager
+const getUserRoles = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id).select('roles');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        userId: id,
+        roles: user.roles || []
+      }
+    });
+  } catch (error) {
+    console.error('Get user roles error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Update user roles
+// @route   PUT /api/users/:id/roles
+// @access  Admin
+const updateUserRoles = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { roles } = req.body;
+
+    if (!Array.isArray(roles)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Roles must be an array'
+      });
+    }
+
+    const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner', 'staff'];
+    const invalidRoles = roles.filter(role => !validRoles.includes(role));
+    
+    if (invalidRoles.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid roles: ${invalidRoles.join(', ')}`,
+        validRoles
+      });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const oldRoles = [...(user.roles || [])];
+    user.roles = roles;
+    await user.save();
+
+    // Audit log
+    await auditLogger.logUser('user_roles_update', req, { type: 'user', id: id, name: 'User' }, { roles: { from: oldRoles, to: roles } }, {});
+
+    res.status(200).json({
+      success: true,
+      message: 'User roles updated successfully',
+      data: {
+        userId: id,
+        roles: user.roles
+      }
+    });
+  } catch (error) {
+    console.error('Update user roles error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Get user badges
+// @route   GET /api/users/:id/badges
+// @access  Admin/Manager
+const getUserBadges = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id).select('badges');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        userId: id,
+        badges: user.badges || []
+      }
+    });
+  } catch (error) {
+    console.error('Get user badges error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Delete user badge
+// @route   DELETE /api/users/:id/badges/:badgeId
+// @access  Admin/Manager
+const deleteUserBadge = async (req, res) => {
+  try {
+    const { id, badgeId } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    if (!user.badges || user.badges.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User has no badges'
+      });
+    }
+
+    const badgeIndex = user.badges.findIndex(b => b._id.toString() === badgeId);
+    if (badgeIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Badge not found'
+      });
+    }
+
+    const removedBadge = user.badges[badgeIndex];
+    user.badges.splice(badgeIndex, 1);
+    await user.save();
+
+    // Audit log
+    await auditLogger.logUser('user_badge_remove', req, { type: 'user', id: id, name: 'User' }, {}, { badge: removedBadge });
+
+    res.status(200).json({
+      success: true,
+      message: 'Badge removed successfully',
+      data: {
+        userId: id,
+        badges: user.badges
+      }
+    });
+  } catch (error) {
+    console.error('Delete user badge error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Reset user password (admin)
+// @route   POST /api/users/:id/reset-password
+// @access  Admin
+const resetUserPassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { sendEmail = true } = req.body;
+
+    const user = await User.findById(id).select('+password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Generate temporary password
+    const crypto = require('crypto');
+    const tempPassword = crypto.randomBytes(12).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
+    
+    // Set password (will be hashed by pre-save hook)
+    user.password = tempPassword;
+    await user.save();
+
+    // Send email with temporary password if requested
+    if (sendEmail && user.email) {
+      try {
+        await EmailService.sendPasswordResetEmail(user.email, user.firstName || 'User', tempPassword);
+      } catch (emailError) {
+        console.error('Failed to send password reset email:', emailError);
+        // Still return success, but include warning
+        return res.status(200).json({
+          success: true,
+          message: 'Password reset successfully, but failed to send email',
+          warning: 'Please manually send the temporary password to the user',
+          data: {
+            temporaryPassword: tempPassword,
+            email: user.email
+          }
+        });
+      }
+    }
+
+    // Audit log
+    await auditLogger.logSecurity('password_reset_admin', req, { type: 'user', id: id, name: 'User' }, { resetBy: req.user._id });
+
+    res.status(200).json({
+      success: true,
+      message: sendEmail ? 'Password reset successfully. Email sent to user.' : 'Password reset successfully',
+      ...(sendEmail ? {} : {
+        data: {
+          temporaryPassword: tempPassword,
+          email: user.email,
+          warning: 'Please send this password to the user securely'
+        }
+      })
+    });
+  } catch (error) {
+    console.error('Reset user password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Send email to user
+// @route   POST /api/users/:id/send-email
+// @access  Admin/Manager
+const sendEmailToUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { subject, message, template, templateData } = req.body;
+
+    if (!subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subject and message are required'
+      });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    if (!user.email) {
+      return res.status(400).json({
+        success: false,
+        message: 'User does not have an email address'
+      });
+    }
+
+    // Send email
+    try {
+      if (template && templateData) {
+        // Use template if provided
+        await EmailService.sendTemplatedEmail(user.email, subject, template, templateData);
+      } else {
+        // Send plain email (message can be HTML or plain text)
+        await EmailService.sendEmail(user.email, subject, message);
+      }
+    } catch (emailError) {
+      console.error('Failed to send email:', emailError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send email',
+        error: process.env.NODE_ENV === 'development' ? emailError.message : undefined
+      });
+    }
+
+    // Audit log
+    await auditLogger.logUser('user_email_sent', req, { type: 'user', id: id, name: 'User' }, {}, { subject, template });
+
+    res.status(200).json({
+      success: true,
+      message: 'Email sent successfully',
+      data: {
+        recipient: user.email,
+        subject
+      }
+    });
+  } catch (error) {
+    console.error('Send email to user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Export user data
+// @route   GET /api/users/:id/export
+// @access  Admin
+const exportUserData = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { format = 'json' } = req.query;
+
+    const user = await User.findById(id)
+      .populate('localProPlusSubscription')
+      .select('-password -refreshToken -verificationCode -emailVerificationCode');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Get related data
+    const UserManagement = require('../models/UserManagement');
+    const UserActivity = require('../models/UserActivity');
+    const UserWallet = require('../models/UserWallet');
+    const Provider = require('../models/Provider');
+    
+    const userObj = user.toObject ? user.toObject() : user;
+    
+    // Fetch provider data if user has provider role
+    let providerData = null;
+    if (userObj.roles && userObj.roles.includes('provider')) {
+      try {
+        const provider = await Provider.findOne({ userId: id })
+          .populate({
+            path: 'professionalInfo',
+            populate: {
+              path: 'specialties.skills',
+              select: 'name description category metadata'
+            }
+          })
+          .populate('businessInfo')
+          .populate('verification', '-backgroundCheck.reportId -insurance.documents')
+          .populate('preferences')
+          .populate('performance')
+          .select('-financialInfo -onboarding')
+          .lean();
+        
+        if (provider) {
+          providerData = provider;
+        }
+      } catch (providerError) {
+        // If provider fetch fails, continue without provider data
+        console.error('Error fetching provider data:', providerError);
+      }
+    }
+    
+    const [management, activities, wallet] = await Promise.all([
+      UserManagement.findOne({ user: id }),
+      UserActivity.find({ userId: id }).limit(100).sort({ createdAt: -1 }),
+      UserWallet.findOne({ userId: id })
+    ]);
+
+    const exportData = {
+      user: userObj,
+      provider: providerData,
+      management: management ? management.toObject() : null,
+      recentActivities: activities.map(a => a.toObject()),
+      wallet: wallet ? wallet.toObject() : null,
+      exportedAt: new Date().toISOString(),
+      exportedBy: req.user._id
+    };
+
+    // Audit log
+    await auditLogger.logUser('user_data_export', req, { type: 'user', id: id, name: 'User' }, {}, { format });
+
+    if (format === 'json') {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="user-${id}-${Date.now()}.json"`);
+      res.status(200).json(exportData);
+    } else {
+      // CSV format (simplified)
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="user-${id}-${Date.now()}.csv"`);
+      res.status(200).send(JSON.stringify(exportData, null, 2));
+    }
+  } catch (error) {
+    console.error('Export user data error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -1085,5 +1616,13 @@ module.exports = {
   getUserStats,
   bulkUpdateUsers,
   deleteUser,
-  restoreUser
+  restoreUser,
+  banUser,
+  getUserRoles,
+  updateUserRoles,
+  getUserBadges,
+  deleteUserBadge,
+  resetUserPassword,
+  sendEmailToUser,
+  exportUserData
 };

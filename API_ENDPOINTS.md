@@ -6,7 +6,8 @@ Complete list of all API endpoints in the LocalPro Super App.
 
 1. [Authentication](#authentication)
 2. [API Keys](#api-keys)
-3. [Marketplace](#marketplace)
+3. [OAuth2 / Access Tokens](#oauth2--access-tokens)
+4. [Marketplace](#marketplace)
 3. [Supplies](#supplies)
 4. [Academy](#academy)
 5. [Finance](#finance)
@@ -54,9 +55,10 @@ Complete list of all API endpoints in the LocalPro Super App.
 
 **Base Path:** `/api/auth`
 
-The API supports two authentication methods:
+The API supports multiple authentication methods:
 - **JWT Token**: For user-facing applications (see endpoints below)
 - **API Key/Secret**: For third-party integrations (see [API Keys](#api-keys) section)
+- **Access Token**: OAuth2-style tokens with scopes (see [OAuth2 / Access Tokens](#oauth2--access-tokens) section)
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
@@ -195,6 +197,104 @@ GET /api/marketplace/services?apiKey=lp_abc123def456...&apiSecret=xyz789uvw012..
 - `API_KEY_EXPIRED`: API key has expired
 - `IP_NOT_ALLOWED`: Request IP is not in the allowed list
 - `USER_INACTIVE`: User account associated with API key is inactive
+
+---
+
+## OAuth2 / Access Tokens
+
+**Base Path:** `/api/oauth`
+
+OAuth2-style access tokens with scope-based permissions. Exchange API keys for access tokens that can be revoked independently.
+
+### Authentication Flow
+
+1. Create an API key (see [API Keys](#api-keys))
+2. Exchange API key/secret for access token
+3. Use access token with Bearer authentication
+4. Refresh token when it expires
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/token` | Exchange API key for access token | API Key/Secret |
+| POST | `/refresh` | Refresh access token | Refresh Token |
+| POST | `/revoke` | Revoke access or refresh token | None |
+| GET | `/token-info` | Get current token information | Access Token |
+| GET | `/tokens` | List user's access tokens | API Key/Secret |
+
+### Token Exchange
+
+**Request:**
+```http
+POST /api/oauth/token
+X-API-Key: lp_abc123...
+X-API-Secret: xyz789...
+Content-Type: application/json
+
+{
+  "grant_type": "client_credentials",
+  "scope": "read marketplace.read",
+  "expires_in": 3600
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "expires_at": "2024-01-01T13:00:00.000Z",
+  "refresh_token": "a1b2c3d4e5f6...",
+  "scope": "read marketplace.read"
+}
+```
+
+### Using Access Tokens
+
+```http
+GET /api/marketplace/services
+Authorization: Bearer <access_token>
+```
+
+### Scopes
+
+Access tokens support granular scope-based permissions:
+
+- **General**: `read`, `write`, `admin`, `*`
+- **Marketplace**: `marketplace.read`, `marketplace.write`
+- **Users**: `users.read`, `users.write`
+- **Analytics**: `analytics.read`
+- **Finance**: `finance.read`, `finance.write`
+
+Requested scopes must be a subset of the API key's scopes.
+
+### Token Refresh
+
+```http
+POST /api/oauth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "a1b2c3d4e5f6...",
+  "scope": "read marketplace.read",
+  "expires_in": 3600
+}
+```
+
+### Token Revocation
+
+```http
+POST /api/oauth/revoke
+Content-Type: application/json
+
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type_hint": "access_token"
+}
+```
+
+For more details, see [ACCESS_TOKEN_GUIDE.md](./ACCESS_TOKEN_GUIDE.md).
 
 ---
 

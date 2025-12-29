@@ -25,7 +25,7 @@ const userTrustSchema = new mongoose.Schema({
   badges: [{
     type: {
       type: String,
-      enum: ['verified_provider', 'top_rated', 'fast_response', 'reliable', 'expert', 'newcomer']
+      enum: ['verified_provider', 'top_rated', 'fast_response', 'reliable', 'expert', 'newcomer', 'trusted']
     },
     earnedAt: {
       type: Date,

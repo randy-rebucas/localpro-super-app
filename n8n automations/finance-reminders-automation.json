@@ -20,17 +20,24 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/finance/transactions",
+        "url": "={{ $vars.BASE_URL }}/api/finance/transactions",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "genericAuthProperties": {
+          "headers": [
             {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
+              "name": "X-API-Key",
+              "value": "={{ $vars.API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $vars.API_SECRET }}"
             }
           ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": []
         },
         "options": {
           "queryParameters": {
@@ -83,16 +90,24 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/communication/notifications",
+        "url": "={{ $vars.BASE_URL }}/api/communication/notifications",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "genericAuthProperties": {
+          "headers": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $vars.API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $vars.API_SECRET }}"
+            }
+          ]
+        },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -130,16 +145,24 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/communication/notifications",
+        "url": "={{ $vars.BASE_URL }}/api/communication/notifications",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "genericAuthProperties": {
+          "headers": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $vars.API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $vars.API_SECRET }}"
+            }
+          ]
+        },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"

@@ -1,10 +1,11 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 const { apiKeyAuth } = require('./apiKeyAuth');
+const { accessTokenAuth } = require('./accessTokenAuth');
 
 /**
- * Universal authentication middleware that supports both JWT and API key authentication
- * Tries API key authentication first, then falls back to JWT
+ * Universal authentication middleware that supports:
+ * 1. API key/secret authentication
+ * 2. Access token authentication (OAuth2 style with scopes)
+ * 3. JWT token authentication (legacy)
  */
 const auth = async (req, res, next) => {
   try {
@@ -17,72 +18,27 @@ const auth = async (req, res, next) => {
       return apiKeyAuth(req, res, next);
     }
 
-    // Fall back to JWT authentication
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: 'No token or API key, authorization denied',
-        code: 'MISSING_AUTH'
-      });
+    // Check for Bearer token (access token or JWT)
+    const authHeader = req.header('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      // Use access token authentication (handles both OAuth tokens and JWTs)
+      return accessTokenAuth(req, res, next);
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Check if token is an access token (not a refresh token)
-    if (decoded.type && decoded.type !== 'access') {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid token type. Access token required.',
-        code: 'INVALID_TOKEN_TYPE'
-      });
-    }
-    
-    const user = await User.findById(decoded.id).select('-password');
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Token is not valid',
-        code: 'USER_NOT_FOUND'
-      });
-    }
-
-    // Check if user is active
-    if (!user.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: 'User account is inactive',
-        code: 'USER_INACTIVE'
-      });
-    }
-
-    req.user = user;
-    req.authType = 'jwt';
-    next();
+    // No authentication provided
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required',
+      code: 'MISSING_AUTH',
+      hint: 'Provide API key/secret, Bearer token, or Authorization header'
+    });
   } catch (error) {
-    // Provide specific error messages for different JWT errors
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Token has expired. Please refresh your token.',
-        code: 'TOKEN_EXPIRED',
-        expiredAt: error.expiredAt
-      });
-    } else if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Token is not valid',
-        code: 'INVALID_TOKEN'
-      });
-    } else {
-      return res.status(401).json({
-        success: false,
-        message: 'Token verification failed',
-        code: 'TOKEN_VERIFICATION_FAILED'
-      });
-    }
+    // This should not be reached as accessTokenAuth handles errors
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication failed',
+      code: 'AUTH_ERROR'
+    });
   }
 };
 

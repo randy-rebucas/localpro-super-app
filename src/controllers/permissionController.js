@@ -184,7 +184,8 @@ const createPermission = async (req, res) => {
         code: permission.code,
         module: permission.module,
         action: permission.action
-      }
+      },
+      req
     });
 
     res.status(201).json({
@@ -242,7 +243,8 @@ const updatePermission = async (req, res) => {
       userId: req.user._id,
       resourceType: 'permission',
       resourceId: permission._id,
-      metadata: req.body
+      metadata: req.body,
+      req
     });
 
     res.status(200).json({
@@ -293,7 +295,8 @@ const deletePermission = async (req, res) => {
       action: 'permission.deleted',
       userId: req.user._id,
       resourceType: 'permission',
-      resourceId: permission._id
+      resourceId: permission._id,
+      req
     });
 
     res.status(200).json({
@@ -324,7 +327,8 @@ const initializePermissions = async (req, res) => {
       resourceType: 'permission',
       metadata: {
         count: permissions.length
-      }
+      },
+      req
     });
 
     res.status(200).json({
@@ -553,7 +557,8 @@ const bulkCreatePermissions = async (req, res) => {
         total: permissions.length,
         created: results.length,
         failed: errors.length
-      }
+      },
+      req
     });
 
     res.status(201).json({

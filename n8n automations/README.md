@@ -134,11 +134,17 @@ These workflows are designed to integrate with the LocalPro Super App API and au
    - Go to Workflows → Import from File
    - Select the JSON files from this directory
 
-2. **Configure Environment Variables**
-   Set the following environment variables in n8n:
+2. **Configure Variables**
+   Set the following variables in n8n (accessed via `$vars.VARIABLE_NAME`):
    - `BASE_URL`: Your LocalPro Super App API base URL (e.g., `https://api.localpro.com`)
-   - `API_TOKEN`: Your API authentication token
+   - `API_KEY`: Your API access key (starts with `lp_`)
+   - `API_SECRET`: Your API secret key
    - `ADMIN_EMAIL`: Administrator email for alerts
+   
+   **Note:** 
+   - Variables in n8n are accessed using `$vars.VARIABLE_NAME` format
+   - You need to create an API key through the LocalPro Super App API first. See the [API Key Integration Guide](../API_KEY_INTEGRATION_GUIDE.md) for details.
+   - Set these variables in n8n's Settings → Variables or via environment variables when running n8n
 
 3. **Configure Webhooks**
    - For webhook-triggered workflows, configure the webhook URLs in your LocalPro Super App
@@ -206,10 +212,12 @@ These workflows interact with the following LocalPro Super App API endpoints:
 ## Notes
 
 - All workflows use environment variables for configuration
-- API tokens should be stored securely in n8n credentials
+- API keys and secrets should be stored securely in n8n credentials
+- All workflows use API key authentication (X-API-Key and X-API-Secret headers)
 - Webhook URLs need to be configured in the LocalPro Super App
 - Some workflows require admin-level API access
 - Test workflows in a development environment first
+- Make sure your API key has the necessary scopes (read, write) for the endpoints used
 
 ## Support
 

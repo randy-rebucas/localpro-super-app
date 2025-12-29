@@ -20,16 +20,24 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/database/optimization/backup",
+        "url": "={{ $vars.BASE_URL }}/api/database/optimization/backup",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "genericAuthProperties": {
+          "headers": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $vars.API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $vars.API_SECRET }}"
+            }
+          ]
+        },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -77,16 +85,24 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/communication/notifications/email",
+        "url": "={{ $vars.BASE_URL }}/api/communication/notifications/email",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "genericAuthProperties": {
+          "headers": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $vars.API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $vars.API_SECRET }}"
+            }
+          ]
+        },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -98,7 +114,7 @@
           "parameters": [
             {
               "name": "to",
-              "value": "={{ $env.ADMIN_EMAIL }}"
+              "value": "={{ $vars.ADMIN_EMAIL }}"
             },
             {
               "name": "subject",
@@ -124,16 +140,24 @@
     },
     {
       "parameters": {
-        "url": "={{ $env.BASE_URL }}/api/communication/notifications/email",
+        "url": "={{ $vars.BASE_URL }}/api/communication/notifications/email",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "genericAuthProperties": {
+          "headers": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $vars.API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $vars.API_SECRET }}"
+            }
+          ]
+        },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.API_TOKEN }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -145,7 +169,7 @@
           "parameters": [
             {
               "name": "to",
-              "value": "={{ $env.ADMIN_EMAIL }}"
+              "value": "={{ $vars.ADMIN_EMAIL }}"
             },
             {
               "name": "subject",

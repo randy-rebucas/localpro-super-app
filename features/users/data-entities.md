@@ -32,10 +32,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  role: {
-    type: String,
-    enum: ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'],
-    default: 'client'
+  roles: {
+    type: [String],
+    enum: ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner', 'staff'],
+    default: ['client']
   },
   isVerified: {
     type: Boolean,
@@ -237,7 +237,7 @@ const userSchema = new mongoose.Schema({
   badges: [{
     type: {
       type: String,
-      enum: ['verified_provider', 'top_rated', 'fast_response', 'reliable', 'expert', 'newcomer']
+      enum: ['verified_provider', 'top_rated', 'fast_response', 'reliable', 'expert', 'newcomer', 'trusted']
     },
     earnedAt: Date,
     description: String
@@ -752,20 +752,58 @@ userSchema.statics.getRecentUsers = function(days = 7) {
 
 ### User Relationships
 - **UserSettings**: One-to-one relationship via `settings` field
-- **Agency**: Many-to-one relationship via `agency.agencyId` field
+- **Agency**: Many-to-one relationship via `agency` field (UserAgency model)
 - **UserSubscription**: One-to-one relationship via `localProPlusSubscription` field
-- **Referral System**: Self-referencing via `referral.referredBy` field
+- **UserReferral**: One-to-one relationship via `referral` field
+- **UserWallet**: One-to-one relationship via `wallet` field
+- **UserTrust**: One-to-one relationship via `trust` field
+- **UserManagement**: One-to-one relationship via `management` field
+- **UserActivity**: One-to-one relationship via `activity` field
+- **Provider**: One-to-one relationship (for users with provider role)
+- **ApiKey**: One-to-many relationship (users can have multiple API keys)
+- **AccessToken**: One-to-many relationship (users can have multiple access tokens)
+
+### API Key Relationships
+- **User**: Many-to-one relationship via `userId` field
+- **AccessToken**: One-to-many relationship (one API key can have multiple access tokens)
+
+### Access Token Relationships
+- **User**: Many-to-one relationship via `userId` field
+- **ApiKey**: Many-to-one relationship via `apiKeyId` field
 
 ### Population Support
 ```javascript
 // Populate agency information
-await User.findById(userId).populate('agency.agencyId', 'name type address');
+await User.findById(userId).populate('agency');
 
 // Populate referral information
-await User.findById(userId).populate('referral.referredBy', 'firstName lastName email');
+await User.findById(userId).populate('referral');
 
 // Populate settings
 await User.findById(userId).populate('settings');
+
+// Populate wallet
+await User.findById(userId).populate('wallet');
+
+// Populate trust information
+await User.findById(userId).populate('trust');
+
+// Populate management information
+await User.findById(userId).populate('management');
+
+// Populate activity
+await User.findById(userId).populate('activity');
+
+// Populate provider (if user has provider role)
+await User.findById(userId).populate('provider');
+
+// Get user's API keys
+await ApiKey.find({ userId: userId }).populate('userId', 'firstName lastName email');
+
+// Get user's access tokens
+await AccessToken.find({ userId: userId })
+  .populate('userId', 'firstName lastName email')
+  .populate('apiKeyId', 'name description scopes');
 ```
 
 ## Validation Rules
@@ -783,13 +821,15 @@ await User.findById(userId).populate('settings');
 - **profile.serviceAreas**: Array of strings
 
 ### Enum Validations
-- **role**: Must be one of the defined user roles
+- **roles**: Array of roles, each must be one of: client, provider, admin, supplier, instructor, agency_owner, agency_admin, partner, staff
 - **profile.businessType**: Must be one of the defined business types
 - **profile.backgroundCheck.status**: Must be one of the defined statuses
 - **agency.role**: Must be one of the defined agency roles
 - **agency.status**: Must be one of the defined statuses
 - **referral.referralSource**: Must be one of the defined sources
 - **referral.referralStats.referralTier**: Must be one of the defined tiers
+- **badges.type**: Must be one of: verified_provider, top_rated, fast_response, reliable, expert, newcomer, trusted
+- **status**: Must be one of: active, inactive, suspended, pending_verification, banned
 
 ### Range Validations
 - **profile.rating**: Must be between 0 and 5
@@ -802,7 +842,7 @@ await User.findById(userId).populate('settings');
 
 The User model includes comprehensive default values that provide sensible defaults for all fields:
 
-- **role**: 'client' (most common user type)
+- **roles**: ['client'] (most common user type, supports multiple roles)
 - **isVerified**: false (requires verification)
 - **isActive**: true (active by default)
 - **status**: 'pending_verification' (requires verification)
@@ -813,6 +853,18 @@ The User model includes comprehensive default values that provide sensible defau
 - **preferences.language**: 'en' (English default)
 - **wallet.currency**: 'USD' (US Dollar default)
 - **referral.referralStats.referralTier**: 'bronze' (lowest tier)
+
+### API Key Default Values
+- **isActive**: true
+- **rateLimit**: 1000 (requests per hour)
+- **scopes**: ['read', 'write']
+- **allowedIPs**: [] (no IP restrictions by default)
+
+### Access Token Default Values
+- **isActive**: true
+- **scopes**: ['read']
+- **expiresAt**: Required (typically 1 hour from creation)
+- **refreshTokenExpiresAt**: 30 days from creation
 
 ## Performance Considerations
 
@@ -837,3 +889,479 @@ The User model uses a comprehensive indexing strategy to optimize common queries
 - Cache user statistics and analytics
 
 This comprehensive User model provides all the functionality needed for a robust user management system while maintaining performance and scalability.
+
+## API Key Model
+
+### Overview
+
+The `ApiKey` model enables third-party applications to integrate with the LocalPro Super App API using API key/secret authentication. This is ideal for server-to-server integrations.
+
+### Schema Definition
+
+```javascript
+const apiKeySchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 100
+  },
+  description: {
+    type: String,
+    trim: true,
+    maxlength: 500
+  },
+  accessKey: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  secretKey: {
+    type: String,
+    required: true,
+    select: false // Don't include secret in queries by default
+  },
+  secretKeyHash: {
+    type: String,
+    required: true
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  lastUsedAt: {
+    type: Date,
+    default: null
+  },
+  lastUsedIp: {
+    type: String,
+    default: null
+  },
+  expiresAt: {
+    type: Date,
+    default: null
+  },
+  rateLimit: {
+    type: Number,
+    default: 1000, // requests per hour
+    min: 1
+  },
+  allowedIPs: {
+    type: [String],
+    default: []
+  },
+  scopes: {
+    type: [String],
+    default: ['read', 'write'] // API scopes/permissions
+  },
+  metadata: {
+    type: Map,
+    of: String,
+    default: {}
+  }
+}, {
+  timestamps: true
+});
+```
+
+### Key Features
+
+- **Access Key**: Public identifier (starts with `lp_`)
+- **Secret Key**: Private key (only shown once during creation, stored as hash)
+- **IP Restrictions**: Optional IP whitelist for enhanced security
+- **Rate Limiting**: Configurable requests per hour
+- **Scopes**: Fine-grained permissions (read, write, admin, feature-specific)
+- **Expiration**: Optional expiration date
+- **Usage Tracking**: Last used timestamp and IP address
+
+### Static Methods
+
+```javascript
+// Generate access key and secret key
+ApiKey.generateKeys() {
+  const accessKey = `lp_${crypto.randomBytes(16).toString('hex')}`;
+  const secretKey = crypto.randomBytes(32).toString('hex');
+  const secretKeyHash = crypto.createHash('sha256').update(secretKey).digest('hex');
+  
+  return {
+    accessKey,
+    secretKey,
+    secretKeyHash
+  };
+}
+```
+
+### Instance Methods
+
+```javascript
+// Verify secret key
+apiKey.verifySecret(secretKey) {
+  const hash = crypto.createHash('sha256').update(secretKey).digest('hex');
+  return hash === this.secretKeyHash;
+}
+
+// Check if API key is expired
+apiKey.isExpired() {
+  if (!this.expiresAt) return false;
+  return new Date() > this.expiresAt;
+}
+
+// Check if IP is allowed
+apiKey.isIpAllowed(ip) {
+  if (!this.allowedIPs || this.allowedIPs.length === 0) return true;
+  return this.allowedIPs.includes(ip);
+}
+
+// Update last used information
+apiKey.updateLastUsed(ip) {
+  this.lastUsedAt = new Date();
+  this.lastUsedIp = ip;
+  return this.save();
+}
+```
+
+### Database Indexes
+
+```javascript
+apiKeySchema.index({ accessKey: 1, isActive: 1 });
+apiKeySchema.index({ userId: 1, isActive: 1 });
+apiKeySchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+```
+
+## Access Token Model
+
+### Overview
+
+The `AccessToken` model provides OAuth2-style access tokens with scope-based permissions. Tokens can be exchanged from API keys and used for authentication with granular permissions.
+
+### Schema Definition
+
+```javascript
+const accessTokenSchema = new mongoose.Schema({
+  token: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  tokenHash: {
+    type: String,
+    required: true,
+    index: true
+  },
+  apiKeyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ApiKey',
+    required: true,
+    index: true
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
+  scopes: {
+    type: [String],
+    required: true,
+    default: ['read']
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  expiresAt: {
+    type: Date,
+    required: true,
+    index: true
+  },
+  refreshToken: {
+    type: String,
+    unique: true,
+    sparse: true,
+    index: true
+  },
+  refreshTokenHash: {
+    type: String
+  },
+  refreshTokenExpiresAt: {
+    type: Date
+  },
+  lastUsedAt: {
+    type: Date,
+    default: null
+  },
+  lastUsedIp: {
+    type: String,
+    default: null
+  },
+  metadata: {
+    type: Map,
+    of: String,
+    default: {}
+  }
+}, {
+  timestamps: true
+});
+```
+
+### Key Features
+
+- **Token**: JWT-based access token
+- **Scopes**: Granular permissions (read, write, admin, feature-specific)
+- **Refresh Token**: Long-lived token for obtaining new access tokens
+- **Expiration**: Configurable expiration (default 1 hour)
+- **Revocation**: Can be revoked independently
+- **Usage Tracking**: Last used timestamp and IP address
+
+### Static Methods
+
+```javascript
+// Generate access token
+AccessToken.generateAccessToken(payload, expiresIn = '1h') {
+  const token = jwt.sign(payload, process.env.JWT_SECRET, {
+    issuer: 'localpro-api',
+    audience: 'localpro-api',
+    expiresIn
+  });
+  
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  
+  return { token, tokenHash };
+}
+
+// Generate refresh token
+AccessToken.generateRefreshToken() {
+  const refreshToken = crypto.randomBytes(32).toString('hex');
+  const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+  
+  return { refreshToken, refreshTokenHash };
+}
+
+// Find token by hash
+AccessToken.findByToken(token) {
+  const tokenHash = this.hashToken(token);
+  return this.findOne({ tokenHash, isActive: true });
+}
+
+// Find refresh token by hash
+AccessToken.findByRefreshToken(refreshToken) {
+  const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+  return this.findOne({ refreshTokenHash, isActive: true });
+}
+```
+
+### Instance Methods
+
+```javascript
+// Check if token is expired
+accessToken.isExpired() {
+  return new Date() > this.expiresAt;
+}
+
+// Check if refresh token is expired
+accessToken.isRefreshTokenExpired() {
+  if (!this.refreshTokenExpiresAt) return false;
+  return new Date() > this.refreshTokenExpiresAt;
+}
+
+// Check if token has required scope
+accessToken.hasScope(requiredScope) {
+  if (!this.scopes || this.scopes.length === 0) return false;
+  
+  // Check for exact match or wildcard
+  if (this.scopes.includes('*') || this.scopes.includes('admin')) {
+    return true;
+  }
+  
+  return this.scopes.includes(requiredScope);
+}
+
+// Check if token has any of the required scopes
+accessToken.hasAnyScope(requiredScopes) {
+  if (!Array.isArray(requiredScopes)) {
+    return this.hasScope(requiredScopes);
+  }
+  
+  return requiredScopes.some(scope => this.hasScope(scope));
+}
+
+// Update last used information
+accessToken.updateLastUsed(ip) {
+  this.lastUsedAt = new Date();
+  this.lastUsedIp = ip;
+  return this.save();
+}
+
+// Revoke token
+accessToken.revoke() {
+  this.isActive = false;
+  return this.save();
+}
+```
+
+### Database Indexes
+
+```javascript
+accessTokenSchema.index({ tokenHash: 1, isActive: 1 });
+accessTokenSchema.index({ apiKeyId: 1, isActive: 1 });
+accessTokenSchema.index({ userId: 1, isActive: 1 });
+accessTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+accessTokenSchema.index({ refreshTokenHash: 1 });
+```
+
+### Available Scopes
+
+#### General Scopes
+- `read` - Read-only access
+- `write` - Read and write access
+- `admin` - Full administrative access
+- `*` - All permissions (wildcard)
+
+#### Feature-Specific Scopes
+- `marketplace.read` - Read marketplace data
+- `marketplace.write` - Create/update marketplace data
+- `users.read` - Read user data
+- `users.write` - Create/update users
+- `analytics.read` - Read analytics data
+- `finance.read` - Read financial data
+- `finance.write` - Manage financial data
+
+## User Action Endpoints
+
+### Overview
+
+The user management system provides comprehensive endpoints for managing user accounts through the Actions menu. All actions are logged for audit purposes.
+
+### Available Actions
+
+1. **Edit User** - `PUT /api/users/:id`
+   - Update user information (name, email, profile, etc.)
+
+2. **Activate User** - `PATCH /api/users/:id/status`
+   - Activate or deactivate user account
+   - Sends notification email
+
+3. **Ban User** - `POST /api/users/:id/ban`
+   - Ban user account with optional reason
+   - Sets status to 'banned' and isActive to false
+   - Sends ban notification email
+
+4. **Verify Documents** - `PATCH /api/users/:id/verification`
+   - Update verification status (phone, email, identity, business, address, bank account)
+
+5. **Manage Roles** - `GET /api/users/:id/roles` and `PUT /api/users/:id/roles`
+   - Get and update user roles
+   - Supports multiple roles per user
+
+6. **Manage Badges** - `GET /api/users/:id/badges`, `POST /api/users/:id/badges`, `DELETE /api/users/:id/badges/:badgeId`
+   - Get, add, and remove user badges
+   - Valid badge types: verified_provider, top_rated, fast_response, reliable, expert, newcomer, trusted
+
+7. **Reset Password** - `POST /api/users/:id/reset-password`
+   - Generate temporary password
+   - Optionally send email with password
+
+8. **Send Email** - `POST /api/users/:id/send-email`
+   - Send custom email to user
+   - Supports plain text or templated emails
+
+9. **Export Data** - `GET /api/users/:id/export`
+   - Export user data in JSON or CSV format
+   - Includes user profile, management data, activities, wallet, and provider data (if applicable)
+
+10. **Delete User** - `DELETE /api/users/:id`
+    - Soft delete user account
+    - Can be restored with `PATCH /api/users/:id/restore`
+
+### Data Relationships
+
+#### API Key Relationships
+- **User**: Many-to-one relationship via `userId` field
+- **AccessToken**: One-to-many relationship (one API key can have multiple access tokens)
+
+#### Access Token Relationships
+- **User**: Many-to-one relationship via `userId` field
+- **ApiKey**: Many-to-one relationship via `apiKeyId` field
+
+### Population Support
+
+```javascript
+// Populate API key with user
+await ApiKey.findById(apiKeyId).populate('userId', 'firstName lastName email');
+
+// Populate access token with user and API key
+await AccessToken.findById(tokenId)
+  .populate('userId', 'firstName lastName email')
+  .populate('apiKeyId', 'name description scopes');
+
+// Get user's API keys
+await ApiKey.find({ userId: userId });
+
+// Get user's access tokens
+await AccessToken.find({ userId: userId });
+```
+
+## Updated User Model Features
+
+### Multi-Role Support
+
+The User model now supports multiple roles per user:
+
+```javascript
+roles: {
+  type: [String],
+  enum: ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner', 'staff'],
+  default: ['client']
+}
+```
+
+Users can have multiple roles simultaneously (e.g., a user can be both a 'client' and a 'provider').
+
+### Badge Types
+
+Updated badge types include:
+- `verified_provider` - Verified service provider
+- `top_rated` - Top rated provider
+- `fast_response` - Fast response time
+- `reliable` - High reliability score
+- `expert` - Expert in their field
+- `newcomer` - New user badge
+- `trusted` - Trusted user badge
+
+### User Status Values
+
+User status enum values:
+- `active` - User is active
+- `inactive` - User is inactive
+- `suspended` - User is suspended
+- `pending_verification` - User pending verification
+- `banned` - User is banned
+
+## Authentication Methods
+
+The system now supports three authentication methods:
+
+1. **JWT Token Authentication** - For user-facing applications
+   - Standard Bearer token authentication
+   - Short-lived access tokens with refresh tokens
+
+2. **API Key Authentication** - For third-party integrations
+   - Key/Secret pair authentication
+   - IP restrictions and rate limiting
+   - Scope-based permissions
+
+3. **Access Token Authentication** - OAuth2-style tokens
+   - Exchanged from API keys
+   - Granular scope-based permissions
+   - Independent revocation
+   - Refresh token support
+
+All three methods work together and can be used interchangeably based on your needs.

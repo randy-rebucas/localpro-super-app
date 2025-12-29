@@ -1,10 +1,10 @@
 {
   "info": {
     "name": "LocalPro Super App API - Complete Collection",
-    "description": "Complete API collection for LocalPro Super App with all endpoints organized by module. Updated for multi-role support - users can have multiple roles (client, provider, supplier, instructor, agency_owner, agency_admin). Generated automatically from route files. PayMongo integration endpoints and webhook coverage added Dec 2025. Job Categories CRUD endpoints added Dec 2025.",
+    "description": "Complete API collection for LocalPro Super App with all endpoints organized by module. Updated for multi-role support - users can have multiple roles (client, provider, supplier, instructor, agency_owner, agency_admin). Generated automatically from route files. PayMongo integration endpoints and webhook coverage added Dec 2025. Job Categories CRUD endpoints added Dec 2025. API Keys and OAuth/Access Tokens endpoints added Dec 2025. User Management endpoints updated with roles, badges, reset-password, send-email, export, and ban endpoints.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "1e3e122b-7797-461c-a3ed-d06fe0577dae",
-    "version": "2025-12-20-job-categories-crud"
+    "version": "2025-12-29-api-keys-oauth-updates"
   },
   "auth": {
     "type": "bearer",
@@ -129,6 +129,26 @@
     },
     {
       "key": "paymongoPaymentMethodId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "apiSecret",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
       "value": "",
       "type": "string"
     }
@@ -623,6 +643,430 @@
                 }
               }
             }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "API Keys",
+      "item": [
+        {
+          "name": "POST /api/api-keys",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/api-keys",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "api-keys"
+              ]
+            },
+            "description": "Create a new API key. The secret key will only be shown once during creation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Third-Party App\",\n  \"description\": \"API key for integration with my app\",\n  \"expiresAt\": \"2025-12-31T23:59:59Z\",\n  \"rateLimit\": 1000,\n  \"allowedIPs\": [\"192.168.1.1\", \"10.0.0.1\"],\n  \"scopes\": [\"read\", \"write\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/api-keys",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/api-keys?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "api-keys"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page (default: 10, max: 100)"
+                },
+                {
+                  "key": "isActive",
+                  "value": "",
+                  "description": "Filter by active status (true/false)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all API keys for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/api-keys/stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/api-keys/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "api-keys",
+                "stats"
+              ]
+            },
+            "description": "Get API key statistics"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/api-keys/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/api-keys/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "api-keys",
+                ":id"
+              ]
+            },
+            "description": "Get single API key by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/api-keys/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/api-keys/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "api-keys",
+                ":id"
+              ]
+            },
+            "description": "Update API key",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated App Name\",\n  \"description\": \"Updated description\",\n  \"isActive\": true,\n  \"rateLimit\": 2000,\n  \"allowedIPs\": [\"192.168.1.1\"],\n  \"scopes\": [\"read\", \"write\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/api-keys/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/api-keys/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "api-keys",
+                ":id"
+              ]
+            },
+            "description": "Revoke/Delete API key"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/api-keys/:id/regenerate-secret",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/api-keys/:id/regenerate-secret",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "api-keys",
+                ":id",
+                "regenerate-secret"
+              ]
+            },
+            "description": "Regenerate secret key. The new secret will only be shown once."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "OAuth / Access Tokens",
+      "item": [
+        {
+          "name": "POST /api/oauth/token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}",
+                "type": "text",
+                "description": "API access key (starts with lp_)"
+              },
+              {
+                "key": "X-API-Secret",
+                "value": "{{apiSecret}}",
+                "type": "text",
+                "description": "API secret key"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/oauth/token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "oauth",
+                "token"
+              ]
+            },
+            "description": "Exchange API key/secret for access token (OAuth2 client_credentials flow). Requested scopes must be a subset of the API key's scopes.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grant_type\": \"client_credentials\",\n  \"scope\": \"read marketplace.read\",\n  \"expires_in\": 3600\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/oauth/refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/oauth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "oauth",
+                "refresh"
+              ]
+            },
+            "description": "Refresh access token using refresh token",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\",\n  \"scope\": \"read marketplace.read\",\n  \"expires_in\": 3600\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/oauth/revoke",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/oauth/revoke",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "oauth",
+                "revoke"
+              ]
+            },
+            "description": "Revoke access or refresh token",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{accessToken}}\",\n  \"token_type_hint\": \"access_token\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/oauth/token-info",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "Access token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/oauth/token-info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "oauth",
+                "token-info"
+              ]
+            },
+            "description": "Get information about current access token (scopes, expiration, etc.)"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/oauth/tokens",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              },
+              {
+                "key": "X-API-Secret",
+                "value": "{{apiSecret}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/oauth/tokens?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "oauth",
+                "tokens"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page (default: 10, max: 100)"
+                }
+              ]
+            },
+            "description": "List user's access tokens"
           },
           "response": []
         }
@@ -11526,6 +11970,101 @@
           "response": []
         },
         {
+          "name": "GET /api/users/:id/roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id",
+                "roles"
+              ]
+            },
+            "description": "Get user's current roles. Access: Admin, Agency Admin, Agency Owner"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /api/users/:id/roles",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id",
+                "roles"
+              ]
+            },
+            "description": "Update user roles. Valid roles: client, provider, admin, supplier, instructor, agency_owner, agency_admin, partner, staff. Access: Admin only",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roles\": [\"client\", \"provider\", \"supplier\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/users/:id/badges",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/badges",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id",
+                "badges"
+              ]
+            },
+            "description": "Get user's badges. Access: Admin, Agency Admin, Agency Owner"
+          },
+          "response": []
+        },
+        {
           "name": "POST /api/users/:id/badges",
           "request": {
             "method": "POST",
@@ -11553,10 +12092,195 @@
                 "badges"
               ]
             },
-            "description": "Add user badge",
+            "description": "Add badge to user. Access: Admin, Agency Admin",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"badgeType\": \"verified_provider\",\n  \"reason\": \"Completed verification process\"\n}",
+              "raw": "{\n  \"type\": \"top_rated\",\n  \"description\": \"Top rated provider with excellent reviews\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/users/:id/badges/:badgeId",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/badges/:badgeId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id",
+                "badges",
+                ":badgeId"
+              ]
+            },
+            "description": "Remove badge from user. Access: Admin, Agency Admin"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/users/:id/reset-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id",
+                "reset-password"
+              ]
+            },
+            "description": "Reset user password (generates temporary password). If sendEmail is true, email is sent to user. If false, temporary password is returned in response. Access: Admin only",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sendEmail\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/users/:id/send-email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/send-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id",
+                "send-email"
+              ]
+            },
+            "description": "Send custom email to user. Can send plain email or use template. Access: Admin, Agency Admin, Agency Owner",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Important Notice\",\n  \"message\": \"<p>This is a custom email message.</p>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/users/:id/export",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/export?format=json",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id",
+                "export"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "json",
+                  "description": "Export format: json (default) or csv"
+                }
+              ]
+            },
+            "description": "Export user data (JSON or CSV format). Includes user profile, management data, recent activities, and wallet information. Access: Admin only"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/users/:id/ban",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/ban",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id",
+                "ban"
+              ]
+            },
+            "description": "Ban user account. Sets isActive to false and status to banned. Access: Admin only",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Violation of terms of service\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

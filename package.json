@@ -29,6 +29,7 @@
     "security:audit": "npm audit --audit-level=high"
   },
   "dependencies": {
+    "@api/paymongo": "file:.api/apis/paymongo",
     "@googlemaps/google-maps-services-js": "^3.4.2",
     "@paypal/paypal-server-sdk": "^1.1.0",
     "axios": "^1.12.2",

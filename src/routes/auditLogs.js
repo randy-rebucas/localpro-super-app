@@ -420,7 +420,7 @@ router.get('/metadata/categories', auth, async (req, res) => {
       
       // User management
       'user_create', 'user_update', 'user_delete', 'user_activate', 'user_deactivate',
-      'profile_update', 'settings_update', 'preferences_update',
+      'profile_update', 'settings_update', 'preferences_update', 'user_email_sent',
       
       // Marketplace
       'service_create', 'service_update', 'service_delete', 'service_publish', 'service_unpublish',

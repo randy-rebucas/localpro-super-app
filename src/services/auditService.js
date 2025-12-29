@@ -19,7 +19,7 @@ const auditLogSchema = new mongoose.Schema({
       // User management actions
       'user_create', 'user_update', 'user_delete', 'user_activate', 'user_deactivate',
       'profile_update', 'settings_update', 'preferences_update', 'user_list', 'user_view',
-      'document_upload',
+      'document_upload', 'user_email_sent',
       
       // Marketplace actions
       'service_create', 'service_update', 'service_delete', 'service_publish', 'service_unpublish',
@@ -105,7 +105,7 @@ const auditLogSchema = new mongoose.Schema({
   target: {
     type: {
       type: String,
-      enum: ['user', 'service', 'booking', 'job', 'application', 'payment', 'agency', 'referral', 'course', 'supply', 'rental', 'ad', 'message', 'verification', 'system', 'other']
+      enum: ['user', 'provider', 'service', 'booking', 'job', 'application', 'payment', 'agency', 'referral', 'course', 'supply', 'rental', 'ad', 'message', 'verification', 'system', 'other']
     },
     id: {
       type: mongoose.Schema.Types.ObjectId,
