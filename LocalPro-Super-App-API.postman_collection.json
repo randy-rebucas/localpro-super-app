@@ -7844,7 +7844,38 @@
                 "user"
               ]
             },
-            "description": "Get user analytics"
+            "description": "Get current authenticated user's analytics. Returns user profile, events, bookings, job applications, and activity metrics. Supports timeframe query parameter (1h, 24h, 7d, 30d, 90d, 1y) or custom date range with startDate/endDate.",
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/user?timeframe=30d",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "user"
+              ],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "30d",
+                  "description": "Timeframe: 1h, 24h, 7d, 30d, 90d, 1y",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Custom start date (ISO 8601)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "Custom end date (ISO 8601)",
+                  "disabled": true
+                }
+              ]
+            }
           },
           "response": []
         },

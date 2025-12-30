@@ -293,6 +293,135 @@ const getUserAnalytics = async (req, res) => {
   }
 };
 
+// @desc    Get current user's analytics
+// @route   GET /api/analytics/user
+// @access  Private
+const getCurrentUserAnalytics = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { timeframe = '30d', startDate, endDate } = req.query;
+
+    // Build date filter
+    let dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.timestamp = {};
+      if (startDate) dateFilter.timestamp.$gte = new Date(startDate);
+      if (endDate) dateFilter.timestamp.$lte = new Date(endDate);
+    } else {
+      // Use timeframe if no custom dates
+      const timeframes = {
+        '1h': 1 * 60 * 60 * 1000,
+        '24h': 24 * 60 * 60 * 1000,
+        '7d': 7 * 24 * 60 * 60 * 1000,
+        '30d': 30 * 24 * 60 * 60 * 1000,
+        '90d': 90 * 24 * 60 * 60 * 1000,
+        '1y': 365 * 24 * 60 * 60 * 1000
+      };
+      if (timeframes[timeframe]) {
+        const startTime = new Date(Date.now() - timeframes[timeframe]);
+        dateFilter.timestamp = { $gte: startTime };
+      }
+    }
+
+    // Get user analytics events
+    const userEvents = await AnalyticsEvent.find({
+      userId,
+      ...dateFilter
+    }).sort({ timestamp: -1 });
+
+    // Get user profile data
+    const user = await User.findById(userId).select('firstName lastName email profile roles createdAt');
+
+    // Get user's bookings (if provider or client)
+    const { Booking } = require('../models/Marketplace');
+    const userBookings = await Booking.find({
+      $or: [
+        { client: userId },
+        { provider: userId }
+      ],
+      ...(dateFilter.timestamp ? { createdAt: dateFilter.timestamp } : {})
+    }).sort({ createdAt: -1 });
+
+    // Get user's job applications
+    const Job = require('../models/Job');
+    const userJobs = await Job.find({
+      'applications.user': userId,
+      ...(dateFilter.timestamp ? { createdAt: dateFilter.timestamp } : {})
+    });
+
+    // Calculate analytics
+    const analytics = {
+      user: {
+        id: user._id,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        roles: user.roles || [],
+        memberSince: user.createdAt
+      },
+      events: {
+        total: userEvents.length,
+        byType: {},
+        recent: userEvents.slice(0, 10).map(e => ({
+          type: e.eventType,
+          timestamp: e.timestamp,
+          data: e.eventData
+        }))
+      },
+      bookings: {
+        total: userBookings.length,
+        asClient: userBookings.filter(b => b.client.toString() === userId.toString()).length,
+        asProvider: userBookings.filter(b => b.provider.toString() === userId.toString()).length,
+        completed: userBookings.filter(b => b.status === 'completed').length,
+        pending: userBookings.filter(b => b.status === 'pending').length
+      },
+      jobs: {
+        applications: userJobs.length,
+        active: userJobs.filter(j => j.status === 'open').length
+      },
+      activity: {
+        lastActive: userEvents.length > 0 ? userEvents[0].timestamp : null,
+        eventsByDay: {}
+      }
+    };
+
+    // Count events by type
+    userEvents.forEach(event => {
+      analytics.events.byType[event.eventType] = (analytics.events.byType[event.eventType] || 0) + 1;
+    });
+
+    // Calculate daily activity
+    userEvents.forEach(event => {
+      const date = event.timestamp.toISOString().split('T')[0];
+      analytics.activity.eventsByDay[date] = (analytics.activity.eventsByDay[date] || 0) + 1;
+    });
+
+    // Get top event types
+    analytics.events.topTypes = Object.entries(analytics.events.byType)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5)
+      .map(([type, count]) => ({ type, count }));
+
+    logger.info('User analytics retrieved', {
+      userId,
+      timeframe,
+      eventCount: userEvents.length
+    });
+
+    res.status(200).json({
+      success: true,
+      data: analytics
+    });
+  } catch (error) {
+    logger.error('Get current user analytics error:', error, {
+      userId: req.user?.id
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve user analytics'
+    });
+  }
+};
+
 // @desc    Get marketplace analytics
 // @route   GET /api/analytics/marketplace
 // @access  Private
@@ -1139,6 +1268,7 @@ const getAnalyticsMetadata = async (req, res) => {
 module.exports = {
   getAnalyticsOverview,
   getUserAnalytics,
+  getCurrentUserAnalytics,
   getMarketplaceAnalytics,
   getJobAnalytics,
   getReferralAnalytics,

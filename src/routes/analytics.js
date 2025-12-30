@@ -4,6 +4,7 @@ const { auth, authorize } = require('../middleware/auth');
 const {
   getAnalyticsOverview,
   getUserAnalytics,
+  getCurrentUserAnalytics,
   getMarketplaceAnalytics,
   getJobAnalytics,
   getReferralAnalytics,
@@ -123,8 +124,16 @@ router.get('/export', authorize(['admin']), [
 router.get('/overview', authorize(['admin']), dateRangeValidation, getAnalyticsOverview);
 
 /**
+ * @route   GET /api/analytics/user
+ * @desc    Get current user's analytics
+ * @access  Private
+ * @query   timeframe (1h, 24h, 7d, 30d, 90d, 1y), startDate, endDate
+ */
+router.get('/user', timeframeValidation, getCurrentUserAnalytics);
+
+/**
  * @route   GET /api/analytics/users
- * @desc    Get user analytics
+ * @desc    Get user analytics (all users)
  * @access  Private (Admin)
  * @query   startDate, endDate
  */
