@@ -44,9 +44,9 @@ const courseSchema = new mongoose.Schema({
     required: true
   },
   partner: {
-    name: String, // e.g., "TES" (Technical Education Services)
-    logo: String,
-    website: String
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Partner',
+    required: true
   },
   level: {
     type: String,
@@ -68,7 +68,7 @@ const courseSchema = new mongoose.Schema({
     discountedPrice: Number,
     currency: {
       type: String,
-      default: 'USD'
+      default: 'PHP'
     }
   },
   curriculum: [{

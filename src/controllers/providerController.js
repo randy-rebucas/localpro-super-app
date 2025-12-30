@@ -887,6 +887,233 @@ const updateProviderProfile = async (req, res) => {
   }
 };
 
+// Patch provider profile (partial update)
+const patchProviderProfile = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const provider = await Provider.findOne({ userId: req.user.id });
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: 'Provider profile not found'
+      });
+    }
+
+    const updateData = { ...req.body };
+    const oldData = { ...provider.toObject() };
+    const updatedFields = [];
+
+    // Helper function to deep merge objects
+    const deepMerge = (target, source) => {
+      for (const key in source) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && !(source[key] instanceof Date)) {
+          if (!target[key]) target[key] = {};
+          deepMerge(target[key], source[key]);
+        } else {
+          target[key] = source[key];
+        }
+      }
+      return target;
+    };
+
+    // Fields that should not be directly updated
+    const restrictedFields = ['_id', 'userId', 'createdAt', 'updatedAt', 'deleted', 'deletedOn'];
+    const allowedTopLevelFields = ['status', 'providerType', 'settings', 'metadata', 'onboarding'];
+    
+    // Update top-level fields
+    for (const field of allowedTopLevelFields) {
+      if (updateData[field] !== undefined) {
+        if (field === 'settings' || field === 'metadata' || field === 'onboarding') {
+          // Deep merge for nested objects
+          if (!provider[field]) provider[field] = {};
+          deepMerge(provider[field], updateData[field]);
+        } else {
+          provider[field] = updateData[field];
+        }
+        updatedFields.push(field);
+        delete updateData[field];
+      }
+    }
+
+    // Remove restricted fields
+    restrictedFields.forEach(field => delete updateData[field]);
+
+    // Save provider if there are top-level updates
+    if (updatedFields.length > 0) {
+      await provider.save();
+    }
+
+    // Handle businessInfo separately if provided
+    if (updateData.businessInfo) {
+      const businessInfoData = updateData.businessInfo;
+      if (provider.providerType === 'business' || provider.providerType === 'agency') {
+        const businessInfo = await provider.ensureBusinessInfo();
+        const ProviderBusinessInfo = require('../models/ProviderBusinessInfo');
+        
+        // Deep merge business info
+        const currentBusinessInfo = businessInfo.toObject();
+        const mergedBusinessInfo = deepMerge({ ...currentBusinessInfo }, businessInfoData);
+        
+        // Remove _id and other mongoose fields
+        delete mergedBusinessInfo._id;
+        delete mergedBusinessInfo.__v;
+        delete mergedBusinessInfo.createdAt;
+        delete mergedBusinessInfo.updatedAt;
+        
+        await businessInfo.updateBusinessInfo(mergedBusinessInfo);
+        updatedFields.push('businessInfo');
+      }
+      delete updateData.businessInfo;
+    }
+
+    // Handle professionalInfo separately if provided
+    if (updateData.professionalInfo) {
+      const professionalInfoData = updateData.professionalInfo;
+      const professionalInfo = await provider.ensureProfessionalInfo();
+      
+      // Update professional info fields
+      if (professionalInfoData.specialties !== undefined) {
+        professionalInfo.specialties = professionalInfoData.specialties;
+        updatedFields.push('professionalInfo.specialties');
+      }
+      if (professionalInfoData.languages !== undefined) {
+        professionalInfo.languages = professionalInfoData.languages;
+        updatedFields.push('professionalInfo.languages');
+      }
+      if (professionalInfoData.availability !== undefined) {
+        professionalInfo.availability = professionalInfoData.availability;
+        updatedFields.push('professionalInfo.availability');
+      }
+      if (professionalInfoData.emergencyServices !== undefined) {
+        professionalInfo.emergencyServices = professionalInfoData.emergencyServices;
+        updatedFields.push('professionalInfo.emergencyServices');
+      }
+      if (professionalInfoData.travelDistance !== undefined) {
+        professionalInfo.travelDistance = professionalInfoData.travelDistance;
+        updatedFields.push('professionalInfo.travelDistance');
+      }
+      if (professionalInfoData.minimumJobValue !== undefined) {
+        professionalInfo.minimumJobValue = professionalInfoData.minimumJobValue;
+        updatedFields.push('professionalInfo.minimumJobValue');
+      }
+      if (professionalInfoData.maximumJobValue !== undefined) {
+        professionalInfo.maximumJobValue = professionalInfoData.maximumJobValue;
+        updatedFields.push('professionalInfo.maximumJobValue');
+      }
+      
+      await professionalInfo.save();
+      if (!updatedFields.includes('professionalInfo')) {
+        updatedFields.push('professionalInfo');
+      }
+      delete updateData.professionalInfo;
+    }
+
+    // Handle preferences if provided
+    if (updateData.preferences) {
+      const preferencesData = updateData.preferences;
+      const preferences = await provider.ensurePreferences();
+      const ProviderPreferences = require('../models/ProviderPreferences');
+      
+      // Deep merge preferences
+      const currentPreferences = preferences.toObject();
+      const mergedPreferences = deepMerge({ ...currentPreferences }, preferencesData);
+      
+      // Remove mongoose fields
+      delete mergedPreferences._id;
+      delete mergedPreferences.__v;
+      delete mergedPreferences.provider;
+      delete mergedPreferences.createdAt;
+      delete mergedPreferences.updatedAt;
+      
+      Object.assign(preferences, mergedPreferences);
+      await preferences.save();
+      updatedFields.push('preferences');
+      delete updateData.preferences;
+    }
+
+    // Handle financialInfo if provided
+    if (updateData.financialInfo) {
+      const financialInfoData = updateData.financialInfo;
+      const financialInfo = await provider.ensureFinancialInfo();
+      const ProviderFinancialInfo = require('../models/ProviderFinancialInfo');
+      
+      // Deep merge financial info
+      const currentFinancialInfo = financialInfo.toObject();
+      const mergedFinancialInfo = deepMerge({ ...currentFinancialInfo }, financialInfoData);
+      
+      // Remove mongoose fields
+      delete mergedFinancialInfo._id;
+      delete mergedFinancialInfo.__v;
+      delete mergedFinancialInfo.provider;
+      delete mergedFinancialInfo.createdAt;
+      delete mergedFinancialInfo.updatedAt;
+      
+      Object.assign(financialInfo, mergedFinancialInfo);
+      await financialInfo.save();
+      updatedFields.push('financialInfo');
+      delete updateData.financialInfo;
+    }
+
+    // Log audit event
+    if (updatedFields.length > 0) {
+      await auditLogger.logUser('user_update', req, {
+        type: 'provider',
+        id: provider._id,
+        name: 'Provider Profile'
+      }, {
+        method: 'PATCH',
+        updatedFields,
+        before: oldData,
+        after: req.body
+      });
+
+      logger.info('Provider profile patched', {
+        userId: req.user.id,
+        providerId: provider._id,
+        updatedFields
+      });
+    }
+
+    // Populate related documents for response
+    await provider.populate([
+      'businessInfo',
+      'professionalInfo',
+      'verification',
+      'financialInfo',
+      'performance',
+      'preferences'
+    ]);
+
+    res.json({
+      success: true,
+      message: 'Provider profile updated successfully',
+      data: {
+        provider,
+        updatedFields
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to patch provider profile', error, {
+      userId: req.user.id,
+      body: req.body
+    });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update provider profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 // Update provider onboarding step
 const updateOnboardingStep = async (req, res) => {
   try {
@@ -1624,6 +1851,7 @@ module.exports = {
   getMyProviderProfile,
   createProviderProfile,
   updateProviderProfile,
+  patchProviderProfile,
   updateOnboardingStep,
   uploadDocuments,
   getProviderDashboard,

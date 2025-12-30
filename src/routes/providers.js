@@ -9,6 +9,7 @@ const {
   getMyProviderProfile,
   createProviderProfile,
   updateProviderProfile,
+  patchProviderProfile,
   updateOnboardingStep,
   uploadDocuments,
   getProviderDashboard,
@@ -65,6 +66,61 @@ const validateProviderUpdate = [
     .optional()
     .isIn(['cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 'pest_control', 'handyman', 'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 'appliance_repair', 'locksmith', 'home_security', 'pool_maintenance', 'carpet_cleaning', 'window_cleaning', 'gutter_cleaning', 'power_washing', 'snow_removal', 'other'])
     .withMessage('Invalid specialty category. Must be a valid ServiceCategory key.')
+];
+
+const validateProviderPatch = [
+  body('status')
+    .optional()
+    .isIn(['pending', 'active', 'suspended', 'inactive', 'rejected'])
+    .withMessage('Invalid status'),
+  body('providerType')
+    .optional()
+    .isIn(['individual', 'business', 'agency'])
+    .withMessage('Invalid provider type'),
+  body('settings.profileVisibility')
+    .optional()
+    .isIn(['public', 'private', 'verified_only'])
+    .withMessage('Invalid profile visibility'),
+  body('settings.showContactInfo')
+    .optional()
+    .isBoolean()
+    .withMessage('showContactInfo must be a boolean'),
+  body('settings.showPricing')
+    .optional()
+    .isBoolean()
+    .withMessage('showPricing must be a boolean'),
+  body('settings.showReviews')
+    .optional()
+    .isBoolean()
+    .withMessage('showReviews must be a boolean'),
+  body('settings.allowDirectBooking')
+    .optional()
+    .isBoolean()
+    .withMessage('allowDirectBooking must be a boolean'),
+  body('settings.requireApproval')
+    .optional()
+    .isBoolean()
+    .withMessage('requireApproval must be a boolean'),
+  body('professionalInfo.specialties.*.category')
+    .optional()
+    .isIn(['cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 'pest_control', 'handyman', 'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 'appliance_repair', 'locksmith', 'home_security', 'pool_maintenance', 'carpet_cleaning', 'window_cleaning', 'gutter_cleaning', 'power_washing', 'snow_removal', 'other'])
+    .withMessage('Invalid specialty category. Must be a valid ServiceCategory key.'),
+  body('professionalInfo.travelDistance')
+    .optional()
+    .isNumeric()
+    .withMessage('travelDistance must be a number'),
+  body('professionalInfo.minimumJobValue')
+    .optional()
+    .isNumeric()
+    .withMessage('minimumJobValue must be a number'),
+  body('professionalInfo.maximumJobValue')
+    .optional()
+    .isNumeric()
+    .withMessage('maximumJobValue must be a number'),
+  body('professionalInfo.emergencyServices')
+    .optional()
+    .isBoolean()
+    .withMessage('emergencyServices must be a boolean')
 ];
 
 const validateOnboardingStep = [
@@ -203,6 +259,61 @@ router.post('/profile', validateProviderCreation, createProviderProfile);
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.put('/profile', validateProviderUpdate, updateProviderProfile);
+
+/**
+ * @swagger
+ * /api/providers/profile:
+ *   patch:
+ *     summary: Partially update provider profile
+ *     tags: [Providers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [pending, active, suspended, inactive, rejected]
+ *               providerType:
+ *                 type: string
+ *                 enum: [individual, business, agency]
+ *               settings:
+ *                 type: object
+ *                 properties:
+ *                   profileVisibility:
+ *                     type: string
+ *                     enum: [public, private, verified_only]
+ *                   showContactInfo:
+ *                     type: boolean
+ *                   showPricing:
+ *                     type: boolean
+ *                   showReviews:
+ *                     type: boolean
+ *                   allowDirectBooking:
+ *                     type: boolean
+ *                   requireApproval:
+ *                     type: boolean
+ *               businessInfo:
+ *                 type: object
+ *               professionalInfo:
+ *                 type: object
+ *               preferences:
+ *                 type: object
+ *               financialInfo:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Profile partially updated
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.patch('/profile', validateProviderPatch, patchProviderProfile);
 
 // Onboarding
 router.put('/onboarding/step', validateOnboardingStep, updateOnboardingStep);
