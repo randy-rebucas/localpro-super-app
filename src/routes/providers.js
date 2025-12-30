@@ -76,10 +76,56 @@ const validateOnboardingStep = [
     .withMessage('Step data must be an object')
 ];
 
+/**
+ * @swagger
+ * /api/providers:
+ *   get:
+ *     summary: Get list of providers
+ *     tags: [Providers]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of providers
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ */
 // Public routes (no authentication required)
 router.get('/skills', getProviderSkills);
 router.get('/', getProviders);
 
+/**
+ * @swagger
+ * /api/providers/{id}:
+ *   get:
+ *     summary: Get provider by ID
+ *     tags: [Providers]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Provider details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.get('/:id', [
   param('id').isMongoId().withMessage('Invalid provider ID')
 ], getProvider);
@@ -87,11 +133,75 @@ router.get('/:id', [
 // Protected routes (authentication required)
 router.use(auth);
 
+/**
+ * @swagger
+ * /api/providers/profile/me:
+ *   get:
+ *     summary: Get current user's provider profile
+ *     tags: [Providers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Provider profile
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 // Provider profile management
 router.get('/profile/me', getMyProviderProfile);
 
+/**
+ * @swagger
+ * /api/providers/profile:
+ *   post:
+ *     summary: Create provider profile
+ *     tags: [Providers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - providerType
+ *             properties:
+ *               providerType:
+ *                 type: string
+ *                 enum: [individual, business, agency]
+ *               businessInfo:
+ *                 type: object
+ *               professionalInfo:
+ *                 type: object
+ *     responses:
+ *       201:
+ *         description: Profile created
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ */
 router.post('/profile', validateProviderCreation, createProviderProfile);
 
+/**
+ * @swagger
+ * /api/providers/profile:
+ *   put:
+ *     summary: Update provider profile
+ *     tags: [Providers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.put('/profile', validateProviderUpdate, updateProviderProfile);
 
 // Onboarding

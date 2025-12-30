@@ -77,9 +77,42 @@ router.post('/create-intent', auth, async (req, res) => {
 });
 
 /**
- * @desc    Confirm payment with payment method
- * @route   POST /api/paymongo/confirm-payment
- * @access  Private
+ * @swagger
+ * /api/paymongo/confirm-payment:
+ *   post:
+ *     summary: Confirm payment with payment method
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - intentId
+ *               - paymentMethodId
+ *             properties:
+ *               intentId:
+ *                 type: string
+ *               paymentMethodId:
+ *                 type: string
+ *               bookingId:
+ *                 type: string
+ *                 format: ObjectId
+ *               providerId:
+ *                 type: string
+ *                 format: ObjectId
+ *               amount:
+ *                 type: number
+ *               currency:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Payment confirmed and escrow created
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.post('/confirm-payment', auth, async (req, res) => {
   try {
@@ -192,9 +225,24 @@ router.get('/intent/:intentId', auth, async (req, res) => {
 });
 
 /**
- * @desc    Get charge details
- * @route   GET /api/paymongo/charge/:chargeId
- * @access  Private
+ * @swagger
+ * /api/paymongo/charge/{chargeId}:
+ *   get:
+ *     summary: Get charge details
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chargeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Charge details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
 router.get('/charge/:chargeId', auth, async (req, res) => {
   try {
@@ -239,9 +287,34 @@ router.get('/charge/:chargeId', auth, async (req, res) => {
 });
 
 /**
- * @desc    Refund a charge
- * @route   POST /api/paymongo/refund
- * @access  Private
+ * @swagger
+ * /api/paymongo/refund:
+ *   post:
+ *     summary: Refund a charge
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - chargeId
+ *             properties:
+ *               chargeId:
+ *                 type: string
+ *               amount:
+ *                 type: number
+ *               reason:
+ *                 type: string
+ *                 default: customer_request
+ *     responses:
+ *       201:
+ *         description: Refund created
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.post('/refund', auth, async (req, res) => {
   try {
@@ -292,9 +365,24 @@ router.post('/refund', auth, async (req, res) => {
 });
 
 /**
- * @desc    Get refund details
- * @route   GET /api/paymongo/refund/:refundId
- * @access  Private
+ * @swagger
+ * /api/paymongo/refund/{refundId}:
+ *   get:
+ *     summary: Get refund details
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: refundId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Refund details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
 router.get('/refund/:refundId', auth, async (req, res) => {
   try {
@@ -339,9 +427,24 @@ router.get('/refund/:refundId', auth, async (req, res) => {
 });
 
 /**
- * @desc    List payment intents (Admin)
- * @route   GET /api/paymongo/intents
- * @access  Private (Admin only)
+ * @swagger
+ * /api/paymongo/intents:
+ *   get:
+ *     summary: List payment intents (Admin only)
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: List of payment intents
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.get('/intents', authorize('admin'), async (req, res) => {
   try {
@@ -377,9 +480,24 @@ router.get('/intents', authorize('admin'), async (req, res) => {
 });
 
 /**
- * @desc    List charges (Admin)
- * @route   GET /api/paymongo/charges
- * @access  Private (Admin only)
+ * @swagger
+ * /api/paymongo/charges:
+ *   get:
+ *     summary: List charges (Admin only)
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: List of charges
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.get('/charges', authorize('admin'), async (req, res) => {
   try {

@@ -4,6 +4,17 @@ const { auth } = require('../middleware/auth');
 const errorMonitoringService = require('../services/errorMonitoringService');
 const { logger } = require('../utils/logger');
 
+/**
+ * @swagger
+ * /api/error-monitoring:
+ *   get:
+ *     summary: Get error monitoring service info
+ *     tags: [Monitoring]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Error monitoring service info
+ */
 // Public endpoint for basic error monitoring info
 router.get('/', (req, res) => {
   res.status(200).json({
@@ -21,6 +32,27 @@ router.get('/', (req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /api/error-monitoring/stats:
+ *   get:
+ *     summary: Get error statistics (Admin only)
+ *     tags: [Monitoring]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: timeframe
+ *         schema:
+ *           type: string
+ *           enum: [1h, 24h, 7d, 30d]
+ *           default: 24h
+ *     responses:
+ *       200:
+ *         description: Error statistics
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 // Get error statistics - [ADMIN ONLY]
 router.get('/stats', auth, async (req, res) => {
   try {
@@ -108,6 +140,60 @@ router.get('/unresolved', auth, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/error-monitoring/{errorId}:
+ *   get:
+ *     summary: Get error details (Admin only)
+ *     tags: [Monitoring]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: errorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Error details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *   patch:
+ *     summary: Resolve error (Admin only)
+ *     tags: [Monitoring]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: errorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Error resolved
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *   delete:
+ *     summary: Delete error (Admin only)
+ *     tags: [Monitoring]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: errorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Error deleted
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 // Get error details - [ADMIN ONLY]
 router.get('/:errorId', auth, async (req, res) => {
   try {

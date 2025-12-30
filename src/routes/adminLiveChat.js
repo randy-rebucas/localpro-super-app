@@ -62,30 +62,127 @@ router.use(auth);
 router.use(authorize('admin', 'super_admin', 'support'));
 
 /**
- * @route   GET /api/admin/live-chat/sessions
- * @desc    Get all chat sessions
- * @access  Private (Admin/Support)
+ * @swagger
+ * /api/admin/live-chat/sessions:
+ *   get:
+ *     summary: Get all chat sessions
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, closed, pending]
+ *     responses:
+ *       200:
+ *         description: List of chat sessions
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.get('/sessions', liveChatController.getAdminSessions);
 
 /**
- * @route   GET /api/admin/live-chat/analytics
- * @desc    Get chat analytics
- * @access  Private (Admin)
+ * @swagger
+ * /api/admin/live-chat/analytics:
+ *   get:
+ *     summary: Get chat analytics
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: timeframe
+ *         schema:
+ *           type: string
+ *           enum: [1h, 24h, 7d, 30d]
+ *     responses:
+ *       200:
+ *         description: Chat analytics
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.get('/analytics', authorize('admin', 'super_admin'), liveChatController.getAnalytics);
 
 /**
- * @route   GET /api/admin/live-chat/sessions/:sessionId
- * @desc    Get single session details with messages
- * @access  Private (Admin/Support)
+ * @swagger
+ * /api/admin/live-chat/sessions/{sessionId}:
+ *   get:
+ *     summary: Get single session details with messages
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Session details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *   delete:
+ *     summary: Delete session (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Session deleted
  */
 router.get('/sessions/:sessionId', liveChatController.getAdminSession);
 
 /**
- * @route   POST /api/admin/live-chat/sessions/:sessionId/reply
- * @desc    Send agent reply
- * @access  Private (Admin/Support)
+ * @swagger
+ * /api/admin/live-chat/sessions/{sessionId}/reply:
+ *   post:
+ *     summary: Send agent reply
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       200:
+ *         description: Reply sent
  */
 router.post(
   '/sessions/:sessionId/reply',
@@ -94,52 +191,178 @@ router.post(
 );
 
 /**
- * @route   PATCH /api/admin/live-chat/sessions/:sessionId/assign
- * @desc    Assign session to agent
- * @access  Private (Admin/Support)
+ * @swagger
+ * /api/admin/live-chat/sessions/{sessionId}/assign:
+ *   patch:
+ *     summary: Assign session to agent
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - agentId
+ *             properties:
+ *               agentId:
+ *                 type: string
+ *                 format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Session assigned
  */
 router.patch('/sessions/:sessionId/assign', liveChatController.assignSession);
 
 /**
- * @route   PATCH /api/admin/live-chat/sessions/:sessionId/status
- * @desc    Update session status (close, reopen, etc.)
- * @access  Private (Admin/Support)
+ * @swagger
+ * /api/admin/live-chat/sessions/{sessionId}/status:
+ *   patch:
+ *     summary: Update session status
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [active, closed, pending]
+ *     responses:
+ *       200:
+ *         description: Status updated
  */
 router.patch('/sessions/:sessionId/status', liveChatController.updateSessionStatus);
 
 /**
- * @route   POST /api/admin/live-chat/sessions/:sessionId/notes
- * @desc    Add internal note to session
- * @access  Private (Admin/Support)
+ * @swagger
+ * /api/admin/live-chat/sessions/{sessionId}/notes:
+ *   post:
+ *     summary: Add internal note to session
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - note
+ *             properties:
+ *               note:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Note added
  */
 router.post('/sessions/:sessionId/notes', liveChatController.addSessionNote);
 
 /**
- * @route   POST /api/admin/live-chat/sessions/:sessionId/transfer
- * @desc    Transfer session to another agent
- * @access  Private (Admin/Support)
+ * @swagger
+ * /api/admin/live-chat/sessions/{sessionId}/transfer:
+ *   post:
+ *     summary: Transfer session to another agent
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - agentId
+ *             properties:
+ *               agentId:
+ *                 type: string
+ *                 format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Session transferred
  */
 router.post('/sessions/:sessionId/transfer', liveChatController.transferSession);
 
 /**
- * @route   POST /api/admin/live-chat/sessions/:sessionId/typing
- * @desc    Send typing indicator (agent)
- * @access  Private (Admin/Support)
+ * @swagger
+ * /api/admin/live-chat/sessions/{sessionId}/typing:
+ *   post:
+ *     summary: Send typing indicator (agent)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Typing indicator sent
  */
 router.post('/sessions/:sessionId/typing', liveChatController.sendTypingIndicator);
 
 /**
- * @route   GET /api/admin/live-chat/customers/:email/history
- * @desc    Get customer chat history by email
- * @access  Private (Admin/Support)
+ * @swagger
+ * /api/admin/live-chat/customers/{email}/history:
+ *   get:
+ *     summary: Get customer chat history by email
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: email
+ *     responses:
+ *       200:
+ *         description: Customer chat history
  */
 router.get('/customers/:email/history', liveChatController.getCustomerHistory);
 
-/**
- * @route   DELETE /api/admin/live-chat/sessions/:sessionId
- * @desc    Delete session
- * @access  Private (Admin)
- */
 router.delete('/sessions/:sessionId', authorize('admin', 'super_admin'), liveChatController.deleteSession);
 
 module.exports = router;

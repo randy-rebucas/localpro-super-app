@@ -244,52 +244,68 @@ const paramValidation = [
 router.use(auth);
 
 /**
- * @route   GET /api/activities/feed
- * @desc    Get activity feed for current user
- * @access  Private
- * @query   page, limit, types, categories, visibility, includeOwn, timeframe
- * 
- * Query Parameters:
- * - page (optional): Page number (default: 1)
- * - limit (optional): Items per page (default: 20, max: 100)
- * - types (optional): Comma-separated activity types to filter
- * - categories (optional): Comma-separated categories to filter
- * - visibility (optional): Visibility level (default: public)
- * - includeOwn (optional): Include user's own activities (default: true)
- * - timeframe (optional): Time range (default: 7d)
- * 
- * Response:
- * {
- *   "success": true,
- *   "data": {
- *     "activities": [...],
- *     "pagination": {
- *       "currentPage": 1,
- *       "totalPages": 5,
- *       "totalItems": 100,
- *       "itemsPerPage": 20,
- *       "hasNext": true,
- *       "hasPrev": false
- *     }
- *   }
- * }
+ * @swagger
+ * /api/activities/feed:
+ *   get:
+ *     summary: Get activity feed for current user
+ *     tags: [Activities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: types
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: categories
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: visibility
+ *         schema:
+ *           type: string
+ *           enum: [public, private, connections, followers]
+ *       - in: query
+ *         name: timeframe
+ *         schema:
+ *           type: string
+ *           enum: [1h, 1d, 7d, 30d, 90d]
+ *     responses:
+ *       200:
+ *         description: Activity feed
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/feed', queryValidation, getActivityFeed);
 
 /**
- * @route   GET /api/activities/my
- * @desc    Get current user's activities
- * @access  Private
- * @query   page, limit, types, categories, timeframe
- * 
- * Response:
- * {
- *   "success": true,
- *   "data": {
- *     "activities": [...],
- *     "pagination": {...}
- *   }
- * }
+ * @swagger
+ * /api/activities/my:
+ *   get:
+ *     summary: Get current user's activities
+ *     tags: [Activities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: User activities
  */
 router.get('/my', queryValidation, getUserActivities);
 

@@ -28,6 +28,68 @@ const router = express.Router();
 // Apply authentication to all routes
 router.use(auth);
 
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Get all users with filtering and pagination
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of users
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *   post:
+ *     summary: Create new user (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               roles:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       201:
+ *         description: User created
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 // @desc    Get all users with filtering and pagination
 // @route   GET /api/users
 // @access  Admin/Manager - [ADMIN/AGENCY ONLY]
@@ -36,33 +98,88 @@ router.get('/',
   getAllUsers
 );
 
-// @desc    Get user statistics
-// @route   GET /api/users/stats
-// @access  Admin/Manager - [ADMIN/AGENCY ONLY]
+/**
+ * @swagger
+ * /api/users/stats:
+ *   get:
+ *     summary: Get user statistics
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User statistics
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 router.get('/stats',
   authorize(['admin', 'agency_admin', 'agency_owner']),
   getUserStats
 );
 
-// @desc    Get user by ID
-// @route   GET /api/users/:id
-// @access  Admin/Manager/Owner - [ADMIN/AGENCY/USER ONLY]
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   get:
+ *     summary: Get user by ID
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: User details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *   put:
+ *     summary: Update user
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: User updated
+ *   delete:
+ *     summary: Delete user (soft delete)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: User deleted
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 router.get('/:id',
   authorize(['admin', 'agency_admin', 'agency_owner', 'provider', 'client']),
   getUserById
 );
 
-// @desc    Create new user
-// @route   POST /api/users
-// @access  Admin - [ADMIN ONLY]
 router.post('/',
   authorize(['admin']),
   createUser
 );
 
-// @desc    Update user
-// @route   PUT /api/users/:id
-// @access  Admin/Manager/Owner - [ADMIN/AGENCY/USER ONLY]
 router.put('/:id',
   authorize(['admin', 'agency_admin', 'agency_owner', 'provider', 'client']),
   updateUser

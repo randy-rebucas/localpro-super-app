@@ -39,8 +39,49 @@ const upload = multer({
 // All routes require authentication
 router.use(auth);
 
+/**
+ * @swagger
+ * /api/finance/overview:
+ *   get:
+ *     summary: Get financial overview
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Financial overview
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 // Financial overview and analytics
 router.get('/overview', getFinancialOverview);
+
+/**
+ * @swagger
+ * /api/finance/transactions:
+ *   get:
+ *     summary: Get financial transactions
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [income, expense, withdrawal, deposit]
+ *     responses:
+ *       200:
+ *         description: List of transactions
+ */
 router.get('/transactions', getTransactions);
 router.get('/earnings', getEarnings);
 router.get('/expenses', getExpenses);

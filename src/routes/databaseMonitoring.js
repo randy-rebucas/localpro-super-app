@@ -17,6 +17,17 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/database/monitoring/collections:
+ *   get:
+ *     summary: Get collection stats
+ *     tags: [Monitoring]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Collection stats
+ */
 // Get collection stats
 router.get('/collections', async (req, res) => {
   try {
@@ -31,6 +42,23 @@ router.get('/collections', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/database/monitoring/queries:
+ *   get:
+ *     summary: Get query performance stats
+ *     tags: [Monitoring]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: Query performance stats
+ */
 // Get query performance stats
 router.get('/queries', (req, res) => {
   try {
@@ -53,6 +81,17 @@ router.get('/queries', (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/database/monitoring/connections:
+ *   get:
+ *     summary: Get connection stats
+ *     tags: [Monitoring]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Connection stats
+ */
 // Get connection stats
 router.get('/connections', (req, res) => {
   try {
@@ -67,6 +106,17 @@ router.get('/connections', (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/database/monitoring/reset:
+ *   post:
+ *     summary: Reset performance stats
+ *     tags: [Monitoring]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Stats reset successfully
+ */
 // Reset performance stats
 router.post('/reset', (req, res) => {
   try {

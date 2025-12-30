@@ -80,6 +80,27 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/audit-logs/stats:
+ *   get:
+ *     summary: Get audit statistics (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: timeframe
+ *         schema:
+ *           type: string
+ *           enum: [1h, 24h, 7d, 30d]
+ *           default: 30d
+ *     responses:
+ *       200:
+ *         description: Audit statistics
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 // Get audit statistics - [ADMIN ONLY]
 router.get('/stats', auth, async (req, res) => {
   try {

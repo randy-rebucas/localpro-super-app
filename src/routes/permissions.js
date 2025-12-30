@@ -53,57 +53,146 @@ router.get('/stats',
   getPermissionStats
 );
 
-// @desc    Get permissions by module
-// @route   GET /api/permissions/module/:module
-// @access  Admin or Staff with staff.permissions permission
+/**
+ * @swagger
+ * /api/permissions/module/{module}:
+ *   get:
+ *     summary: Get permissions by module
+ *     tags: [Permissions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: module
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Permissions for module
+ */
 router.get('/module/:module',
   checkPermission(['staff.permissions', 'system.manage'], { requireAll: false }),
   getPermissionsByModule
 );
 
-// @desc    Get single permission
-// @route   GET /api/permissions/:id
-// @access  Admin or Staff with staff.permissions permission
+/**
+ * @swagger
+ * /api/permissions/{id}:
+ *   get:
+ *     summary: Get single permission
+ *     tags: [Permissions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Permission details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *   put:
+ *     summary: Update permission (Admin only)
+ *     tags: [Permissions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Permission updated
+ *   delete:
+ *     summary: Delete permission (Admin only)
+ *     tags: [Permissions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Permission deleted
+ */
 router.get('/:id',
   checkPermission(['staff.permissions', 'system.manage'], { requireAll: false }),
   getPermissionById
 );
 
-// @desc    Create permission
-// @route   POST /api/permissions
-// @access  Admin only
 router.post('/',
   authorize(['admin']),
   createPermission
 );
 
-// @desc    Initialize system permissions
-// @route   POST /api/permissions/initialize
-// @access  Admin only
+/**
+ * @swagger
+ * /api/permissions/initialize:
+ *   post:
+ *     summary: Initialize system permissions (Admin only)
+ *     tags: [Permissions]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Permissions initialized
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 router.post('/initialize',
   authorize(['admin']),
   initializePermissions
 );
 
-// @desc    Bulk create permissions
-// @route   POST /api/permissions/bulk
-// @access  Admin only
+/**
+ * @swagger
+ * /api/permissions/bulk:
+ *   post:
+ *     summary: Bulk create permissions (Admin only)
+ *     tags: [Permissions]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - permissions
+ *             properties:
+ *               permissions:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *     responses:
+ *       201:
+ *         description: Permissions created
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 router.post('/bulk',
   authorize(['admin']),
   bulkCreatePermissions
 );
 
-// @desc    Update permission
-// @route   PUT /api/permissions/:id
-// @access  Admin only
 router.put('/:id',
   authorize(['admin']),
   updatePermission
 );
 
-// @desc    Delete permission
-// @route   DELETE /api/permissions/:id
-// @access  Admin only
 router.delete('/:id',
   authorize(['admin']),
   deletePermission

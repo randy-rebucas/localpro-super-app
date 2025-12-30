@@ -170,18 +170,146 @@ const invoiceValidation = [
     .withMessage('Cancel redirect URL must be valid')
 ];
 
+/**
+ * @swagger
+ * /api/paymaya/webhook:
+ *   post:
+ *     summary: PayMaya webhook endpoint
+ *     tags: [PayMaya]
+ *     security: []
+ *     description: PayMaya calls this endpoint to notify about payment events
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Webhook processed
+ */
 // Webhook route (no auth required - PayMaya calls this directly)
 router.post('/webhook', handlePayMayaWebhook);
 
 // All other routes require authentication
 router.use(auth);
 
+/**
+ * @swagger
+ * /api/paymaya/checkout:
+ *   post:
+ *     summary: Create PayMaya checkout
+ *     tags: [PayMaya]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - totalAmount
+ *               - description
+ *               - referenceId
+ *               - buyer
+ *             properties:
+ *               totalAmount:
+ *                 type: number
+ *               description:
+ *                 type: string
+ *               referenceId:
+ *                 type: string
+ *               buyer:
+ *                 type: object
+ *     responses:
+ *       201:
+ *         description: Checkout created
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 // Checkout routes
 router.post('/checkout', checkoutValidation, createCheckout);
+
+/**
+ * @swagger
+ * /api/paymaya/checkout/{checkoutId}:
+ *   get:
+ *     summary: Get checkout details
+ *     tags: [PayMaya]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: checkoutId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Checkout details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.get('/checkout/:checkoutId', getCheckout);
 
+/**
+ * @swagger
+ * /api/paymaya/payment:
+ *   post:
+ *     summary: Create PayMaya payment
+ *     tags: [PayMaya]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - vaultId
+ *               - amount
+ *               - referenceId
+ *               - buyer
+ *             properties:
+ *               vaultId:
+ *                 type: string
+ *               amount:
+ *                 type: number
+ *               referenceId:
+ *                 type: string
+ *               buyer:
+ *                 type: object
+ *     responses:
+ *       201:
+ *         description: Payment created
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 // Payment routes
 router.post('/payment', paymentValidation, createPayment);
+
+/**
+ * @swagger
+ * /api/paymaya/payment/{paymentId}:
+ *   get:
+ *     summary: Get payment details
+ *     tags: [PayMaya]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: paymentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Payment details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.get('/payment/:paymentId', getPayment);
 
 // Invoice routes

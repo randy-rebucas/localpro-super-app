@@ -59,41 +59,137 @@ const upload = multer({
 // ============================================
 
 /**
- * @route   POST /api/live-chat/sessions
- * @desc    Create new chat session
- * @access  Public
+ * @swagger
+ * /api/live-chat/sessions:
+ *   post:
+ *     summary: Create new chat session
+ *     tags: [Live Chat]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               message:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Session created
  */
 router.post('/sessions', liveChatController.createSession);
 
 /**
- * @route   GET /api/live-chat/sessions/:sessionId
- * @desc    Get session details
- * @access  Public (with session ID)
+ * @swagger
+ * /api/live-chat/sessions/{sessionId}:
+ *   get:
+ *     summary: Get session details
+ *     tags: [Live Chat]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Session details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
 router.get('/sessions/:sessionId', liveChatController.getSession);
 
 /**
- * @route   POST /api/live-chat/sessions/:sessionId/messages
- * @desc    Send message (user)
- * @access  Public (with session ID)
+ * @swagger
+ * /api/live-chat/sessions/{sessionId}/messages:
+ *   post:
+ *     summary: Send message (user)
+ *     tags: [Live Chat]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       201:
+ *         description: Message sent
+ *   get:
+ *     summary: Get messages for a session
+ *     tags: [Live Chat]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of messages
  */
 router.post(
   '/sessions/:sessionId/messages',
   upload.array('files', 5),
   liveChatController.sendMessage
 );
-
-/**
- * @route   GET /api/live-chat/sessions/:sessionId/messages
- * @desc    Get messages for a session
- * @access  Public (with session ID)
- */
 router.get('/sessions/:sessionId/messages', liveChatController.getMessages);
 
 /**
- * @route   POST /api/live-chat/upload
- * @desc    Upload attachment
- * @access  Public (with session ID in body)
+ * @swagger
+ * /api/live-chat/upload:
+ *   post:
+ *     summary: Upload attachment
+ *     tags: [Live Chat]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - sessionId
+ *             properties:
+ *               sessionId:
+ *                 type: string
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       200:
+ *         description: Files uploaded
  */
 router.post(
   '/upload',
@@ -102,23 +198,74 @@ router.post(
 );
 
 /**
- * @route   PATCH /api/live-chat/sessions/:sessionId/end
- * @desc    End chat session (user initiated)
- * @access  Public (with session ID)
+ * @swagger
+ * /api/live-chat/sessions/{sessionId}/end:
+ *   patch:
+ *     summary: End chat session (user initiated)
+ *     tags: [Live Chat]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Session ended
  */
 router.patch('/sessions/:sessionId/end', liveChatController.endSession);
 
 /**
- * @route   POST /api/live-chat/sessions/:sessionId/rate
- * @desc    Rate chat session
- * @access  Public (with session ID)
+ * @swagger
+ * /api/live-chat/sessions/{sessionId}/rate:
+ *   post:
+ *     summary: Rate chat session
+ *     tags: [Live Chat]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rating
+ *             properties:
+ *               rating:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *               comment:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Rating submitted
  */
 router.post('/sessions/:sessionId/rate', liveChatController.rateSession);
 
 /**
- * @route   POST /api/live-chat/sessions/:sessionId/typing
- * @desc    Send typing indicator (user)
- * @access  Public (with session ID)
+ * @swagger
+ * /api/live-chat/sessions/{sessionId}/typing:
+ *   post:
+ *     summary: Send typing indicator (user)
+ *     tags: [Live Chat]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Typing indicator sent
  */
 router.post('/sessions/:sessionId/typing', liveChatController.sendTypingIndicator);
 

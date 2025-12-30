@@ -23,6 +23,17 @@ router.get('/metrics', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/monitoring/metrics/json:
+ *   get:
+ *     summary: Get metrics as JSON
+ *     tags: [Monitoring]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Metrics in JSON format
+ */
 // JSON metrics endpoint
 router.get('/metrics/json', async (req, res) => {
   try {
@@ -34,6 +45,17 @@ router.get('/metrics/json', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/monitoring/health:
+ *   get:
+ *     summary: Health check with metrics
+ *     tags: [Monitoring]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Health status with metrics
+ */
 // Health check with metrics
 router.get('/health', async (req, res) => {
   try {
@@ -69,6 +91,17 @@ router.get('/health', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/monitoring/system:
+ *   get:
+ *     summary: Get system information
+ *     tags: [Monitoring]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: System information
+ */
 // System information endpoint
 router.get('/system', async (req, res) => {
   try {
@@ -117,6 +150,17 @@ router.get('/system', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/monitoring/performance:
+ *   get:
+ *     summary: Get performance summary
+ *     tags: [Monitoring]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Performance summary
+ */
 // Performance summary endpoint
 router.get('/performance', async (req, res) => {
   try {
@@ -150,6 +194,19 @@ router.get('/performance', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/monitoring/system-health:
+ *   get:
+ *     summary: Get comprehensive system health status
+ *     tags: [Monitoring]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: System health status
+ *       503:
+ *         description: System is degraded or unhealthy
+ */
 // Comprehensive System Health Endpoint
 router.get('/system-health', async (req, res) => {
   try {

@@ -7,6 +7,37 @@ const User = require('../models/User');
 const { Notification } = require('../models/Communication');
 
 /**
+ * @swagger
+ * /api/notifications/fcm-token:
+ *   post:
+ *     summary: Register or update FCM token for push notifications
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - deviceId
+ *             properties:
+ *               token:
+ *                 type: string
+ *               deviceId:
+ *                 type: string
+ *               deviceType:
+ *                 type: string
+ *                 enum: [ios, android, web]
+ *     responses:
+ *       200:
+ *         description: FCM token registered
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+/**
  * @route   POST /api/notifications/fcm-token
  * @desc    Register or update FCM token for push notifications
  * @access  Private
@@ -398,6 +429,50 @@ router.post('/test',
 );
 
 /**
+ * @swagger
+ * /api/notifications:
+ *   get:
+ *     summary: Get user notifications
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: isRead
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of notifications
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *   delete:
+ *     summary: Delete all notifications (or read-only if specified)
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: readOnly
+ *         schema:
+ *           type: boolean
+ *     responses:
+ *       200:
+ *         description: Notifications deleted
+ */
+/**
  * @route   GET /api/notifications
  * @desc    Get user notifications (uses communication controller)
  * @access  Private
@@ -453,6 +528,20 @@ router.get('/',
 );
 
 /**
+ * @swagger
+ * /api/notifications/unread-count:
+ *   get:
+ *     summary: Get unread notification count
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Unread count
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+/**
  * @route   GET /api/notifications/unread-count
  * @desc    Get unread notification count
  * @access  Private
@@ -484,6 +573,27 @@ router.get('/unread-count',
   }
 );
 
+/**
+ * @swagger
+ * /api/notifications/{id}/read:
+ *   put:
+ *     summary: Mark a notification as read
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Notification marked as read
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 /**
  * @route   PUT /api/notifications/:id/read
  * @desc    Mark a notification as read
@@ -522,6 +632,18 @@ router.put('/:id/read',
 );
 
 /**
+ * @swagger
+ * /api/notifications/read-all:
+ *   put:
+ *     summary: Mark all notifications as read
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All notifications marked as read
+ */
+/**
  * @route   PUT /api/notifications/read-all
  * @desc    Mark all notifications as read
  * @access  Private
@@ -550,6 +672,27 @@ router.put('/read-all',
   }
 );
 
+/**
+ * @swagger
+ * /api/notifications/{id}:
+ *   delete:
+ *     summary: Delete a notification
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Notification deleted
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 /**
  * @route   DELETE /api/notifications/:id
  * @desc    Delete a notification

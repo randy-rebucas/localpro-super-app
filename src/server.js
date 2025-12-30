@@ -266,6 +266,32 @@ function startServer() {
   }));
 
   // Index API info endpoint
+  /**
+   * @swagger
+   * /:
+   *   get:
+   *     summary: API information and status
+   *     tags: [General]
+   *     security: []
+   *     responses:
+   *       200:
+   *         description: API information
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: OK
+   *                 message:
+   *                   type: string
+   *                 version:
+   *                   type: string
+   *                 timestamp:
+   *                   type: string
+   *                   format: date-time
+   */
   app.get('/', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -368,6 +394,34 @@ function startServer() {
   };
 
   // Health check endpoint
+  /**
+   * @swagger
+   * /health:
+   *   get:
+   *     summary: Health check endpoint
+   *     tags: [General]
+   *     security: []
+   *     responses:
+   *       200:
+   *         description: Service is healthy
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: OK
+   *                 timestamp:
+   *                   type: string
+   *                   format: date-time
+   *                 uptime:
+   *                   type: integer
+   *                 services:
+   *                   type: object
+   *       503:
+   *         description: Service is degraded
+   */
   app.get('/health', async (req, res) => {
     const databaseHealth = await checkDatabaseHealth();
     const externalApis = await checkExternalAPIs();
@@ -434,6 +488,29 @@ function startServer() {
   // Serve monitoring dashboard
   app.get('/monitoring', (req, res) => {
     res.sendFile('monitoring-dashboard.html', { root: './src/templates' });
+  });
+
+  // Swagger API Documentation
+  const swaggerUi = require('swagger-ui-express');
+  const swaggerSpec = require('./config/swagger');
+  
+  // Serve Swagger UI
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'LocalPro Super App API Documentation',
+    customfavIcon: '/favicon.ico',
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      filter: true,
+      tryItOutEnabled: true
+    }
+  }));
+
+  // Serve Swagger JSON
+  app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
   });
 
   // API Routes

@@ -1,4 +1,5 @@
 const express = require('express');
+const { body } = require('express-validator');
 const { auth } = require('../middleware/auth');
 const { validateFileUpload } = require('../middleware/routeValidation');
 const { smsLimiter, authLimiter, uploadLimiter } = require('../middleware/rateLimiter');
@@ -24,6 +25,140 @@ const { uploaders } = require('../config/cloudinary');
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     RegisterRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: user@example.com
+ *         password:
+ *           type: string
+ *           format: password
+ *           minLength: 8
+ *           example: Password123
+ *         firstName:
+ *           type: string
+ *           maxLength: 50
+ *           example: John
+ *         lastName:
+ *           type: string
+ *           maxLength: 50
+ *           example: Doe
+ *     LoginRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: user@example.com
+ *         password:
+ *           type: string
+ *           format: password
+ *           example: Password123
+ *     AuthResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         message:
+ *           type: string
+ *           example: Login successful
+ *         token:
+ *           type: string
+ *           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *         refreshToken:
+ *           type: string
+ *           example: abc123def456...
+ *         user:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: string
+ *               format: ObjectId
+ *             email:
+ *               type: string
+ *             firstName:
+ *               type: string
+ *             lastName:
+ *               type: string
+ *             roles:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             isVerified:
+ *               type: boolean
+ *         isNewUser:
+ *           type: boolean
+ *     SendCodeRequest:
+ *       type: object
+ *       required:
+ *         - phoneNumber
+ *       properties:
+ *         phoneNumber:
+ *           type: string
+ *           pattern: '^\\+[1-9]\\d{1,14}$'
+ *           example: +1234567890
+ *     VerifyCodeRequest:
+ *       type: object
+ *       required:
+ *         - phoneNumber
+ *         - code
+ *       properties:
+ *         phoneNumber:
+ *           type: string
+ *           pattern: '^\\+[1-9]\\d{1,14}$'
+ *           example: +1234567890
+ *         code:
+ *           type: string
+ *           pattern: '^\\d{6}$'
+ *           example: "123456"
+ */
+
+// Validation middleware for register and login
+const validateRegister = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Valid email is required'),
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+  body('firstName')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('First name must be between 1 and 50 characters'),
+  body('lastName')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('Last name must be between 1 and 50 characters')
+];
+
+const validateLogin = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Valid email is required'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+];
+
 // Public routes with specific rate limiting (skip in test for validation testing)
 if (process.env.NODE_ENV === 'test') {
   // In test mode, skip rate limiters for easier validation testing
@@ -47,23 +182,173 @@ if (process.env.NODE_ENV === 'test') {
   router.post('/refresh', authLimiter, refreshToken);
 }
 
-// Minimal endpoints to satisfy auth-protected route expectations in tests
-router.post('/register', auth, (req, res) => res.status(200).json({ success: true }));
-router.get('/profile', auth, (req, res) => res.status(200).json({ success: true }));
+// Public route aliases for documented API
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user with email and password
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RegisterRequest'
+ *     responses:
+ *       201:
+ *         description: Registration successful, OTP sent to email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       409:
+ *         description: Email already registered
+ */
+if (process.env.NODE_ENV === 'test') {
+  router.post('/register', validateRegister, registerWithEmail);
+} else {
+  router.post('/register', authLimiter, validateRegister, registerWithEmail);
+}
+
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login with email and password
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful, OTP sent to email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Invalid credentials
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ */
+if (process.env.NODE_ENV === 'test') {
+  router.post('/login', validateLogin, loginWithEmail);
+} else {
+  router.post('/login', authLimiter, validateLogin, loginWithEmail);
+}
 
 // Protected routes
-router.post('/complete-onboarding', auth, completeOnboarding);
-router.get('/profile-completion-status', auth, getProfileCompletionStatus);
-router.get('/profile-completeness', auth, getProfileCompleteness);
+/**
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Get current user profile
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Success'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/User'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.get('/me', auth, getMe);
+
+/**
+ * @swagger
+ * /api/auth/profile:
+ *   get:
+ *     summary: Get current user profile (alias for /me)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/profile', auth, getMe);
+
+/**
+ * @swagger
+ * /api/auth/profile:
+ *   put:
+ *     summary: Update user profile
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
+ *               profile:
+ *                 type: object
+ *                 properties:
+ *                   bio:
+ *                     type: string
+ *                   location:
+ *                     type: object
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ */
 router.put('/profile', auth, updateProfile);
-router.post('/upload-avatar', 
+
+// Avatar upload routes - support both documented and existing endpoints
+const avatarUploadMiddleware = [
   auth, 
   uploadLimiter,
   uploaders.userProfiles.single('avatar'), 
   validateFileUpload({ maxSize: 2 * 1024 * 1024, allowedTypes: ['image/jpeg', 'image/png'] }),
   uploadAvatar
-);
+];
+
+// POST /api/auth/avatar - documented endpoint
+router.post('/avatar', ...avatarUploadMiddleware);
+
+// POST /api/auth/upload-avatar - existing endpoint (keep for backward compatibility)
+router.post('/upload-avatar', ...avatarUploadMiddleware);
 router.post('/upload-portfolio', 
   auth, 
   uploadLimiter,
@@ -71,6 +356,24 @@ router.post('/upload-portfolio',
   validateFileUpload({ maxSize: 5 * 1024 * 1024, allowedTypes: ['image/jpeg', 'image/png', 'image/gif'] }),
   uploadPortfolioImages
 );
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout current user
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Success'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.post('/logout', auth, logout);
 
 module.exports = router;

@@ -54,51 +54,149 @@ const validateQueryParams = [
 router.use(auth);
 
 /**
- * @route   POST /api/api-keys
- * @desc    Create a new API key
- * @access  Private
+ * @swagger
+ * /api/api-keys:
+ *   post:
+ *     summary: Create a new API key
+ *     tags: [API Keys]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               expiresAt:
+ *                 type: string
+ *                 format: date-time
+ *               scopes:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [read, write, admin]
+ *     responses:
+ *       201:
+ *         description: API key created
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *   get:
+ *     summary: Get all API keys for the authenticated user
+ *     tags: [API Keys]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: boolean
+ *     responses:
+ *       200:
+ *         description: List of API keys
  */
 router.post('/', validateCreateApiKey, createApiKey);
-
-/**
- * @route   GET /api/api-keys
- * @desc    Get all API keys for the authenticated user
- * @access  Private
- */
 router.get('/', validateQueryParams, getApiKeys);
 
 /**
- * @route   GET /api/api-keys/stats
- * @desc    Get API key statistics
- * @access  Private
+ * @swagger
+ * /api/api-keys/stats:
+ *   get:
+ *     summary: Get API key statistics
+ *     tags: [API Keys]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: API key statistics
  */
 router.get('/stats', getApiKeyStats);
 
 /**
- * @route   GET /api/api-keys/:id
- * @desc    Get a single API key by ID
- * @access  Private
+ * @swagger
+ * /api/api-keys/{id}:
+ *   get:
+ *     summary: Get a single API key by ID
+ *     tags: [API Keys]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: API key details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *   put:
+ *     summary: Update an API key
+ *     tags: [API Keys]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: API key updated
+ *   delete:
+ *     summary: Delete/Revoke an API key
+ *     tags: [API Keys]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: API key deleted
  */
 router.get('/:id', validateApiKeyId, getApiKeyById);
-
-/**
- * @route   PUT /api/api-keys/:id
- * @desc    Update an API key
- * @access  Private
- */
 router.put('/:id', validateUpdateApiKey, updateApiKey);
-
-/**
- * @route   DELETE /api/api-keys/:id
- * @desc    Delete/Revoke an API key
- * @access  Private
- */
 router.delete('/:id', validateApiKeyId, deleteApiKey);
 
 /**
- * @route   POST /api/api-keys/:id/regenerate-secret
- * @desc    Regenerate secret key for an API key
- * @access  Private
+ * @swagger
+ * /api/api-keys/{id}/regenerate-secret:
+ *   post:
+ *     summary: Regenerate secret key for an API key
+ *     tags: [API Keys]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Secret key regenerated
  */
 router.post('/:id/regenerate-secret', validateApiKeyId, regenerateSecret);
 

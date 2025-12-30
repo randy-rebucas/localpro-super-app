@@ -229,59 +229,60 @@ const paramValidation = [
 
 // Public routes (no authentication required)
 /**
- * @route   GET /api/announcements
- * @desc    Get all announcements with filtering and pagination
- * @access  Public
- * @query   type, priority, status, targetAudience, page, limit, sortBy, sortOrder, search, tags, isSticky, author
- * 
- * Query Parameters:
- * - type (optional): Filter by announcement type
- * - priority (optional): Filter by priority level
- * - status (optional): Filter by status (default: published)
- * - targetAudience (optional): Filter by target audience
- * - page (optional): Page number (default: 1)
- * - limit (optional): Items per page (default: 20, max: 100)
- * - sortBy (optional): Sort field (default: publishedAt)
- * - sortOrder (optional): Sort order (default: desc)
- * - search (optional): Search in title, content, summary, and tags
- * - tags (optional): Filter by tags (comma-separated)
- * - isSticky (optional): Filter by sticky announcements
- * - author (optional): Filter by author ID
- * 
- * Response:
- * {
- *   "success": true,
- *   "data": {
- *     "announcements": [...],
- *     "pagination": {
- *       "currentPage": 1,
- *       "totalPages": 5,
- *       "totalItems": 100,
- *       "itemsPerPage": 20,
- *       "hasNext": true,
- *       "hasPrev": false
- *     }
- *   }
- * }
+ * @swagger
+ * /api/announcements:
+ *   get:
+ *     summary: Get all announcements with filtering and pagination
+ *     tags: [Announcements]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: priority
+ *         schema:
+ *           type: string
+ *           enum: [low, medium, high, urgent]
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [draft, scheduled, published, archived]
+ *     responses:
+ *       200:
+ *         description: List of announcements
  */
 router.get('/', queryValidation, getAnnouncements);
 
 /**
- * @route   GET /api/announcements/:id
- * @desc    Get single announcement by ID
- * @access  Public
- * @param   id: Announcement ID
- * 
- * Response:
- * {
- *   "success": true,
- *   "data": {
- *     "announcement": {...},
- *     "isAcknowledged": false,
- *     "canComment": true,
- *     "canAcknowledge": true
- *   }
- * }
+ * @swagger
+ * /api/announcements/{id}:
+ *   get:
+ *     summary: Get single announcement by ID
+ *     tags: [Announcements]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Announcement details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
 router.get('/:id', paramValidation, getAnnouncement);
 
@@ -311,36 +312,45 @@ router.use(auth);
 router.get('/my/list', queryValidation, getMyAnnouncements);
 
 /**
- * @route   POST /api/announcements
- * @desc    Create new announcement
- * @access  Private (Admin/Manager roles)
- * @body    title, content, summary, type, priority, targetAudience, targetRoles, targetLocations, targetCategories, scheduledAt, expiresAt, isSticky, allowComments, requireAcknowledgment, tags
- * 
- * Required Fields:
- * - title: Announcement title (5-200 characters)
- * - content: Announcement content (10-5000 characters)
- * - summary: Announcement summary (10-500 characters)
- * 
- * Optional Fields:
- * - type: Announcement type (default: general)
- * - priority: Priority level (default: medium)
- * - targetAudience: Target audience (default: all)
- * - targetRoles: Array of target roles
- * - targetLocations: Array of target locations
- * - targetCategories: Array of target categories
- * - scheduledAt: Scheduled publication date
- * - expiresAt: Expiration date
- * - isSticky: Make announcement sticky (default: false)
- * - allowComments: Allow comments (default: true)
- * - requireAcknowledgment: Require acknowledgment (default: false)
- * - tags: Array of tags
- * 
- * Response:
- * {
- *   "success": true,
- *   "message": "Announcement created successfully",
- *   "data": {...}
- * }
+ * @swagger
+ * /api/announcements:
+ *   post:
+ *     summary: Create new announcement
+ *     tags: [Announcements]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - content
+ *               - summary
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 minLength: 5
+ *                 maxLength: 200
+ *               content:
+ *                 type: string
+ *                 minLength: 10
+ *                 maxLength: 5000
+ *               summary:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *                 enum: [system, maintenance, feature, security, promotion, policy, event, emergency, update, general]
+ *               priority:
+ *                 type: string
+ *                 enum: [low, medium, high, urgent]
+ *     responses:
+ *       201:
+ *         description: Announcement created
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.post('/', authorize(['admin', 'agency_admin', 'agency_owner']), createAnnouncementValidation, createAnnouncement); // [ADMIN/AGENCY ONLY]
 

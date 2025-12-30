@@ -36,37 +36,130 @@ const validateQueryParams = [
 ];
 
 /**
- * @route   POST /api/oauth/token
- * @desc    Exchange API key/secret for access token (OAuth2 client_credentials flow)
- * @access  Public (requires API key/secret)
+ * @swagger
+ * /api/oauth/token:
+ *   post:
+ *     summary: Exchange API key/secret for access token (OAuth2 client_credentials flow)
+ *     tags: [OAuth]
+ *     security:
+ *       - apiKeyAuth: []
+ *       - apiSecretAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - grant_type
+ *             properties:
+ *               grant_type:
+ *                 type: string
+ *                 enum: [client_credentials]
+ *               scope:
+ *                 type: string
+ *               expires_in:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Access token issued
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.post('/token', validateTokenExchange, exchangeToken);
 
 /**
- * @route   POST /api/oauth/refresh
- * @desc    Refresh access token using refresh token
- * @access  Public
+ * @swagger
+ * /api/oauth/refresh:
+ *   post:
+ *     summary: Refresh access token using refresh token
+ *     tags: [OAuth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refresh_token
+ *             properties:
+ *               refresh_token:
+ *                 type: string
+ *               scope:
+ *                 type: string
+ *               expires_in:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: New access token issued
  */
 router.post('/refresh', validateTokenRefresh, refreshToken);
 
 /**
- * @route   POST /api/oauth/revoke
- * @desc    Revoke access or refresh token
- * @access  Public
+ * @swagger
+ * /api/oauth/revoke:
+ *   post:
+ *     summary: Revoke access or refresh token
+ *     tags: [OAuth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *             properties:
+ *               token:
+ *                 type: string
+ *               token_type_hint:
+ *                 type: string
+ *                 enum: [access_token, refresh_token]
+ *     responses:
+ *       200:
+ *         description: Token revoked
  */
 router.post('/revoke', validateTokenRevoke, revokeToken);
 
 /**
- * @route   GET /api/oauth/token-info
- * @desc    Get information about current access token
- * @access  Private (requires valid access token)
+ * @swagger
+ * /api/oauth/token-info:
+ *   get:
+ *     summary: Get information about current access token
+ *     tags: [OAuth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token information
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/token-info', accessTokenAuth, getTokenInfo);
 
 /**
- * @route   GET /api/oauth/tokens
- * @desc    List user's access tokens
- * @access  Private (requires authentication)
+ * @swagger
+ * /api/oauth/tokens:
+ *   get:
+ *     summary: List user's access tokens
+ *     tags: [OAuth]
+ *     security:
+ *       - apiKeyAuth: []
+ *       - apiSecretAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of tokens
  */
 router.get('/tokens', apiKeyAuth, validateQueryParams, listTokens);
 

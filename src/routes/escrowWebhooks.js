@@ -566,15 +566,165 @@ const handleDisbursementWebhook = async (req, res) => {
   }
 };
 
-// Route handlers
+/**
+ * @swagger
+ * /api/escrow-webhooks/payments:
+ *   post:
+ *     summary: Handle generic payment webhook events
+ *     tags: [Payments]
+ *     security: []
+ *     description: Generic webhook endpoint for payment events. Signature verification required via middleware.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: Webhook event payload
+ *     responses:
+ *       200:
+ *         description: Webhook processed successfully
+ *       401:
+ *         description: Invalid webhook signature
+ */
 router.post('/payments', verifyWebhookSignature, handlePaymentWebhook);
+
+/**
+ * @swagger
+ * /api/escrow-webhooks/disbursements:
+ *   post:
+ *     summary: Handle generic disbursement webhook events
+ *     tags: [Payments]
+ *     security: []
+ *     description: Generic webhook endpoint for disbursement events. Signature verification required via middleware.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: Webhook event payload
+ *     responses:
+ *       200:
+ *         description: Webhook processed successfully
+ *       401:
+ *         description: Invalid webhook signature
+ */
 router.post('/disbursements', verifyWebhookSignature, handleDisbursementWebhook);
 
-// Provider-specific routes
+/**
+ * @swagger
+ * /api/escrow-webhooks/payments/paymongo:
+ *   post:
+ *     summary: Handle PayMongo payment webhook events
+ *     tags: [Payments]
+ *     security: []
+ *     description: Webhook endpoint for PayMongo payment events. Signature verification required.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               data:
+ *                 type: object
+ *               type:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Webhook processed successfully
+ *       401:
+ *         description: Invalid webhook signature
+ */
 router.post('/payments/paymongo', verifyWebhookSignature, handlePaymongoPaymentEvent);
+
+/**
+ * @swagger
+ * /api/escrow-webhooks/payments/xendit:
+ *   post:
+ *     summary: Handle Xendit payment webhook events
+ *     tags: [Payments]
+ *     security: []
+ *     description: Webhook endpoint for Xendit payment events. Signature verification required.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Webhook processed successfully
+ *       401:
+ *         description: Invalid webhook signature
+ */
 router.post('/payments/xendit', verifyWebhookSignature, handleXenditPaymentEvent);
+
+/**
+ * @swagger
+ * /api/escrow-webhooks/payments/stripe:
+ *   post:
+ *     summary: Handle Stripe payment webhook events
+ *     tags: [Payments]
+ *     security: []
+ *     description: Webhook endpoint for Stripe payment events. Signature verification required.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Webhook processed successfully
+ *       401:
+ *         description: Invalid webhook signature
+ */
 router.post('/payments/stripe', verifyWebhookSignature, handleStripePaymentEvent);
+
+/**
+ * @swagger
+ * /api/escrow-webhooks/disbursements/xendit:
+ *   post:
+ *     summary: Handle Xendit disbursement webhook events
+ *     tags: [Payments]
+ *     security: []
+ *     description: Webhook endpoint for Xendit disbursement events. Signature verification required.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Webhook processed successfully
+ *       401:
+ *         description: Invalid webhook signature
+ */
 router.post('/disbursements/xendit', verifyWebhookSignature, handleXenditPayoutEvent);
+
+/**
+ * @swagger
+ * /api/escrow-webhooks/disbursements/stripe:
+ *   post:
+ *     summary: Handle Stripe disbursement webhook events
+ *     tags: [Payments]
+ *     security: []
+ *     description: Webhook endpoint for Stripe disbursement events. Signature verification required.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Webhook processed successfully
+ *       401:
+ *         description: Invalid webhook signature
+ */
 router.post('/disbursements/stripe', verifyWebhookSignature, handleStripePayoutEvent);
 
 module.exports = router;

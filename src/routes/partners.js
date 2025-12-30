@@ -123,16 +123,151 @@ const validateNote = [
     .withMessage('Note content must be between 1 and 1000 characters')
 ];
 
+/**
+ * @swagger
+ * /api/partners/onboarding/start:
+ *   post:
+ *     summary: Start partner onboarding
+ *     tags: [Partners]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - phoneNumber
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               phoneNumber:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Onboarding started
+ */
 // Public routes (no authentication required)
 router.post('/onboarding/start', validateOnboardingStart, startPartnerOnboarding);
 
-// Get partner by slug (for third-party app login)
+/**
+ * @swagger
+ * /api/partners/slug/{slug}:
+ *   get:
+ *     summary: Get partner by slug
+ *     tags: [Partners]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Partner details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.get('/slug/:slug', validateSlug, getPartnerBySlug);
 
+/**
+ * @swagger
+ * /api/partners/{id}/business-info:
+ *   put:
+ *     summary: Update business info during onboarding
+ *     tags: [Partners]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Business info updated
+ */
 // Onboarding routes (public, identified by partner ID)
 router.put('/:id/business-info', validatePartnerId, validateBusinessInfo, updateBusinessInfo);
+
+/**
+ * @swagger
+ * /api/partners/{id}/verification:
+ *   put:
+ *     summary: Complete verification during onboarding
+ *     tags: [Partners]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Verification completed
+ */
 router.put('/:id/verification', validatePartnerId, completeVerification);
+
+/**
+ * @swagger
+ * /api/partners/{id}/api-setup:
+ *   put:
+ *     summary: Complete API setup during onboarding
+ *     tags: [Partners]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               webhookUrl:
+ *                 type: string
+ *                 format: uri
+ *               callbackUrl:
+ *                 type: string
+ *                 format: uri
+ *     responses:
+ *       200:
+ *         description: API setup completed
+ */
 router.put('/:id/api-setup', validatePartnerId, validateApiSetup, completeApiSetup);
+
+/**
+ * @swagger
+ * /api/partners/{id}/activate:
+ *   put:
+ *     summary: Activate partner
+ *     tags: [Partners]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Partner activated
+ */
 router.put('/:id/activate', validatePartnerId, activatePartner);
 
 // Protected routes (authentication required)
@@ -141,13 +276,46 @@ router.use(auth);
 // Admin-only routes
 router.use(authorize('admin'));
 
-// Partner management
 router.post('/', validatePartnerCreation, createPartner);
 router.get('/', getPartners);
 router.get('/:id', validatePartnerId, getPartnerById);
 router.put('/:id', validatePartnerId, validatePartnerUpdate, updatePartner);
 router.delete('/:id', validatePartnerId, deletePartner);
 
+/**
+ * @swagger
+ * /api/partners/{id}/notes:
+ *   post:
+ *     summary: Add partner note (Admin only)
+ *     tags: [Partners]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - content
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 1000
+ *     responses:
+ *       201:
+ *         description: Note added
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 // Partner notes
 router.post('/:id/notes', validatePartnerId, validateNote, addPartnerNote);
 

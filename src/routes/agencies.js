@@ -74,8 +74,53 @@ const updateAgencyValidation = [
     .withMessage('Valid phone number is required')
 ];
 
+/**
+ * @swagger
+ * /api/agencies:
+ *   get:
+ *     summary: Get list of agencies
+ *     tags: [Agencies]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of agencies
+ */
 // Public routes
 router.get('/', getAgencies); // Get all agencies (public)
+
+/**
+ * @swagger
+ * /api/agencies/{id}:
+ *   get:
+ *     summary: Get agency by ID
+ *     tags: [Agencies]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Agency details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.get('/:id', getAgency); // Get single agency (public)
 
 // Protected routes
@@ -84,15 +129,208 @@ router.use(auth); // All routes below require authentication
 // Agency verification management
 router.patch('/:id/verification', updateAgencyVerification); // Update agency verification
 
+/**
+ * @swagger
+ * /api/agencies:
+ *   post:
+ *     summary: Create a new agency
+ *     tags: [Agencies]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - contactInfo
+ *               - businessInfo
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               contactInfo:
+ *                 type: object
+ *               businessInfo:
+ *                 type: object
+ *     responses:
+ *       201:
+ *         description: Agency created
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 // Agency management routes
 router.post('/', createAgencyValidation, createAgency); // Create agency
+
+/**
+ * @swagger
+ * /api/agencies/{id}:
+ *   put:
+ *     summary: Update agency
+ *     tags: [Agencies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Agency updated
+ *   delete:
+ *     summary: Delete agency
+ *     tags: [Agencies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Agency deleted
+ */
 router.put('/:id', updateAgencyValidation, updateAgency); // Update agency
 router.delete('/:id', deleteAgency); // Delete agency
+
+/**
+ * @swagger
+ * /api/agencies/{id}/logo:
+ *   post:
+ *     summary: Upload agency logo
+ *     tags: [Agencies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               logo:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Logo uploaded
+ */
 router.post('/:id/logo', uploaders.userProfiles.single('logo'), uploadAgencyLogo); // Upload logo
 
+/**
+ * @swagger
+ * /api/agencies/{id}/providers:
+ *   post:
+ *     summary: Add provider to agency
+ *     tags: [Agencies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - providerId
+ *             properties:
+ *               providerId:
+ *                 type: string
+ *                 format: ObjectId
+ *     responses:
+ *       201:
+ *         description: Provider added
+ */
 // Provider management routes
 router.post('/:id/providers', addProvider); // Add provider
+
+/**
+ * @swagger
+ * /api/agencies/{id}/providers/{providerId}:
+ *   delete:
+ *     summary: Remove provider from agency
+ *     tags: [Agencies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *       - in: path
+ *         name: providerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Provider removed
+ */
 router.delete('/:id/providers/:providerId', removeProvider); // Remove provider
+
+/**
+ * @swagger
+ * /api/agencies/{id}/providers/{providerId}/status:
+ *   put:
+ *     summary: Update provider status in agency
+ *     tags: [Agencies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *       - in: path
+ *         name: providerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [active, inactive, suspended]
+ *     responses:
+ *       200:
+ *         description: Provider status updated
+ */
 router.put('/:id/providers/:providerId/status', updateProviderStatus); // Update provider status
 
 // Admin management routes

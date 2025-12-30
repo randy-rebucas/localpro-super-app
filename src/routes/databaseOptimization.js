@@ -18,23 +18,61 @@ router.use(protect);
 router.use(authorize('admin'));
 
 /**
- * @route   GET /api/database/optimization/report
- * @desc    Get comprehensive database optimization report
- * @access  Private (Admin only)
+ * @swagger
+ * /api/database/optimization/report:
+ *   get:
+ *     summary: Get comprehensive database optimization report (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Optimization report
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.get('/report', getOptimizationReport);
 
 /**
- * @route   GET /api/database/optimization/recommendations
- * @desc    Get index recommendations for better performance
- * @access  Private (Admin only)
+ * @swagger
+ * /api/database/optimization/recommendations:
+ *   get:
+ *     summary: Get index recommendations for better performance (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Index recommendations
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.get('/recommendations', getIndexRecommendations);
 
 /**
- * @route   POST /api/database/optimization/create-indexes
- * @desc    Create recommended database indexes
- * @access  Private (Admin only)
+ * @swagger
+ * /api/database/optimization/create-indexes:
+ *   post:
+ *     summary: Create recommended database indexes (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               indexes:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *     responses:
+ *       200:
+ *         description: Indexes created
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.post('/create-indexes', createRecommendedIndexes);
 

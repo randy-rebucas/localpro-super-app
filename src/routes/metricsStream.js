@@ -51,6 +51,25 @@ if (process.env.NODE_ENV !== 'test') {
   }
 }
 
+/**
+ * @swagger
+ * /api/metrics-stream/stream:
+ *   get:
+ *     summary: Stream real-time application metrics via Server-Sent Events (SSE)
+ *     tags: [Monitoring]
+ *     security: []
+ *     description: Establishes a Server-Sent Events connection to stream real-time application metrics, database statistics, and connection stats. Clients should listen for 'message' events.
+ *     responses:
+ *       200:
+ *         description: A continuous stream of metrics data.
+ *         content:
+ *           text/event-stream:
+ *             schema:
+ *               type: string
+ *               example: "data: { \"timestamp\": \"2024-01-01T12:00:00Z\", \"metrics\": [...], \"database\": {...} }\n\n"
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
 // Metrics streaming endpoint
 router.get('/stream', (req, res) => {
   // Set headers for Server-Sent Events

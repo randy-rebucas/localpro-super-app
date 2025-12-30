@@ -36,18 +36,176 @@ const { uploaders } = require('../config/cloudinary');
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/academy/courses:
+ *   get:
+ *     summary: Get list of courses
+ *     tags: [Academy]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of courses
+ */
 // Public routes
 router.get('/courses', getCourses);
+
+/**
+ * @swagger
+ * /api/academy/courses/{id}:
+ *   get:
+ *     summary: Get course by ID
+ *     tags: [Academy]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Course details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.get('/courses/:id', getCourse);
+
+/**
+ * @swagger
+ * /api/academy/categories:
+ *   get:
+ *     summary: Get course categories
+ *     tags: [Academy]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: List of categories
+ */
 router.get('/categories', listCategories); // replaced with model-backed categories
+
+/**
+ * @swagger
+ * /api/academy/featured:
+ *   get:
+ *     summary: Get featured courses
+ *     tags: [Academy]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Featured courses
+ */
 router.get('/featured', getFeaturedCourses);
+
+/**
+ * @swagger
+ * /api/academy/certifications:
+ *   get:
+ *     summary: Get certifications
+ *     tags: [Academy]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: List of certifications
+ */
 router.get('/certifications', listCertifications);
 
 // Protected routes
 router.use(auth);
 
+/**
+ * @swagger
+ * /api/academy/courses:
+ *   post:
+ *     summary: Create a new course
+ *     tags: [Academy]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Course created
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 // Course management routes
 router.post('/courses', authorize('instructor', 'admin'), createCourse);
+
+/**
+ * @swagger
+ * /api/academy/courses/{id}:
+ *   put:
+ *     summary: Update course
+ *     tags: [Academy]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Course updated
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *   delete:
+ *     summary: Delete course
+ *     tags: [Academy]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Course deleted
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 router.put('/courses/:id', authorize('instructor', 'admin'), updateCourse);
 router.delete('/courses/:id', authorize('instructor', 'admin'), deleteCourse);
 
@@ -57,8 +215,60 @@ router.post('/courses/:id/thumbnail', authorize('instructor', 'admin'), uploader
 router.post('/courses/:id/videos', authorize('instructor', 'admin'), uploaders.academyVideos.single('video'), uploadCourseVideo);
 router.delete('/courses/:id/videos/:videoId', authorize('instructor', 'admin'), deleteCourseVideo);
 
+/**
+ * @swagger
+ * /api/academy/courses/{id}/enroll:
+ *   post:
+ *     summary: Enroll in a course
+ *     tags: [Academy]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       201:
+ *         description: Enrollment successful
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 // Enrollment routes
 router.post('/courses/:id/enroll', enrollInCourse);
+
+/**
+ * @swagger
+ * /api/academy/courses/{id}/progress:
+ *   put:
+ *     summary: Update course progress
+ *     tags: [Academy]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               progress:
+ *                 type: number
+ *                 minimum: 0
+ *                 maximum: 100
+ *     responses:
+ *       200:
+ *         description: Progress updated
+ */
 router.put('/courses/:id/progress', updateCourseProgress);
 
 // Review routes

@@ -32,6 +32,20 @@ const handleValidationErrors = (req, res, next) => {
  * @desc Get current logger configuration
  * @access Admin
  */
+/**
+ * @swagger
+ * /api/logs/config:
+ *   get:
+ *     summary: Get logger configuration (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logger configuration
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 router.get('/config', auth, async (req, res) => {
   try {
     if (!isAdmin(req)) {
@@ -65,6 +79,32 @@ router.get('/config', auth, async (req, res) => {
  * @route PUT /api/logs/config/level
  * @desc Set global log level
  * @access Admin
+ */
+/**
+ * @swagger
+ * /api/logs/config/level:
+ *   put:
+ *     summary: Set global log level (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - level
+ *             properties:
+ *               level:
+ *                 type: string
+ *                 enum: [error, warn, info, http, debug]
+ *     responses:
+ *       200:
+ *         description: Log level updated
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.put('/config/level',
   auth,
@@ -111,6 +151,35 @@ router.put('/config/level',
  * @route PUT /api/logs/config/override
  * @desc Set log level override for specific module/context
  * @access Admin
+ */
+/**
+ * @swagger
+ * /api/logs/config/override:
+ *   put:
+ *     summary: Set log level override for specific module/context (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - context
+ *               - level
+ *             properties:
+ *               context:
+ *                 type: string
+ *               level:
+ *                 type: string
+ *                 enum: [error, warn, info, http, debug]
+ *     responses:
+ *       200:
+ *         description: Log level override set
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.put('/config/override',
   auth,
@@ -231,6 +300,20 @@ router.get('/metrics', auth, async (req, res) => {
  * @desc Reset log metrics
  * @access Admin
  */
+/**
+ * @swagger
+ * /api/logs/metrics/reset:
+ *   post:
+ *     summary: Reset log metrics (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Metrics reset
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 router.post('/metrics/reset', auth, async (req, res) => {
   try {
     if (!isAdmin(req)) {
@@ -337,6 +420,26 @@ router.get('/errors/summary',
  * @desc Get comprehensive log statistics
  * @access Admin
  */
+/**
+ * @swagger
+ * /api/logs/statistics:
+ *   get:
+ *     summary: Get log statistics (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: timeframe
+ *         schema:
+ *           type: string
+ *           enum: [1h, 24h, 7d, 30d]
+ *     responses:
+ *       200:
+ *         description: Log statistics
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 router.get('/statistics',
   auth,
   query('timeframe').optional().isIn(['1h', '24h', '7d', '30d']).withMessage('Invalid timeframe'),
@@ -371,6 +474,31 @@ router.get('/statistics',
  * @route GET /api/logs/slow-operations
  * @desc Get slow operations
  * @access Admin
+ */
+/**
+ * @swagger
+ * /api/logs/slow-operations:
+ *   get:
+ *     summary: Get slow operations logs (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *       - in: query
+ *         name: threshold
+ *         schema:
+ *           type: integer
+ *           default: 1000
+ *     responses:
+ *       200:
+ *         description: Slow operations
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.get('/slow-operations',
   auth,
@@ -503,6 +631,34 @@ router.get('/stats', auth, async (req, res) => {
 });
 
 // Get logs with filtering and pagination - [ADMIN ONLY]
+/**
+ * @swagger
+ * /api/logs:
+ *   get:
+ *     summary: Get logs with pagination (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: level
+ *         schema:
+ *           type: string
+ *           enum: [error, warn, info, http, debug]
+ *     responses:
+ *       200:
+ *         description: List of logs
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 router.get('/', auth, async (req, res) => {
   try {
     // Only allow admin users to view logs

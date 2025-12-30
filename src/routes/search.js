@@ -47,6 +47,47 @@ const logger = require('../config/logger');
  *   }
  * }
  */
+/**
+ * @swagger
+ * /api/search:
+ *   get:
+ *     summary: Global search across all entities
+ *     tags: [Search]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Search query (min 2 characters)
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [users, jobs, services, supplies, courses, rentals, agencies]
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: location
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Search results
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ */
 router.get('/', searchLimiter, globalSearch);
 
 /**
@@ -74,6 +115,29 @@ router.get('/', searchLimiter, globalSearch);
  *   }
  * }
  */
+/**
+ * @swagger
+ * /api/search/suggestions:
+ *   get:
+ *     summary: Get search suggestions/autocomplete
+ *     tags: [Search]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Search query (min 2 characters)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Search suggestions
+ */
 router.get('/suggestions', searchLimiter, getSearchSuggestions);
 
 /**
@@ -98,6 +162,23 @@ router.get('/suggestions', searchLimiter, getSearchSuggestions);
  *     ]
  *   }
  * }
+ */
+/**
+ * @swagger
+ * /api/search/popular:
+ *   get:
+ *     summary: Get popular search terms
+ *     tags: [Search]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 12
+ *     responses:
+ *       200:
+ *         description: Popular searches
  */
 router.get('/popular', getPopularSearches);
 
@@ -153,6 +234,17 @@ router.get('/entities/:type', globalSearch);
      }
    }
  * }
+ */
+/**
+ * @swagger
+ * /api/search/categories:
+ *   get:
+ *     summary: Get all available search categories
+ *     tags: [Search]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Search categories
  */
 router.get('/categories', (req, res) => {
   try {

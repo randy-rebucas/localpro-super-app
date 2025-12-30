@@ -193,6 +193,17 @@ const checkAlerts = async () => {
   }
 };
 
+/**
+ * @swagger
+ * /api/alerts/alerts:
+ *   get:
+ *     summary: Get current alerts
+ *     tags: [Monitoring]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Current alerts
+ */
 // Get current alerts
 router.get('/alerts', async (req, res) => {
   try {
@@ -208,6 +219,28 @@ router.get('/alerts', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/alerts/alerts/history:
+ *   get:
+ *     summary: Get alert history
+ *     tags: [Monitoring]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 100
+ *       - in: query
+ *         name: severity
+ *         schema:
+ *           type: string
+ *           enum: [info, warning, error, critical]
+ *     responses:
+ *       200:
+ *         description: Alert history
+ */
 // Get alert history
 router.get('/alerts/history', (req, res) => {
   try {
@@ -231,6 +264,33 @@ router.get('/alerts/history', (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/alerts/alerts/thresholds:
+ *   post:
+ *     summary: Update alert thresholds
+ *     tags: [Monitoring]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               thresholds:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Thresholds updated
+ *   get:
+ *     summary: Get current alert thresholds
+ *     tags: [Monitoring]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Current thresholds
+ */
 // Update alert thresholds
 router.post('/alerts/thresholds', (req, res) => {
   try {
@@ -263,7 +323,6 @@ router.post('/alerts/thresholds', (req, res) => {
   }
 });
 
-// Get current alert thresholds
 router.get('/alerts/thresholds', (req, res) => {
   res.json({
     timestamp: new Date().toISOString(),

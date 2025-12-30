@@ -46,24 +46,56 @@ const dateRangeValidation = [
 router.use(auth);
 
 /**
- * @route   GET /api/analytics/metadata
- * @desc    Get analytics metadata (available metrics, timeframes, etc.)
- * @access  Private
+ * @swagger
+ * /api/analytics/metadata:
+ *   get:
+ *     summary: Get analytics metadata (available metrics, timeframes, etc.)
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Analytics metadata
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/metadata', getAnalyticsMetadata);
 
 /**
- * @route   GET /api/analytics/dashboard
- * @desc    Get comprehensive dashboard analytics summary
- * @access  Private (Admin)
- * @query   timeframe (1h, 24h, 7d, 30d, 90d, 1y)
+ * @swagger
+ * /api/analytics/dashboard:
+ *   get:
+ *     summary: Get comprehensive dashboard analytics summary
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: timeframe
+ *         schema:
+ *           type: string
+ *           enum: [1h, 24h, 7d, 30d, 90d, 1y]
+ *     responses:
+ *       200:
+ *         description: Dashboard analytics
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.get('/dashboard', authorize(['admin']), timeframeValidation, getDashboardAnalytics);
 
 /**
- * @route   GET /api/analytics/realtime
- * @desc    Get real-time metrics (last hour activity)
- * @access  Private (Admin)
+ * @swagger
+ * /api/analytics/realtime:
+ *   get:
+ *     summary: Get real-time metrics (last hour activity)
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Real-time metrics
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 router.get('/realtime', authorize(['admin']), getRealTimeMetrics);
 
@@ -124,10 +156,22 @@ router.get('/export', authorize(['admin']), [
 router.get('/overview', authorize(['admin']), dateRangeValidation, getAnalyticsOverview);
 
 /**
- * @route   GET /api/analytics/user
- * @desc    Get current user's analytics
- * @access  Private
- * @query   timeframe (1h, 24h, 7d, 30d, 90d, 1y), startDate, endDate
+ * @swagger
+ * /api/analytics/user:
+ *   get:
+ *     summary: Get current user's analytics
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: timeframe
+ *         schema:
+ *           type: string
+ *           enum: [1h, 24h, 7d, 30d, 90d, 1y]
+ *     responses:
+ *       200:
+ *         description: User analytics
  */
 router.get('/user', timeframeValidation, getCurrentUserAnalytics);
 

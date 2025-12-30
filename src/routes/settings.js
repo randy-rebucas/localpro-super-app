@@ -188,25 +188,209 @@ const validateCategory = [
   ])
 ];
 
+/**
+ * @swagger
+ * /api/settings/app/public:
+ *   get:
+ *     summary: Get public app settings
+ *     tags: [Settings]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Public app settings
+ */
+// Public App Settings Routes (No auth required) - Must be defined first
+router.get('/app/public', getPublicAppSettings);
+
+/**
+ * @swagger
+ * /api/settings/app/health:
+ *   get:
+ *     summary: Get app health status
+ *     tags: [Settings]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: App health status
+ */
+router.get('/app/health', getAppHealth);
+
+/**
+ * @swagger
+ * /api/settings/user:
+ *   get:
+ *     summary: Get user settings
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User settings
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *   put:
+ *     summary: Update user settings
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Settings updated
+ */
 // User Settings Routes
 router.get('/user', auth, getUserSettings);
 router.put('/user', auth, validateUserSettings, updateUserSettings);
+
+/**
+ * @swagger
+ * /api/settings/user/{category}:
+ *   put:
+ *     summary: Update user settings category
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: category
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [privacy, notifications, communication, service, payment, security, app, analytics]
+ *     responses:
+ *       200:
+ *         description: Category settings updated
+ */
 router.put('/user/:category', auth, validateCategory, validateUserSettings, updateUserSettingsCategory);
 router.post('/user/reset', auth, resetUserSettings);
 router.delete('/user', auth, deleteUserSettings);
 
+/**
+ * @swagger
+ * /api/settings:
+ *   get:
+ *     summary: Get user settings (alias for /user)
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User settings
+ *   put:
+ *     summary: Update user settings (alias for /user)
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Settings updated
+ */
+// Documented API aliases - GET /api/settings and PUT /api/settings
+// These are aliases for /api/settings/user to match documented API
+// Note: These require authentication and come after public routes
+router.get('/', auth, getUserSettings);
+router.put('/', auth, validateUserSettings, updateUserSettings);
+
+/**
+ * @swagger
+ * /api/settings/app:
+ *   get:
+ *     summary: Get app settings (Admin only)
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: App settings
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *   put:
+ *     summary: Update app settings (Admin only)
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: App settings updated
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 // App Settings Routes (Admin only) - [ADMIN ONLY]
 router.get('/app', auth, getAppSettings);
 router.put('/app', auth, validateAppSettings, updateAppSettings);
+
+/**
+ * @swagger
+ * /api/settings/app/{category}:
+ *   put:
+ *     summary: Update app settings category (Admin only)
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: category
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Category settings updated
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 router.put('/app/:category', auth, validateCategory, validateAppSettings, updateAppSettingsCategory);
+
+/**
+ * @swagger
+ * /api/settings/app/features/toggle:
+ *   post:
+ *     summary: Toggle feature flag (Admin only)
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - feature
+ *               - enabled
+ *             properties:
+ *               feature:
+ *                 type: string
+ *               enabled:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Feature flag toggled
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
 router.post('/app/features/toggle', auth, [
   body('feature').isString(),
   body('enabled').isBoolean()
 ], toggleFeatureFlag);
-
-// Public App Settings Routes (No auth required)
-router.get('/', getPublicAppSettings); // Basic settings info
-router.get('/app/public', getPublicAppSettings);
-router.get('/app/health', getAppHealth);
 
 module.exports = router;
