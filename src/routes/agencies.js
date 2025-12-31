@@ -9,6 +9,7 @@ const {
   getAgencies,
   getAgency,
   updateAgency,
+  patchAgency,
   deleteAgency,
   uploadAgencyLogo,
   addProvider,
@@ -200,6 +201,51 @@ router.post('/', createAgencyValidation, createAgency); // Create agency
  *         description: Agency deleted
  */
 router.put('/:id', updateAgencyValidation, updateAgency); // Update agency
+/**
+ * @swagger
+ * /api/agencies/{id}:
+ *   patch:
+ *     summary: Partially update agency
+ *     tags: [Agencies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               contact:
+ *                 type: object
+ *               business:
+ *                 type: object
+ *               serviceAreas:
+ *                 type: array
+ *               services:
+ *                 type: array
+ *               settings:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Agency partially updated
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.patch('/:id', updateAgencyValidation, patchAgency); // Patch agency (partial update)
 router.delete('/:id', deleteAgency); // Delete agency
 
 /**

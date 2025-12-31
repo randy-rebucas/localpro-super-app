@@ -421,6 +421,118 @@ const updateSupply = async (req, res) => {
   }
 };
 
+// @desc    Patch supply item (partial update)
+// @route   PATCH /api/supplies/:id
+// @access  Private (Supplier/Admin)
+const patchSupply = async (req, res) => {
+  try {
+    const supply = await Supplies.findById(req.params.id);
+
+    if (!supply) {
+      return res.status(404).json({
+        success: false,
+        message: 'Supply item not found'
+      });
+    }
+
+    // Check if user is the supplier or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isSupplier = supply.supplier.toString() === req.user.id;
+
+    if (!isSupplier && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this supply item'
+      });
+    }
+
+    const updateData = { ...req.body };
+    const updatedFields = [];
+
+    // Helper function to deep merge objects
+    const deepMerge = (target, source) => {
+      for (const key in source) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && !(source[key] instanceof Date) && source[key].constructor === Object) {
+          if (!target[key]) target[key] = {};
+          deepMerge(target[key], source[key]);
+        } else {
+          target[key] = source[key];
+        }
+      }
+      return target;
+    };
+
+    // Fields that should not be directly updated
+    const restrictedFields = ['_id', 'supplier', 'createdAt', 'updatedAt', 'orders', 'reviews', 'averageRating'];
+    const allowedTopLevelFields = ['name', 'title', 'description', 'category', 'subcategory', 'brand', 'sku', 'pricing', 'inventory', 'specifications', 'location', 'images', 'tags', 'isActive', 'isFeatured', 'views', 'isSubscriptionEligible'];
+
+    // Update top-level fields
+    for (const field of allowedTopLevelFields) {
+      if (updateData[field] !== undefined) {
+        if (field === 'pricing' || field === 'inventory' || field === 'specifications' || field === 'location') {
+          // Deep merge for nested objects
+          if (!supply[field]) supply[field] = {};
+          deepMerge(supply[field], updateData[field]);
+        } else if (field === 'images' || field === 'tags') {
+          // Replace arrays
+          supply[field] = updateData[field];
+        } else {
+          supply[field] = updateData[field];
+        }
+        updatedFields.push(field);
+        delete updateData[field];
+      }
+    }
+
+    // Remove restricted fields
+    restrictedFields.forEach(field => delete updateData[field]);
+
+    // Geocode location if changed
+    if (updatedFields.includes('location') && req.body.location?.street) {
+      try {
+        const address = `${req.body.location.street}, ${req.body.location.city}, ${req.body.location.state}`;
+        const geocodeResult = await GoogleMapsService.geocodeAddress(address);
+        
+        if (geocodeResult.success && geocodeResult.data.length > 0) {
+          const location = geocodeResult.data[0];
+          supply.location.coordinates = {
+            lat: location.geometry.location.lat,
+            lng: location.geometry.location.lng
+          };
+        }
+      } catch (geocodeError) {
+        console.error('Geocoding error:', geocodeError);
+        // Continue without geocoding if it fails
+      }
+    }
+
+    // Save supply if there are updates
+    if (updatedFields.length > 0) {
+      await supply.save();
+    }
+
+    // Populate related documents for response
+    await supply.populate('supplier', 'firstName lastName profile.avatar');
+
+    res.status(200).json({
+      success: true,
+      message: 'Supply item updated successfully',
+      data: {
+        supply,
+        updatedFields
+      }
+    });
+  } catch (error) {
+    console.error('Patch supply error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update supply item',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 // @desc    Delete supply item
 // @route   DELETE /api/supplies/:id
 // @access  Private (Supplier/Admin)
@@ -1229,6 +1341,7 @@ module.exports = {
   getSupply,
   createSupply,
   updateSupply,
+  patchSupply,
   deleteSupply,
   uploadSupplyImages,
   deleteSupplyImage,

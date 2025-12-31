@@ -5,6 +5,7 @@ const {
   getCourse,
   createCourse,
   updateCourse,
+  patchCourse,
   deleteCourse,
   uploadCourseThumbnail,
   uploadCourseVideo,
@@ -207,6 +208,48 @@ router.post('/courses', authorize('instructor', 'admin'), createCourse);
  *         $ref: '#/components/responses/ForbiddenError'
  */
 router.put('/courses/:id', authorize('instructor', 'admin'), updateCourse);
+/**
+ * @swagger
+ * /api/academy/courses/{id}:
+ *   patch:
+ *     summary: Partially update course
+ *     tags: [Academy]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               level:
+ *                 type: string
+ *                 enum: [beginner, intermediate, advanced, expert]
+ *               pricing:
+ *                 type: object
+ *               enrollment:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Course partially updated
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.patch('/courses/:id', authorize('instructor', 'admin'), patchCourse);
 router.delete('/courses/:id', authorize('instructor', 'admin'), deleteCourse);
 
 // Course content routes

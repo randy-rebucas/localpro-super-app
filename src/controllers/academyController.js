@@ -484,6 +484,117 @@ const updateCourse = async (req, res) => {
   }
 };
 
+// @desc    Patch course (partial update)
+// @route   PATCH /api/academy/courses/:id
+// @access  Private (Instructor/Admin)
+const patchCourse = async (req, res) => {
+  try {
+    const course = await Academy.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Check if user is the instructor or admin
+    const userRoles = req.user.roles || [];
+    const isAdmin = userRoles.includes('admin');
+    const isInstructor = course.instructor.toString() === req.user.id;
+
+    if (!isInstructor && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this course'
+      });
+    }
+
+    const updateData = { ...req.body };
+    const updatedFields = [];
+
+    // Helper function to deep merge objects
+    const deepMerge = (target, source) => {
+      for (const key in source) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && !(source[key] instanceof Date) && source[key].constructor === Object) {
+          if (!target[key]) target[key] = {};
+          deepMerge(target[key], source[key]);
+        } else {
+          target[key] = source[key];
+        }
+      }
+      return target;
+    };
+
+    // Fields that should not be directly updated
+    const restrictedFields = ['_id', 'instructor', 'createdAt', 'updatedAt'];
+    const allowedTopLevelFields = ['title', 'description', 'category', 'level', 'duration', 'pricing', 'curriculum', 'prerequisites', 'learningOutcomes', 'certification', 'enrollment', 'schedule', 'rating', 'favoritedBy', 'favoritesCount', 'isActive', 'thumbnail', 'tags'];
+
+    // Handle category if provided
+    if (updateData.category) {
+      const categoryId = await resolveCategoryId(updateData.category);
+      if (!categoryId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid category', 
+          detail: 'Category not found' 
+        });
+      }
+      updateData.category = categoryId;
+    }
+
+    // Update top-level fields
+    for (const field of allowedTopLevelFields) {
+      if (updateData[field] !== undefined) {
+        if (field === 'pricing' || field === 'duration' || field === 'certification' || field === 'enrollment' || field === 'schedule' || field === 'rating' || field === 'thumbnail') {
+          // Deep merge for nested objects
+          if (!course[field]) course[field] = {};
+          deepMerge(course[field], updateData[field]);
+        } else if (field === 'curriculum' || field === 'prerequisites' || field === 'learningOutcomes' || field === 'favoritedBy' || field === 'tags') {
+          // Replace arrays
+          course[field] = updateData[field];
+        } else {
+          course[field] = updateData[field];
+        }
+        updatedFields.push(field);
+        delete updateData[field];
+      }
+    }
+
+    // Remove restricted fields
+    restrictedFields.forEach(field => delete updateData[field]);
+
+    // Save course if there are updates
+    if (updatedFields.length > 0) {
+      await course.save();
+    }
+
+    // Populate related documents for response
+    await course.populate([
+      'category',
+      'instructor',
+      'partner',
+      'favoritedBy'
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: 'Course updated successfully',
+      data: {
+        course,
+        updatedFields
+      }
+    });
+  } catch (error) {
+    console.error('Patch course error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update course',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 // @desc    Delete course
 // @route   DELETE /api/academy/courses/:id
 // @access  Private (Instructor/Admin)
@@ -1479,6 +1590,7 @@ module.exports = {
   getCourse,
   createCourse,
   updateCourse,
+  patchCourse,
   deleteCourse,
   uploadCourseThumbnail,
   uploadCourseVideo,

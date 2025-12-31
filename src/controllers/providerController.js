@@ -956,7 +956,6 @@ const patchProviderProfile = async (req, res) => {
       const businessInfoData = updateData.businessInfo;
       if (provider.providerType === 'business' || provider.providerType === 'agency') {
         const businessInfo = await provider.ensureBusinessInfo();
-        const ProviderBusinessInfo = require('../models/ProviderBusinessInfo');
         
         // Deep merge business info
         const currentBusinessInfo = businessInfo.toObject();
@@ -1020,7 +1019,6 @@ const patchProviderProfile = async (req, res) => {
     if (updateData.preferences) {
       const preferencesData = updateData.preferences;
       const preferences = await provider.ensurePreferences();
-      const ProviderPreferences = require('../models/ProviderPreferences');
       
       // Deep merge preferences
       const currentPreferences = preferences.toObject();
@@ -1043,7 +1041,6 @@ const patchProviderProfile = async (req, res) => {
     if (updateData.financialInfo) {
       const financialInfoData = updateData.financialInfo;
       const financialInfo = await provider.ensureFinancialInfo();
-      const ProviderFinancialInfo = require('../models/ProviderFinancialInfo');
       
       // Deep merge financial info
       const currentFinancialInfo = financialInfo.toObject();

@@ -5,6 +5,7 @@ const {
   getSupply,
   createSupply,
   updateSupply,
+  patchSupply,
   deleteSupply,
   uploadSupplyImages,
   deleteSupplyImage,
@@ -213,6 +214,49 @@ router.post('/products', authorize('supplier', 'admin'), createSupply); // Alias
  *         $ref: '#/components/responses/ForbiddenError'
  */
 router.put('/:id', authorize('supplier', 'admin'), updateSupply);
+/**
+ * @swagger
+ * /api/supplies/{id}:
+ *   patch:
+ *     summary: Partially update supply/product
+ *     tags: [Supplies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               pricing:
+ *                 type: object
+ *               inventory:
+ *                 type: object
+ *               isActive:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Supply partially updated
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.patch('/:id', authorize('supplier', 'admin'), patchSupply);
 router.delete('/:id', authorize('supplier', 'admin'), deleteSupply);
 
 // Image management routes
