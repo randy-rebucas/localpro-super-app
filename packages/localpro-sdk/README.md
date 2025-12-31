@@ -23,6 +23,19 @@ const client = new LocalPro({
 // Use the APIs
 async function example() {
   try {
+    // Auth: Register and login
+    await client.auth.register({
+      email: 'user@example.com',
+      password: 'SecurePass123',
+      firstName: 'John',
+      lastName: 'Doe'
+    });
+    
+    const login = await client.auth.login({
+      email: 'user@example.com',
+      password: 'SecurePass123'
+    });
+    
     // Marketplace: Get services
     const services = await client.marketplace.getServices({
       category: 'plumbing',
@@ -30,13 +43,33 @@ async function example() {
       limit: 10
     });
     
-    // Providers: Get provider details
-    const provider = await client.providers.getById('provider-id');
+    // Maps: Geocode address
+    const location = await client.maps.geocode({
+      address: '123 Main St, New York, NY'
+    });
     
-    // Jobs: Search for jobs
-    const jobs = await client.jobs.search({
+    // Finance: Get financial overview
+    const overview = await client.finance.getOverview();
+    
+    // Search: Global search
+    const searchResults = await client.search.search({
       q: 'plumber',
+      type: 'services',
       location: 'New York'
+    });
+    
+    // Supplies: Get supplies
+    const supplies = await client.supplies.list({
+      category: 'tools',
+      page: 1,
+      limit: 10
+    });
+    
+    // Rentals: Get rentals
+    const rentals = await client.rentals.list({
+      category: 'equipment',
+      page: 1,
+      limit: 10
     });
     
     // Escrow: Create escrow
@@ -432,6 +465,911 @@ const applications = await client.jobs.getApplications('job-id', {
 await client.jobs.updateApplicationStatus('job-id', 'application-id', {
   status: 'shortlisted',
   notes: 'Great candidate!'
+});
+```
+
+## Auth API
+
+The SDK provides comprehensive authentication and user management functionality:
+
+### Registration & Login
+
+```javascript
+// Register a new user
+const registration = await client.auth.register({
+  email: 'user@example.com',
+  password: 'SecurePass123',
+  firstName: 'John',
+  lastName: 'Doe'
+});
+
+// Login
+const login = await client.auth.login({
+  email: 'user@example.com',
+  password: 'SecurePass123'
+});
+
+// Logout
+await client.auth.logout();
+
+// Refresh token
+const newToken = await client.auth.refreshToken(refreshToken);
+```
+
+### Verification
+
+```javascript
+// Send SMS verification code
+await client.auth.sendVerificationCode({
+  phone: '+1234567890'
+});
+
+// Verify SMS code
+await client.auth.verifyCode({
+  phone: '+1234567890',
+  code: '123456'
+});
+
+// Verify email with OTP
+await client.auth.verifyEmailOTP({
+  email: 'user@example.com',
+  otp: '123456'
+});
+
+// Check if email exists
+const exists = await client.auth.checkEmail('user@example.com');
+```
+
+### Profile Management
+
+```javascript
+// Get current user profile
+const profile = await client.auth.getMe();
+
+// Update profile
+await client.auth.updateProfile({
+  firstName: 'Jane',
+  lastName: 'Smith',
+  phoneNumber: '+1234567890'
+});
+
+// Complete onboarding
+await client.auth.completeOnboarding({
+  /* onboarding data */
+});
+
+// Get profile completion status
+const status = await client.auth.getProfileCompletionStatus();
+
+// Get profile completeness percentage
+const completeness = await client.auth.getProfileCompleteness();
+```
+
+### File Uploads
+
+```javascript
+// Upload avatar
+await client.auth.uploadAvatar(formData);
+
+// Upload portfolio images
+await client.auth.uploadPortfolio(formData);
+```
+
+## Finance API
+
+The SDK provides comprehensive financial management functionality:
+
+### Financial Overview
+
+```javascript
+// Get financial overview
+const overview = await client.finance.getOverview();
+
+// Get transactions
+const transactions = await client.finance.getTransactions({
+  type: 'income',
+  startDate: '2024-01-01',
+  endDate: '2024-12-31',
+  page: 1,
+  limit: 20
+});
+
+// Get earnings
+const earnings = await client.finance.getEarnings({
+  startDate: '2024-01-01',
+  endDate: '2024-12-31'
+});
+
+// Get expenses
+const expenses = await client.finance.getExpenses({
+  startDate: '2024-01-01',
+  endDate: '2024-12-31'
+});
+```
+
+### Expense Management
+
+```javascript
+// Add expense
+await client.finance.addExpense({
+  amount: 50.00,
+  category: 'supplies',
+  description: 'Tools purchase',
+  date: '2024-01-15'
+});
+```
+
+### Withdrawals
+
+```javascript
+// Request withdrawal
+const withdrawal = await client.finance.requestWithdrawal({
+  amount: 500.00,
+  method: 'bank_transfer',
+  accountDetails: {
+    accountNumber: '1234567890',
+    bankName: 'Bank Name'
+  }
+});
+
+// Process withdrawal (Admin only)
+await client.finance.processWithdrawal('withdrawal-id', {
+  status: 'approved',
+  notes: 'Processed successfully'
+});
+```
+
+### Top-ups
+
+```javascript
+// Request top-up
+const topUp = await client.finance.requestTopUp({
+  amount: 200.00,
+  method: 'paypal'
+}, formData); // Optional: receipt image
+
+// Get my top-up requests
+const requests = await client.finance.getMyTopUpRequests({
+  status: 'pending'
+});
+
+// Process top-up (Admin only)
+await client.finance.processTopUp('topup-id', {
+  status: 'approved',
+  notes: 'Verified'
+});
+```
+
+### Reports & Documents
+
+```javascript
+// Get tax documents
+const taxDocs = await client.finance.getTaxDocuments({
+  year: '2024'
+});
+
+// Get financial reports
+const reports = await client.finance.getReports({
+  startDate: '2024-01-01',
+  endDate: '2024-12-31',
+  reportType: 'annual'
+});
+
+// Update wallet settings
+await client.finance.updateWalletSettings({
+  preferences: {
+    autoWithdraw: false
+  },
+  notifications: {
+    lowBalance: true
+  }
+});
+```
+
+## Maps API
+
+The SDK provides comprehensive location and mapping functionality:
+
+### Geocoding
+
+```javascript
+// Geocode address to coordinates
+const geocode = await client.maps.geocode({
+  address: '123 Main St, New York, NY 10001'
+});
+
+// Reverse geocode coordinates to address
+const address = await client.maps.reverseGeocode({
+  lat: 40.7128,
+  lng: -74.0060
+});
+```
+
+### Places Search
+
+```javascript
+// Search for places
+const places = await client.maps.searchPlaces({
+  query: 'plumber',
+  location: { lat: 40.7128, lng: -74.0060 },
+  radius: 5000,
+  type: 'establishment'
+});
+
+// Get place details
+const place = await client.maps.getPlaceDetails('place-id');
+
+// Find nearby places
+const nearby = await client.maps.findNearby({
+  lat: 40.7128,
+  lng: -74.0060,
+  radius: 1000,
+  type: 'restaurant'
+});
+```
+
+### Distance & Coverage
+
+```javascript
+// Calculate distance between points
+const distance = await client.maps.calculateDistance({
+  origin: { lat: 40.7128, lng: -74.0060 },
+  destination: { lat: 40.7580, lng: -73.9855 },
+  mode: 'driving',
+  units: 'metric'
+});
+
+// Validate service area coverage
+const validation = await client.maps.validateServiceArea({
+  location: { lat: 40.7128, lng: -74.0060 },
+  serviceAreas: [/* array of polygons */]
+});
+
+// Analyze service coverage (Protected)
+const coverage = await client.maps.analyzeCoverage({
+  locations: [
+    { lat: 40.7128, lng: -74.0060 },
+    { lat: 40.7580, lng: -73.9855 }
+  ],
+  radius: 5000
+});
+```
+
+### Utility
+
+```javascript
+// Get maps API info
+const info = await client.maps.getInfo();
+
+// Test connection (Admin only)
+const test = await client.maps.testConnection();
+```
+
+## Supplies API
+
+The SDK provides comprehensive supplies and equipment marketplace functionality:
+
+### Supplies Management
+
+```javascript
+// Get all supplies
+const supplies = await client.supplies.list({
+  category: 'tools',
+  search: 'drill',
+  minPrice: 10,
+  maxPrice: 500,
+  page: 1,
+  limit: 20
+});
+
+// Get supply by ID
+const supply = await client.supplies.getById('supply-id');
+
+// Get categories
+const categories = await client.supplies.getCategories();
+
+// Get featured supplies
+const featured = await client.supplies.getFeatured({ limit: 10 });
+
+// Get nearby supplies
+const nearby = await client.supplies.getNearby({
+  lat: 40.7128,
+  lng: -74.0060,
+  radius: 10
+});
+```
+
+### Supply Operations (Supplier only)
+
+```javascript
+// Create supply
+const newSupply = await client.supplies.create({
+  name: 'Power Drill',
+  price: 150,
+  description: 'Professional power drill',
+  category: 'tools'
+});
+
+// Update supply
+await client.supplies.update('supply-id', {
+  price: 175
+});
+
+// Partial update
+await client.supplies.patch('supply-id', {
+  isActive: false
+});
+
+// Upload images
+await client.supplies.uploadImages('supply-id', formData);
+
+// Delete image
+await client.supplies.deleteImage('supply-id', 'image-id');
+
+// Generate description using AI
+const description = await client.supplies.generateDescription({
+  name: 'Power Drill',
+  category: 'tools'
+});
+```
+
+### Orders & Reviews
+
+```javascript
+// Order supply
+const order = await client.supplies.order('supply-id', {
+  quantity: 2,
+  shippingAddress: { /* address */ }
+});
+
+// Update order status
+await client.supplies.updateOrderStatus('supply-id', 'order-id', {
+  status: 'shipped'
+});
+
+// Add review
+await client.supplies.addReview('supply-id', {
+  rating: 5,
+  comment: 'Great product!'
+});
+
+// Get my supplies
+const mySupplies = await client.supplies.getMySupplies();
+
+// Get my orders
+const myOrders = await client.supplies.getMyOrders();
+```
+
+## Rentals API
+
+The SDK provides comprehensive equipment rental functionality:
+
+### Rentals Management
+
+```javascript
+// Get all rentals
+const rentals = await client.rentals.list({
+  category: 'tools',
+  search: 'generator',
+  page: 1,
+  limit: 20
+});
+
+// Get rental by ID
+const rental = await client.rentals.getById('rental-id');
+
+// Get categories
+const categories = await client.rentals.getCategories();
+
+// Get featured rentals
+const featured = await client.rentals.getFeatured({ limit: 10 });
+
+// Get nearby rentals
+const nearby = await client.rentals.getNearby({
+  lat: 40.7128,
+  lng: -74.0060,
+  radius: 10
+});
+```
+
+### Rental Operations (Provider only)
+
+```javascript
+// Create rental
+const newRental = await client.rentals.create({
+  name: 'Power Generator',
+  price: 50, // per day
+  description: '5000W portable generator',
+  category: 'equipment'
+});
+
+// Update rental
+await client.rentals.update('rental-id', {
+  price: 60
+});
+
+// Upload images
+await client.rentals.uploadImages('rental-id', formData);
+
+// Delete image
+await client.rentals.deleteImage('rental-id', 'image-id');
+
+// Generate description using AI
+const description = await client.rentals.generateDescription({
+  name: 'Power Generator',
+  category: 'equipment'
+});
+```
+
+### Bookings & Reviews
+
+```javascript
+// Book rental
+const booking = await client.rentals.book('rental-id', {
+  startDate: '2024-01-15T10:00:00Z',
+  endDate: '2024-01-20T18:00:00Z',
+  deliveryAddress: { /* address */ }
+});
+
+// Update booking status
+await client.rentals.updateBookingStatus('rental-id', 'booking-id', {
+  status: 'confirmed'
+});
+
+// Add review
+await client.rentals.addReview('rental-id', {
+  rating: 5,
+  comment: 'Excellent equipment!'
+});
+
+// Get my rentals
+const myRentals = await client.rentals.getMyRentals();
+
+// Get my bookings
+const myBookings = await client.rentals.getMyBookings();
+```
+
+## Search API
+
+The SDK provides comprehensive global search functionality:
+
+### Basic Search
+
+```javascript
+// Global search across all entities
+const results = await client.search.search({
+  q: 'plumber',
+  type: 'services',
+  location: 'New York',
+  minPrice: 50,
+  maxPrice: 500,
+  rating: 4,
+  page: 1,
+  limit: 20,
+  sortBy: 'relevance',
+  sortOrder: 'desc'
+});
+```
+
+### Search Features
+
+```javascript
+// Get search suggestions/autocomplete
+const suggestions = await client.search.getSuggestions({
+  q: 'plumb',
+  limit: 10
+});
+
+// Get popular searches
+const popular = await client.search.getPopular({ limit: 12 });
+
+// Get trending searches
+const trending = await client.search.getTrending({
+  period: 'week',
+  limit: 10
+});
+```
+
+### Advanced Search
+
+```javascript
+// Advanced search with more filters
+const advanced = await client.search.advancedSearch({
+  q: 'cleaning',
+  type: 'services',
+  dateFrom: '2024-01-01',
+  dateTo: '2024-12-31',
+  verified: true,
+  availability: 'available',
+  serviceType: 'recurring'
+});
+
+// Search within specific entity type
+const services = await client.search.searchByType('services', {
+  q: 'plumber',
+  location: 'Los Angeles',
+  category: 'plumbing'
+});
+```
+
+### Search Metadata
+
+```javascript
+// Get all search categories
+const categories = await client.search.getCategories();
+
+// Get popular locations
+const locations = await client.search.getLocations({
+  q: 'New',
+  limit: 20
+});
+
+// Track search analytics (Admin only)
+await client.search.trackAnalytics({
+  query: 'plumber',
+  results: 25,
+  filters: { type: 'services' },
+  userId: 'user-id'
+});
+```
+
+## Referrals API
+
+The SDK provides comprehensive referral system functionality:
+
+### Referral Management
+
+```javascript
+// Validate referral code (Public)
+const validation = await client.referrals.validateCode({
+  code: 'REF123'
+});
+
+// Track referral click (Public)
+await client.referrals.trackClick({
+  code: 'REF123'
+});
+
+// Get referral leaderboard (Public)
+const leaderboard = await client.referrals.getLeaderboard({
+  limit: 10
+});
+```
+
+### My Referrals
+
+```javascript
+// Get my referrals
+const myReferrals = await client.referrals.getMyReferrals({
+  page: 1,
+  limit: 20
+});
+
+// Get referral statistics
+const stats = await client.referrals.getStats();
+
+// Get referral links
+const links = await client.referrals.getLinks();
+
+// Get referral rewards
+const rewards = await client.referrals.getRewards();
+```
+
+### Referral Actions
+
+```javascript
+// Send referral invitation
+await client.referrals.sendInvitation({
+  email: 'friend@example.com',
+  message: 'Join LocalPro and get rewards!'
+});
+
+// Update referral preferences
+await client.referrals.updatePreferences({
+  autoShare: true,
+  preferredChannel: 'email'
+});
+```
+
+### Admin Functions
+
+```javascript
+// Process referral completion (Admin only)
+await client.referrals.processCompletion({
+  referralId: 'ref-id',
+  action: 'approve'
+});
+
+// Get referral analytics (Admin only)
+const analytics = await client.referrals.getAnalytics({
+  startDate: '2024-01-01',
+  endDate: '2024-12-31'
+});
+```
+
+## Communication API
+
+The SDK provides comprehensive messaging and communication functionality:
+
+### Conversations
+
+```javascript
+// Get user conversations
+const conversations = await client.communication.getConversations({
+  page: 1,
+  limit: 20
+});
+
+// Get conversation by ID
+const conversation = await client.communication.getConversation('conv-id');
+
+// Create a new conversation
+const newConv = await client.communication.createConversation({
+  participantId: 'user-id',
+  initialMessage: 'Hello!'
+});
+
+// Delete conversation
+await client.communication.deleteConversation('conv-id');
+```
+
+### Messages
+
+```javascript
+// Get messages in a conversation
+const messages = await client.communication.getMessages('conv-id', {
+  page: 1,
+  limit: 50
+});
+
+// Send a text message
+await client.communication.sendMessage('conv-id', {
+  content: 'Hello, how can I help?'
+});
+
+// Send a message with attachments (FormData)
+const formData = new FormData();
+formData.append('content', 'Check this out!');
+formData.append('attachments', file1);
+formData.append('attachments', file2);
+await client.communication.sendMessage('conv-id', formData);
+
+// Update a message
+await client.communication.updateMessage('conv-id', 'msg-id', {
+  content: 'Updated message'
+});
+
+// Delete a message
+await client.communication.deleteMessage('conv-id', 'msg-id');
+```
+
+### Conversation Management
+
+```javascript
+// Mark conversation as read
+await client.communication.markAsRead('conv-id');
+
+// Get unread message count
+const unreadCount = await client.communication.getUnreadCount();
+
+// Search conversations
+const results = await client.communication.searchConversations({
+  q: 'plumber',
+  page: 1,
+  limit: 10
+});
+
+// Get or create conversation with a user
+const conv = await client.communication.getConversationWithUser('user-id');
+```
+
+### Notifications (via Communication API)
+
+```javascript
+// Get user notifications
+const notifications = await client.communication.getNotifications({
+  page: 1,
+  limit: 20,
+  isRead: false,
+  type: 'booking_created'
+});
+
+// Get notification count
+const count = await client.communication.getNotificationCount();
+
+// Mark notification as read
+await client.communication.markNotificationAsRead('notif-id');
+
+// Mark all notifications as read
+await client.communication.markAllNotificationsAsRead();
+
+// Delete notification
+await client.communication.deleteNotification('notif-id');
+
+// Send email notification
+await client.communication.sendEmailNotification({
+  to: 'user@example.com',
+  subject: 'New Booking',
+  body: 'You have a new booking!'
+});
+
+// Send SMS notification
+await client.communication.sendSMSNotification({
+  to: '+1234567890',
+  message: 'Your booking is confirmed!'
+});
+```
+
+## Settings API
+
+The SDK provides comprehensive settings management:
+
+### User Settings
+
+```javascript
+// Get user settings
+const settings = await client.settings.getUserSettings();
+
+// Update user settings
+await client.settings.updateUserSettings({
+  privacy: {
+    profileVisibility: 'public',
+    showPhoneNumber: false
+  },
+  notifications: {
+    push: {
+      enabled: true,
+      newMessages: true
+    }
+  }
+});
+
+// Update specific category
+await client.settings.updateUserSettingsCategory('privacy', {
+  profileVisibility: 'contacts_only',
+  showEmail: false
+});
+
+// Reset user settings to defaults
+await client.settings.resetUserSettings();
+
+// Delete user settings
+await client.settings.deleteUserSettings();
+```
+
+### App Settings (Admin)
+
+```javascript
+// Get app settings (Admin only)
+const appSettings = await client.settings.getAppSettings();
+
+// Get public app settings (No auth required)
+const publicSettings = await client.settings.getPublicAppSettings();
+
+// Update app settings (Admin only)
+await client.settings.updateAppSettings({
+  general: {
+    appName: 'LocalPro',
+    maintenanceMode: {
+      enabled: false
+    }
+  }
+});
+
+// Update app settings category (Admin only)
+await client.settings.updateAppSettingsCategory('features', {
+  marketplace: {
+    enabled: true,
+    requireVerification: true
+  }
+});
+
+// Toggle feature flag (Admin only)
+await client.settings.toggleFeatureFlag({
+  feature: 'marketplace',
+  enabled: true
+});
+
+// Get app health status
+const health = await client.settings.getAppHealth();
+```
+
+## Notifications API
+
+The SDK provides comprehensive push notification management:
+
+### Notification Management
+
+```javascript
+// Get user notifications
+const notifications = await client.notifications.getNotifications({
+  page: 1,
+  limit: 20,
+  isRead: false,
+  type: 'booking_created'
+});
+
+// Get unread notification count
+const unreadCount = await client.notifications.getUnreadCount();
+
+// Mark notification as read
+await client.notifications.markAsRead('notif-id');
+
+// Mark all notifications as read
+await client.notifications.markAllAsRead();
+
+// Delete notification
+await client.notifications.deleteNotification('notif-id');
+
+// Delete all notifications
+await client.notifications.deleteAllNotifications();
+
+// Delete only read notifications
+await client.notifications.deleteAllNotifications({ readOnly: true });
+```
+
+### FCM Token Management
+
+```javascript
+// Register or update FCM token
+await client.notifications.registerFCMToken({
+  token: 'fcm-token-here',
+  deviceId: 'device-id',
+  deviceType: 'android' // ios, android, web
+});
+
+// Remove FCM token
+await client.notifications.removeFCMToken('token-or-device-id');
+
+// Get registered FCM tokens
+const tokens = await client.notifications.getFCMTokens();
+```
+
+### Notification Settings
+
+```javascript
+// Get notification settings
+const settings = await client.notifications.getSettings();
+
+// Check if notification type is enabled
+const isEnabled = await client.notifications.checkEnabled('booking_created', {
+  channel: 'push' // push, email, sms
+});
+```
+
+### Admin Functions
+
+```javascript
+// Send notification to a user (Admin only)
+await client.notifications.sendNotification({
+  userId: 'user-id',
+  type: 'booking_created',
+  title: 'New Booking',
+  message: 'You have a new booking request',
+  data: { bookingId: 'booking-id' },
+  priority: 'high' // low, medium, high, urgent
+});
+
+// Send bulk notification (Admin only)
+await client.notifications.sendBulkNotification({
+  userIds: ['user1', 'user2', 'user3'],
+  type: 'system_announcement',
+  title: 'System Update',
+  message: 'We have updated our system',
+  priority: 'medium'
+});
+
+// Send system announcement (Admin only)
+await client.notifications.sendAnnouncement({
+  title: 'New Feature Available',
+  message: 'Check out our new feature!',
+  targetRoles: ['provider', 'client'], // Optional
+  expiresAt: '2024-12-31T23:59:59Z' // Optional
+});
+
+// Send test notification
+await client.notifications.sendTest({
+  type: 'all' // push, email, sms, all
 });
 ```
 

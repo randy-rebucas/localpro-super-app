@@ -5,6 +5,88 @@ All notable changes to the LocalPro SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-12-31
+
+### Added
+- **Referrals API** module for referral system:
+  - Referral code validation and tracking
+  - Referral links and statistics
+  - Rewards management
+  - Leaderboard
+  - Invitation system
+  - Analytics (Admin)
+- **Communication API** module for messaging:
+  - Conversation management
+  - Message sending and receiving
+  - File attachments support
+  - Unread count tracking
+  - Conversation search
+  - Notification management
+- **Settings API** module for settings management:
+  - User settings (privacy, notifications, communication, etc.)
+  - App settings (Admin)
+  - Feature flags (Admin)
+  - Settings categories
+  - App health status
+- **Notifications API** module for push notifications:
+  - Notification management
+  - FCM token registration
+  - Notification settings
+  - Bulk notifications (Admin)
+  - System announcements (Admin)
+  - Test notifications
+
+## [1.2.0] - 2025-12-31
+
+### Added
+- **Supplies API** module for equipment and supplies marketplace:
+  - Supply listings and search
+  - Supply management (create, update, delete)
+  - Image uploads
+  - Order management
+  - Reviews and ratings
+  - AI-powered description generation
+- **Rentals API** module for equipment rentals:
+  - Rental item listings and search
+  - Rental management (create, update, delete)
+  - Booking management
+  - Reviews and ratings
+  - AI-powered description generation
+- **Search API** module for global search:
+  - Global search across all entities
+  - Search suggestions and autocomplete
+  - Popular and trending searches
+  - Advanced search with filters
+  - Entity-specific search
+  - Search categories and locations
+  - Search analytics tracking
+
+## [1.1.0] - 2025-12-31
+
+### Added
+- **Auth API** module with comprehensive authentication:
+  - User registration and login
+  - Email and SMS verification
+  - Profile management
+  - Token refresh
+  - Avatar and portfolio uploads
+  - Onboarding completion
+- **Finance API** module for financial operations:
+  - Financial overview and analytics
+  - Transactions, earnings, and expenses
+  - Withdrawal requests and processing
+  - Top-up requests
+  - Tax documents
+  - Financial reports
+  - Wallet settings
+- **Maps API** module for location services:
+  - Geocoding and reverse geocoding
+  - Places search and details
+  - Distance calculations
+  - Nearby places search
+  - Service area validation
+  - Coverage analysis
+
 ## [1.0.0] - 2025-12-31
 
 ### Added

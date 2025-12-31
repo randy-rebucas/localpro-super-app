@@ -3,6 +3,16 @@ const EscrowAPI = require('./lib/escrow');
 const ProvidersAPI = require('./lib/providers');
 const MarketplaceAPI = require('./lib/marketplace');
 const JobsAPI = require('./lib/jobs');
+const AuthAPI = require('./lib/auth');
+const FinanceAPI = require('./lib/finance');
+const MapsAPI = require('./lib/maps');
+const SuppliesAPI = require('./lib/supplies');
+const RentalsAPI = require('./lib/rentals');
+const SearchAPI = require('./lib/search');
+const ReferralsAPI = require('./lib/referrals');
+const CommunicationAPI = require('./lib/communication');
+const SettingsAPI = require('./lib/settings');
+const NotificationsAPI = require('./lib/notifications');
 const {
   LocalProError,
   LocalProAPIError,
@@ -53,6 +63,16 @@ class LocalPro {
     this.providers = new ProvidersAPI(this.client);
     this.marketplace = new MarketplaceAPI(this.client);
     this.jobs = new JobsAPI(this.client);
+    this.auth = new AuthAPI(this.client);
+    this.finance = new FinanceAPI(this.client);
+    this.maps = new MapsAPI(this.client);
+    this.supplies = new SuppliesAPI(this.client);
+    this.rentals = new RentalsAPI(this.client);
+    this.search = new SearchAPI(this.client);
+    this.referrals = new ReferralsAPI(this.client);
+    this.communication = new CommunicationAPI(this.client);
+    this.settings = new SettingsAPI(this.client);
+    this.notifications = new NotificationsAPI(this.client);
   }
 
   /**
