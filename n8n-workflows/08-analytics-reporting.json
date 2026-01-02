@@ -1,0 +1,376 @@
+{
+  "name": "LocalPro - Analytics Reporting",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 7
+            }
+          ]
+        }
+      },
+      "id": "weekly-trigger",
+      "name": "Weekly Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/analytics/overview",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LOCALPRO_API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "timeframe",
+                "value": "7d"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-analytics",
+      "name": "Get Analytics Overview",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/analytics/marketplace",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LOCALPRO_API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "timeframe",
+                "value": "7d"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-marketplace-analytics",
+      "name": "Get Marketplace Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/analytics/users",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LOCALPRO_API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "timeframe",
+                "value": "7d"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-user-analytics",
+      "name": "Get User Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compile analytics report\nconst overview = $('Get Analytics Overview').first().json;\nconst marketplace = $('Get Marketplace Analytics').first().json;\nconst users = $('Get User Analytics').first().json;\n\nconst report = {\n  period: 'Last 7 days',\n  generatedAt: new Date().toISOString(),\n  overview: {\n    totalUsers: overview.data?.totalUsers || 0,\n    newUsers: overview.data?.newUsers || 0,\n    activeUsers: overview.data?.activeUsers || 0,\n    totalRevenue: overview.data?.totalRevenue || 0\n  },\n  marketplace: {\n    totalBookings: marketplace.data?.totalBookings || 0,\n    completedBookings: marketplace.data?.completedBookings || 0,\n    totalRevenue: marketplace.data?.totalRevenue || 0,\n    averageBookingValue: marketplace.data?.averageBookingValue || 0\n  },\n  users: {\n    newRegistrations: users.data?.newRegistrations || 0,\n    activeUsers: users.data?.activeUsers || 0,\n    userGrowth: users.data?.growthRate || 0\n  }\n};\n\nreturn { json: report };"
+      },
+      "id": "compile-report",
+      "name": "Compile Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/notifications/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LOCALPRO_API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "admin@localpro.com"
+            },
+            {
+              "name": "subject",
+              "value": "Weekly Analytics Report - {{ $now.toFormat('MMM dd, yyyy') }}"
+            },
+            {
+              "name": "template",
+              "value": "analytics-report"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify($('Compile Report').first().json) }}"
+            }
+          ]
+        }
+      },
+      "id": "send-report",
+      "name": "Send Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/error-monitoring/dashboard/summary",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LOCALPRO_API_TOKEN }}"
+            }
+          ]
+        }
+      },
+      "id": "get-error-stats",
+      "name": "Get Error Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-critical-errors",
+              "leftValue": "={{ $json.data?.criticalErrors || 0 }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "larger"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-critical-errors",
+      "name": "Critical Errors?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [650, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/notifications/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LOCALPRO_API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "tech@localpro.com"
+            },
+            {
+              "name": "subject",
+              "value": "⚠️ High Error Rate Alert"
+            },
+            {
+              "name": "template",
+              "value": "error-alert"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify($('Get Error Stats').first().json.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "alert-errors",
+      "name": "Alert Errors",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 600]
+    }
+  ],
+  "connections": {
+    "Weekly Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Analytics Overview",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Marketplace Analytics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get User Analytics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Error Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Analytics Overview": {
+      "main": [
+        [
+          {
+            "node": "Compile Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Marketplace Analytics": {
+      "main": [
+        [
+          {
+            "node": "Compile Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Analytics": {
+      "main": [
+        [
+          {
+            "node": "Compile Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compile Report": {
+      "main": [
+        [
+          {
+            "node": "Send Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Error Stats": {
+      "main": [
+        [
+          {
+            "node": "Critical Errors?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Critical Errors?": {
+      "main": [
+        [
+          {
+            "node": "Alert Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}

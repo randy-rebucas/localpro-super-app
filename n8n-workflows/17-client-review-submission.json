@@ -1,0 +1,175 @@
+{
+  "name": "LocalPro - Client Review Submission",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "submit-review",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Review Submission Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "review-submission-webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"received\", \"message\": \"Thank you for your review!\" } }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract review data\nconst webhook = $input.first().json;\n\nreturn {\n  json: {\n    bookingId: webhook.bookingId,\n    serviceId: webhook.serviceId,\n    providerId: webhook.providerId,\n    clientEmail: webhook.email || webhook.clientEmail,\n    rating: webhook.rating || 5,\n    comment: webhook.comment || webhook.review || webhook.message,\n    photos: webhook.photos || []\n  }\n};"
+      },
+      "id": "extract-review-data",
+      "name": "Extract Review Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/marketplace/bookings/{{ $json.bookingId }}/review",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { rating: $json.rating, comment: $json.comment, photos: $json.photos } }}"
+      },
+      "id": "submit-review",
+      "name": "Submit Review",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/notifications/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $json.clientEmail }}"
+            },
+            {
+              "name": "subject",
+              "value": "Thank You for Your Review!"
+            },
+            {
+              "name": "template",
+              "value": "review-thank-you"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ rating: $json.rating, reviewId: $('Submit Review').first().json.data?._id }) }}"
+            }
+          ]
+        }
+      },
+      "id": "send-thank-you",
+      "name": "Send Thank You Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Review Submission Webhook": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Review Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Response": {
+      "main": [
+        []
+      ]
+    },
+    "Extract Review Data": {
+      "main": [
+        [
+          {
+            "node": "Submit Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit Review": {
+      "main": [
+        [
+          {
+            "node": "Send Thank You Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}

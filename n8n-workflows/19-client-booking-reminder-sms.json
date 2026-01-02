@@ -1,0 +1,220 @@
+{
+  "name": "LocalPro - Client Booking Reminder SMS",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "hourly-trigger",
+      "name": "Hourly Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/marketplace/bookings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "status",
+                "value": "confirmed"
+              },
+              {
+                "name": "limit",
+                "value": "100"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-confirmed-bookings",
+      "name": "Get Confirmed Bookings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter bookings needing SMS reminder (24 hours before)\nconst bookings = $input.all();\nconst now = new Date();\nconst tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);\nconst reminders = [];\n\nfor (const booking of bookings) {\n  const bookingData = booking.json;\n  const scheduledDate = new Date(bookingData.scheduledDate);\n  \n  // Check if booking is within 24-25 hours\n  const hoursUntil = (scheduledDate - now) / (1000 * 60 * 60);\n  \n  if (hoursUntil >= 23 && hoursUntil <= 25 && !bookingData.smsReminderSent) {\n    reminders.push({\n      json: {\n        bookingId: bookingData._id || bookingData.id,\n        clientPhone: bookingData.client?.phoneNumber || bookingData.clientPhone,\n        clientName: bookingData.client?.firstName || 'Client',\n        serviceName: bookingData.service?.title || bookingData.serviceName,\n        scheduledDate: bookingData.scheduledDate,\n        scheduledTime: bookingData.scheduledTime,\n        providerName: bookingData.provider?.firstName || 'Provider'\n      }\n    });\n  }\n}\n\nreturn reminders;"
+      },
+      "id": "filter-sms-reminders",
+      "name": "Filter SMS Reminders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "split-reminders",
+      "name": "Split Reminders",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/notifications/sms",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $json.clientPhone }}"
+            },
+            {
+              "name": "message",
+              "value": "Reminder: Your {{ $json.serviceName }} booking with {{ $json.providerName }} is scheduled for tomorrow at {{ $json.scheduledTime }}. Reply CANCEL to cancel or RESCHEDULE to change time."
+            }
+          ]
+        }
+      },
+      "id": "send-sms-reminder",
+      "name": "Send SMS Reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/marketplace/bookings/{{ $json.bookingId }}/status",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { smsReminderSent: true, smsReminderSentAt: new Date().toISOString() } }}"
+      },
+      "id": "update-reminder-status",
+      "name": "Update Reminder Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Hourly Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Confirmed Bookings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Confirmed Bookings": {
+      "main": [
+        [
+          {
+            "node": "Filter SMS Reminders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter SMS Reminders": {
+      "main": [
+        [
+          {
+            "node": "Split Reminders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Reminders": {
+      "main": [
+        [
+          {
+            "node": "Send SMS Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS Reminder": {
+      "main": [
+        [
+          {
+            "node": "Update Reminder Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}

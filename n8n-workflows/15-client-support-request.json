@@ -1,0 +1,229 @@
+{
+  "name": "LocalPro - Client Support Request",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "client-support",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Support Request Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "client-support-webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"received\", \"message\": \"Your support request has been received. We'll get back to you soon.\" } }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract support request data\nconst webhook = $input.first().json;\n\nreturn {\n  json: {\n    clientEmail: webhook.email || webhook.clientEmail,\n    clientPhone: webhook.phone || webhook.clientPhone,\n    clientName: webhook.name || webhook.clientName,\n    subject: webhook.subject || 'Support Request',\n    message: webhook.message || webhook.issue || webhook.description,\n    category: webhook.category || 'general', // booking, payment, account, general\n    priority: webhook.priority || 'medium', // low, medium, high, urgent\n    bookingId: webhook.bookingId,\n    relatedId: webhook.relatedId\n  }\n};"
+      },
+      "id": "extract-support-data",
+      "name": "Extract Support Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/conversations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { participantId: 'SUPPORT_USER_ID', initialMessage: $json.message } }}"
+      },
+      "id": "create-support-ticket",
+      "name": "Create Support Ticket",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/notifications/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "support@localpro.com"
+            },
+            {
+              "name": "subject",
+              "value": "Support Request: {{ $json.subject }}"
+            },
+            {
+              "name": "template",
+              "value": "support-request-admin"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ clientName: $json.clientName, clientEmail: $json.clientEmail, clientPhone: $json.clientPhone, subject: $json.subject, message: $json.message, category: $json.category, priority: $json.priority, bookingId: $json.bookingId }) }}"
+            }
+          ]
+        }
+      },
+      "id": "notify-support-team",
+      "name": "Notify Support Team",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/notifications/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $json.clientEmail }}"
+            },
+            {
+              "name": "subject",
+              "value": "We've Received Your Support Request"
+            },
+            {
+              "name": "template",
+              "value": "support-request-confirmation"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ clientName: $json.clientName, subject: $json.subject, ticketId: $('Create Support Ticket').first().json.data?._id }) }}"
+            }
+          ]
+        }
+      },
+      "id": "confirm-to-client",
+      "name": "Confirm to Client",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 400]
+    }
+  ],
+  "connections": {
+    "Support Request Webhook": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Support Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Response": {
+      "main": [
+        []
+      ]
+    },
+    "Extract Support Data": {
+      "main": [
+        [
+          {
+            "node": "Create Support Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Support Ticket": {
+      "main": [
+        [
+          {
+            "node": "Notify Support Team",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Confirm to Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}

@@ -1,0 +1,325 @@
+{
+  "name": "LocalPro - Escrow Management Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "escrow-created",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Escrow Created Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "escrow-created-webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"received\" } }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract escrow data\nconst webhook = $input.first().json;\n\nreturn {\n  json: {\n    escrowId: webhook.escrowId || webhook.escrow?.id,\n    buyerId: webhook.buyerId || webhook.buyer?.id,\n    sellerId: webhook.sellerId || webhook.seller?.id,\n    amount: webhook.amount,\n    status: webhook.status || 'pending',\n    buyerEmail: webhook.buyer?.email,\n    sellerEmail: webhook.seller?.email,\n    description: webhook.description\n  }\n};"
+      },
+      "id": "extract-escrow-data",
+      "name": "Extract Escrow Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/notifications/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LOCALPRO_API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $json.buyerEmail }}"
+            },
+            {
+              "name": "subject",
+              "value": "Escrow Payment Created"
+            },
+            {
+              "name": "template",
+              "value": "escrow-created"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ escrowId: $json.escrowId, amount: $json.amount, description: $json.description }) }}"
+            }
+          ]
+        }
+      },
+      "id": "notify-buyer",
+      "name": "Notify Buyer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/notifications/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LOCALPRO_API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $json.sellerEmail }}"
+            },
+            {
+              "name": "subject",
+              "value": "Escrow Payment Received"
+            },
+            {
+              "name": "template",
+              "value": "escrow-payment-received"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ escrowId: $json.escrowId, amount: $json.amount, description: $json.description }) }}"
+            }
+          ]
+        }
+      },
+      "id": "notify-seller",
+      "name": "Notify Seller",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "id": "daily-check",
+      "name": "Daily Check",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 600]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/escrows",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LOCALPRO_API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "status",
+                "value": "pending_release"
+              },
+              {
+                "name": "limit",
+                "value": "100"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-pending-escrows",
+      "name": "Get Pending Escrows",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter escrows pending release for more than 7 days\nconst escrows = $input.all();\nconst overdueEscrows = [];\nconst now = new Date();\n\nfor (const escrow of escrows) {\n  const escrowData = escrow.json;\n  const releaseDate = new Date(escrowData.releaseDate || escrowData.createdAt);\n  const daysPending = Math.floor((now - releaseDate) / (1000 * 60 * 60 * 24));\n  \n  if (daysPending >= 7) {\n    overdueEscrows.push({\n      json: {\n        ...escrowData,\n        daysPending: daysPending\n      }\n    });\n  }\n}\n\nreturn overdueEscrows;"
+      },
+      "id": "filter-overdue",
+      "name": "Filter Overdue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/notifications/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LOCALPRO_API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $json.buyer?.email }}"
+            },
+            {
+              "name": "subject",
+              "value": "Reminder: Release Escrow Payment"
+            },
+            {
+              "name": "template",
+              "value": "escrow-release-reminder"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ escrowId: $json._id || $json.id, amount: $json.amount, daysPending: $json.daysPending }) }}"
+            }
+          ]
+        }
+      },
+      "id": "remind-release",
+      "name": "Remind Release",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 600]
+    }
+  ],
+  "connections": {
+    "Escrow Created Webhook": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Escrow Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Response": {
+      "main": [
+        []
+      ]
+    },
+    "Extract Escrow Data": {
+      "main": [
+        [
+          {
+            "node": "Notify Buyer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify Seller",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Check": {
+      "main": [
+        [
+          {
+            "node": "Get Pending Escrows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pending Escrows": {
+      "main": [
+        [
+          {
+            "node": "Filter Overdue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Overdue": {
+      "main": [
+        [
+          {
+            "node": "Remind Release",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 2,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}
