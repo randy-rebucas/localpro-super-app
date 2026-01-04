@@ -51,6 +51,7 @@ const databaseOptimizationRoutes = require('./routes/databaseOptimization');
 const metricsStreamRoutes = require('./routes/metricsStream');
 const aiMarketplaceRoutes = require('./routes/aiMarketplace');
 const aiUsersRoutes = require('./routes/aiUsers');
+const aiBotRoutes = require('./routes/aiBot');
 const escrowRoutes = require('./routes/escrows');
 const escrowWebhookRoutes = require('./routes/escrowWebhooks');
 const liveChatRoutes = require('./routes/liveChat');
@@ -554,6 +555,9 @@ function startServer() {
   // AI Users Routes
   app.use('/api/ai/users', aiUsersRoutes);
   
+  // AI Bot Routes (AI Operating System)
+  app.use('/api/ai-bot', aiBotRoutes);
+  
   // Escrow and Payment Routes
   app.use('/api/escrows', escrowRoutes);
   app.use('/webhooks', escrowWebhookRoutes);
@@ -819,6 +823,20 @@ function initializeAutomatedServices() {
       const automatedIndexManagementService = require('./services/automatedIndexManagementService');
       automatedIndexManagementService.start();
       logger.info('✅ Automated index management service started');
+    }
+
+    // AI Bot Service (AI Operating System)
+    if (process.env.ENABLE_AI_BOT !== 'false') {
+      const aiBotService = require('./services/aiBotService');
+      const aiBotEventListener = require('./services/aiBotEventListener');
+      
+      // Initialize AI Bot
+      await aiBotService.initialize();
+      
+      // Start event listener
+      aiBotEventListener.start();
+      
+      logger.info('✅ AI Bot service (AI Operating System) started');
     }
 
     // Add other automated services here as they are implemented
