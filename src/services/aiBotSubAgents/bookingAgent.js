@@ -6,8 +6,6 @@
 
 const BaseSubAgent = require('./baseSubAgent');
 const logger = require('../../config/logger');
-const n8nService = require('../n8nService');
-const { Booking } = require('../../models/Marketplace');
 
 class BookingAgent extends BaseSubAgent {
   constructor() {
@@ -172,7 +170,7 @@ class BookingAgent extends BaseSubAgent {
     };
   }
 
-  async shouldEscalate(event, intentResult) {
+  async shouldEscalate(event, _intentResult) {
     // Escalate high-value cancellations or disputes
     if (event.type === 'booking_cancelled' && event.data?.totalAmount > 1000) {
       return {

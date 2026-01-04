@@ -6,9 +6,7 @@
 
 const BaseSubAgent = require('./baseSubAgent');
 const logger = require('../../config/logger');
-const n8nService = require('../n8nService');
 const Provider = require('../../models/Provider');
-const User = require('../../models/User');
 
 class ProviderAgent extends BaseSubAgent {
   constructor() {
@@ -149,7 +147,7 @@ class ProviderAgent extends BaseSubAgent {
     };
   }
 
-  async shouldEscalate(event, intentResult) {
+  async shouldEscalate(event, _intentResult) {
     // Escalate if verification fails multiple times
     if (event.type === 'provider_verified' && event.data?.status === 'rejected') {
       return {

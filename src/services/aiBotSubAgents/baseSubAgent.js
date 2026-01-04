@@ -23,14 +23,14 @@ class BaseSubAgent {
   /**
    * Main processing method - must be implemented by subclasses
    */
-  async process(interaction, event) {
+  async process(_interaction, _event) {
     throw new Error('process() must be implemented by subclass');
   }
 
   /**
    * Check if event should be escalated - can be overridden
    */
-  async shouldEscalate(event, intentResult) {
+  async shouldEscalate(_event, _intentResult) {
     // Default: no escalation needed
     return { required: false };
   }

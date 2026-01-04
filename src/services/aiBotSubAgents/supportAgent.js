@@ -6,7 +6,6 @@
 
 const BaseSubAgent = require('./baseSubAgent');
 const logger = require('../../config/logger');
-const n8nService = require('../n8nService');
 
 class SupportAgent extends BaseSubAgent {
   constructor() {
@@ -90,7 +89,7 @@ class SupportAgent extends BaseSubAgent {
     };
   }
 
-  async shouldEscalate(event, intentResult) {
+  async shouldEscalate(event, _intentResult) {
     // Escalate critical support requests
     if (event.type === 'support_request' && event.data?.priority === 'critical') {
       return {

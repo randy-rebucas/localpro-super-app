@@ -73,7 +73,7 @@ class AIBotService {
       logger.info('🤖 Initializing LocalPro Super App AI Bot...');
       
       // Initialize all sub-agents
-      for (const [name, agent] of Object.entries(this.subAgents)) {
+      for (const [, agent] of Object.entries(this.subAgents)) {
         if (agent.initialize) {
           await agent.initialize();
         }

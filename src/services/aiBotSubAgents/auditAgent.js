@@ -47,7 +47,7 @@ class AuditAgent extends BaseSubAgent {
     }
   }
 
-  async shouldEscalate(event, intentResult) {
+  async shouldEscalate(event, _intentResult) {
     // Escalate security-related events
     if (event.data?.securityIssue || event.data?.complianceViolation) {
       return {

@@ -634,7 +634,7 @@ function startServer() {
 }
 
 // Initialize automated services
-function initializeAutomatedServices() {
+async function initializeAutomatedServices() {
   try {
     // Automated Backup Service
     if (process.env.ENABLE_AUTOMATED_BACKUPS === 'true' || process.env.NODE_ENV === 'production') {

@@ -6,7 +6,6 @@
 
 const BaseSubAgent = require('./baseSubAgent');
 const logger = require('../../config/logger');
-const n8nService = require('../n8nService');
 
 class PaymentAgent extends BaseSubAgent {
   constructor() {
@@ -117,7 +116,7 @@ class PaymentAgent extends BaseSubAgent {
     };
   }
 
-  async shouldEscalate(event, intentResult) {
+  async shouldEscalate(event, _intentResult) {
     // Escalate high-value payment failures
     if (event.type === 'payment_failed' && event.data?.amount > 5000) {
       return {

@@ -6,7 +6,6 @@
 
 const BaseSubAgent = require('./baseSubAgent');
 const logger = require('../../config/logger');
-const n8nService = require('../n8nService');
 
 class AnalyticsAgent extends BaseSubAgent {
   constructor() {

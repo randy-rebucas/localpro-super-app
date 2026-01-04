@@ -47,7 +47,7 @@ class OperationsAgent extends BaseSubAgent {
     }
   }
 
-  async shouldEscalate(event, intentResult) {
+  async shouldEscalate(event, _intentResult) {
     // Escalate system alerts
     if (event.type === 'system_alert' && event.data?.severity === 'critical') {
       return {

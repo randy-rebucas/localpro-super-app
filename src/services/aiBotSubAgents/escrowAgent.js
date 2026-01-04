@@ -6,7 +6,6 @@
 
 const BaseSubAgent = require('./baseSubAgent');
 const logger = require('../../config/logger');
-const n8nService = require('../n8nService');
 
 class EscrowAgent extends BaseSubAgent {
   constructor() {
@@ -112,7 +111,7 @@ class EscrowAgent extends BaseSubAgent {
     };
   }
 
-  async shouldEscalate(event, intentResult) {
+  async shouldEscalate(event, _intentResult) {
     // All disputes require escalation
     if (event.type === 'escrow_dispute') {
       return {
