@@ -64,6 +64,7 @@ These workflows enable full client functionality without a mobile app:
 | **21-ai-bot-human-escalation.json** | Handle human escalations from AI Bot | Webhook |
 | **22-ai-bot-event-processor.json** | Process and route AI Bot events | Webhook |
 | **23-ai-bot-analytics-reporting.json** | Daily AI Bot analytics reports | Cron (daily) |
+| **24-ai-bot-guest-chat-support.json** | AI-powered guest/visitor chat support | Webhook |
 
 **See [AI_BOT_WORKFLOWS_README.md](AI_BOT_WORKFLOWS_README.md) for detailed documentation.**
 
@@ -217,8 +218,8 @@ Use Twilio or similar services:
 |----------|-------|-----------|
 | **Client Operations** | 10 | 11-20 |
 | **Business Automation** | 10 | 01-10 |
-| **AI Bot System** | 3 | 21-23 |
-| **Total** | **23** | All workflows |
+| **AI Bot System** | 4 | 21-24 |
+| **Total** | **24** | All workflows |
 
 ## Support
 

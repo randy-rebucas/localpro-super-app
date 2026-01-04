@@ -92,6 +92,70 @@ External systems can send events to this webhook, which will then be processed b
 
 ---
 
+### 24-ai-bot-guest-chat-support.json
+**Purpose**: Handles AI-powered chat support for guests and visitors.
+
+**Trigger**: Webhook (`POST /webhook/guest-chat-message`)
+
+**Features**:
+- Receives chat messages from guests/visitors
+- Retrieves chat session information
+- Classifies user intent using AI
+- Generates automated AI responses
+- Escalates to human support when needed
+- Saves messages to live chat system
+- Logs interactions for analytics
+
+**Configuration**:
+- Set `LOCALPRO_API_URL` environment variable
+- Set `LOCALPRO_API_KEY` environment variable
+- Set `LOCALPRO_API_SECRET` environment variable
+- Set `N8N_WEBHOOK_URL` environment variable (for escalation workflow)
+
+**Usage**:
+Frontend chat widgets or applications can send guest chat messages to this webhook for AI-powered support.
+
+**Example Request**:
+```json
+{
+  "sessionId": "session_abc123",
+  "messageId": "msg_xyz789",
+  "content": "How do I book a service?",
+  "user": {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "+1234567890"
+  },
+  "isGuest": true,
+  "metadata": {
+    "userAgent": "Mozilla/5.0...",
+    "ipAddress": "192.168.1.1",
+    "pageUrl": "https://localpro.com/services"
+  }
+}
+```
+
+**Flow**:
+1. Webhook receives guest chat message
+2. Extract chat data (sessionId, message, user info)
+3. Get or create chat session
+4. Save user message to live chat system
+5. Classify intent using AI Bot API
+6. Check if escalation is needed
+7. If escalation needed: Trigger human escalation workflow
+8. If not: Generate AI response
+9. Save AI response to chat session
+10. Log interaction for analytics
+
+**Integration**:
+- Integrates with live chat system (`/api/live-chat/sessions`)
+- Uses AI Bot intent classification (`/api/ai-bot/classify-intent`)
+- Uses AI Bot response generation (`/api/ai-bot/generate-response`)
+- Triggers human escalation workflow when needed
+- Logs interactions to AI Bot system
+
+---
+
 ## Installation
 
 1. **Import Workflows**:
@@ -132,6 +196,7 @@ this.workflowMapping = {
   'human-escalation': process.env.N8N_WORKFLOW_HUMAN_ESCALATION,
   'ai-bot-event': process.env.N8N_WORKFLOW_AI_BOT_EVENT,
   'ai-bot-analytics': process.env.N8N_WORKFLOW_AI_BOT_ANALYTICS,
+  'guest-chat-support': process.env.N8N_WORKFLOW_GUEST_CHAT_SUPPORT,
   // ... other workflows
 };
 ```
@@ -145,6 +210,8 @@ Add to your `.env` file:
 N8N_WORKFLOW_HUMAN_ESCALATION=webhook-id-here
 N8N_WORKFLOW_AI_BOT_EVENT=webhook-id-here
 N8N_WORKFLOW_AI_BOT_ANALYTICS=webhook-id-here
+N8N_WORKFLOW_GUEST_CHAT_SUPPORT=webhook-id-here
+N8N_WEBHOOK_URL=https://your-n8n-instance.com
 ```
 
 ---
@@ -235,6 +302,22 @@ curl -X POST https://your-n8n-instance.com/webhook/ai-bot-event \
 ### Test Analytics Reporting
 
 The analytics workflow runs automatically on schedule. You can also trigger it manually from n8n.
+
+### Test Guest Chat Support
+
+```bash
+curl -X POST https://your-n8n-instance.com/webhook/guest-chat-message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sessionId": "test-session-123",
+    "content": "How do I book a service?",
+    "user": {
+      "name": "Test User",
+      "email": "test@example.com"
+    },
+    "isGuest": true
+  }'
+```
 
 ---
 
