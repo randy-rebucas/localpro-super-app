@@ -206,6 +206,31 @@ Content-Type: application/json
 }
 ```
 
+### Get Escalated Interactions
+```http
+GET /api/ai-bot/escalations?resolved=false&priority=critical&page=1&limit=50
+```
+
+### Assign Escalation to Admin
+```http
+POST /api/ai-bot/interactions/:eventId/assign
+Content-Type: application/json
+
+{
+  "adminId": "..."
+}
+```
+
+### Resolve Escalation
+```http
+POST /api/ai-bot/interactions/:eventId/resolve
+Content-Type: application/json
+
+{
+  "resolution": "Issue resolved by..."
+}
+```
+
 ## Configuration
 
 ### Environment Variables
@@ -384,8 +409,10 @@ Events are automatically escalated when:
 Escalated events:
 - Are marked in the database
 - Trigger n8n `human-escalation` workflow
-- Can be assigned to specific admins
-- Track resolution status
+- Can be assigned to specific admins via `/api/ai-bot/interactions/:eventId/assign`
+- Can be resolved via `/api/ai-bot/interactions/:eventId/resolve`
+- Track resolution status and resolution notes
+- Can be queried via `/api/ai-bot/escalations`
 
 ## Best Practices
 

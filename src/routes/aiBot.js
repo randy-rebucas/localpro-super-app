@@ -13,7 +13,10 @@ const {
   emitPOSEvent,
   emitPaymentEvent,
   emitGPSEvent,
-  emitCRMEvent
+  emitCRMEvent,
+  assignEscalation,
+  resolveEscalation,
+  getEscalatedInteractions
 } = require('../controllers/aiBotController');
 const { protect, authorize } = require('../middleware/auth');
 const { body } = require('express-validator');
@@ -88,5 +91,26 @@ router.post('/events/gps', protect, emitGPSEvent);
  * @access  Private
  */
 router.post('/events/crm', protect, emitCRMEvent);
+
+/**
+ * @route   GET /api/ai-bot/escalations
+ * @desc    Get escalated interactions
+ * @access  Private (Admin)
+ */
+router.get('/escalations', protect, authorize('admin'), getEscalatedInteractions);
+
+/**
+ * @route   POST /api/ai-bot/interactions/:eventId/assign
+ * @desc    Assign escalated interaction to admin
+ * @access  Private (Admin)
+ */
+router.post('/interactions/:eventId/assign', protect, authorize('admin'), assignEscalation);
+
+/**
+ * @route   POST /api/ai-bot/interactions/:eventId/resolve
+ * @desc    Resolve escalated interaction
+ * @access  Private (Admin)
+ */
+router.post('/interactions/:eventId/resolve', protect, authorize('admin'), resolveEscalation);
 
 module.exports = router;

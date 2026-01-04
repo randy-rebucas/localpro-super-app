@@ -597,6 +597,126 @@ Classify the intent and provide recommendations.`;
       throw error;
     }
   }
+
+  /**
+   * Assign escalated interaction to an admin
+   */
+  async assignEscalation(eventId, adminId) {
+    try {
+      const interaction = await AIBotInteraction.findOne({ eventId });
+      
+      if (!interaction) {
+        throw new Error('Interaction not found');
+      }
+
+      if (!interaction.escalated) {
+        throw new Error('Interaction is not escalated');
+      }
+
+      interaction.escalatedTo = adminId;
+      await interaction.save();
+
+      logger.info('Escalation assigned', { eventId, adminId });
+
+      return {
+        success: true,
+        interaction
+      };
+    } catch (error) {
+      logger.error('Failed to assign escalation', { eventId, adminId, error: error.message });
+      throw error;
+    }
+  }
+
+  /**
+   * Resolve an escalated interaction
+   */
+  async resolveEscalation(eventId, adminId, resolution) {
+    try {
+      const interaction = await AIBotInteraction.findOne({ eventId });
+      
+      if (!interaction) {
+        throw new Error('Interaction not found');
+      }
+
+      if (!interaction.escalated) {
+        throw new Error('Interaction is not escalated');
+      }
+
+      interaction.escalationResolved = true;
+      interaction.escalationResolvedAt = new Date();
+      interaction.status = 'completed';
+      
+      // Add resolution notes to context metadata
+      if (!interaction.context.metadata) {
+        interaction.context.metadata = {};
+      }
+      interaction.context.metadata.resolution = {
+        resolvedBy: adminId,
+        resolvedAt: new Date(),
+        notes: resolution
+      };
+
+      await interaction.save();
+
+      logger.info('Escalation resolved', { eventId, adminId });
+
+      return {
+        success: true,
+        interaction
+      };
+    } catch (error) {
+      logger.error('Failed to resolve escalation', { eventId, adminId, error: error.message });
+      throw error;
+    }
+  }
+
+  /**
+   * Get escalated interactions
+   */
+  async getEscalatedInteractions(filters = {}) {
+    try {
+      const query = {
+        escalated: true,
+        escalationResolved: filters.resolved === true ? true : filters.resolved === false ? false : { $exists: true }
+      };
+
+      if (filters.adminId) {
+        query.escalatedTo = filters.adminId;
+      }
+
+      if (filters.priority) {
+        // Priority is stored in aiAnalysis.riskLevel
+        query['aiAnalysis.riskLevel'] = filters.priority;
+      }
+
+      if (filters.dateFrom || filters.dateTo) {
+        query.escalatedAt = {};
+        if (filters.dateFrom) query.escalatedAt.$gte = new Date(filters.dateFrom);
+        if (filters.dateTo) query.escalatedAt.$lte = new Date(filters.dateTo);
+      }
+
+      const interactions = await AIBotInteraction.find(query)
+        .sort({ escalatedAt: -1 })
+        .limit(filters.limit || 50)
+        .skip(filters.skip || 0)
+        .populate('context.userId', 'firstName lastName email')
+        .populate('context.bookingId')
+        .populate('escalatedTo', 'firstName lastName email');
+
+      const total = await AIBotInteraction.countDocuments(query);
+
+      return {
+        interactions,
+        total,
+        page: Math.floor((filters.skip || 0) / (filters.limit || 50)) + 1,
+        totalPages: Math.ceil(total / (filters.limit || 50))
+      };
+    } catch (error) {
+      logger.error('Failed to get escalated interactions', { error: error.message });
+      throw error;
+    }
+  }
 }
 
 module.exports = new AIBotService();

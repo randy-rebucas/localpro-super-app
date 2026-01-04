@@ -1,0 +1,287 @@
+{
+  "name": "LocalPro - AI Bot Analytics Reporting",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Daily Cron Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/ai-bot/analytics",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "timeRange",
+                "value": "7d"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-analytics",
+      "name": "Get AI Bot Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format analytics data for report\nconst analytics = $input.first().json.analytics || $input.first().json;\n\nconst report = {\n  json: {\n    reportDate: new Date().toISOString().split('T')[0],\n    timeRange: analytics.timeRange || '7d',\n    summary: {\n      totalEvents: analytics.totalEvents || 0,\n      escalatedCount: analytics.escalated?.count || 0,\n      escalatedPercentage: analytics.escalated?.percentage || 0,\n      avgProcessingTime: Math.round(analytics.avgProcessingTime || 0) + 'ms'\n    },\n    byIntent: (analytics.byIntent || []).map(item => ({\n      intent: item.intent,\n      count: item.count,\n      percentage: ((item.count / analytics.totalEvents) * 100).toFixed(2) + '%'\n    })),\n    byStatus: (analytics.byStatus || []).map(item => ({\n      status: item.status,\n      count: item.count,\n      percentage: ((item.count / analytics.totalEvents) * 100).toFixed(2) + '%'\n    })),\n    bySubAgent: (analytics.bySubAgent || []).map(item => ({\n      subAgent: item.subAgent,\n      count: item.count,\n      percentage: ((item.count / analytics.totalEvents) * 100).toFixed(2) + '%'\n    })),\n    topWorkflows: analytics.topWorkflows || []\n  }\n};\n\nreturn report;"
+      },
+      "id": "format-report",
+      "name": "Format Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-escalation-rate",
+              "leftValue": "={{ parseFloat($json.summary.escalatedPercentage) }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-escalation-rate",
+      "name": "Check Escalation Rate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/notifications/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  to: $env.ADMIN_EMAIL,\n  subject: 'AI Bot Analytics Report - ' + $json.reportDate,\n  template: 'ai-bot-analytics-report',\n  data: {\n    reportDate: $json.reportDate,\n    timeRange: $json.timeRange,\n    summary: JSON.stringify($json.summary, null, 2),\n    byIntent: JSON.stringify($json.byIntent, null, 2),\n    byStatus: JSON.stringify($json.byStatus, null, 2),\n    bySubAgent: JSON.stringify($json.bySubAgent, null, 2),\n    topWorkflows: JSON.stringify($json.topWorkflows, null, 2),\n    highEscalationRate: parseFloat($json.summary.escalatedPercentage) > 10\n  }\n} }}"
+      },
+      "id": "send-report-email",
+      "name": "Send Report Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/communication/notifications/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  to: $env.ADMIN_EMAIL,\n  subject: '⚠️ AI Bot High Escalation Rate Alert - ' + $json.reportDate,\n  template: 'ai-bot-escalation-alert',\n  data: {\n    reportDate: $json.reportDate,\n    escalationRate: $json.summary.escalatedPercentage + '%',\n    escalatedCount: $json.summary.escalatedCount,\n    totalEvents: $json.summary.totalEvents,\n    recommendation: 'Review escalation rules and AI intent classification prompts.'\n  }\n} }}"
+      },
+      "id": "send-escalation-alert",
+      "name": "Send Escalation Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCALPRO_API_URL }}/api/analytics/events",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.LOCALPRO_API_KEY }}"
+            },
+            {
+              "name": "X-API-Secret",
+              "value": "={{ $env.LOCALPRO_API_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  eventType: 'ai_bot_analytics_report',\n  category: 'ai_bot',\n  data: {\n    reportDate: $json.reportDate,\n    timeRange: $json.timeRange,\n    summary: $json.summary,\n    byIntent: $json.byIntent,\n    byStatus: $json.byStatus,\n    bySubAgent: $json.bySubAgent,\n    topWorkflows: $json.topWorkflows\n  }\n} }}"
+      },
+      "id": "save-analytics-event",
+      "name": "Save Analytics Event",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Daily Cron Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get AI Bot Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get AI Bot Analytics": {
+      "main": [
+        [
+          {
+            "node": "Format Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Report": {
+      "main": [
+        [
+          {
+            "node": "Check Escalation Rate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Escalation Rate": {
+      "main": [
+        [
+          {
+            "node": "Send Escalation Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Report Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Report Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Escalation Alert": {
+      "main": [
+        [
+          {
+            "node": "Send Report Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Report Email": {
+      "main": [
+        [
+          {
+            "node": "Save Analytics Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Analytics Event": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-02T00:00:00.000Z",
+  "versionId": "1"
+}

@@ -300,6 +300,123 @@ const emitCRMEvent = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Assign escalated interaction to admin
+ * @route   POST /api/ai-bot/interactions/:eventId/assign
+ * @access  Private (Admin)
+ */
+const assignEscalation = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { adminId } = req.body;
+
+    if (!adminId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Admin ID is required'
+      });
+    }
+
+    const result = await aiBotService.assignEscalation(eventId, adminId);
+
+    res.status(200).json({
+      success: true,
+      ...result
+    });
+  } catch (error) {
+    logger.error('Failed to assign escalation', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to assign escalation',
+      message: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Resolve escalated interaction
+ * @route   POST /api/ai-bot/interactions/:eventId/resolve
+ * @access  Private (Admin)
+ */
+const resolveEscalation = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { resolution } = req.body;
+    const adminId = req.user.id;
+
+    if (!resolution) {
+      return res.status(400).json({
+        success: false,
+        error: 'Resolution notes are required'
+      });
+    }
+
+    const result = await aiBotService.resolveEscalation(eventId, adminId, resolution);
+
+    res.status(200).json({
+      success: true,
+      ...result
+    });
+  } catch (error) {
+    logger.error('Failed to resolve escalation', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to resolve escalation',
+      message: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Get escalated interactions
+ * @route   GET /api/ai-bot/escalations
+ * @access  Private (Admin)
+ */
+const getEscalatedInteractions = async (req, res) => {
+  try {
+    const {
+      adminId,
+      resolved,
+      priority,
+      dateFrom,
+      dateTo,
+      page = 1,
+      limit = 50
+    } = req.query;
+
+    const filters = {
+      adminId,
+      resolved: resolved === 'true' ? true : resolved === 'false' ? false : undefined,
+      priority,
+      dateFrom,
+      dateTo,
+      skip: (parseInt(page) - 1) * parseInt(limit),
+      limit: parseInt(limit)
+    };
+
+    // Remove undefined filters
+    Object.keys(filters).forEach(key => {
+      if (filters[key] === undefined) {
+        delete filters[key];
+      }
+    });
+
+    const result = await aiBotService.getEscalatedInteractions(filters);
+
+    res.status(200).json({
+      success: true,
+      ...result
+    });
+  } catch (error) {
+    logger.error('Failed to get escalated interactions', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get escalated interactions',
+      message: error.message
+    });
+  }
+};
+
 module.exports = {
   processEvent,
   getInteractions,
@@ -309,5 +426,8 @@ module.exports = {
   emitPOSEvent,
   emitPaymentEvent,
   emitGPSEvent,
-  emitCRMEvent
+  emitCRMEvent,
+  assignEscalation,
+  resolveEscalation,
+  getEscalatedInteractions
 };
