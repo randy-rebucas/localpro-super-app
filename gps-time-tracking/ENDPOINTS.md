@@ -8,6 +8,83 @@ Complete list of all API endpoints for the GPS & Time Tracking feature.
 
 ---
 
+## Authentication Endpoints
+
+Before using the GPS & Time Tracking endpoints, you need to authenticate and obtain a JWT token.
+
+### Register User
+```
+POST /api/auth/register
+```
+
+### Login
+```
+POST /api/auth/login
+```
+**Response includes:** `token` (access token), `refreshToken`, `user` object
+
+### Login with Email
+```
+POST /api/auth/login-email
+```
+**Request Body:** `email`, `password`
+
+### Verify Email OTP
+```
+POST /api/auth/verify-email-otp
+```
+**Request Body:** `email`, `otp`
+
+### Get Current User Profile
+```
+GET /api/auth/me
+```
+**Headers:** `Authorization: Bearer <token>`
+
+### Refresh Access Token
+```
+POST /api/auth/refresh
+```
+**Request Body:** `refreshToken`
+
+### Logout
+```
+POST /api/auth/logout
+```
+**Headers:** `Authorization: Bearer <token>`
+
+### Register with Email
+```
+POST /api/auth/register-email
+```
+**Request Body:** `email`, `password`, `firstName` (optional), `lastName` (optional)
+
+### Send Verification Code (Phone)
+```
+POST /api/auth/send-code
+```
+**Request Body:** `phoneNumber`
+
+### Verify Code (Phone)
+```
+POST /api/auth/verify-code
+```
+**Request Body:** `phoneNumber`, `code`
+
+### Check Email
+```
+POST /api/auth/check-email
+```
+**Request Body:** `email`
+
+### Set Password
+```
+POST /api/auth/set-password
+```
+**Request Body:** `email`, `otp`, `password`
+
+---
+
 ## Time Entries Endpoints
 
 ### Create Time Entry (Clock In)
@@ -114,8 +191,9 @@ GET /api/geofence-events/user/:userId
 
 ## Summary
 
-**Total Endpoints:** 15
+**Total Endpoints:** 27
 
+- **Authentication:** 12 endpoints
 - **Time Entries:** 7 endpoints
 - **GPS Logs:** 4 endpoints
 - **Geofence Events:** 4 endpoints
@@ -123,6 +201,20 @@ GET /api/geofence-events/user/:userId
 ---
 
 ## Quick Reference
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login (returns token)
+- `POST /api/auth/login-email` - Login with email
+- `POST /api/auth/verify-email-otp` - Verify email OTP
+- `GET /api/auth/me` - Get current user
+- `POST /api/auth/refresh` - Refresh token
+- `POST /api/auth/logout` - Logout
+- `POST /api/auth/register-email` - Register with email
+- `POST /api/auth/send-code` - Send phone verification code
+- `POST /api/auth/verify-code` - Verify phone code
+- `POST /api/auth/check-email` - Check if email exists
+- `POST /api/auth/set-password` - Set password
 
 ### Time Entries
 - `POST /api/time-entries` - Create (Clock In)
