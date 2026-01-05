@@ -63,6 +63,9 @@ const staffRoutes = require('./routes/staff');
 const permissionsRoutes = require('./routes/permissions');
 const apiKeysRoutes = require('./routes/apiKeys');
 const oauthRoutes = require('./routes/oauth');
+const timeEntriesRoutes = require('./routes/timeEntries');
+const gpsLogsRoutes = require('./routes/gpsLogs');
+const geofenceEventsRoutes = require('./routes/geofenceEvents');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 const { generalLimiter, marketplaceLimiter } = require('./middleware/rateLimiter');
 const liveChatWebSocketService = require('./services/liveChatWebSocketService');
@@ -548,6 +551,11 @@ function startServer() {
   app.use('/api/registration', registrationRoutes);
   app.use('/api/broadcaster', broadcasterRoutes);
   app.use('/api/favorites', favoritesRoutes);
+  
+  // GPS & Time Tracking Routes
+  app.use('/api/time-entries', timeEntriesRoutes);
+  app.use('/api/gps-logs', gpsLogsRoutes);
+  app.use('/api/geofence-events', geofenceEventsRoutes);
   
   // AI Marketplace Routes
   app.use('/api/ai/marketplace', aiMarketplaceRoutes);
