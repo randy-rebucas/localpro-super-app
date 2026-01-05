@@ -16,6 +16,341 @@ All endpoints require authentication. Include the Bearer token in the Authorizat
 Authorization: Bearer <your_jwt_token>
 ```
 
+To obtain a token, use the authentication endpoints listed below.
+
+---
+
+## Authentication API
+
+Before using the GPS & Time Tracking endpoints, you need to authenticate and obtain a JWT token.
+
+### 1. Register User
+
+**Endpoint:** `POST /api/auth/register`
+
+**Description:** Register a new user with email and password.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "Password123",
+  "firstName": "John", // Optional
+  "lastName": "Doe" // Optional
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "success": true,
+  "message": "Registration successful, OTP sent to email"
+}
+```
+
+**Errors:**
+- `400` - Validation error
+- `409` - Email already registered
+
+---
+
+### 2. Login
+
+**Endpoint:** `POST /api/auth/login`
+
+**Description:** Login with email and password. Returns access token and refresh token.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "Password123"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "abc123def456...",
+  "user": {
+    "id": "507f191e810c19729de860ea",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "roles": ["client"],
+    "isVerified": true
+  }
+}
+```
+
+**Errors:**
+- `400` - Validation error
+- `401` - Invalid credentials
+
+---
+
+### 3. Login with Email
+
+**Endpoint:** `POST /api/auth/login-email`
+
+**Description:** Login with email and password (sends email OTP for verification).
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "Password123"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "OTP sent to email"
+}
+```
+
+---
+
+### 4. Verify Email OTP
+
+**Endpoint:** `POST /api/auth/verify-email-otp`
+
+**Description:** Verify email OTP and complete login.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "otp": "123456"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "OTP verified successfully",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "abc123def456...",
+  "user": { ... }
+}
+```
+
+---
+
+### 5. Get Current User Profile
+
+**Endpoint:** `GET /api/auth/me`
+
+**Description:** Get the current authenticated user's profile.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "User profile retrieved successfully",
+  "data": {
+    "id": "507f191e810c19729de860ea",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "roles": ["client"],
+    "isVerified": true,
+    ...
+  }
+}
+```
+
+**Errors:**
+- `401` - Unauthorized (invalid or missing token)
+
+---
+
+### 6. Refresh Access Token
+
+**Endpoint:** `POST /api/auth/refresh`
+
+**Description:** Refresh an expired access token using a refresh token.
+
+**Request Body:**
+```json
+{
+  "refreshToken": "abc123def456..."
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Token refreshed successfully",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "new_refresh_token..."
+}
+```
+
+**Errors:**
+- `400` - Invalid refresh token
+- `401` - Refresh token expired or invalid
+
+---
+
+### 7. Logout
+
+**Endpoint:** `POST /api/auth/logout`
+
+**Description:** Logout the current user and invalidate the refresh token.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Logout successful"
+}
+```
+
+---
+
+### 8. Register with Email
+
+**Endpoint:** `POST /api/auth/register-email`
+
+**Description:** Register a new user with email and password (alternative endpoint).
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "Password123",
+  "firstName": "John", // Optional
+  "lastName": "Doe" // Optional
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "success": true,
+  "message": "Registration successful, OTP sent to email"
+}
+```
+
+---
+
+### 9. Send Verification Code (Phone)
+
+**Endpoint:** `POST /api/auth/send-code`
+
+**Description:** Send a verification code to a phone number (for phone-based authentication).
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Verification code sent"
+}
+```
+
+---
+
+### 10. Verify Code (Phone)
+
+**Endpoint:** `POST /api/auth/verify-code`
+
+**Description:** Verify phone number with verification code.
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890",
+  "code": "123456"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Code verified successfully",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "abc123def456...",
+  "user": { ... }
+}
+```
+
+---
+
+### 11. Check Email
+
+**Endpoint:** `POST /api/auth/check-email`
+
+**Description:** Check if an email is already registered.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "exists": true,
+  "message": "Email is already registered"
+}
+```
+
+---
+
+### 12. Set Password
+
+**Endpoint:** `POST /api/auth/set-password`
+
+**Description:** Set password for an email account (requires OTP).
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "otp": "123456",
+  "password": "Password123"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Password set successfully"
+}
+```
+
+---
+
 ## Response Format
 
 All responses follow this standard format:
@@ -650,6 +985,34 @@ Common error codes you may encounter:
 ---
 
 ## Usage Examples
+
+### Authentication Flow Example
+
+1. **Register:**
+```bash
+POST /api/auth/register
+{
+  "email": "worker@example.com",
+  "password": "Password123",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+```
+
+2. **Login:**
+```bash
+POST /api/auth/login
+{
+  "email": "worker@example.com",
+  "password": "Password123"
+}
+```
+
+3. **Use Token:**
+```bash
+# Include token in all subsequent requests
+Authorization: Bearer <token_from_login>
+```
 
 ### Complete Workflow Example
 
