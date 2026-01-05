@@ -23,7 +23,7 @@ const conversationSchema = new mongoose.Schema({
   }],
   type: {
     type: String,
-    enum: ['booking', 'job_application', 'support', 'general', 'agency'],
+    enum: ['booking', 'job_application', 'support', 'general', 'agency', 'job', 'dispatcher'],
     default: 'general'
   },
   subject: {
@@ -46,7 +46,31 @@ const conversationSchema = new mongoose.Schema({
     orderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Order'
+    },
+    dispatcherId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
     }
+  },
+  maskedCall: {
+    enabled: {
+      type: Boolean,
+      default: false
+    },
+    providerPhone: String,
+    clientPhone: String,
+    maskedNumber: String,
+    callRecords: [{
+      callId: String,
+      direction: {
+        type: String,
+        enum: ['inbound', 'outbound']
+      },
+      duration: Number,
+      startedAt: Date,
+      endedAt: Date,
+      recordingUrl: String
+    }]
   },
   status: {
     type: String,
@@ -181,6 +205,13 @@ const notificationSchema = new mongoose.Schema({
       'academy_certificate_pending',
       // Job application follow-ups
       'job_application_followup',
+      // Calendar & Availability
+      'job_scheduled', 'job_start_reminder', 'job_lateness_alert',
+      'reschedule_request', 'reschedule_approved', 'reschedule_rejected',
+      // Job Workflow
+      'job_started', 'job_completed', 'job_issue_reported', 'job_issue_escalated', 'job_issue_resolved',
+      // Quotes & Invoices
+      'quote_received', 'quote_approved', 'quote_rejected', 'invoice_generated', 'invoice_received', 'invoice_paid',
       // Escrow dispute escalation
       'escrow_dispute_unresolved', 'escrow_dispute_evidence_needed',
       // Supplies auto-deliver

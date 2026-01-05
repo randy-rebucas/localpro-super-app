@@ -85,7 +85,10 @@ const storageConfigs = {
   localproPlus: createStorage('localpro/plus', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'mp4', 'mp3']),
   
   // Job board files (logos, resumes)
-  jobs: createStorage('localpro/jobs', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'])
+  jobs: createStorage('localpro/jobs', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']),
+  
+  // General purpose uploads (job proofs, attachments, etc.)
+  general: createStorage('localpro/general', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'mp4', 'mov', 'avi', 'webm'])
 };
 
 // Create multer uploaders for each storage type

@@ -710,6 +710,32 @@ const updateApplicationStatus = async (req, res) => {
 
     await job.save();
 
+    // Auto-block time when job is accepted (hired)
+    if (status === 'hired') {
+      try {
+        const AvailabilityService = require('../services/availabilityService');
+        const jobStartTime = job.applicationProcess?.startDate || new Date(Date.now() + 24 * 60 * 60 * 1000); // Default to tomorrow
+        const jobEndTime = new Date(jobStartTime.getTime() + 8 * 60 * 60 * 1000); // Default 8 hours
+        
+        await AvailabilityService.autoBlockTimeForJob(
+          application.applicant,
+          jobId,
+          applicationId,
+          jobStartTime,
+          jobEndTime,
+          job.company?.location ? {
+            address: job.company.location.address,
+            city: job.company.location.city,
+            state: job.company.location.state,
+            coordinates: job.company.location.coordinates
+          } : null
+        );
+      } catch (blockError) {
+        console.warn('Failed to auto-block time for hired job:', blockError);
+        // Don't fail the status update if blocking fails
+      }
+    }
+
     // Mobile-first: notify applicant about application status update (in-app + push if enabled)
     try {
       await NotificationService.sendNotification({

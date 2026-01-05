@@ -63,6 +63,11 @@ const staffRoutes = require('./routes/staff');
 const permissionsRoutes = require('./routes/permissions');
 const apiKeysRoutes = require('./routes/apiKeys');
 const oauthRoutes = require('./routes/oauth');
+const availabilityRoutes = require('./routes/availability');
+const schedulingRoutes = require('./routes/scheduling');
+const jobWorkflowRoutes = require('./routes/jobWorkflow');
+const quotesInvoicesRoutes = require('./routes/quotesInvoices');
+const maskedCallsRoutes = require('./routes/maskedCalls');
 const timeEntriesRoutes = require('./routes/timeEntries');
 const gpsLogsRoutes = require('./routes/gpsLogs');
 const geofenceEventsRoutes = require('./routes/geofenceEvents');
@@ -551,6 +556,12 @@ function startServer() {
   app.use('/api/registration', registrationRoutes);
   app.use('/api/broadcaster', broadcasterRoutes);
   app.use('/api/favorites', favoritesRoutes);
+  app.use('/api/availability', availabilityRoutes);
+  app.use('/api/scheduling', schedulingRoutes);
+  app.use('/api/job-workflow', jobWorkflowRoutes);
+  app.use('/api/quotes', quotesInvoicesRoutes);
+  app.use('/api/invoices', quotesInvoicesRoutes);
+  app.use('/api/masked-calls', maskedCallsRoutes);
   
   // GPS & Time Tracking Routes
   app.use('/api/time-entries', timeEntriesRoutes);
@@ -768,6 +779,20 @@ async function initializeAutomatedServices() {
       const automatedJobApplicationFollowUpService = require('./services/automatedJobApplicationFollowUpService');
       automatedJobApplicationFollowUpService.start();
       logger.info('✅ Automated job application follow-up service started');
+    }
+
+    // Automated Availability Service (job start reminders, lateness alerts)
+    if (process.env.ENABLE_AUTOMATED_AVAILABILITY !== 'false') {
+      const automatedAvailabilityService = require('./services/automatedAvailabilityService');
+      automatedAvailabilityService.start();
+      logger.info('✅ Automated availability service started');
+    }
+
+    // Automated Scheduling Service (cleanup expired rankings and suggestions)
+    if (process.env.ENABLE_AUTOMATED_SCHEDULING !== 'false') {
+      const automatedSchedulingService = require('./services/automatedSchedulingService');
+      automatedSchedulingService.start();
+      logger.info('✅ Automated scheduling service started');
     }
 
     // Escrow dispute escalation (admin + party nudges)

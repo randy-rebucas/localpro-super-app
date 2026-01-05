@@ -36,6 +36,26 @@ const NOTIFICATION_TYPE_MAP = {
   job_posted: { category: 'jobMatches', smsCategory: null, priority: 'medium' },
   job_digest: { category: 'jobMatches', smsCategory: null, priority: 'low' },
   job_application_followup: { category: 'jobMatches', smsCategory: null, priority: 'medium' },
+  // Calendar & Availability notifications
+  job_scheduled: { category: 'jobMatches', smsCategory: 'bookingReminders', priority: 'high' },
+  job_start_reminder: { category: 'jobMatches', smsCategory: 'bookingReminders', priority: 'high' },
+  job_lateness_alert: { category: 'jobMatches', smsCategory: 'bookingReminders', priority: 'urgent' },
+  reschedule_request: { category: 'jobMatches', smsCategory: null, priority: 'high' },
+  reschedule_approved: { category: 'jobMatches', smsCategory: null, priority: 'medium' },
+  reschedule_rejected: { category: 'jobMatches', smsCategory: null, priority: 'medium' },
+  // Job Workflow notifications
+  job_started: { category: 'jobMatches', smsCategory: null, priority: 'medium' },
+  job_completed: { category: 'jobMatches', smsCategory: null, priority: 'high' },
+  job_issue_reported: { category: 'systemUpdates', smsCategory: null, priority: 'high' },
+  job_issue_escalated: { category: 'systemUpdates', smsCategory: null, priority: 'urgent' },
+  job_issue_resolved: { category: 'systemUpdates', smsCategory: null, priority: 'medium' },
+  // Quotes & Invoices notifications
+  quote_received: { category: 'jobMatches', smsCategory: null, priority: 'high' },
+  quote_approved: { category: 'jobMatches', smsCategory: null, priority: 'high' },
+  quote_rejected: { category: 'jobMatches', smsCategory: null, priority: 'medium' },
+  invoice_generated: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'high' },
+  invoice_received: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'high' },
+  invoice_paid: { category: 'paymentUpdates', smsCategory: 'paymentAlerts', priority: 'high' },
   
   // Message notifications
   message_received: { category: 'newMessages', smsCategory: 'urgentMessages', priority: 'medium' },

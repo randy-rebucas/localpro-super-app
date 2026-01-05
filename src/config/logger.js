@@ -117,7 +117,14 @@ const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'test' ? 'error' : 'debug',
   levels,
   transports: process.env.NODE_ENV === 'test' 
-    ? [] // No transports during tests to suppress all output
+    ? [
+        // Silent transport during tests to prevent Winston warnings
+        // while suppressing all output
+        new winston.transports.Console({
+          silent: true,
+          level: 'error'
+        })
+      ]
     : transports,
   exitOnError: false,
 });
