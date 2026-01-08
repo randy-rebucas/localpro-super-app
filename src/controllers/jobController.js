@@ -754,6 +754,24 @@ const updateApplicationStatus = async (req, res) => {
       });
     }
 
+    // Trigger webhook for application status change
+    try {
+      const webhookService = require('../services/webhookService');
+      const applicationData = {
+        _id: application._id,
+        job: { title: job.title, _id: job._id },
+        status,
+        feedback
+      };
+      await webhookService.triggerApplicationStatusChanged(applicationData, application.applicant);
+    } catch (webhookError) {
+      logger.warn('Webhook trigger failed for application status', {
+        jobId: job._id,
+        applicationId: application._id,
+        error: webhookError.message
+      });
+    }
+
     // Send notification email to applicant
     try {
       const applicant = await User.findById(application.applicant);

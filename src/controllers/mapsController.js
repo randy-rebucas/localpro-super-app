@@ -73,6 +73,86 @@ const geocodeAddress = async (req, res) => {
   }
 };
 
+// @desc    Convert coordinates to formatted address (GET with query params)
+// @route   GET /api/maps/address
+// @access  Public
+const getAddressFromCoordinates = async (req, res) => {
+  try {
+    const { lat, lng } = req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({
+        success: false,
+        message: 'Latitude and longitude are required as query parameters (e.g., ?lat=40.7128&lng=-74.0060)'
+      });
+    }
+
+    // Parse and validate coordinates
+    const parsedLat = parseFloat(lat);
+    const parsedLng = parseFloat(lng);
+
+    if (isNaN(parsedLat) || isNaN(parsedLng)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid coordinates. Latitude and longitude must be valid numbers'
+      });
+    }
+
+    if (parsedLat < -90 || parsedLat > 90) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid latitude. Must be between -90 and 90'
+      });
+    }
+
+    if (parsedLng < -180 || parsedLng > 180) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid longitude. Must be between -180 and 180'
+      });
+    }
+
+    // Call service to convert coordinates to address
+    const result = await GoogleMapsService.reverseGeocode(parsedLat, parsedLng);
+
+    if (!result.success) {
+      // Return appropriate status code based on error
+      const statusCode = result.statusCode === 403 ? 403 : 
+                        result.statusCode === 429 ? 429 :
+                        result.statusCode === 500 || result.statusCode === 503 ? 503 : 400;
+      
+      return res.status(statusCode).json({
+        success: false,
+        message: 'Failed to convert coordinates to address',
+        error: result.error || 'Unknown error',
+        ...(result.details && { details: result.details })
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        address: result.formattedAddress,
+        formattedAddress: result.formattedAddress,
+        addressComponents: result.addressComponents,
+        placeId: result.placeId,
+        types: result.types,
+        coordinates: {
+          lat: parsedLat,
+          lng: parsedLng
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Convert coordinates to address error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to convert coordinates to address',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 // @desc    Reverse geocode coordinates to get address
 // @route   POST /api/maps/reverse-geocode
 // @access  Public
@@ -434,6 +514,7 @@ module.exports = {
   getMapsInfo,
   geocodeAddress,
   reverseGeocode,
+  getAddressFromCoordinates,
   searchPlaces,
   getPlaceDetails,
   calculateDistance,

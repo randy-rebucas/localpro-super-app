@@ -167,6 +167,17 @@ const handleSubscriptionActivated = async (resource) => {
         user.localProPlusSubscription = subscription._id;
         await user.save();
       }
+
+      // Trigger webhook for subscription renewed
+      try {
+        const webhookService = require('../services/webhookService');
+        await webhookService.triggerSubscriptionRenewed(subscription, subscription.user);
+      } catch (webhookError) {
+        logger.warn('Webhook trigger failed for subscription activation', {
+          subscriptionId: subscription._id,
+          error: webhookError.message
+        });
+      }
     }
     
     logger.info(`Subscription activated: ${subscriptionId}`);
@@ -196,6 +207,17 @@ const handleSubscriptionCancelled = async (resource) => {
         effectiveDate: new Date()
       };
       await subscription.save();
+
+      // Trigger webhook for subscription cancelled
+      try {
+        const webhookService = require('../services/webhookService');
+        await webhookService.triggerSubscriptionCancelled(subscription, subscription.user, 'Cancelled via PayPal');
+      } catch (webhookError) {
+        logger.warn('Webhook trigger failed for subscription cancellation', {
+          subscriptionId: subscription._id,
+          error: webhookError.message
+        });
+      }
     }
     
     logger.info(`Subscription cancelled: ${subscriptionId}`);
@@ -340,6 +362,36 @@ const updatePaymentStatus = async (orderId, status, transactionId = null) => {
       }
       if (mapped === 'paid') {
         booking.payment.paidAt = new Date();
+
+        // Trigger payment successful webhook
+        try {
+          const webhookService = require('../services/webhookService');
+          const paymentData = {
+            _id: booking.payment._id || booking._id,
+            amount: booking.payment.amount || booking.pricing?.total,
+            currency: booking.payment.currency || 'PHP',
+            method: 'paypal',
+            transactionId: transactionId,
+            processedAt: new Date()
+          };
+          await webhookService.triggerPaymentSuccessful(paymentData, booking.client);
+        } catch (webhookError) {
+          logger.warn('Webhook trigger failed for payment successful', { error: webhookError.message });
+        }
+      } else if (mapped === 'failed') {
+        // Trigger payment failed webhook
+        try {
+          const webhookService = require('../services/webhookService');
+          const paymentData = {
+            _id: booking.payment._id || booking._id,
+            amount: booking.payment.amount || booking.pricing?.total,
+            currency: booking.payment.currency || 'PHP',
+            method: 'paypal'
+          };
+          await webhookService.triggerPaymentFailed(paymentData, booking.client, `Payment ${normalizedStatus}`);
+        } catch (webhookError) {
+          logger.warn('Webhook trigger failed for payment failed', { error: webhookError.message });
+        }
       }
       await booking.save();
       return;

@@ -4,6 +4,14 @@ const logger = require('../config/logger');
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const serviceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
+const isTestMode = process.env.TWILIO_TEST_MODE === 'true';
+
+// If test mode is enabled, use mock service
+if (isTestMode) {
+  logger.info('🧪 TWILIO_TEST_MODE enabled - Using mock Twilio service');
+  const mockService = require('./twilioServiceMock');
+  module.exports = mockService;
+} else {
 
 // Initialize Twilio client only if credentials are available
 let client = null;
@@ -191,3 +199,4 @@ class TwilioService {
 }
 
 module.exports = TwilioService;
+}

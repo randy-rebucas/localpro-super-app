@@ -562,6 +562,36 @@ const updatePaymentStatus = async (referenceNumber, status, transactionId = null
       }
       if (status === 'completed') {
         booking.payment.paidAt = new Date();
+
+        // Trigger payment successful webhook
+        try {
+          const webhookService = require('../services/webhookService');
+          const paymentData = {
+            _id: booking.payment._id || booking._id,
+            amount: booking.payment.amount || booking.pricing?.total,
+            currency: booking.payment.currency || 'PHP',
+            method: 'paymaya',
+            transactionId: transactionId,
+            processedAt: new Date()
+          };
+          await webhookService.triggerPaymentSuccessful(paymentData, booking.client);
+        } catch (webhookError) {
+          logger.warn('Webhook trigger failed for payment successful', { error: webhookError.message });
+        }
+      } else if (status === 'failed') {
+        // Trigger payment failed webhook
+        try {
+          const webhookService = require('../services/webhookService');
+          const paymentData = {
+            _id: booking.payment._id || booking._id,
+            amount: booking.payment.amount || booking.pricing?.total,
+            currency: booking.payment.currency || 'PHP',
+            method: 'paymaya'
+          };
+          await webhookService.triggerPaymentFailed(paymentData, booking.client, 'Payment failed');
+        } catch (webhookError) {
+          logger.warn('Webhook trigger failed for payment failed', { error: webhookError.message });
+        }
       }
       await booking.save();
       return;

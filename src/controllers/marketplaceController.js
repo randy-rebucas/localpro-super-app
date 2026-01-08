@@ -50,13 +50,11 @@ const getServices = async (req, res) => {
     // Build filter object
     const filter = { isActive: true };
 
-    // Text search
+    // Text search (only on string fields, not ObjectId references like category)
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } },
-        { subcategory: { $regex: search, $options: 'i' } },
         { features: { $in: [new RegExp(search, 'i')] } }
       ];
     }
@@ -2145,6 +2143,31 @@ const updateBookingStatus = async (req, res) => {
       logger.warn('Booking status notification failed', {
         bookingId: booking._id,
         error: notifyError.message
+      });
+    }
+
+    // Trigger webhook events for booking status changes
+    try {
+      const webhookService = require('../services/webhookService');
+      const populatedBooking = await Booking.findById(booking._id)
+        .populate('service', 'title')
+        .populate('provider', 'firstName lastName profile')
+        .populate('client', 'firstName lastName');
+
+      if (status === 'confirmed') {
+        await webhookService.triggerBookingConfirmed(populatedBooking, booking.client);
+        await webhookService.triggerBookingConfirmed(populatedBooking, booking.provider);
+      } else if (status === 'completed') {
+        await webhookService.triggerBookingCompleted(populatedBooking, booking.client);
+        await webhookService.triggerBookingCompleted(populatedBooking, booking.provider);
+      } else if (status === 'cancelled') {
+        await webhookService.triggerBookingCancelled(populatedBooking, booking.client, isProvider ? 'provider' : 'client', note);
+        await webhookService.triggerBookingCancelled(populatedBooking, booking.provider, isProvider ? 'provider' : 'client', note);
+      }
+    } catch (webhookError) {
+      logger.warn('Webhook trigger failed for booking status', {
+        bookingId: booking._id,
+        error: webhookError.message
       });
     }
 
