@@ -170,13 +170,11 @@ const aiBotInteractionSchema = new mongoose.Schema({
   context: {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      index: true
+      ref: 'User'
     },
     bookingId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Booking',
-      index: true
+      ref: 'Booking'
     },
     providerId: {
       type: mongoose.Schema.Types.ObjectId,
