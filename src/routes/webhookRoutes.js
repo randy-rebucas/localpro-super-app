@@ -11,10 +11,10 @@ const {
   regenerateWebhookSecret,
   testWebhookSubscription
 } = require('../controllers/webhookController');
-const { protect } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
 // All routes require authentication
-router.use(protect);
+router.use(auth);
 
 // Webhook Events Routes
 router.get('/events', getWebhookEvents);
