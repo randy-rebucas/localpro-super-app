@@ -219,13 +219,11 @@ const searchJobs = async (query, filters = {}) => {
       status: { $in: ['active', 'featured'] }
     };
 
-    // Text search
+    // Text search (only on string fields, not ObjectId references like category)
     searchQuery.$or = [
       { title: { $regex: query, $options: 'i' } },
       { description: { $regex: query, $options: 'i' } },
-      { 'company.name': { $regex: query, $options: 'i' } },
-      { category: { $regex: query, $options: 'i' } },
-      { subcategory: { $regex: query, $options: 'i' } }
+      { 'company.name': { $regex: query, $options: 'i' } }
     ];
 
     // Apply filters
@@ -286,12 +284,10 @@ const searchServices = async (query, filters = {}) => {
       isActive: true
     };
 
-    // Text search
+    // Text search (only on string fields, not ObjectId references like category)
     searchQuery.$or = [
       { title: { $regex: query, $options: 'i' } },
       { description: { $regex: query, $options: 'i' } },
-      { category: { $regex: query, $options: 'i' } },
-      { subcategory: { $regex: query, $options: 'i' } },
       { features: { $in: [new RegExp(query, 'i')] } }
     ];
 
@@ -362,12 +358,10 @@ const searchSupplies = async (query, filters = {}) => {
       isActive: true
     };
 
-    // Text search
+    // Text search (only on string fields, not ObjectId references like category)
     searchQuery.$or = [
       { name: { $regex: query, $options: 'i' } },
       { description: { $regex: query, $options: 'i' } },
-      { category: { $regex: query, $options: 'i' } },
-      { subcategory: { $regex: query, $options: 'i' } },
       { brand: { $regex: query, $options: 'i' } },
       { tags: { $in: [new RegExp(query, 'i')] } }
     ];
@@ -421,11 +415,10 @@ const searchCourses = async (query, filters = {}) => {
       isActive: true
     };
 
-    // Text search
+    // Text search (only on string fields, not ObjectId references like category)
     searchQuery.$or = [
       { title: { $regex: query, $options: 'i' } },
       { description: { $regex: query, $options: 'i' } },
-      { category: { $regex: query, $options: 'i' } },
       { tags: { $in: [new RegExp(query, 'i')] } },
       { learningOutcomes: { $in: [new RegExp(query, 'i')] } }
     ];
@@ -481,12 +474,10 @@ const searchRentals = async (query, filters = {}) => {
       'availability.isAvailable': true
     };
 
-    // Text search
+    // Text search (only on string fields, not ObjectId references like category)
     searchQuery.$or = [
       { name: { $regex: query, $options: 'i' } },
       { description: { $regex: query, $options: 'i' } },
-      { category: { $regex: query, $options: 'i' } },
-      { subcategory: { $regex: query, $options: 'i' } },
       { 'specifications.brand': { $regex: query, $options: 'i' } },
       { 'specifications.model': { $regex: query, $options: 'i' } }
     ];
@@ -639,31 +630,28 @@ const getSearchSuggestions = async (req, res) => {
         ]
       }).select('firstName lastName profile.businessName profile.specialties').limit(5).lean(),
 
-      // Job suggestions
+      // Job suggestions (only search string fields, not ObjectId references)
       Job.find({
         isActive: true,
         $or: [
           { title: { $regex: searchQuery, $options: 'i' } },
-          { category: { $regex: searchQuery, $options: 'i' } },
           { 'company.name': { $regex: searchQuery, $options: 'i' } }
         ]
       }).select('title category company.name').limit(5).lean(),
 
-      // Service suggestions
+      // Service suggestions (only search string fields, not ObjectId references)
       Marketplace.find({
         isActive: true,
         $or: [
-          { title: { $regex: searchQuery, $options: 'i' } },
-          { category: { $regex: searchQuery, $options: 'i' } }
+          { title: { $regex: searchQuery, $options: 'i' } }
         ]
       }).select('title category').limit(5).lean(),
 
-      // Course suggestions
+      // Course suggestions (only search string fields, not ObjectId references)
       Course.find({
         isActive: true,
         $or: [
-          { title: { $regex: searchQuery, $options: 'i' } },
-          { category: { $regex: searchQuery, $options: 'i' } }
+          { title: { $regex: searchQuery, $options: 'i' } }
         ]
       }).select('title category').limit(5).lean()
     ]);

@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   geocodeAddress,
   reverseGeocode,
+  getAddressFromCoordinates,
   searchPlaces,
   getPlaceDetails,
   calculateDistance,
@@ -79,6 +80,69 @@ router.post('/geocode', geocodeAddress);
  *         description: Address information
  */
 router.post('/reverse-geocode', reverseGeocode);
+
+/**
+ * @swagger
+ * /api/maps/address:
+ *   get:
+ *     summary: Convert coordinates to formatted address
+ *     description: Convert latitude and longitude coordinates into a human-readable formatted address
+ *     tags: [Maps]
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: lat
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: Latitude (-90 to 90)
+ *         example: 40.7128
+ *       - in: query
+ *         name: lng
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: Longitude (-180 to 180)
+ *         example: -74.0060
+ *     responses:
+ *       200:
+ *         description: Formatted address retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     address:
+ *                       type: string
+ *                       example: "1600 Amphitheatre Parkway, Mountain View, CA 94043, USA"
+ *                     formattedAddress:
+ *                       type: string
+ *                     addressComponents:
+ *                       type: object
+ *                     placeId:
+ *                       type: string
+ *                     types:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     coordinates:
+ *                       type: object
+ *                       properties:
+ *                         lat:
+ *                           type: number
+ *                         lng:
+ *                           type: number
+ *       400:
+ *         description: Invalid coordinates or missing parameters
+ *       500:
+ *         description: Server error
+ */
+router.get('/address', getAddressFromCoordinates);
 
 /**
  * @swagger

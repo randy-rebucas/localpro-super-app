@@ -57,6 +57,7 @@ const escrowWebhookRoutes = require('./routes/escrowWebhooks');
 const liveChatRoutes = require('./routes/liveChat');
 const adminLiveChatRoutes = require('./routes/adminLiveChat');
 const notificationsRoutes = require('./routes/notifications');
+const webhookRoutes = require('./routes/webhookRoutes');
 const emailMarketingRoutes = require('./routes/emailMarketing');
 const partnersRoutes = require('./routes/partners');
 const staffRoutes = require('./routes/staff');
@@ -598,6 +599,9 @@ function startServer() {
   
   // Notification Routes
   app.use('/api/notifications', notificationsRoutes);
+  
+  // Webhook Routes
+  app.use('/api/webhooks', webhookRoutes);
   
   // Email Marketing Routes
   app.use('/api/email-marketing', emailMarketingRoutes);

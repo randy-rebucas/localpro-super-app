@@ -305,7 +305,20 @@ curl -X POST http://localhost:4000/api/maps/geocode \
   -d '{"address": "New York, NY"}'
 ```
 
-## 📚 API Documentation
+## 📚 Documentation
+
+### Complete Documentation Suite
+
+- **[Automations Documentation](AUTOMATIONS_DOCUMENTATION.md)** - Comprehensive guide to all 33 automated background services
+- **[Automations Quick Reference](AUTOMATIONS_QUICK_REFERENCE.md)** - Quick reference card for automation configuration
+- **[Client Mobile App Documentation](CLIENT_MOBILE_APP_DOCUMENTATION.md)** - Full API documentation for client apps
+- **[Provider Mobile App Documentation](PROVIDER_MOBILE_APP_DOCUMENTATION.md)** - Full API documentation for provider apps
+- **[Admin Dashboard Documentation](ADMIN_DASHBOARD_DOCUMENTATION.md)** - Full API documentation for admin panel
+- **[Partner Portal Documentation](PARTNER_PORTAL_DOCUMENTATION.md)** - Full API documentation for business partners
+- **[Documentation Summary](DOCUMENTATION_SUMMARY.md)** - Overview of all documentation files
+- **[Quick Start Guide](QUICK_START_GUIDE.md)** - Getting started guide
+
+### API Endpoints Overview
 
 ### Authentication Endpoints
 ```

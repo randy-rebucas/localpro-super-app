@@ -420,6 +420,22 @@ const sendMessage = async (req, res) => {
           })
         )
       ).catch(err => console.error('Error sending message notifications:', err));
+
+      // Trigger webhook for message received (async, don't block response)
+      const webhookService = require('../services/webhookService');
+      const messageData = {
+        _id: message._id,
+        sender: req.user.id,
+        senderName,
+        content: content?.substring(0, 100),
+        conversation: conversation._id,
+        createdAt: message.createdAt
+      };
+      Promise.all(
+        otherParticipants.map(recipientId =>
+          webhookService.triggerMessageReceived(messageData, recipientId)
+        )
+      ).catch(err => console.error('Error triggering message webhooks:', err));
     }
 
     res.status(201).json({

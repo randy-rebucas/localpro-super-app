@@ -647,3 +647,17 @@ POST /api/masked-calls/:id/calls/:callId/end
 - `GET /api/masked-calls/:id` - Get masked call session
 - `POST /api/masked-calls/:id/initiate` - Initiate call
 - `POST /api/masked-calls/:id/calls/:callId/end` - End call
+
+### Maps & Geocoding
+- `GET /api/maps` - Get maps API information
+- `POST /api/maps/geocode` - Geocode an address to coordinates
+- `GET /api/maps/address?lat={latitude}&lng={longitude}` - Convert coordinates to formatted address
+- `POST /api/maps/reverse-geocode` - Reverse geocode coordinates to address (POST with body)
+- `POST /api/maps/places/search` - Search for places
+- `GET /api/maps/places/:placeId` - Get place details
+- `POST /api/maps/distance` - Calculate distance between two points
+- `POST /api/maps/nearby` - Find nearby places
+- `POST /api/maps/validate-service-area` - Validate service area coverage
+- `POST /api/maps/analyze-coverage` - Analyze service coverage (Protected)
+- `GET /api/maps/test` - Test Google Maps API connection (Admin only)
+ 
