@@ -123,8 +123,8 @@ async function initializeApplication() {
     
     logger.info('✅ Database connection verified successfully');
     
-    // Initialize automated services
-    initializeAutomatedServices();
+    // Initialize automated services (tracks services for graceful shutdown)
+    await initializeAutomatedServices();
     
     // Start the server
     startServer();
@@ -629,18 +629,18 @@ function startServer() {
     const { WebSocketServer } = require('ws');
     
     // Create HTTP server
-    const server = http.createServer(app);
+    httpServer = http.createServer(app);
     
     // Create WebSocket server for live chat
     const wss = new WebSocketServer({ 
-      server,
+      server: httpServer,
       path: '/ws/live-chat'
     });
     
     // Initialize live chat WebSocket service
     liveChatWebSocketService.initialize(wss);
     
-    server.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       logger.info('LocalPro Super App API Started', {
         port: PORT,
         environment: process.env.NODE_ENV || 'development',
@@ -656,13 +656,20 @@ function startServer() {
   }
 }
 
-// Initialize automated services
+// Store references to services for graceful shutdown (module-level)
+let httpServer = null;
+let automatedServices = [];
+
+// Initialize automated services (tracks services for graceful shutdown)
 async function initializeAutomatedServices() {
+  automatedServices = []; // Reset list
+  
   try {
     // Automated Backup Service
     if (process.env.ENABLE_AUTOMATED_BACKUPS === 'true' || process.env.NODE_ENV === 'production') {
       const automatedBackupService = require('./services/automatedBackupService');
       automatedBackupService.start();
+      automatedServices.push(automatedBackupService);
       logger.info('✅ Automated backup service started');
     }
 
@@ -670,6 +677,7 @@ async function initializeAutomatedServices() {
     if (process.env.ENABLE_AUTOMATED_BOOKINGS !== 'false') {
       const automatedBookingService = require('./services/automatedBookingService');
       automatedBookingService.start();
+      automatedServices.push(automatedBookingService);
       logger.info('✅ Automated booking service started');
     }
 
@@ -677,6 +685,7 @@ async function initializeAutomatedServices() {
     if (process.env.ENABLE_AUTOMATED_CAMPAIGNS !== 'false') {
       const automatedCampaignProcessor = require('./services/automatedCampaignProcessor');
       automatedCampaignProcessor.start();
+      automatedServices.push(automatedCampaignProcessor);
       logger.info('✅ Automated campaign processor started');
     }
 
@@ -684,6 +693,7 @@ async function initializeAutomatedServices() {
     if (process.env.ENABLE_AUTOMATED_SUBSCRIPTIONS !== 'false') {
       const automatedSubscriptionService = require('./services/automatedSubscriptionService');
       automatedSubscriptionService.start();
+      automatedServices.push(automatedSubscriptionService);
       logger.info('✅ Automated subscription service started');
     }
 
@@ -691,6 +701,7 @@ async function initializeAutomatedServices() {
     if (process.env.ENABLE_AUTOMATED_ESCROWS !== 'false') {
       const automatedEscrowService = require('./services/automatedEscrowService');
       automatedEscrowService.start();
+      automatedServices.push(automatedEscrowService);
       logger.info('✅ Automated escrow service started');
     }
 
@@ -882,6 +893,103 @@ async function initializeAutomatedServices() {
     // Don't exit - allow server to start even if automation fails
   }
 }
+
+// Graceful shutdown handler
+async function gracefulShutdown(signal) {
+  logger.info(`Received ${signal}. Starting graceful shutdown...`);
+  
+  try {
+    // Close HTTP server (stop accepting new connections)
+    if (httpServer) {
+      return new Promise((resolve) => {
+        httpServer.close(() => {
+          logger.info('HTTP server closed');
+          
+          // Use async IIFE to handle async operations in the callback
+          (async () => {
+            try {
+              // Stop all automated services
+              for (const service of automatedServices) {
+                if (service && typeof service.stop === 'function') {
+                  try {
+                    service.stop();
+                    logger.info(`Stopped service: ${service.constructor?.name || 'unknown'}`);
+                  } catch (error) {
+                    logger.error(`Error stopping service: ${error.message}`);
+                  }
+                }
+              }
+              
+              // Stop database performance monitor
+              const dbMonitor = require('./services/databasePerformanceMonitor');
+              if (dbMonitor && typeof dbMonitor.stopMonitoring === 'function') {
+                dbMonitor.stopMonitoring();
+              }
+              
+              // Cleanup metrics stream
+              const { cleanup: cleanupMetricsStream } = require('./routes/metricsStream');
+              if (cleanupMetricsStream) {
+                cleanupMetricsStream();
+              }
+              
+              // Close MongoDB connection
+              const mongoose = require('mongoose');
+              if (mongoose.connection.readyState === 1) {
+                await mongoose.connection.close();
+                logger.info('MongoDB connection closed');
+              }
+              
+              logger.info('Graceful shutdown completed');
+              resolve();
+              process.exit(0);
+            } catch (error) {
+              logger.error('Error during graceful shutdown:', error);
+              process.exit(1);
+            }
+          })();
+        });
+        
+        // Force shutdown after 10 seconds
+        setTimeout(() => {
+          logger.error('Forced shutdown after timeout');
+          process.exit(1);
+        }, 10000);
+      });
+    } else {
+      // If no HTTP server, just clean up services and exit
+      for (const service of automatedServices) {
+        if (service && typeof service.stop === 'function') {
+          try {
+            service.stop();
+          } catch (error) {
+            logger.error(`Error stopping service: ${error.message}`);
+          }
+        }
+      }
+      
+      const mongoose = require('mongoose');
+      if (mongoose.connection.readyState === 1) {
+        await mongoose.connection.close();
+      }
+      
+      process.exit(0);
+    }
+  } catch (error) {
+    logger.error('Error in graceful shutdown:', error);
+    process.exit(1);
+  }
+}
+
+// Register shutdown handlers (only once)
+if (!process.shutdownHandlersRegistered) {
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  process.shutdownHandlersRegistered = true;
+}
+
+// Update the existing initializeAutomatedServices call to use the new function
+// But keep the original function signature for backward compatibility
+const originalInitializeAutomatedServices = initializeAutomatedServices;
 
 // Initialize application when run directly
 if (require.main === module) {

@@ -13,6 +13,7 @@ class AutomatedEscrowService {
   constructor() {
     this.isRunning = false;
     this.processingEscrows = new Set(); // Track escrows being processed
+    this.cronJobs = []; // Store cron job references for proper cleanup
   }
 
   /**
@@ -24,46 +25,54 @@ class AutomatedEscrowService {
       return;
     }
 
+    // Clear any existing jobs if restarting
+    this.stop();
+
     // Check for escrows needing auto-capture (every hour)
-    cron.schedule('0 * * * *', async () => {
+    const captureJob = cron.schedule('0 * * * *', async () => {
       await this.processAutoCapture();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(captureJob);
 
     // Check for escrows needing auto-release (every 6 hours)
-    cron.schedule('0 */6 * * *', async () => {
+    const releaseJob = cron.schedule('0 */6 * * *', async () => {
       await this.processAutoRelease();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(releaseJob);
 
     // Check for escrows needing payout (every 12 hours)
-    cron.schedule('0 */12 * * *', async () => {
+    const payoutJob = cron.schedule('0 */12 * * *', async () => {
       await this.processAutoPayout();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(payoutJob);
 
     // Flag stuck escrows (daily at 4 AM)
-    cron.schedule('0 4 * * *', async () => {
+    const stuckJob = cron.schedule('0 4 * * *', async () => {
       await this.flagStuckEscrows();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(stuckJob);
 
     // Clean up processing tracking set daily
-    cron.schedule('0 0 * * *', () => {
+    const cleanupJob = cron.schedule('0 0 * * *', () => {
       this.processingEscrows.clear();
       logger.info('Cleared escrow processing tracking set');
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(cleanupJob);
 
     this.isRunning = true;
     logger.info('✅ Automated escrow service started');
@@ -74,6 +83,13 @@ class AutomatedEscrowService {
    */
   stop() {
     this.isRunning = false;
+    // Stop all cron jobs to prevent memory leaks
+    this.cronJobs.forEach(job => {
+      if (job && typeof job.stop === 'function') {
+        job.stop();
+      }
+    });
+    this.cronJobs = [];
     logger.info('Automated escrow service stopped');
   }
 

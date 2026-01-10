@@ -14,6 +14,7 @@ const logger = require('../config/logger');
 class AutomatedSchedulingService {
   constructor() {
     this.isRunning = false;
+    this.cronJobs = []; // Store cron job references for proper cleanup
   }
 
   /**
@@ -25,10 +26,13 @@ class AutomatedSchedulingService {
       return;
     }
 
+    // Clear any existing jobs if restarting
+    this.stop();
+
     const timezone = process.env.TZ || 'UTC';
 
     // Cleanup expired rankings (daily at 3 AM)
-    cron.schedule('0 3 * * *', async () => {
+    const rankingsJob = cron.schedule('0 3 * * *', async () => {
       try {
         const result = await JobRankingScore.cleanupExpired();
         logger.info(`Cleaned up expired job rankings: ${result.modifiedCount} updated`);
@@ -39,9 +43,10 @@ class AutomatedSchedulingService {
       scheduled: true,
       timezone: timezone
     });
+    this.cronJobs.push(rankingsJob);
 
     // Cleanup expired suggestions (daily at 3:30 AM)
-    cron.schedule('30 3 * * *', async () => {
+    const suggestionsJob = cron.schedule('30 3 * * *', async () => {
       try {
         const result = await SchedulingSuggestion.cleanupExpired();
         logger.info(`Cleaned up expired scheduling suggestions: ${result.modifiedCount} updated`);
@@ -52,6 +57,7 @@ class AutomatedSchedulingService {
       scheduled: true,
       timezone: timezone
     });
+    this.cronJobs.push(suggestionsJob);
 
     this.isRunning = true;
     logger.info('✅ Automated scheduling service started');
@@ -62,6 +68,13 @@ class AutomatedSchedulingService {
    */
   stop() {
     this.isRunning = false;
+    // Stop all cron jobs to prevent memory leaks
+    this.cronJobs.forEach(job => {
+      if (job && typeof job.stop === 'function') {
+        job.stop();
+      }
+    });
+    this.cronJobs = [];
     logger.info('Automated scheduling service stopped');
   }
 }

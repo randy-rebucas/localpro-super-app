@@ -12,6 +12,7 @@ class AutomatedBookingService {
   constructor() {
     this.isRunning = false;
     this.reminderSent = new Set(); // Track sent reminders to avoid duplicates
+    this.cronJobs = []; // Store cron job references for proper cleanup
   }
 
   /**
@@ -23,38 +24,45 @@ class AutomatedBookingService {
       return;
     }
 
+    // Clear any existing jobs if restarting
+    this.stop();
+
     // Check for bookings needing reminders (every 15 minutes)
-    cron.schedule('*/15 * * * *', async () => {
+    const reminderJob = cron.schedule('*/15 * * * *', async () => {
       await this.sendBookingReminders();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(reminderJob);
 
     // Check for bookings needing status transitions (every 30 minutes)
-    cron.schedule('*/30 * * * *', async () => {
+    const statusJob = cron.schedule('*/30 * * * *', async () => {
       await this.processBookingStatusTransitions();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(statusJob);
 
     // Check for completed bookings needing review requests (daily at 9 AM)
-    cron.schedule('0 9 * * *', async () => {
+    const reviewJob = cron.schedule('0 9 * * *', async () => {
       await this.sendReviewRequests();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(reviewJob);
 
     // Clean up reminder tracking set daily (to prevent memory growth)
-    cron.schedule('0 0 * * *', () => {
+    const cleanupJob = cron.schedule('0 0 * * *', () => {
       this.reminderSent.clear();
       logger.info('Cleared booking reminder tracking set');
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(cleanupJob);
 
     this.isRunning = true;
     logger.info('✅ Automated booking service started');
@@ -65,6 +73,13 @@ class AutomatedBookingService {
    */
   stop() {
     this.isRunning = false;
+    // Stop all cron jobs to prevent memory leaks
+    this.cronJobs.forEach(job => {
+      if (job && typeof job.stop === 'function') {
+        job.stop();
+      }
+    });
+    this.cronJobs = [];
     logger.info('Automated booking service stopped');
   }
 

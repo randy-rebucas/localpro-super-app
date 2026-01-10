@@ -6,6 +6,8 @@ const logger = require('../config/logger');
 
 // Store active connections for Server-Sent Events
 const activeConnections = new Set();
+const alertClients = new Set(); // Module-level to prevent memory leaks
+const wsClients = new Map(); // Module-level to prevent memory leaks
 
 // Broadcast metrics to all connected clients
 const broadcastMetrics = async () => {
@@ -121,17 +123,20 @@ router.get('/alerts/stream', (req, res) => {
     message: 'Connected to alerts stream'
   })}\n\n`);
 
-  // Store alert client
-  const alertClients = new Set();
+  // Add client to module-level Set to prevent memory leaks
   alertClients.add(res);
 
-  req.on('close', () => {
+  // Handle client disconnect
+  const cleanup = () => {
     alertClients.delete(res);
-  });
+    res.removeListener('close', cleanup);
+    res.removeListener('error', cleanup);
+  };
 
+  req.on('close', cleanup);
   req.on('error', (error) => {
     logger.error('Error in alerts stream:', error);
-    alertClients.delete(res);
+    cleanup();
   });
 
   // Export function to broadcast alerts
@@ -143,10 +148,12 @@ router.get('/alerts/stream', (req, res) => {
     })}\n\n`;
     
     try {
-      res.write(message);
+      if (!res.writableEnded) {
+        res.write(message);
+      }
     } catch (error) {
       logger.error('Error sending alert to client:', error);
-      alertClients.delete(res);
+      cleanup();
     }
   };
 
@@ -172,17 +179,21 @@ router.get('/ws', (req, res) => {
     message: 'Connected to WebSocket-like stream'
   })}\n\n`);
 
-  // Store client with ID
-  const wsClients = new Map();
+  // Store client with ID in module-level Map to prevent memory leaks
   wsClients.set(clientId, res);
 
-  req.on('close', () => {
+  // Handle client disconnect
+  const cleanup = () => {
     wsClients.delete(clientId);
-  });
+    req.removeListener('close', cleanup);
+    req.removeListener('error', cleanup);
+  };
+
+  req.on('close', cleanup);
 
   req.on('error', (error) => {
     logger.error('Error in WebSocket stream:', error);
-    wsClients.delete(clientId);
+    cleanup();
   });
 
   logger.info(`Client ${clientId} connected to WebSocket stream`);
@@ -241,13 +252,23 @@ router.post('/start', (req, res) => {
 const cleanup = () => {
   if (broadcastInterval) {
     clearInterval(broadcastInterval);
+    broadcastInterval = null;
   }
   activeConnections.clear();
+  alertClients.clear();
+  wsClients.clear();
+  logger.info('Metrics stream cleanup completed');
 };
 
-// Handle process termination
-process.on('SIGINT', cleanup);
-process.on('SIGTERM', cleanup);
+// Note: Process termination handlers are registered here, but the main graceful shutdown
+// should be handled in server.js to avoid duplicate handlers
+// Only register if not already registered by the main server
+if (!process.listenerCount('SIGINT') || process.listenerCount('SIGINT') === 0) {
+  process.on('SIGINT', cleanup);
+}
+if (!process.listenerCount('SIGTERM') || process.listenerCount('SIGTERM') === 0) {
+  process.on('SIGTERM', cleanup);
+}
 
 module.exports = {
   router,

@@ -13,6 +13,7 @@ const logger = require('../config/logger');
 class AutomatedAvailabilityService {
   constructor() {
     this.isRunning = false;
+    this.cronJobs = []; // Store cron job references for proper cleanup
   }
 
   /**
@@ -24,10 +25,13 @@ class AutomatedAvailabilityService {
       return;
     }
 
+    // Clear any existing jobs if restarting
+    this.stop();
+
     const timezone = process.env.TZ || 'UTC';
 
     // Send job start reminders (every 15 minutes)
-    cron.schedule('*/15 * * * *', async () => {
+    const reminderJob = cron.schedule('*/15 * * * *', async () => {
       try {
         await AvailabilityService.sendJobStartReminders(60); // 60 minutes before
       } catch (error) {
@@ -37,9 +41,10 @@ class AutomatedAvailabilityService {
       scheduled: true,
       timezone: timezone
     });
+    this.cronJobs.push(reminderJob);
 
     // Send lateness alerts (every 15 minutes)
-    cron.schedule('*/15 * * * *', async () => {
+    const latenessJob = cron.schedule('*/15 * * * *', async () => {
       try {
         await AvailabilityService.sendLatenessAlerts();
       } catch (error) {
@@ -49,6 +54,7 @@ class AutomatedAvailabilityService {
       scheduled: true,
       timezone: timezone
     });
+    this.cronJobs.push(latenessJob);
 
     this.isRunning = true;
     logger.info('✅ Automated availability service started');
@@ -59,6 +65,13 @@ class AutomatedAvailabilityService {
    */
   stop() {
     this.isRunning = false;
+    // Stop all cron jobs to prevent memory leaks
+    this.cronJobs.forEach(job => {
+      if (job && typeof job.stop === 'function') {
+        job.stop();
+      }
+    });
+    this.cronJobs = [];
     logger.info('Automated availability service stopped');
   }
 }

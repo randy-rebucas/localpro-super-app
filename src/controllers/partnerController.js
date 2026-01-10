@@ -55,11 +55,19 @@ const createPartner = async (req, res) => {
     await partner.save();
 
     // Log audit event
-    await auditLogger.log(req.user._id, 'PARTNER_CREATED', {
-      partnerId: partner._id,
-      partnerName: partner.name,
-      partnerEmail: partner.email
-    });
+    await auditLogger.logCustom(
+      'data_create',
+      'system',
+      req,
+      { type: 'partner', id: partner._id, name: partner.name },
+      {},
+      {
+        partnerId: partner._id,
+        partnerName: partner.name,
+        partnerEmail: partner.email,
+        action: 'PARTNER_CREATED'
+      }
+    );
 
     logger.info('Partner created successfully', {
       partnerId: partner._id,
@@ -273,6 +281,46 @@ const updatePartner = async (req, res) => {
       if (updates[field] !== undefined) {
         if (field === 'apiCredentials') {
           Object.assign(partner.apiCredentials, updates.apiCredentials);
+        } else if (field === 'businessInfo') {
+          // Handle businessInfo specially to avoid undefined address issues
+          const { address, ...businessInfoWithoutAddress } = updates.businessInfo || {};
+          
+          // Ensure businessInfo object exists
+          if (!partner.businessInfo) {
+            partner.businessInfo = {};
+          }
+          
+          // Update non-address fields
+          Object.keys(businessInfoWithoutAddress).forEach(key => {
+            if (businessInfoWithoutAddress[key] !== undefined) {
+              partner.businessInfo[key] = businessInfoWithoutAddress[key];
+            }
+          });
+
+          // Handle address separately
+          if (address !== undefined) {
+            if (address === null) {
+              partner.businessInfo.address = null;
+            } else if (address && typeof address === 'object') {
+              partner.businessInfo.address = {
+                ...(partner.businessInfo.address || {}),
+                ...address
+              };
+              // Remove undefined values from address
+              Object.keys(partner.businessInfo.address).forEach(key => {
+                if (partner.businessInfo.address[key] === undefined) {
+                  delete partner.businessInfo.address[key];
+                }
+              });
+            }
+          }
+
+          // Remove undefined values from businessInfo
+          Object.keys(partner.businessInfo).forEach(key => {
+            if (partner.businessInfo[key] === undefined) {
+              delete partner.businessInfo[key];
+            }
+          });
         } else {
           partner[field] = updates[field];
         }
@@ -282,11 +330,19 @@ const updatePartner = async (req, res) => {
     await partner.save();
 
     // Log audit event
-    await auditLogger.log(req.user._id, 'PARTNER_UPDATED', {
-      partnerId: partner._id,
-      partnerName: partner.name,
-      changes: Object.keys(updates)
-    });
+    await auditLogger.logCustom(
+      'data_update',
+      'system',
+      req,
+      { type: 'partner', id: partner._id, name: partner.name },
+      { fields: Object.keys(updates) },
+      {
+        partnerId: partner._id,
+        partnerName: partner.name,
+        changes: Object.keys(updates),
+        action: 'PARTNER_UPDATED'
+      }
+    );
 
     logger.info('Partner updated successfully', {
       partnerId: partner._id,
@@ -309,12 +365,61 @@ const updatePartner = async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to update partner', error);
+    // Log detailed error information for debugging
+    console.error('Error updating partner:', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      keyPattern: error.keyPattern,
+      keyValue: error.keyValue,
+      errors: error.errors,
+      stack: error.stack
+    });
 
+    logger.error('Failed to update partner', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+      partnerId: req.params.id,
+      body: req.body
+    });
+
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors,
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    if (error.code === 11000) {
+      // Duplicate key error (MongoDB)
+      const duplicateField = Object.keys(error.keyPattern)[0];
+      return res.status(409).json({
+        success: false,
+        message: `Partner with this ${duplicateField} already exists`,
+        code: 'DUPLICATE_ENTRY',
+        field: duplicateField
+      });
+    }
+
+    // Generic error response
     res.status(500).json({
       success: false,
       message: 'Failed to update partner',
-      code: 'PARTNER_UPDATE_ERROR'
+      code: 'PARTNER_UPDATE_ERROR',
+      ...(process.env.NODE_ENV === 'development' && {
+        error: error.message,
+        details: error.stack
+      })
     });
   }
 };
@@ -339,10 +444,18 @@ const deletePartner = async (req, res) => {
     await partner.softDelete(req.user._id);
 
     // Log audit event
-    await auditLogger.log(req.user._id, 'PARTNER_DELETED', {
-      partnerId: partner._id,
-      partnerName: partner.name
-    });
+    await auditLogger.logCustom(
+      'data_delete',
+      'system',
+      req,
+      { type: 'partner', id: partner._id, name: partner.name },
+      {},
+      {
+        partnerId: partner._id,
+        partnerName: partner.name,
+        action: 'PARTNER_DELETED'
+      }
+    );
 
     logger.info('Partner deleted successfully', {
       partnerId: partner._id,
@@ -393,11 +506,19 @@ const addPartnerNote = async (req, res) => {
     await partner.addNote(content.trim(), req.user._id);
 
     // Log audit event
-    await auditLogger.log(req.user._id, 'PARTNER_NOTE_ADDED', {
-      partnerId: partner._id,
-      partnerName: partner.name,
-      noteLength: content.length
-    });
+    await auditLogger.logCustom(
+      'data_update',
+      'system',
+      req,
+      { type: 'partner', id: partner._id, name: partner.name },
+      {},
+      {
+        partnerId: partner._id,
+        partnerName: partner.name,
+        noteLength: content.length,
+        action: 'PARTNER_NOTE_ADDED'
+      }
+    );
 
     logger.info('Note added to partner', {
       partnerId: partner._id,
@@ -450,11 +571,23 @@ const startPartnerOnboarding = async (req, res) => {
       });
     }
 
+    // Generate slug from name
+    let baseSlug = Partner.generateSlug(name);
+    let slug = baseSlug;
+    let counter = 1;
+
+    // Ensure unique slug
+    while (await Partner.findOne({ slug, deleted: { $ne: true } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
     // Create partner with basic info
     const partner = new Partner({
       name,
       email,
       phoneNumber,
+      slug,
       onboarding: {
         steps: [{
           step: 'basic_info',
@@ -488,12 +621,48 @@ const startPartnerOnboarding = async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to start partner onboarding', error);
+    logger.error('Failed to start partner onboarding', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      body: req.body
+    });
 
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors,
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    if (error.code === 11000) {
+      // Duplicate key error (MongoDB)
+      const duplicateField = Object.keys(error.keyPattern)[0];
+      return res.status(409).json({
+        success: false,
+        message: `Partner with this ${duplicateField} already exists`,
+        code: 'DUPLICATE_ENTRY',
+        field: duplicateField
+      });
+    }
+
+    // Generic error response
     res.status(500).json({
       success: false,
       message: 'Failed to start onboarding',
-      code: 'ONBOARDING_START_ERROR'
+      code: 'ONBOARDING_START_ERROR',
+      ...(process.env.NODE_ENV === 'development' && {
+        error: error.message,
+        details: error.stack
+      })
     });
   }
 };
@@ -503,11 +672,22 @@ const startPartnerOnboarding = async (req, res) => {
 // @access  Public
 const updateBusinessInfo = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array(),
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
     const { id } = req.params;
-    const businessInfo = req.body;
-
+    console.log(id);
+    const { businessInfo } = req.body;
+    console.log(businessInfo);
     const partner = await Partner.findById(id);
-
+    console.log(partner);
     if (!partner || partner.deleted) {
       return res.status(404).json({
         success: false,
@@ -516,15 +696,114 @@ const updateBusinessInfo = async (req, res) => {
       });
     }
 
-    // Update business info
-    partner.businessInfo = { ...partner.businessInfo, ...businessInfo };
+    // Ensure businessInfo object exists
+    if (!partner.businessInfo) {
+      partner.businessInfo = {};
+    }
+
+    // Update business info if provided
+    if (businessInfo && typeof businessInfo === 'object') {
+      // Extract address separately to handle it specially
+      const { address, ...businessInfoWithoutAddress } = businessInfo;
+      
+      // Merge business info (excluding address for now)
+      const mergedBusinessInfo = {
+        ...partner.businessInfo
+      };
+      
+      // Update non-address fields, removing undefined values
+      Object.keys(businessInfoWithoutAddress).forEach(key => {
+        if (businessInfoWithoutAddress[key] !== undefined) {
+          mergedBusinessInfo[key] = businessInfoWithoutAddress[key];
+        }
+      });
+
+      // Handle address separately - only set if it has actual values
+      if (address !== undefined) {
+        if (address === null) {
+          // Explicitly allow null to clear address
+          mergedBusinessInfo.address = null;
+        } else if (address && typeof address === 'object') {
+          // Merge address objects
+          mergedBusinessInfo.address = {
+            ...(partner.businessInfo.address || {}),
+            ...address
+          };
+          // Remove undefined values from address
+          Object.keys(mergedBusinessInfo.address).forEach(key => {
+            if (mergedBusinessInfo.address[key] === undefined) {
+              delete mergedBusinessInfo.address[key];
+            }
+          });
+        }
+        // If address is undefined, don't touch it - keep existing
+      }
+      // If address is not in businessInfo at all, keep existing address
+
+      // Final cleanup: remove any undefined values (shouldn't be any, but just in case)
+      Object.keys(mergedBusinessInfo).forEach(key => {
+        if (mergedBusinessInfo[key] === undefined) {
+          delete mergedBusinessInfo[key];
+        }
+      });
+
+      partner.businessInfo = mergedBusinessInfo;
+    }
+
+    // Ensure onboarding structure exists
+    if (!partner.onboarding) {
+      partner.onboarding = {
+        steps: [],
+        currentStep: 'business_info',
+        progress: 0
+      };
+    }
+    if (!partner.onboarding.steps) {
+      partner.onboarding.steps = [];
+    }
 
     // Complete business info step
-    await partner.completeOnboardingStep('business_info', businessInfo);
+    // Note: We complete the step even if businessInfo is empty to allow
+    // partners to skip optional fields and move to next step
+    try {
+      let result = await partner.completeOnboardingStep('business_info', businessInfo || {});
+      console.log('completeOnboardingStep result:', result);
+    } catch (stepError) {
+      console.error('Error in completeOnboardingStep:', stepError);
+      // If completeOnboardingStep fails, try manual save
+      const stepIndex = partner.onboarding.steps.findIndex(s => s.step === 'business_info');
+      if (stepIndex >= 0) {
+        partner.onboarding.steps[stepIndex].completed = true;
+        partner.onboarding.steps[stepIndex].completedAt = new Date();
+        partner.onboarding.steps[stepIndex].data = businessInfo || {};
+      } else {
+        partner.onboarding.steps.push({
+          step: 'business_info',
+          completed: true,
+          completedAt: new Date(),
+          data: businessInfo || {}
+        });
+      }
+      
+      // Update current step
+      const stepOrder = ['basic_info', 'business_info', 'api_setup', 'verification', 'activation'];
+      const currentStepIndex = stepOrder.indexOf('business_info');
+      if (currentStepIndex < stepOrder.length - 1) {
+        partner.onboarding.currentStep = stepOrder[currentStepIndex + 1];
+      }
+      
+      // Update progress
+      const completedSteps = partner.onboarding.steps.filter(step => step.completed).length;
+      partner.onboarding.progress = Math.round((completedSteps / 5) * 100);
+      
+      // Save manually
+      await partner.save();
+      console.log('Manual save successful');
+    }
 
     logger.info('Partner business info updated', {
       partnerId: partner._id,
-      hasCompanyName: !!businessInfo.companyName
+      hasCompanyName: !!businessInfo?.companyName
     });
 
     res.json({
@@ -539,12 +818,61 @@ const updateBusinessInfo = async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to update business info', error);
+    // Log detailed error information for debugging
+    console.error('Error updating business info:', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      keyPattern: error.keyPattern,
+      keyValue: error.keyValue,
+      errors: error.errors,
+      stack: error.stack
+    });
 
+    logger.error('Failed to update business info', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+      partnerId: req.params.id,
+      body: req.body
+    });
+
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors,
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    if (error.code === 11000) {
+      // Duplicate key error (MongoDB)
+      const duplicateField = Object.keys(error.keyPattern)[0];
+      return res.status(409).json({
+        success: false,
+        message: `Partner with this ${duplicateField} already exists`,
+        code: 'DUPLICATE_ENTRY',
+        field: duplicateField
+      });
+    }
+
+    // Generic error response
     res.status(500).json({
       success: false,
       message: 'Failed to update business information',
-      code: 'BUSINESS_INFO_UPDATE_ERROR'
+      code: 'BUSINESS_INFO_UPDATE_ERROR',
+      ...(process.env.NODE_ENV === 'development' && {
+        error: error.message,
+        details: error.stack
+      })
     });
   }
 };
@@ -554,6 +882,16 @@ const updateBusinessInfo = async (req, res) => {
 // @access  Public
 const completeVerification = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array(),
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
     const { id } = req.params;
     const { documents } = req.body;
 
@@ -592,12 +930,38 @@ const completeVerification = async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to complete verification', error);
+    logger.error('Failed to complete verification', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      partnerId: req.params.id,
+      body: req.body
+    });
 
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors,
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // Generic error response
     res.status(500).json({
       success: false,
       message: 'Failed to complete verification',
-      code: 'VERIFICATION_ERROR'
+      code: 'VERIFICATION_ERROR',
+      ...(process.env.NODE_ENV === 'development' && {
+        error: error.message,
+        details: error.stack
+      })
     });
   }
 };
@@ -607,6 +971,16 @@ const completeVerification = async (req, res) => {
 // @access  Public
 const completeApiSetup = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array(),
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
     const { id } = req.params;
     const { webhookUrl, callbackUrl } = req.body;
 
@@ -653,12 +1027,38 @@ const completeApiSetup = async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to complete API setup', error);
+    logger.error('Failed to complete API setup', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      partnerId: req.params.id,
+      body: req.body
+    });
 
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors,
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // Generic error response
     res.status(500).json({
       success: false,
       message: 'Failed to complete API setup',
-      code: 'API_SETUP_ERROR'
+      code: 'API_SETUP_ERROR',
+      ...(process.env.NODE_ENV === 'development' && {
+        error: error.message,
+        details: error.stack
+      })
     });
   }
 };
@@ -730,12 +1130,48 @@ const activatePartner = async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Failed to activate partner', error);
+    logger.error('Failed to activate partner', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      partnerId: req.params.id
+    });
 
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors,
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    if (error.code === 11000) {
+      // Duplicate key error (MongoDB)
+      const duplicateField = Object.keys(error.keyPattern)[0];
+      return res.status(409).json({
+        success: false,
+        message: `Partner with this ${duplicateField} already exists`,
+        code: 'DUPLICATE_ENTRY',
+        field: duplicateField
+      });
+    }
+
+    // Generic error response
     res.status(500).json({
       success: false,
       message: 'Failed to activate partner',
-      code: 'ACTIVATION_ERROR'
+      code: 'ACTIVATION_ERROR',
+      ...(process.env.NODE_ENV === 'development' && {
+        error: error.message,
+        details: error.stack
+      })
     });
   }
 };

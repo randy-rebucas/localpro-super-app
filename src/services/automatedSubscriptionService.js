@@ -15,6 +15,7 @@ class AutomatedSubscriptionService {
     this.isRunning = false;
     this.reminderSent = new Set(); // Track sent reminders
     this.processingRenewals = new Set(); // Track renewals in progress
+    this.cronJobs = []; // Store cron job references for proper cleanup
   }
 
   /**
@@ -26,40 +27,47 @@ class AutomatedSubscriptionService {
       return;
     }
 
+    // Clear any existing jobs if restarting
+    this.stop();
+
     // Check for subscriptions needing renewal reminders (daily at 10 AM)
-    cron.schedule('0 10 * * *', async () => {
+    const reminderJob = cron.schedule('0 10 * * *', async () => {
       await this.sendRenewalReminders();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(reminderJob);
 
     // Process automatic renewals (daily at 2 AM)
-    cron.schedule('0 2 * * *', async () => {
+    const renewJob = cron.schedule('0 2 * * *', async () => {
       await this.processAutomaticRenewals();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(renewJob);
 
     // Handle expired subscriptions (daily at 3 AM)
-    cron.schedule('0 3 * * *', async () => {
+    const expireJob = cron.schedule('0 3 * * *', async () => {
       await this.handleExpiredSubscriptions();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(expireJob);
 
     // Send reactivation offers (daily at 11 AM)
-    cron.schedule('0 11 * * *', async () => {
+    const reactivateJob = cron.schedule('0 11 * * *', async () => {
       await this.sendReactivationOffers();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(reactivateJob);
 
     // Clean up tracking sets daily
-    cron.schedule('0 0 * * *', () => {
+    const cleanupJob = cron.schedule('0 0 * * *', () => {
       this.reminderSent.clear();
       this.processingRenewals.clear();
       logger.info('Cleared subscription reminder tracking sets');
@@ -67,6 +75,7 @@ class AutomatedSubscriptionService {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'
     });
+    this.cronJobs.push(cleanupJob);
 
     this.isRunning = true;
     logger.info('✅ Automated subscription service started');
@@ -77,6 +86,13 @@ class AutomatedSubscriptionService {
    */
   stop() {
     this.isRunning = false;
+    // Stop all cron jobs to prevent memory leaks
+    this.cronJobs.forEach(job => {
+      if (job && typeof job.stop === 'function') {
+        job.stop();
+      }
+    });
+    this.cronJobs = [];
     logger.info('Automated subscription service stopped');
   }
 

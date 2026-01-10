@@ -12,26 +12,33 @@ class DatabasePerformanceMonitor {
       queuedConnections: 0
     };
     this.maxQueryStatsSize = 500; // Maximum number of unique query stats to track
+    this.monitoringInterval = null;
+    this.eventHandlers = null;
     
     this.startMonitoring();
   }
 
   startMonitoring() {
+    // Store event handler references for cleanup
+    this.eventHandlers = {
+      connected: () => {
+        logger.info('Database connected');
+        this.updateConnectionStats();
+      },
+      disconnected: () => {
+        logger.warn('Database disconnected');
+        this.updateConnectionStats();
+      },
+      error: (error) => {
+        logger.error('Database error:', error);
+        this.updateConnectionStats();
+      }
+    };
+
     // Monitor database connection events
-    mongoose.connection.on('connected', () => {
-      logger.info('Database connected');
-      this.updateConnectionStats();
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      logger.warn('Database disconnected');
-      this.updateConnectionStats();
-    });
-
-    mongoose.connection.on('error', (error) => {
-      logger.error('Database error:', error);
-      this.updateConnectionStats();
-    });
+    mongoose.connection.on('connected', this.eventHandlers.connected);
+    mongoose.connection.on('disconnected', this.eventHandlers.disconnected);
+    mongoose.connection.on('error', this.eventHandlers.error);
 
     // Monitor query performance
     this.setupQueryMonitoring();
@@ -46,6 +53,27 @@ class DatabasePerformanceMonitor {
         this.monitoringInterval.unref();
       }
     }
+  }
+
+  /**
+   * Stop monitoring and clean up event listeners
+   */
+  stopMonitoring() {
+    // Clear interval
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+      this.monitoringInterval = null;
+    }
+
+    // Remove event listeners to prevent memory leaks
+    if (this.eventHandlers && mongoose.connection) {
+      mongoose.connection.removeListener('connected', this.eventHandlers.connected);
+      mongoose.connection.removeListener('disconnected', this.eventHandlers.disconnected);
+      mongoose.connection.removeListener('error', this.eventHandlers.error);
+      this.eventHandlers = null;
+    }
+
+    logger.info('Database performance monitoring stopped');
   }
 
   setupQueryMonitoring() {
