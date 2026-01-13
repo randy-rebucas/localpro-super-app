@@ -297,6 +297,70 @@ const getRescheduleRequests = async (req, res) => {
   }
 };
 
+// @desc    Add time off
+// @route   POST /api/availability/time-off
+// @access  Private
+const addTimeOff = async (req, res) => {
+  try {
+    const providerId = req.user.id;
+    const { startDate, endDate, reason, notes } = req.body;
+
+    if (!startDate || !endDate) {
+      return sendValidationError(res, [{
+        field: 'startDate/endDate',
+        message: 'Start date and end date are required',
+        code: 'MISSING_DATES'
+      }]);
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (start >= end) {
+      return sendValidationError(res, [{
+        field: 'dates',
+        message: 'End date must be after start date',
+        code: 'INVALID_DATE_RANGE'
+      }]);
+    }
+
+    // Create time-off availability block
+    const timeOff = await AvailabilityService.createAvailability(providerId, {
+      startTime: start,
+      endTime: end,
+      title: reason || 'Time Off',
+      type: 'unavailable',
+      notes: notes || 'Time off requested',
+      isTimeOff: true
+    });
+
+    logger.info('Time off added', {
+      providerId,
+      startDate: start,
+      endDate: end,
+      timeOffId: timeOff._id
+    });
+
+    return sendSuccess(res, timeOff, 'Time off added successfully', 201);
+  } catch (error) {
+    logger.error('Add time off error', {
+      error: error.message,
+      stack: error.stack,
+      providerId: req.user?.id
+    });
+    
+    if (error.message.includes('conflicts')) {
+      return sendValidationError(res, [{
+        field: 'dates',
+        message: error.message,
+        code: 'DATE_CONFLICT'
+      }]);
+    }
+    
+    return sendServerError(res, error, 'Failed to add time off', 'ADD_TIMEOFF_ERROR');
+  }
+};
+
 module.exports = {
   createAvailability,
   getAvailability,
@@ -307,5 +371,6 @@ module.exports = {
   createRescheduleRequest,
   approveRescheduleRequest,
   rejectRescheduleRequest,
-  getRescheduleRequests
+  getRescheduleRequests,
+  addTimeOff
 };

@@ -987,10 +987,6 @@ if (!process.shutdownHandlersRegistered) {
   process.shutdownHandlersRegistered = true;
 }
 
-// Update the existing initializeAutomatedServices call to use the new function
-// But keep the original function signature for backward compatibility
-const originalInitializeAutomatedServices = initializeAutomatedServices;
-
 // Initialize application when run directly
 if (require.main === module) {
   initializeApplication();

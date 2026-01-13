@@ -14,10 +14,14 @@ const {
   uploadDocuments,
   getProviderDashboard,
   getProviderAnalytics,
+  getProviderMetrics,
+  getProviderActivity,
   updateProviderStatus,
   getProvidersForAdmin,
   getProviderSkills,
-  adminUpdateProvider
+  adminUpdateProvider,
+  getProviderReviews,
+  respondToReview
 } = require('../controllers/providerController');
 
 // Configure multer for file uploads
@@ -324,6 +328,100 @@ router.post('/documents/upload', upload.array('documents', 5), uploadDocuments);
 // Provider dashboard and analytics
 router.get('/dashboard/overview', getProviderDashboard);
 
+/**
+ * @swagger
+ * /api/providers/dashboard/metrics:
+ *   get:
+ *     summary: Get real-time provider metrics
+ *     tags: [Providers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Real-time metrics including today's and this week's performance
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     today:
+ *                       type: object
+ *                       properties:
+ *                         earnings:
+ *                           type: number
+ *                         bookings:
+ *                           type: number
+ *                         hours:
+ *                           type: number
+ *                         newMessages:
+ *                           type: number
+ *                     thisWeek:
+ *                       type: object
+ *                     performance:
+ *                       type: object
+ *                     goals:
+ *                       type: object
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/dashboard/metrics', getProviderMetrics);
+
+/**
+ * @swagger
+ * /api/providers/dashboard/activity:
+ *   get:
+ *     summary: Get provider activity feed
+ *     tags: [Providers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Items per page
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [booking, review, payment, message]
+ *         description: Filter by activity type
+ *     responses:
+ *       200:
+ *         description: Activity feed with recent events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     activities:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                     pagination:
+ *                       type: object
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/dashboard/activity', getProviderActivity);
+
 router.get('/analytics/performance', [
   query('timeframe').optional().isIn(['7d', '30d', '90d', '1y']).withMessage('Invalid timeframe')
 ], getProviderAnalytics);
@@ -364,5 +462,89 @@ const validateAdminProviderUpdate = [
 ];
 
 router.put('/admin/:id', authorize('admin'), validateAdminProviderUpdate, adminUpdateProvider);
+
+/**
+ * @swagger
+ * /api/providers/reviews:
+ *   get:
+ *     summary: Get provider reviews
+ *     tags: [Providers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *       - in: query
+ *         name: rating
+ *         schema:
+ *           type: integer
+ *           enum: [1, 2, 3, 4, 5]
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, rating]
+ *           default: createdAt
+ *     responses:
+ *       200:
+ *         description: Provider reviews retrieved successfully
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+router.get('/reviews', auth, getProviderReviews);
+
+/**
+ * @swagger
+ * /api/providers/reviews/{reviewId}/respond:
+ *   post:
+ *     summary: Respond to a review
+ *     tags: [Providers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: reviewId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - responseText
+ *             properties:
+ *               responseText:
+ *                 type: string
+ *                 maxLength: 1000
+ *     responses:
+ *       200:
+ *         description: Response added successfully
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       409:
+ *         description: Response already exists
+ */
+router.post('/reviews/:reviewId/respond', auth, [
+  param('reviewId').isMongoId().withMessage('Invalid review ID'),
+  body('responseText').trim().notEmpty().withMessage('Response text is required').isLength({ max: 1000 }).withMessage('Response must not exceed 1000 characters')
+], respondToReview);
 
 module.exports = router;

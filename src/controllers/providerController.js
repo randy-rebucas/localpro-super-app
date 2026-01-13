@@ -3,12 +3,14 @@ const Provider = require('../models/Provider');
 const ProviderSkill = require('../models/ProviderSkill');
 const ServiceCategory = require('../models/ServiceCategory');
 const User = require('../models/User');
+const { Booking } = require('../models/Marketplace');
 // Note: ProviderBusinessInfo, ProviderProfessionalInfo, ProviderVerification, 
 // ProviderFinancialInfo, ProviderPreferences, and ProviderPerformance are 
 // required dynamically inside functions where needed
 const { logger } = require('../utils/logger');
 const { auditLogger } = require('../utils/auditLogger');
 const { validationResult } = require('express-validator');
+const { validateObjectId } = require('../utils/validation');
 
 // @desc    Get provider skills
 // @route   GET /api/providers/skills
@@ -1842,6 +1844,579 @@ const adminUpdateProvider = async (req, res) => {
   }
 };
 
+// Get provider real-time metrics
+const getProviderMetrics = async (req, res) => {
+  try {
+    const provider = await Provider.findOne({ userId: req.user.id })
+      .populate('userId', 'firstName lastName email avatar');
+    
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: 'Provider profile not found'
+      });
+    }
+
+    const performance = await provider.ensurePerformance();
+    
+    // Get today's metrics
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Get this week's metrics
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay());
+    
+    // Calculate today's bookings and earnings
+    const Booking = require('../models/Booking');
+    const todayBookings = await Booking.countDocuments({
+      provider: provider._id,
+      createdAt: { $gte: today },
+      status: { $in: ['confirmed', 'in_progress', 'completed'] }
+    });
+    
+    const weekBookings = await Booking.countDocuments({
+      provider: provider._id,
+      createdAt: { $gte: weekStart },
+      status: { $in: ['confirmed', 'in_progress', 'completed'] }
+    });
+    
+    // Calculate earnings
+    const completedBookings = await Booking.find({
+      provider: provider._id,
+      status: 'completed',
+      completedAt: { $gte: today }
+    }).select('pricing');
+    
+    const todayEarnings = completedBookings.reduce((sum, booking) => {
+      return sum + (booking.pricing?.providerEarnings || booking.pricing?.total * 0.85 || 0);
+    }, 0);
+    
+    const weekBookingsData = await Booking.find({
+      provider: provider._id,
+      status: 'completed',
+      completedAt: { $gte: weekStart }
+    }).select('pricing');
+    
+    const weekEarnings = weekBookingsData.reduce((sum, booking) => {
+      return sum + (booking.pricing?.providerEarnings || booking.pricing?.total * 0.85 || 0);
+    }, 0);
+    
+    // Get new messages count
+    const Message = require('../models/Message');
+    const newMessagesCount = await Message.countDocuments({
+      recipient: req.user.id,
+      read: false,
+      createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+    });
+    
+    // Get new clients count
+    const newClientsCount = await Booking.distinct('client', {
+      provider: provider._id,
+      createdAt: { $gte: weekStart }
+    }).then(clients => clients.length);
+    
+    // Calculate monthly goal progress
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthlyBookings = await Booking.find({
+      provider: provider._id,
+      status: 'completed',
+      completedAt: { $gte: monthStart }
+    }).select('pricing');
+    
+    const monthlyEarnings = monthlyBookings.reduce((sum, booking) => {
+      return sum + (booking.pricing?.providerEarnings || booking.pricing?.total * 0.85 || 0);
+    }, 0);
+    
+    const monthlyGoal = 15000; // This should come from provider settings
+    const goalProgress = Math.min(Math.round((monthlyEarnings / monthlyGoal) * 100), 100);
+    
+    // Estimate completion date
+    const daysElapsed = today.getDate();
+    const dailyAverage = monthlyEarnings / daysElapsed;
+    const daysToGoal = Math.ceil((monthlyGoal - monthlyEarnings) / dailyAverage);
+    const projectedCompletion = new Date(today);
+    projectedCompletion.setDate(today.getDate() + daysToGoal);
+    
+    const metrics = {
+      today: {
+        earnings: Math.round(todayEarnings),
+        bookings: todayBookings,
+        hours: Math.round(completedBookings.reduce((sum, b) => sum + (b.duration || 0), 0)),
+        newMessages: newMessagesCount
+      },
+      thisWeek: {
+        earnings: Math.round(weekEarnings),
+        bookings: weekBookings,
+        hours: Math.round(weekBookingsData.reduce((sum, b) => sum + (b.duration || 0), 0)),
+        newClients: newClientsCount
+      },
+      performance: {
+        rating: performance.rating || 0,
+        completionRate: performance.completionRate || 0,
+        responseTime: performance.responseTime || '0h',
+        acceptanceRate: performance.acceptanceRate || 0
+      },
+      goals: {
+        monthlyEarningsGoal: monthlyGoal,
+        progress: goalProgress,
+        currentEarnings: Math.round(monthlyEarnings),
+        projectedCompletion: projectedCompletion.toISOString().split('T')[0]
+      }
+    };
+
+    logger.info('Provider metrics retrieved', {
+      userId: req.user.id,
+      providerId: provider._id
+    });
+
+    res.json({
+      success: true,
+      data: metrics
+    });
+  } catch (error) {
+    logger.error('Failed to get provider metrics', error, {
+      userId: req.user.id
+    });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve provider metrics'
+    });
+  }
+};
+
+// Get provider activity feed
+const getProviderActivity = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, type } = req.query;
+    const skip = (page - 1) * limit;
+    
+    const provider = await Provider.findOne({ userId: req.user.id });
+    
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: 'Provider profile not found'
+      });
+    }
+
+    // Build activities array from different sources
+    const activities = [];
+    
+    // Get recent bookings
+    const Booking = require('../models/Booking');
+    const Review = require('../models/Review');
+    
+    if (!type || type === 'booking') {
+      const recentBookings = await Booking.find({
+        provider: provider._id,
+        updatedAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+      })
+      .sort({ updatedAt: -1 })
+      .limit(50)
+      .populate('client', 'firstName lastName avatar')
+      .populate('service', 'title');
+      
+      for (const booking of recentBookings) {
+        let activityType = 'booking_created';
+        let title = 'New Booking';
+        let description = `New booking for ${booking.service?.title || 'service'}`;
+        let icon = 'calendar';
+        let priority = 'normal';
+        
+        if (booking.status === 'completed') {
+          activityType = 'booking_completed';
+          title = 'Booking Completed';
+          description = `You completed a service for ${booking.client?.firstName || 'client'}`;
+          icon = 'check_circle';
+        } else if (booking.status === 'confirmed') {
+          activityType = 'booking_confirmed';
+          title = 'Booking Confirmed';
+          description = `Booking with ${booking.client?.firstName || 'client'} confirmed`;
+          icon = 'check';
+        } else if (booking.status === 'cancelled') {
+          activityType = 'booking_cancelled';
+          title = 'Booking Cancelled';
+          description = `Booking was cancelled`;
+          icon = 'cancel';
+          priority = 'low';
+        }
+        
+        activities.push({
+          id: `booking_${booking._id}`,
+          type: activityType,
+          title,
+          description,
+          amount: booking.pricing?.providerEarnings || booking.pricing?.total * 0.85,
+          timestamp: booking.updatedAt,
+          icon,
+          priority,
+          relatedBooking: booking._id
+        });
+      }
+    }
+    
+    // Get recent reviews
+    if (!type || type === 'review') {
+      const recentReviews = await Review.find({
+        provider: provider._id,
+        createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+      })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate('client', 'firstName lastName avatar');
+      
+      for (const review of recentReviews) {
+        activities.push({
+          id: `review_${review._id}`,
+          type: 'new_review',
+          title: 'New Review',
+          description: `${review.client?.firstName || 'A client'} left you a ${review.rating}-star review`,
+          rating: review.rating,
+          timestamp: review.createdAt,
+          icon: 'star',
+          priority: review.rating >= 4 ? 'high' : 'normal',
+          relatedReview: review._id
+        });
+      }
+    }
+    
+    // Get payment activities
+    if (!type || type === 'payment') {
+      const Transaction = require('../models/Transaction');
+      const recentPayments = await Transaction.find({
+        user: req.user.id,
+        type: { $in: ['booking_payment', 'tip', 'bonus', 'withdrawal'] },
+        createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+      })
+      .sort({ createdAt: -1 })
+      .limit(20);
+      
+      for (const payment of recentPayments) {
+        let title = 'Payment Received';
+        let icon = 'payment';
+        if (payment.type === 'tip') {
+          title = 'Tip Received';
+          icon = 'favorite';
+        } else if (payment.type === 'bonus') {
+          title = 'Bonus Received';
+          icon = 'star';
+        } else if (payment.type === 'withdrawal') {
+          title = 'Withdrawal Processed';
+          icon = 'account_balance';
+        }
+        
+        activities.push({
+          id: `payment_${payment._id}`,
+          type: `payment_${payment.type}`,
+          title,
+          description: payment.description || `Payment of ${payment.currency} ${payment.amount}`,
+          amount: payment.amount,
+          timestamp: payment.createdAt,
+          icon,
+          priority: 'normal'
+        });
+      }
+    }
+    
+    // Sort all activities by timestamp
+    activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Paginate
+    const paginatedActivities = activities.slice(skip, skip + parseInt(limit));
+    
+    logger.info('Provider activity feed retrieved', {
+      userId: req.user.id,
+      providerId: provider._id,
+      page,
+      limit,
+      type,
+      totalActivities: activities.length
+    });
+
+    res.json({
+      success: true,
+      data: {
+        activities: paginatedActivities,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(activities.length / limit),
+          totalItems: activities.length,
+          itemsPerPage: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get provider activity feed', error, {
+      userId: req.user.id
+    });
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve activity feed'
+    });
+  }
+};
+
+// @desc    Get provider reviews
+// @route   GET /api/providers/reviews
+// @access  Private (Provider)
+const getProviderReviews = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, rating, sortBy = 'createdAt' } = req.query;
+    const skip = (page - 1) * limit;
+
+    const provider = await Provider.findOne({ user: req.user.id });
+    
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: 'Provider profile not found',
+        code: 'PROVIDER_NOT_FOUND'
+      });
+    }
+
+    // Find all bookings for this provider with reviews
+    const query = {
+      provider: provider._id,
+      'review.rating': { $exists: true }
+    };
+
+    // Filter by rating if provided
+    if (rating) {
+      query['review.rating'] = parseInt(rating);
+    }
+
+    // Get total count
+    const total = await Booking.countDocuments(query);
+
+    // Sort options
+    let sortOptions = {};
+    if (sortBy === 'rating') {
+      sortOptions = { 'review.rating': -1 };
+    } else {
+      sortOptions = { 'review.createdAt': -1 };
+    }
+
+    // Get bookings with reviews
+    const bookingsWithReviews = await Booking.find(query)
+      .populate('client', 'firstName lastName profile.avatar')
+      .populate('service', 'title category')
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .select('review client service scheduledDate');
+
+    // Format reviews
+    const reviews = bookingsWithReviews.map(booking => ({
+      _id: booking._id,
+      rating: booking.review.rating,
+      comment: booking.review.comment,
+      categories: booking.review.categories,
+      wouldRecommend: booking.review.wouldRecommend,
+      photos: booking.review.photos || [],
+      response: booking.review.response,
+      createdAt: booking.review.createdAt,
+      client: {
+        _id: booking.client._id,
+        name: `${booking.client.firstName} ${booking.client.lastName}`,
+        avatar: booking.client.profile?.avatar
+      },
+      service: {
+        _id: booking.service._id,
+        title: booking.service.title,
+        category: booking.service.category
+      },
+      scheduledDate: booking.scheduledDate
+    }));
+
+    // Calculate statistics
+    const allReviews = await Booking.find({
+      provider: provider._id,
+      'review.rating': { $exists: true }
+    }).select('review');
+
+    const stats = {
+      totalReviews: allReviews.length,
+      averageRating: allReviews.length > 0 
+        ? allReviews.reduce((sum, b) => sum + b.review.rating, 0) / allReviews.length 
+        : 0,
+      ratingDistribution: {
+        5: allReviews.filter(b => b.review.rating === 5).length,
+        4: allReviews.filter(b => b.review.rating === 4).length,
+        3: allReviews.filter(b => b.review.rating === 3).length,
+        2: allReviews.filter(b => b.review.rating === 2).length,
+        1: allReviews.filter(b => b.review.rating === 1).length
+      },
+      recommendationRate: allReviews.length > 0
+        ? (allReviews.filter(b => b.review.wouldRecommend).length / allReviews.length) * 100
+        : 0,
+      responseRate: allReviews.length > 0
+        ? (allReviews.filter(b => b.review.response).length / allReviews.length) * 100
+        : 0
+    };
+
+    logger.info('Provider reviews retrieved', {
+      userId: req.user.id,
+      providerId: provider._id,
+      page,
+      totalReviews: total
+    });
+
+    res.json({
+      success: true,
+      data: {
+        reviews,
+        statistics: stats,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get provider reviews', error, {
+      userId: req.user.id
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve reviews',
+      code: 'GET_REVIEWS_ERROR'
+    });
+  }
+};
+
+// @desc    Respond to review
+// @route   POST /api/providers/reviews/:reviewId/respond
+// @access  Private (Provider)
+const respondToReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { responseText } = req.body;
+
+    if (!validateObjectId(reviewId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid review ID format',
+        code: 'INVALID_REVIEW_ID'
+      });
+    }
+
+    if (!responseText || responseText.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Response text is required',
+        code: 'MISSING_RESPONSE'
+      });
+    }
+
+    if (responseText.length > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Response text must not exceed 1000 characters',
+        code: 'RESPONSE_TOO_LONG'
+      });
+    }
+
+    const provider = await Provider.findOne({ user: req.user.id });
+    
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: 'Provider profile not found',
+        code: 'PROVIDER_NOT_FOUND'
+      });
+    }
+
+    // Find booking with the review
+    const booking = await Booking.findOne({
+      _id: reviewId,
+      provider: provider._id,
+      'review.rating': { $exists: true }
+    }).populate('client', 'firstName lastName');
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found or unauthorized',
+        code: 'REVIEW_NOT_FOUND'
+      });
+    }
+
+    // Check if already responded
+    if (booking.review.response) {
+      return res.status(409).json({
+        success: false,
+        message: 'You have already responded to this review',
+        code: 'RESPONSE_EXISTS',
+        data: {
+          existingResponse: booking.review.response
+        }
+      });
+    }
+
+    // Add response
+    booking.review.response = {
+      text: responseText.trim(),
+      respondedAt: new Date(),
+      respondedBy: provider._id
+    };
+
+    await booking.save();
+
+    logger.info('Provider responded to review', {
+      userId: req.user.id,
+      providerId: provider._id,
+      reviewId: booking._id,
+      clientId: booking.client._id
+    });
+
+    // Audit log
+    await auditLogger.log({
+      user: req.user.id,
+      action: 'REVIEW_RESPONDED',
+      resource: 'Review',
+      resourceId: booking._id,
+      details: {
+        providerId: provider._id,
+        rating: booking.review.rating,
+        responseLength: responseText.length
+      },
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent')
+    });
+
+    res.json({
+      success: true,
+      message: 'Response added successfully',
+      data: {
+        review: {
+          _id: booking._id,
+          rating: booking.review.rating,
+          comment: booking.review.comment,
+          response: booking.review.response,
+          client: {
+            name: `${booking.client.firstName} ${booking.client.lastName}`
+          }
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to respond to review', error, {
+      userId: req.user.id,
+      reviewId: req.params.reviewId
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add response',
+      code: 'RESPOND_REVIEW_ERROR'
+    });
+  }
+};
+
 module.exports = {
   getProviders,
   getProvider,
@@ -1853,8 +2428,12 @@ module.exports = {
   uploadDocuments,
   getProviderDashboard,
   getProviderAnalytics,
+  getProviderMetrics,
+  getProviderActivity,
   updateProviderStatus,
   getProvidersForAdmin,
   getProviderSkills,
-  adminUpdateProvider
+  adminUpdateProvider,
+  getProviderReviews,
+  respondToReview
 };

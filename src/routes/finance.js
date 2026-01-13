@@ -8,6 +8,7 @@ const {
   getExpenses,
   addExpense,
   requestWithdrawal,
+  getWithdrawals,
   processWithdrawal,
   getTaxDocuments,
   getFinancialReports,
@@ -92,6 +93,7 @@ router.post('/expenses', addExpense);
 
 // Withdrawal management
 router.post('/withdraw', requestWithdrawal);
+router.get('/withdrawals', getWithdrawals);
 router.put('/withdrawals/:withdrawalId/process', authorize('admin'), processWithdrawal); // [ADMIN ONLY]
 
 // Tax documents

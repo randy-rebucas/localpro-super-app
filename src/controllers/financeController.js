@@ -5,6 +5,7 @@ const { Booking } = require('../models/Marketplace');
 const Referral = require('../models/Referral');
 const CloudinaryService = require('../services/cloudinaryService');
 const paymongoService = require('../services/paymongoService');
+const { logger } = require('../utils/logger');
 
 // @desc    Get user's financial overview
 // @route   GET /api/finance/overview
@@ -535,6 +536,82 @@ const requestWithdrawal = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get withdrawal history
+// @route   GET /api/finance/withdrawals
+// @access  Private
+const getWithdrawals = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status } = req.query;
+    const skip = (page - 1) * limit;
+
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found',
+        code: 'FINANCE_NOT_FOUND'
+      });
+    }
+
+    // Filter withdrawals from transactions
+    let withdrawals = finance.transactions.filter(t => 
+      t.type === 'withdrawal' || t.category === 'withdrawal'
+    );
+
+    // Filter by status if provided
+    if (status) {
+      withdrawals = withdrawals.filter(w => w.status === status);
+    }
+
+    // Sort by date (newest first)
+    withdrawals.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    // Calculate pagination
+    const total = withdrawals.length;
+    const paginatedWithdrawals = withdrawals.slice(skip, skip + parseInt(limit));
+
+    logger.info('Withdrawals retrieved', {
+      userId: req.user.id,
+      total,
+      page,
+      status
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Withdrawals retrieved successfully',
+      data: {
+        withdrawals: paginatedWithdrawals,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        },
+        summary: {
+          totalWithdrawals: total,
+          totalAmount: withdrawals.reduce((sum, w) => sum + Math.abs(w.amount), 0),
+          pendingCount: withdrawals.filter(w => w.status === 'pending').length,
+          completedCount: withdrawals.filter(w => w.status === 'completed').length,
+          rejectedCount: withdrawals.filter(w => w.status === 'rejected').length
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Get withdrawals error:', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.id
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      code: 'GET_WITHDRAWALS_ERROR'
     });
   }
 };
@@ -1308,6 +1385,7 @@ module.exports = {
   getExpenses,
   addExpense,
   requestWithdrawal,
+  getWithdrawals,
   processWithdrawal,
   getTaxDocuments,
   getFinancialReports,

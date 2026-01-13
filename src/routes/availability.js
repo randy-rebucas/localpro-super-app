@@ -10,7 +10,8 @@ const {
   createRescheduleRequest,
   approveRescheduleRequest,
   rejectRescheduleRequest,
-  getRescheduleRequests
+  getRescheduleRequests,
+  addTimeOff
 } = require('../controllers/availabilityController');
 
 const router = express.Router();
@@ -124,5 +125,41 @@ router.put('/reschedule/:id/approve', auth, approveRescheduleRequest);
  *       - bearerAuth: []
  */
 router.put('/reschedule/:id/reject', auth, rejectRescheduleRequest);
+
+/**
+ * @swagger
+ * /api/availability/time-off:
+ *   post:
+ *     summary: Add time off
+ *     tags: [Availability]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - startDate
+ *               - endDate
+ *             properties:
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *               endDate:
+ *                 type: string
+ *                 format: date-time
+ *               reason:
+ *                 type: string
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Time off added
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ */
+router.post('/time-off', auth, addTimeOff);
 
 module.exports = router;
