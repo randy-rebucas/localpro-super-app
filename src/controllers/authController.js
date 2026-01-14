@@ -5,6 +5,7 @@ const CloudinaryService = require('../services/cloudinaryService');
 const EmailService = require('../services/emailService');
 const logger = require('../config/logger');
 const activityService = require('../services/activityService');
+const { validationResult } = require('express-validator');
 
 // Generate JWT Access Token with expiration
 const generateToken = (user) => {
@@ -15,10 +16,10 @@ const generateToken = (user) => {
     isVerified: user.isVerified,
     type: 'access'
   };
-  
+
   // Access token expires in 15 minutes
   const expiresIn = process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '15m';
-  
+
   return jwt.sign(payload, process.env.JWT_SECRET, {
     issuer: 'localpro-api',
     audience: 'localpro-mobile',
@@ -39,11 +40,11 @@ const saveRefreshToken = async (user, refreshToken) => {
   const expiresInDays = parseInt(process.env.JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS || '7');
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + expiresInDays);
-  
+
   user.refreshToken = refreshToken;
   user.refreshTokenExpiresAt = expiresAt;
   await user.save({ validateBeforeSave: false });
-  
+
   return expiresAt;
 };
 
@@ -111,7 +112,7 @@ const getDeviceType = (userAgent) => {
 const sendVerificationCode = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { phoneNumber } = req.body;
 
@@ -145,13 +146,13 @@ const sendVerificationCode = async (req, res) => {
     // Check if user already exists
     const existingUser = await User.findOne({ phoneNumber });
     const isNewUser = !existingUser;
-    
+
     // Rate limiting check (prevent spam)
     if (existingUser) {
       const lastVerification = existingUser.lastVerificationSent;
       const now = new Date();
       const timeDiff = now - lastVerification;
-      
+
       // Allow only one verification per minute
       if (lastVerification && timeDiff < 60000) {
         logger.warn('Send verification code failed: Rate limit exceeded', {
@@ -167,7 +168,7 @@ const sendVerificationCode = async (req, res) => {
         });
       }
     }
-    
+
     // Send verification code via Twilio
     const result = await TwilioService.sendVerificationCode(phoneNumber);
 
@@ -243,14 +244,14 @@ const sendVerificationCode = async (req, res) => {
 const verifyCode = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { phoneNumber, code } = req.body;
 
     // Input validation
     if (!phoneNumber || !code) {
       logger.warn('Verify code failed: Missing required fields', {
-        hasPhoneNumber: !!phoneNumber, 
+        hasPhoneNumber: !!phoneNumber,
         hasCode: !!code,
         clientInfo,
         duration: Date.now() - startTime
@@ -352,7 +353,7 @@ const verifyCode = async (req, res) => {
       // Update login info and status via management
       await user.updateLoginInfo(clientInfo.ip, clientInfo.userAgent);
       await user.updateStatus('active', null, null);
-      
+
       // Set flag to skip related document creation in post-save hook
       user._skipRelatedDocumentsCreation = true;
       try {
@@ -413,7 +414,7 @@ const verifyCode = async (req, res) => {
         isVerified: true
         // Note: Trust, Activity, Management, Wallet, and Referral documents will be created automatically via post-save hook
       });
-      
+
       // Update login info and status after user is created
       await user.updateLoginInfo(clientInfo.ip, clientInfo.userAgent);
       await user.updateStatus('active', null, null);
@@ -480,7 +481,7 @@ const verifyCode = async (req, res) => {
 const completeOnboarding = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { firstName, lastName, email, roles, profile, gender, birthdate } = req.body;
     const userId = req.user.id;
@@ -531,9 +532,9 @@ const completeOnboarding = async (req, res) => {
       }
 
       // Check if email is already taken by another user
-      const existingUser = await User.findOne({ 
-        email: email.toLowerCase(), 
-        _id: { $ne: userId } 
+      const existingUser = await User.findOne({
+        email: email.toLowerCase(),
+        _id: { $ne: userId }
       });
 
       if (existingUser) {
@@ -567,7 +568,7 @@ const completeOnboarding = async (req, res) => {
       // Validate roles
       const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin'];
       const invalidRoles = roles.filter(role => !validRoles.includes(role));
-      
+
       if (invalidRoles.length > 0) {
         logger.warn('Complete onboarding failed: Invalid roles provided', {
           userId,
@@ -589,7 +590,7 @@ const completeOnboarding = async (req, res) => {
       } else {
         rolesToSet = [...new Set(['client', ...roles])]; // Remove duplicates, ensure 'client' is first
       }
-      
+
       logger.info('Roles updated during onboarding', {
         userId,
         previousRoles: currentUser.roles,
@@ -805,7 +806,7 @@ const completeOnboarding = async (req, res) => {
 const getProfileCompletionStatus = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
@@ -820,7 +821,7 @@ const getProfileCompletionStatus = async (req, res) => {
 
     // Check if user has completed basic profile information
     const isProfileComplete = isOnboardingComplete(user);
-    
+
     logger.info('Profile completion status checked', {
       userId: user._id,
       isProfileComplete,
@@ -866,7 +867,7 @@ const getProfileCompletionStatus = async (req, res) => {
 const getProfileCompleteness = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
@@ -953,7 +954,7 @@ const getProfileCompleteness = async (req, res) => {
       ...completeness.profile.missing,
       ...completeness.verification.missing
     ].length;
-    
+
     completeness.overall.percentage = Math.round((completedFields / totalFields) * 100);
     completeness.overall.completed = completeness.overall.percentage === 100;
     completeness.overall.missingFields = [
@@ -973,7 +974,7 @@ const getProfileCompleteness = async (req, res) => {
         fields: completeness.basic.missing
       });
     }
-    
+
     if (completeness.profile.missing.length > 0 && completeness.basic.completed) {
       nextSteps.push({
         priority: 'medium',
@@ -983,7 +984,7 @@ const getProfileCompleteness = async (req, res) => {
         fields: completeness.profile.missing
       });
     }
-    
+
     if (completeness.verification.missing.length > 0 && completeness.basic.completed) {
       nextSteps.push({
         priority: 'medium',
@@ -1075,7 +1076,7 @@ const updateProfile = async (req, res) => {
     if (firstName !== undefined) user.firstName = firstName;
     if (lastName !== undefined) user.lastName = lastName;
     if (email !== undefined) user.email = email;
-    
+
     if (profile !== undefined) {
       // Helper function to remove undefined values from object
       const removeUndefined = (obj) => {
@@ -1103,14 +1104,14 @@ const updateProfile = async (req, res) => {
         if (!source || typeof source !== 'object' || Array.isArray(source)) {
           return source !== undefined ? source : target;
         }
-        
+
         const result = { ...target };
         Object.keys(source).forEach(key => {
           if (source[key] === undefined) {
             // Skip undefined values - don't overwrite existing
             return;
           }
-          
+
           if (
             source[key] &&
             typeof source[key] === 'object' &&
@@ -1131,17 +1132,17 @@ const updateProfile = async (req, res) => {
 
       // Clean profile data - remove undefined values
       const cleanedProfile = removeUndefined(profile);
-      
+
       // Start with existing profile and merge cleaned profile
       const updatedProfile = deepMerge(
         user.profile || {},
         cleanedProfile
       );
-      
+
       // Handle address coordinates conversion (GeoJSON to {lat, lng} format)
       if (cleanedProfile.address?.coordinates) {
         const coords = cleanedProfile.address.coordinates;
-        
+
         // Check if coordinates are in GeoJSON format [lng, lat]
         if (Array.isArray(coords) && coords.length === 2) {
           updatedProfile.address = {
@@ -1152,7 +1153,7 @@ const updateProfile = async (req, res) => {
               lng: parseFloat(coords[0])
             }
           };
-        } 
+        }
         // Check if coordinates are already in {lat, lng} format
         else if (typeof coords === 'object' && coords !== null && coords.lat !== undefined && coords.lng !== undefined) {
           updatedProfile.address = {
@@ -1180,7 +1181,7 @@ const updateProfile = async (req, res) => {
           ...cleanedProfile.address
         };
       }
-      
+
       // Final cleanup: Explicitly remove undefined values from nested objects that cause Mongoose casting errors
       // This must happen before assignment to prevent Mongoose from trying to cast undefined to Object
       const problematicFields = ['avatar', 'insurance', 'backgroundCheck', 'availability'];
@@ -1190,21 +1191,21 @@ const updateProfile = async (req, res) => {
           delete updatedProfile[field];
         }
       });
-      
+
       // Additional safety: Clean the entire profile object one more time to catch any missed undefined values
       const finalClean = removeUndefined(updatedProfile);
-      
+
       // Ensure problematic fields are completely removed if they're still undefined after cleaning
       problematicFields.forEach(field => {
         if (finalClean[field] === undefined) {
           delete finalClean[field];
         }
       });
-      
+
       // Assign the fully cleaned profile
       user.profile = finalClean;
     }
-    
+
     await user.save();
 
     res.status(200).json({
@@ -1214,8 +1215,8 @@ const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: error.message || 'Server error',
       error: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
@@ -1263,15 +1264,15 @@ const uploadAvatar = async (req, res) => {
     }
 
     // Check if file is already uploaded via CloudinaryStorage
-    const isCloudinaryUploaded = req.file.secure_url || req.file.public_id || 
-                                 (req.file.path && req.file.path.includes('cloudinary.com'));
+    const isCloudinaryUploaded = req.file.secure_url || req.file.public_id ||
+      (req.file.path && req.file.path.includes('cloudinary.com'));
 
     let avatarData;
 
     if (isCloudinaryUploaded) {
       // File already uploaded via CloudinaryStorage - extract info directly
       console.log('File already uploaded to Cloudinary via CloudinaryStorage');
-      
+
       const secureUrl = req.file.secure_url || req.file.url || req.file.path;
       let publicId = req.file.public_id;
 
@@ -1316,7 +1317,7 @@ const uploadAvatar = async (req, res) => {
       // File needs to be uploaded manually (shouldn't happen with cloudinaryStorage, but handle it)
       console.log('Uploading file to Cloudinary manually...');
       const uploadResult = await CloudinaryService.uploadFile(
-        req.file, 
+        req.file,
         'localpro/users/profiles'
       );
 
@@ -1411,7 +1412,7 @@ const uploadPortfolioImages = async (req, res) => {
 
     // Upload multiple files to Cloudinary
     const uploadResult = await CloudinaryService.uploadMultipleFiles(
-      req.files, 
+      req.files,
       'localpro/users/portfolio'
     );
 
@@ -1459,7 +1460,7 @@ const uploadPortfolioImages = async (req, res) => {
 const refreshToken = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { refreshToken: providedRefreshToken } = req.body;
 
@@ -1513,7 +1514,7 @@ const refreshToken = async (req, res) => {
     // Optionally rotate refresh token (security best practice)
     const rotateRefreshToken = process.env.ROTATE_REFRESH_TOKEN !== 'false';
     let newRefreshToken = providedRefreshToken;
-    
+
     if (rotateRefreshToken) {
       newRefreshToken = generateRefreshToken();
       await saveRefreshToken(user, newRefreshToken);
@@ -1554,7 +1555,7 @@ const refreshToken = async (req, res) => {
 const logout = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
@@ -1562,14 +1563,14 @@ const logout = async (req, res) => {
     if (user) {
       // Clear refresh token
       await clearRefreshToken(user);
-      
+
       logger.info('User logged out successfully', {
         userId,
         clientInfo,
         duration: Date.now() - startTime
       });
     }
-    
+
     res.status(200).json({
       success: true,
       message: 'Logged out successfully'
@@ -1596,7 +1597,7 @@ const logout = async (req, res) => {
 const registerWithEmail = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { email, password, firstName, lastName } = req.body;
 
@@ -1657,7 +1658,7 @@ const registerWithEmail = async (req, res) => {
       if (lastOTPSent) {
         const now = new Date();
         const timeDiff = now - lastOTPSent;
-        
+
         // Allow only one OTP per minute
         if (timeDiff < 60000) {
           logger.warn('Register with email failed: Rate limit exceeded', {
@@ -1686,7 +1687,7 @@ const registerWithEmail = async (req, res) => {
       existingUser._skipRelatedDocumentsCreation = true;
       await existingUser.save({ validateBeforeSave: false });
       existingUser._skipRelatedDocumentsCreation = false;
-      
+
       const user = existingUser;
 
       // Send OTP email
@@ -1802,7 +1803,7 @@ const registerWithEmail = async (req, res) => {
 const loginWithEmail = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { email, password } = req.body;
 
@@ -1886,7 +1887,7 @@ const loginWithEmail = async (req, res) => {
     if (lastOTPSent) {
       const now = new Date();
       const timeDiff = now - lastOTPSent;
-      
+
       // Allow only one OTP per minute
       if (timeDiff < 60000) {
         logger.warn('Login with email failed: Rate limit exceeded', {
@@ -1971,7 +1972,7 @@ const loginWithEmail = async (req, res) => {
 const verifyEmailOTP = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { email, otpCode } = req.body;
 
@@ -2040,11 +2041,11 @@ const verifyEmailOTP = async (req, res) => {
     user.emailVerificationCode = undefined;
     user.isVerified = true;
     await user.verify('email');
-    
+
     // Update login info
     await user.updateLoginInfo(clientInfo.ip, clientInfo.userAgent);
     await user.updateStatus('active', null, null);
-    
+
     user._skipRelatedDocumentsCreation = true;
     await user.save({ validateBeforeSave: false });
     user._skipRelatedDocumentsCreation = false;
@@ -2124,7 +2125,7 @@ const verifyEmailOTP = async (req, res) => {
 const checkEmail = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { email } = req.body;
 
@@ -2182,8 +2183,8 @@ const checkEmail = async (req, res) => {
       success: true,
       exists: true,
       hasPassword,
-      message: hasPassword 
-        ? 'Email exists and has password set' 
+      message: hasPassword
+        ? 'Email exists and has password set'
         : 'Email exists but password not set',
       ...(hasPassword && {
         code: 'EMAIL_EXISTS_WITH_PASSWORD'
@@ -2215,7 +2216,7 @@ const checkEmail = async (req, res) => {
 const setPassword = async (req, res) => {
   const startTime = Date.now();
   const clientInfo = getClientInfo(req);
-  
+
   try {
     const { email, password } = req.body;
 
@@ -2297,7 +2298,7 @@ const setPassword = async (req, res) => {
     if (lastOTPSent) {
       const now = new Date();
       const timeDiff = now - lastOTPSent;
-      
+
       // Allow only one OTP per minute
       if (timeDiff < 60000) {
         logger.warn('Set password failed: Rate limit exceeded', {
@@ -2371,6 +2372,374 @@ const setPassword = async (req, res) => {
   }
 };
 
+// MPIN (Mobile Personal Identification Number) Controllers
+
+// @desc    Set MPIN for user
+// @route   POST /api/auth/mpin/set
+// @access  Private (requires authentication)
+const setMpin = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation errors',
+        errors: errors.array()
+      });
+    }
+
+    const { mpin } = req.body;
+    const userId = req.user.id;
+
+    // Get user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Set MPIN
+    await user.setMpin(mpin);
+
+    // Log activity
+    await activityService.createActivity({
+      userId,
+      type: 'mpin_set',
+      action: 'MPIN Set',
+      description: 'User set their MPIN',
+      metadata: {
+        ip: clientInfo.ip,
+        userAgent: clientInfo.userAgent,
+        timestamp: clientInfo.timestamp
+      },
+      visibility: 'private'
+    });
+
+    logger.info('MPIN set successfully', {
+      userId,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'MPIN set successfully'
+    });
+  } catch (error) {
+    logger.error('Set MPIN error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.id,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to set MPIN'
+    });
+  }
+};
+
+// @desc    Verify MPIN
+// @route   POST /api/auth/mpin/verify
+// @access  Private (requires authentication)
+const verifyMpin = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation errors',
+        errors: errors.array()
+      });
+    }
+
+    const { mpin } = req.body;
+    const userId = req.user.id;
+
+    // Get user with MPIN field
+    const user = await User.findById(userId).select('+mpin');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Verify MPIN
+    await user.verifyMpin(mpin);
+
+    // Log activity
+    await activityService.createActivity({
+      userId,
+      type: 'mpin_verified',
+      action: 'MPIN Verified',
+      description: 'User verified their MPIN',
+      metadata: {
+        ip: clientInfo.ip,
+        userAgent: clientInfo.userAgent,
+        timestamp: clientInfo.timestamp
+      },
+      visibility: 'private'
+    });
+
+    logger.info('MPIN verified successfully', {
+      userId,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'MPIN verified successfully'
+    });
+  } catch (error) {
+    logger.error('Verify MPIN error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.id,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to verify MPIN'
+    });
+  }
+};
+
+// @desc    Login with MPIN
+// @route   POST /api/auth/mpin/login
+// @access  Public
+const loginWithMpin = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation errors',
+        errors: errors.array()
+      });
+    }
+
+    const { phoneNumber, mpin } = req.body;
+
+    // Get user with MPIN field
+    const user = await User.findOne({ phoneNumber }).select('+mpin +mpinEnabled +mpinAttempts +mpinLockedUntil');
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account is deactivated'
+      });
+    }
+
+    // Check if MPIN is enabled
+    if (!user.mpinEnabled) {
+      return res.status(400).json({
+        success: false,
+        message: 'MPIN not enabled for this account'
+      });
+    }
+
+    // Verify MPIN
+    await user.verifyMpin(mpin);
+
+    // Generate tokens
+    const token = generateToken(user);
+    const refreshToken = generateRefreshToken();
+
+    // Log activity
+    await activityService.createActivity({
+      userId: user._id,
+      type: 'login_mpin',
+      action: 'MPIN Login',
+      description: 'User logged in using MPIN',
+      metadata: {
+        ip: clientInfo.ip,
+        userAgent: clientInfo.userAgent,
+        timestamp: clientInfo.timestamp,
+        deviceType: getDeviceType(clientInfo.userAgent)
+      },
+      visibility: 'private'
+    });
+
+    logger.info('MPIN login successful', {
+      userId: user._id,
+      phoneNumber: phoneNumber.substring(0, 6) + '****',
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      token,
+      refreshToken,
+      user: {
+        id: user._id,
+        phoneNumber: user.phoneNumber,
+        firstName: user.firstName ? user.firstName : 'User',
+        lastName: user.lastName ? user.lastName : 'User',
+        email: user.email,
+        roles: user.roles || ['client'],
+        isVerified: user.isVerified,
+        subscription: user.localProPlusSubscription || null,
+        trustScore: (await user.ensureTrust()).trustScore,
+        profile: {
+          avatar: user.profile?.avatar,
+          bio: user.profile?.bio
+        }
+      },
+      isNewUser: false
+    });
+
+  } catch (error) {
+    logger.error('MPIN login error', {
+      error: error.message,
+      stack: error.stack,
+      phoneNumber: req.body?.phoneNumber ? req.body.phoneNumber.substring(0, 6) + '****' : 'unknown',
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(401).json({
+      success: false,
+      message: error.message || 'Login failed'
+    });
+  }
+};
+
+// @desc    Disable MPIN
+// @route   DELETE /api/auth/mpin
+// @access  Private (requires authentication)
+const disableMpin = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+
+  try {
+    const userId = req.user.id;
+
+    // Get user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Disable MPIN
+    await user.disableMpin();
+
+    // Log activity
+    await activityService.createActivity({
+      userId,
+      type: 'mpin_disabled',
+      action: 'MPIN Disabled',
+      description: 'User disabled their MPIN',
+      metadata: {
+        ip: clientInfo.ip,
+        userAgent: clientInfo.userAgent,
+        timestamp: clientInfo.timestamp
+      },
+      visibility: 'private'
+    });
+
+    logger.info('MPIN disabled successfully', {
+      userId,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'MPIN disabled successfully'
+    });
+  } catch (error) {
+    logger.error('Disable MPIN error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.id,
+      clientInfo,
+      duration: Date.now() - startTime
+    });
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to disable MPIN',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Get MPIN status
+// @route   GET /api/auth/mpin/status
+// @access  Private (requires authentication)
+const getMpinStatus = async (req, res) => {
+  const startTime = Date.now();
+
+  try {
+    const userId = req.user.id;
+
+    // Get user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const mpinStatus = user.getMpinStatus();
+
+    logger.info('MPIN status retrieved', {
+      userId,
+      enabled: mpinStatus.enabled,
+      locked: mpinStatus.locked,
+      duration: Date.now() - startTime
+    });
+
+    res.status(200).json({
+      success: true,
+      data: mpinStatus
+    });
+  } catch (error) {
+    logger.error('Get MPIN status error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.id,
+      duration: Date.now() - startTime
+    });
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get MPIN status',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   sendVerificationCode,
   verifyCode,
@@ -2387,5 +2756,11 @@ module.exports = {
   uploadAvatar,
   uploadPortfolioImages,
   refreshToken,
-  logout
+  logout,
+  // MPIN functions
+  setMpin,
+  verifyMpin,
+  loginWithMpin,
+  disableMpin,
+  getMpinStatus
 };

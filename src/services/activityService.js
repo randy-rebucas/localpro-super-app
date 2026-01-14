@@ -24,6 +24,10 @@ class ActivityService {
       'password_change': 'authentication',
       'email_verification': 'authentication',
       'phone_verification': 'authentication',
+      'mpin_set': 'authentication',
+      'mpin_verified': 'authentication',
+      'login_mpin': 'authentication',
+      'mpin_disabled': 'authentication',
       
       // Marketplace
       'service_created': 'marketplace',
@@ -182,7 +186,11 @@ class ActivityService {
       'service_viewed': 'low',
       'profile_update': 'low',
       'settings_updated': 'low',
-      'search_performed': 'low'
+      'search_performed': 'low',
+      'mpin_set': 'low',
+      'mpin_verified': 'low',
+      'login_mpin': 'low',
+      'mpin_disabled': 'low'
     };
 
     // Points system for gamification
@@ -205,6 +213,10 @@ class ActivityService {
       'referral_completed': 200,
       'verification_approved': 100,
       'badge_earned': 50,
+      'mpin_set': 25,
+      'mpin_verified': 5,
+      'login_mpin': 5,
+      'mpin_disabled': 0,
       'connection_made': 5,
       'follow_started': 3
     };

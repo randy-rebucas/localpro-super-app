@@ -13,6 +13,7 @@ const activitySchema = new mongoose.Schema({
       // Authentication & Profile
       'user_login', 'user_logout', 'user_register', 'profile_update', 'avatar_upload',
       'password_change', 'email_verification', 'phone_verification',
+      'mpin_set', 'mpin_verified', 'login_mpin', 'mpin_disabled',
       
       // Marketplace Activities
       'service_created', 'service_updated', 'service_deleted', 'service_published',

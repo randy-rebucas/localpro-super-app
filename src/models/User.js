@@ -25,6 +25,25 @@ const userSchema = new mongoose.Schema({
     type: String,
     select: false // Don't include password in queries by default
   },
+  // MPIN (Mobile Personal Identification Number) for biometric-free authentication
+  mpin: {
+    type: String,
+    select: false, // Don't include MPIN in queries by default
+    minlength: 4,
+    maxlength: 6
+  },
+  mpinEnabled: {
+    type: Boolean,
+    default: false
+  },
+  mpinAttempts: {
+    type: Number,
+    default: 0
+  },
+  mpinLockedUntil: {
+    type: Date,
+    default: null
+  },
   emailVerificationCode: {
     type: String,
     expires: '10m' // Email OTP expires in 10 minutes
@@ -1084,6 +1103,76 @@ userSchema.methods.addWalletCredit = async function(data) {
 userSchema.methods.addWalletDebit = async function(data) {
   const wallet = await this.ensureWallet();
   return wallet.addDebit(data);
+};
+
+// MPIN (Mobile Personal Identification Number) methods
+userSchema.methods.setMpin = async function(mpin) {
+  // Validate MPIN format (4-6 digits)
+  if (!mpin || !/^\d{4,6}$/.test(mpin)) {
+    throw new Error('MPIN must be 4-6 digits');
+  }
+  
+  this.mpin = mpin;
+  this.mpinEnabled = true;
+  this.mpinAttempts = 0;
+  this.mpinLockedUntil = null;
+  await this.save();
+  return true;
+};
+
+userSchema.methods.verifyMpin = async function(mpin) {
+  // Check if MPIN is enabled
+  if (!this.mpinEnabled) {
+    throw new Error('MPIN not enabled for this user');
+  }
+  
+  // Check if MPIN is locked
+  if (this.mpinLockedUntil && this.mpinLockedUntil > new Date()) {
+    const remainingTime = Math.ceil((this.mpinLockedUntil - new Date()) / 1000 / 60);
+    throw new Error(`MPIN locked. Try again in ${remainingTime} minutes`);
+  }
+  
+  // Verify MPIN
+  if (this.mpin !== mpin) {
+    this.mpinAttempts += 1;
+    
+    // Lock MPIN after 5 failed attempts for 15 minutes
+    if (this.mpinAttempts >= 5) {
+      this.mpinLockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      await this.save();
+      throw new Error('MPIN locked due to too many failed attempts. Try again in 15 minutes');
+    }
+    
+    await this.save();
+    throw new Error(`Invalid MPIN. ${5 - this.mpinAttempts} attempts remaining`);
+  }
+  
+  // Reset attempts on successful verification
+  this.mpinAttempts = 0;
+  await this.save();
+  return true;
+};
+
+userSchema.methods.disableMpin = async function() {
+  this.mpin = undefined;
+  this.mpinEnabled = false;
+  this.mpinAttempts = 0;
+  this.mpinLockedUntil = null;
+  await this.save();
+  return true;
+};
+
+userSchema.methods.isMpinLocked = function() {
+  return this.mpinLockedUntil && this.mpinLockedUntil > new Date();
+};
+
+userSchema.methods.getMpinStatus = function() {
+  return {
+    enabled: this.mpinEnabled,
+    locked: this.isMpinLocked(),
+    attempts: this.mpinAttempts,
+    lockedUntil: this.mpinLockedUntil
+  };
 };
 
 // Password hashing methods

@@ -16,7 +16,13 @@ const {
   uploadAvatar,
   uploadPortfolioImages,
   refreshToken,
-  logout
+  logout,
+  // MPIN functions
+  setMpin,
+  verifyMpin,
+  loginWithMpin,
+  disableMpin,
+  getMpinStatus
 } = require('../controllers/authController');
 const { uploaders } = require('../config/cloudinary');
 
@@ -156,6 +162,31 @@ const validateLogin = [
     .withMessage('Password is required')
 ];
 
+// MPIN validation middleware
+const validateSetMpin = [
+  body('mpin')
+    .isLength({ min: 4, max: 6 })
+    .isNumeric()
+    .withMessage('MPIN must be 4-6 digits')
+];
+
+const validateVerifyMpin = [
+  body('mpin')
+    .isLength({ min: 4, max: 6 })
+    .isNumeric()
+    .withMessage('MPIN must be 4-6 digits')
+];
+
+const validateLoginWithMpin = [
+  body('phoneNumber')
+    .matches(/^\+[1-9]\d{1,14}$/)
+    .withMessage('Valid phone number is required'),
+  body('mpin')
+    .isLength({ min: 4, max: 6 })
+    .isNumeric()
+    .withMessage('MPIN must be 4-6 digits')
+];
+
 // Public routes with specific rate limiting (skip in test for validation testing)
 if (process.env.NODE_ENV === 'test') {
   // In test mode, skip rate limiters for easier validation testing
@@ -277,6 +308,178 @@ if (process.env.NODE_ENV === 'test') {
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/me', auth, getMe);
+
+// MPIN routes
+/**
+ * @swagger
+ * /api/auth/mpin/set:
+ *   post:
+ *     summary: Set MPIN for user
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - mpin
+ *             properties:
+ *               mpin:
+ *                 type: string
+ *                 pattern: '^\d{4,6}$'
+ *                 example: "1234"
+ *     responses:
+ *       200:
+ *         description: MPIN set successfully
+ *       400:
+ *         description: Invalid MPIN format or mismatch
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.post('/mpin/set', auth, validateSetMpin, setMpin);
+
+/**
+ * @swagger
+ * /api/auth/mpin/verify:
+ *   post:
+ *     summary: Verify MPIN
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - mpin
+ *             properties:
+ *               mpin:
+ *                 type: string
+ *                 pattern: '^\d{4,6}$'
+ *                 example: "1234"
+ *     responses:
+ *       200:
+ *         description: MPIN verified successfully
+ *       400:
+ *         description: Invalid MPIN or account locked
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.post('/mpin/verify', auth, validateVerifyMpin, verifyMpin);
+
+/**
+ * @swagger
+ * /api/auth/mpin/login:
+ *   post:
+ *     summary: Login with MPIN
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - phoneNumber
+ *               - mpin
+ *             properties:
+ *               phoneNumber:
+ *                 type: string
+ *                 pattern: '^\\+[1-9]\\d{1,14}$'
+ *                 example: "+1234567890"
+ *               mpin:
+ *                 type: string
+ *                 pattern: '^\d{4,6}$'
+ *                 example: "1234"
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Success'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         user:
+ *                           $ref: '#/components/schemas/User'
+ *                         tokens:
+ *                           type: object
+ *                           properties:
+ *                             accessToken:
+ *                               type: string
+ *                             refreshToken:
+ *                               type: string
+ *                             refreshTokenExpiresAt:
+ *                               type: string
+ *                               format: date-time
+ *       401:
+ *         description: Invalid credentials or MPIN locked
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ */
+router.post('/mpin/login', validateLoginWithMpin, loginWithMpin);
+
+/**
+ * @swagger
+ * /api/auth/mpin/status:
+ *   get:
+ *     summary: Get MPIN status
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: MPIN status retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Success'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         enabled:
+ *                           type: boolean
+ *                         locked:
+ *                           type: boolean
+ *                         attempts:
+ *                           type: number
+ *                         lockedUntil:
+ *                           type: string
+ *                           format: date-time
+ *                           nullable: true
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/mpin/status', auth, getMpinStatus);
+
+/**
+ * @swagger
+ * /api/auth/mpin:
+ *   delete:
+ *     summary: Disable MPIN
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: MPIN disabled successfully
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.delete('/mpin', auth, disableMpin);
 
 /**
  * @swagger
