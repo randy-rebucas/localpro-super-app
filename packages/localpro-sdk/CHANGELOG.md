@@ -1,3 +1,28 @@
+# [1.4.0] - 2026-01-16
+
+### Added
+- **Activities API** module for activity feed, stats, and interactions:
+  - Activity feed and timeline
+  - User and global stats
+  - Activity creation, update, deletion
+  - Interactions (add/remove)
+  - Leaderboard and points
+- **Ads API** module for ads management:
+  - List, create, update, delete ads
+  - Categories, featured, enum values
+  - Image uploads and analytics
+  - Ad promotion, approval, rejection
+  - My ads and pending ads
+- **Agencies API** module for agency management:
+  - List, create, update, delete agencies
+  - Provider and admin management
+  - Agency analytics
+  - Logo uploads
+  - Join/leave agency
+- **Partners API** module for partner management:
+  - List, create, update, delete partners
+  - Partner analytics
+
 # Changelog
 
 All notable changes to the LocalPro SDK will be documented in this file.

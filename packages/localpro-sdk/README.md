@@ -35,6 +35,18 @@ async function example() {
       password: 'SecurePass123'
     });
 
+    // Activities: Get activity feed
+    const feed = await client.activities.getFeed({ page: 1, limit: 10 });
+
+    // Ads: List ads
+    const ads = await client.ads.list({ page: 1, limit: 10 });
+
+    // Agencies: List agencies
+    const agencies = await client.agencies.list({ page: 1, limit: 10 });
+
+    // Partners: List partners
+    const partners = await client.partners.list({ page: 1, limit: 10 });
+
     // Analytics: Get overview
     const analytics = await client.analytics.getOverview();
 
@@ -75,106 +87,66 @@ async function example() {
 - `timeout` (number): Request timeout in milliseconds (default: `30000`)
 - `headers` (object): Additional headers to include in all requests
 
+
+## Available Modules
+
+The SDK provides access to all major LocalPro API modules:
+
+- `client.activities` — Activities feed, stats, and interactions
+- `client.ads` — Ads management, categories, analytics
+- `client.agencies` — Agencies, providers, admins, analytics
+- `client.partners` — Partners management and analytics
+- `client.academy` — Academy courses, categories, certifications, enrollments
+- `client.escrow` — Escrow management
+- `client.providers` — Provider management
+- `client.marketplace` — Marketplace services and bookings
+- `client.jobs` — Job board and applications
+- `client.auth` — Authentication and user management
+- `client.finance` — Financial operations
+- `client.maps` — Location and geocoding
+- `client.supplies` — Supplies and equipment
+- `client.rentals` — Equipment rentals
+- `client.search` — Global search
+- `client.referrals` — Referral system
+- `client.communication` — Messaging and notifications
+- `client.settings` — User and app settings
+- `client.notifications` — Push notification management
+- `client.analytics` — Analytics and reporting
+- `client.scheduling` — Job scheduling and suggestions
+- `client.trustVerification` — Trust verification
+- `client.userManagement` — User, roles, permissions
+- `client.broadcaster` — Broadcasts and notifications
+- `client.ai` — AI bot and marketplace
+
+See MODULES.md for a full list of methods for each module.
+
+## Example Usage for New Modules
+
+### Activities
+```javascript
+const feed = await client.activities.getFeed({ page: 1, limit: 10 });
+const myActivities = await client.activities.getMyActivities();
+```
+
+### Ads
+```javascript
+const ads = await client.ads.list({ page: 1, limit: 10 });
+const ad = await client.ads.getById('ad-id');
+```
+
+### Agencies
+```javascript
+const agencies = await client.agencies.list();
+const agency = await client.agencies.getById('agency-id');
+```
+
+### Partners
+```javascript
+const partners = await client.partners.list();
+const partner = await client.partners.getById('partner-id');
+```
+
 ## Escrow API
-
-The SDK provides comprehensive escrow management functionality:
-
-### Create Escrow
-
-Create a new escrow and initiate payment hold:
-
-```javascript
-const escrow = await client.escrow.create({
-  bookingId: '507f1f77bcf86cd799439011',
-  providerId: '507f1f77bcf86cd799439012',
-  amount: 10000, // Amount in cents
-  currency: 'USD', // USD, PHP, EUR, GBP, JPY
-  holdProvider: 'paymongo' // paymongo, xendit, stripe, paypal, paymaya
-});
-```
-
-### Get Escrow Details
-
-```javascript
-const escrow = await client.escrow.getById('escrow-id');
-```
-
-### List Escrows
-
-```javascript
-// Get all escrows
-const escrows = await client.escrow.list();
-
-// With filters
-const filtered = await client.escrow.list({
-  status: 'FUNDS_HELD',
-  page: 1,
-  limit: 20
-});
-```
-
-### Capture Payment
-
-Capture held payment after client approval:
-
-```javascript
-const result = await client.escrow.capture('escrow-id');
-```
-
-### Refund Payment
-
-Refund payment before capture:
-
-```javascript
-const result = await client.escrow.refund('escrow-id', 'Cancellation reason');
-```
-
-### Upload Proof of Work
-
-Provider uploads proof of work:
-
-```javascript
-const result = await client.escrow.uploadProofOfWork('escrow-id', {
-  documents: [
-    { url: 'https://example.com/proof1.jpg' },
-    { url: 'https://example.com/proof2.jpg' }
-  ],
-  notes: 'Work completed as per agreement'
-});
-```
-
-### Initiate Dispute
-
-```javascript
-const result = await client.escrow.initiateDispute('escrow-id', {
-  reason: 'Service not delivered as promised',
-  evidence: [
-    { url: 'https://example.com/evidence.jpg' }
-  ]
-});
-```
-
-### Request Payout
-
-Provider requests payout:
-
-```javascript
-const payout = await client.escrow.requestPayout('escrow-id');
-```
-
-### Get Transactions
-
-Get escrow transaction history:
-
-```javascript
-const transactions = await client.escrow.getTransactions('escrow-id');
-```
-
-### Get Payout Details
-
-```javascript
-const payout = await client.escrow.getPayoutDetails('escrow-id');
-```
 
 ## Providers API
 
