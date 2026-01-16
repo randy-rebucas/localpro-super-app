@@ -30,61 +30,36 @@ async function example() {
       firstName: 'John',
       lastName: 'Doe'
     });
-    
     const login = await client.auth.login({
       email: 'user@example.com',
       password: 'SecurePass123'
     });
-    
+
+    // Analytics: Get overview
+    const analytics = await client.analytics.getOverview();
+
+    // Scheduling: Get ranked jobs
+    const rankedJobs = await client.scheduling.getRankedJobs();
+
+    // Trust Verification: Get verified users
+    const verified = await client.trustVerification.getVerifiedUsers();
+
+    // User Management: List users
+    const users = await client.userManagement.list();
+
+    // Broadcaster: List broadcasts
+    const broadcasts = await client.broadcaster.list();
+
+    // AI: Get bot response
+    const aiResponse = await client.ai.getBotResponse({ message: 'Hello' });
+
     // Marketplace: Get services
     const services = await client.marketplace.getServices({
       category: 'plumbing',
       page: 1,
       limit: 10
     });
-    
-    // Maps: Geocode address
-    const location = await client.maps.geocode({
-      address: '123 Main St, New York, NY'
-    });
-    
-    // Finance: Get financial overview
-    const overview = await client.finance.getOverview();
-    
-    // Search: Global search
-    const searchResults = await client.search.search({
-      q: 'plumber',
-      type: 'services',
-      location: 'New York'
-    });
-    
-    // Supplies: Get supplies
-    const supplies = await client.supplies.list({
-      category: 'tools',
-      page: 1,
-      limit: 10
-    });
-    
-    // Rentals: Get rentals
-    const rentals = await client.rentals.list({
-      category: 'equipment',
-      page: 1,
-      limit: 10
-    });
-    
-    // Escrow: Create escrow
-    const escrow = await client.escrow.create({
-      bookingId: '507f1f77bcf86cd799439011',
-      providerId: '507f1f77bcf86cd799439012',
-      amount: 10000, // $100.00 in cents
-      currency: 'USD',
-      holdProvider: 'paymongo'
-    });
-    
-  } catch (error) {
-    console.error('Error:', error.message);
-  }
-}
+    // ...existing code...
 ```
 
 ## Configuration

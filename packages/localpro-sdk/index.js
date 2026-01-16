@@ -13,6 +13,17 @@ const ReferralsAPI = require('./lib/referrals');
 const CommunicationAPI = require('./lib/communication');
 const SettingsAPI = require('./lib/settings');
 const NotificationsAPI = require('./lib/notifications');
+const AnalyticsAPI = require('./lib/analytics');
+const SchedulingAPI = require('./lib/scheduling');
+const TrustVerificationAPI = require('./lib/trustVerification');
+const UserManagementAPI = require('./lib/userManagement');
+const BroadcasterAPI = require('./lib/broadcaster');
+const AIAPI = require('./lib/ai');
+const AcademyAPI = require('./lib/academy');
+const ActivitiesAPI = require('./lib/activities');
+const AdsAPI = require('./lib/ads');
+const AgenciesAPI = require('./lib/agencies');
+const PartnersAPI = require('./lib/partners');
 const {
   LocalProError,
   LocalProAPIError,
@@ -73,6 +84,17 @@ class LocalPro {
     this.communication = new CommunicationAPI(this.client);
     this.settings = new SettingsAPI(this.client);
     this.notifications = new NotificationsAPI(this.client);
+    this.analytics = new AnalyticsAPI(this.client);
+    this.scheduling = new SchedulingAPI(this.client);
+    this.trustVerification = new TrustVerificationAPI(this.client);
+    this.userManagement = new UserManagementAPI(this.client);
+    this.broadcaster = new BroadcasterAPI(this.client);
+    this.ai = new AIAPI(this.client);
+    this.academy = new AcademyAPI(this.client);
+    this.activities = new ActivitiesAPI(this.client);
+    this.ads = new AdsAPI(this.client);
+    this.agencies = new AgenciesAPI(this.client);
+    this.partners = new PartnersAPI(this.client);
   }
 
   /**
@@ -86,6 +108,13 @@ class LocalPro {
 
 // Export main class
 module.exports = LocalPro;
+
+// Export Academy API for advanced usage
+module.exports.AcademyAPI = AcademyAPI;
+module.exports.ActivitiesAPI = ActivitiesAPI;
+module.exports.AdsAPI = AdsAPI;
+module.exports.AgenciesAPI = AgenciesAPI;
+module.exports.PartnersAPI = PartnersAPI;
 
 // Export error classes for error handling
 module.exports.Errors = {

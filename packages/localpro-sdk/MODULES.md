@@ -4,6 +4,122 @@ This document provides an overview of all available modules in the LocalPro SDK.
 
 ## Available Modules
 
+
+### Activities API (`client.activities`)
+
+Provides access to Activities endpoints for activity feed, user activities, stats, and interactions.
+
+**Key Methods:**
+- `getFeed(params)` - Get activity feed
+- `getMyActivities(params)` - Get my activities
+- `getUserActivities(userId, params)` - Get activities for a user
+- `getActivity(id)` - Get activity by ID
+- `createActivity(data)` - Create a new activity
+- `updateActivity(id, data)` - Update an activity
+- `deleteActivity(id)` - Delete an activity
+- `addInteraction(id, data)` - Add interaction to activity
+- `removeInteraction(id, data)` - Remove interaction from activity
+- `getStatsMy(params)` - Get my activity stats
+- `getStatsGlobal(params)` - Get global activity stats
+- `getMetadata()` - Get activity metadata
+- `getTimeline(params)` - Get activity timeline
+- `getTotalPoints()` - Get total points
+- `getLeaderboard(params)` - Get leaderboard
+
+### Ads API (`client.ads`)
+
+Provides access to Ads endpoints for managing ads, categories, images, and analytics.
+
+**Key Methods:**
+- `list(params)` - List ads
+- `getById(id)` - Get ad by ID
+- `getCategories()` - Get ad categories
+- `getEnumValues()` - Get ad enum values
+- `getFeatured()` - Get featured ads
+- `getStatistics()` - Get ad statistics
+- `create(data)` - Create ad
+- `update(id, data)` - Update ad
+- `delete(id)` - Delete ad
+- `uploadImages(id, formData)` - Upload ad images
+- `deleteImage(id, imageId)` - Delete ad image
+- `promote(id)` - Promote ad
+- `trackClick(id)` - Track ad click
+- `getAnalytics(id)` - Get ad analytics
+- `getPending()` - Get pending ads
+- `approve(id)` - Approve ad
+- `reject(id)` - Reject ad
+- `getMyAds()` - Get my ads
+
+### Agencies API (`client.agencies`)
+
+Provides access to Agencies endpoints for managing agencies, providers, admins, and analytics.
+
+**Key Methods:**
+- `list(params)` - List agencies
+- `getById(id)` - Get agency by ID
+- `create(data)` - Create agency
+- `update(id, data)` - Update agency
+- `patch(id, data)` - Patch agency
+- `delete(id)` - Delete agency
+- `uploadLogo(id, formData)` - Upload agency logo
+- `addProvider(id, data)` - Add provider to agency
+- `removeProvider(id, providerId)` - Remove provider from agency
+- `updateProviderStatus(id, providerId, data)` - Update provider status
+- `addAdmin(id, data)` - Add admin to agency
+- `removeAdmin(id, adminId)` - Remove admin from agency
+- `getAnalytics(id)` - Get agency analytics
+- `getMyAgencies()` - Get my agencies
+- `joinAgency(data)` - Join agency
+- `leaveAgency(data)` - Leave agency
+
+### Partners API (`client.partners`)
+
+Provides access to Partners endpoints for managing partners and analytics.
+
+**Key Methods:**
+- `list(params)` - List partners
+- `getById(id)` - Get partner by ID
+- `create(data)` - Create partner
+- `update(id, data)` - Update partner
+- `delete(id)` - Delete partner
+- `getAnalytics(id)` - Get partner analytics
+
+### Academy API (`client.academy`)
+
+Provides access to the Academy endpoints for courses, categories, certifications, enrollments, reviews, favorites, and statistics.
+
+**Key Methods:**
+- `getCourses(params)` - List courses
+- `getCourse(id)` - Get course by ID
+- `createCourse(data)` - Create a new course
+- `updateCourse(id, data)` - Update a course
+- `patchCourse(id, data)` - Partially update a course
+- `deleteCourse(id)` - Delete a course
+- `uploadCourseThumbnail(id, formData)` - Upload course thumbnail
+- `uploadCourseVideo(id, formData)` - Upload course video
+- `deleteCourseVideo(id, videoId)` - Delete course video
+- `listCategories()` - List course categories
+- `createCategory(data)` - Create a category
+- `updateCategory(id, data)` - Update a category
+- `deleteCategory(id)` - Delete a category
+- `listCertifications()` - List certifications
+- `createCertification(data)` - Create a certification
+- `updateCertification(id, data)` - Update a certification
+- `deleteCertification(id)` - Delete a certification
+- `enrollInCourse(id)` - Enroll in a course
+- `listEnrollments()` - List enrollments
+- `updateEnrollmentStatus(id, data)` - Update enrollment status
+- `deleteEnrollment(id)` - Delete enrollment
+- `updateCourseProgress(id, data)` - Update course progress
+- `addCourseReview(id, data)` - Add a review to a course
+- `favoriteCourse(id)` - Favorite a course
+- `unfavoriteCourse(id)` - Unfavorite a course
+- `getMyCourses()` - Get my enrolled courses
+- `getMyCreatedCourses()` - Get my created courses
+- `getMyFavoriteCourses()` - Get my favorite courses
+- `getFeaturedCourses()` - Get featured courses
+- `getCourseStatistics()` - Get course statistics
+
 ### 1. Escrow API (`client.escrow`)
 
 Handles escrow transactions, payment holds, captures, refunds, and disputes.
@@ -305,6 +421,54 @@ client.communication.methodName();
 client.settings.methodName();
 client.notifications.methodName();
 ```
+
+### 13. Analytics API (`client.analytics`)
+
+Access analytics and reporting endpoints.
+
+**Key Methods:**
+- `getOverview()` - Get analytics overview
+- `getUserAnalytics(userId)` - Get analytics for a user
+
+### 14. Scheduling API (`client.scheduling`)
+
+Access job scheduling, suggestions, and ranking endpoints.
+
+**Key Methods:**
+- `getRankedJobs()` - Get ranked jobs
+- `generateDailySuggestion()` - Generate daily job suggestions
+
+### 15. Trust Verification API (`client.trustVerification`)
+
+Manage user trust verification and requests.
+
+**Key Methods:**
+- `getVerifiedUsers()` - List verified users
+- `createVerificationRequest()` - Create verification request
+
+### 16. User Management API (`client.userManagement`)
+
+Manage users, roles, and permissions.
+
+**Key Methods:**
+- `list()` - List users
+- `getById(id)` - Get user by ID
+
+### 17. Broadcaster API (`client.broadcaster`)
+
+Manage broadcasts and notifications.
+
+**Key Methods:**
+- `list()` - List broadcasts
+- `create()` - Create a broadcast
+
+### 18. AI API (`client.ai`)
+
+Access AI bot and marketplace endpoints.
+
+**Key Methods:**
+- `getBotResponse()` - Get AI bot response
+- `getMarketplaceItems()` - Get AI marketplace items
 
 ## Error Handling
 
