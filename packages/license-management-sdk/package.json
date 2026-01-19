@@ -1,0 +1,33 @@
+{
+  "name": "license-management-sdk",
+  "version": "1.0.0",
+  "description": "SDK for license validation and Express middleware integration.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./index.js",
+      "import": "./index.js",
+      "types": "./index.d.ts"
+    },
+    "./react/useLicense": {
+      "require": "./react/useLicense.js",
+      "import": "./react/useLicense.js",
+      "types": "./react/useLicense.d.ts"
+    },
+    "./next/withLicense": {
+      "require": "./next/withLicense.js",
+      "import": "./next/withLicense.js",
+      "types": "./next/withLicense.d.ts"
+    },
+    "./angular/license.interceptor": {
+      "require": "./angular/license.interceptor.js",
+      "import": "./angular/license.interceptor.js",
+      "types": "./angular/license.interceptor.d.ts"
+    }
+  },
+  "keywords": ["license", "validation", "middleware", "express", "sdk"],
+  "author": "LocalPro Team",
+  "license": "MIT",
+  "dependencies": {}
+}

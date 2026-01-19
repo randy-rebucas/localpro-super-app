@@ -1,3 +1,7 @@
+// @desc    Upload documents for partner verification
+// @route   POST /api/partners/:id/upload-documents
+// @access  Admin/Partner
+const { uploaders } = require('../config/cloudinary');
 const Partner = require('../models/Partner');
 const { logger } = require('../utils/logger');
 const { auditLogger } = require('../utils/auditLogger');
@@ -31,13 +35,14 @@ const createPartner = async (req, res) => {
       $or: [{ email }, { slug }],
       deleted: { $ne: true }
     });
-
+    console.log(existingPartner);
     if (existingPartner) {
       return res.status(409).json({
         success: false,
         message: existingPartner.email === email
           ? 'Partner with this email already exists'
           : 'Partner with this slug already exists',
+        partnerId: existingPartner._id,
         code: 'PARTNER_EXISTS'
       });
     }
@@ -284,12 +289,12 @@ const updatePartner = async (req, res) => {
         } else if (field === 'businessInfo') {
           // Handle businessInfo specially to avoid undefined address issues
           const { address, ...businessInfoWithoutAddress } = updates.businessInfo || {};
-          
+
           // Ensure businessInfo object exists
           if (!partner.businessInfo) {
             partner.businessInfo = {};
           }
-          
+
           // Update non-address fields
           Object.keys(businessInfoWithoutAddress).forEach(key => {
             if (businessInfoWithoutAddress[key] !== undefined) {
@@ -555,7 +560,7 @@ const startPartnerOnboarding = async (req, res) => {
       });
     }
 
-    const { name, email, phoneNumber } = req.body;
+    const { name, email, phoneNumber, managedBy } = req.body;
 
     // Check if partner already exists
     const existingPartner = await Partner.findOne({
@@ -567,7 +572,8 @@ const startPartnerOnboarding = async (req, res) => {
       return res.status(409).json({
         success: false,
         message: 'Partner with this email already exists',
-        code: 'PARTNER_EXISTS'
+        code: 'PARTNER_EXISTS',
+        partnerId: existingPartner._id
       });
     }
 
@@ -587,13 +593,14 @@ const startPartnerOnboarding = async (req, res) => {
       name,
       email,
       phoneNumber,
+      managedBy,
       slug,
       onboarding: {
         steps: [{
           step: 'basic_info',
           completed: true,
           completedAt: new Date(),
-          data: { name, email, phoneNumber }
+          data: { name, email, phoneNumber, managedBy }
         }],
         currentStep: 'business_info',
         progress: 20
@@ -683,11 +690,9 @@ const updateBusinessInfo = async (req, res) => {
     }
 
     const { id } = req.params;
-    console.log(id);
     const { businessInfo } = req.body;
-    console.log(businessInfo);
     const partner = await Partner.findById(id);
-    console.log(partner);
+
     if (!partner || partner.deleted) {
       return res.status(404).json({
         success: false,
@@ -705,12 +710,12 @@ const updateBusinessInfo = async (req, res) => {
     if (businessInfo && typeof businessInfo === 'object') {
       // Extract address separately to handle it specially
       const { address, ...businessInfoWithoutAddress } = businessInfo;
-      
+
       // Merge business info (excluding address for now)
       const mergedBusinessInfo = {
         ...partner.businessInfo
       };
-      
+
       // Update non-address fields, removing undefined values
       Object.keys(businessInfoWithoutAddress).forEach(key => {
         if (businessInfoWithoutAddress[key] !== undefined) {
@@ -767,9 +772,7 @@ const updateBusinessInfo = async (req, res) => {
     // partners to skip optional fields and move to next step
     try {
       let result = await partner.completeOnboardingStep('business_info', businessInfo || {});
-      console.log('completeOnboardingStep result:', result);
     } catch (stepError) {
-      console.error('Error in completeOnboardingStep:', stepError);
       // If completeOnboardingStep fails, try manual save
       const stepIndex = partner.onboarding.steps.findIndex(s => s.step === 'business_info');
       if (stepIndex >= 0) {
@@ -784,18 +787,18 @@ const updateBusinessInfo = async (req, res) => {
           data: businessInfo || {}
         });
       }
-      
+
       // Update current step
       const stepOrder = ['basic_info', 'business_info', 'api_setup', 'verification', 'activation'];
       const currentStepIndex = stepOrder.indexOf('business_info');
       if (currentStepIndex < stepOrder.length - 1) {
         partner.onboarding.currentStep = stepOrder[currentStepIndex + 1];
       }
-      
+
       // Update progress
       const completedSteps = partner.onboarding.steps.filter(step => step.completed).length;
       partner.onboarding.progress = Math.round((completedSteps / 5) * 100);
-      
+
       // Save manually
       await partner.save();
       console.log('Manual save successful');
@@ -875,6 +878,30 @@ const updateBusinessInfo = async (req, res) => {
       })
     });
   }
+};
+
+const uploadDocumentsForVerification = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Document uploaded successfully',
+      data: req.file
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred while uploading document',
+      code: 'UPLOAD_ERROR'
+    });
+  };
 };
 
 // @desc    Partner onboarding - Complete verification
@@ -1241,5 +1268,6 @@ module.exports = {
   completeVerification,
   completeApiSetup,
   activatePartner,
-  getPartnerBySlug
+  getPartnerBySlug,
+  uploadDocumentsForVerification
 };

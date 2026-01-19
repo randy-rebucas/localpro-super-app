@@ -366,7 +366,29 @@ partnerSchema.methods.completeOnboardingStep = function(step, data = {}) {
     this.onboarding.currentStep = stepOrder[currentStepIndex + 1];
   }
 
-  return this.save();
+  // Save the partner, then update the user's role if onboarding is completed
+  return this.save().then(async (partner) => {
+    // If onboarding is now completed, update the associated user's roles
+    if (partner.onboarding.currentStep === 'activation') {
+      try {
+        const User = require('./User');
+        const user = await User.findById(partner.managedBy);
+        if (user && Array.isArray(user.roles) && !user.roles.includes('partner')) {
+          user.roles.push('partner');
+          await user.save();
+        }
+      } catch (err) {
+        // Log but do not throw, to avoid breaking onboarding completion
+        // (Assume logger is available globally or replace with console.error)
+        if (typeof logger !== 'undefined') {
+          logger.error('Failed to update user role to partner after onboarding', err);
+        } else {
+          console.error('Failed to update user role to partner after onboarding', err);
+        }
+      }
+    }
+    return partner;
+  });
 };
 
 partnerSchema.methods.softDelete = function(deletedBy) {

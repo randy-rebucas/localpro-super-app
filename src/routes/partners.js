@@ -1,3 +1,7 @@
+// Document upload (verification)
+const { uploaders } = require('../config/cloudinary');
+const { uploadDocumentsForVerification } = require('../controllers/partnerController');
+
 const express = require('express');
 const router = express.Router();
 const { auth, authorize } = require('../middleware/auth');
@@ -16,6 +20,52 @@ const {
   activatePartner,
   getPartnerBySlug
 } = require('../controllers/partnerController');
+
+const validateFileUpload = (options = {}) => {
+  return (req, res, next) => {
+    const {
+      maxSize = 5 * 1024 * 1024,
+      allowedTypes = ['image/jpeg', 'image/png', 'image/gif'],
+      required = true
+    } = options;
+
+    // If file is not required and no file is provided, skip validation
+    if (!required && !req.file && !req.files) {
+      return next();
+    }
+
+    // If file is required but not provided, return error
+    if (required && !req.file && !req.files) {
+      return sendValidationError(res, [{
+        field: 'file',
+        message: 'No file uploaded',
+        code: 'NO_FILE_UPLOADED'
+      }]);
+    }
+
+    const files = req.files || [req.file];
+
+    for (const file of files) {
+      if (file.size > maxSize) {
+        return sendValidationError(res, [{
+          field: 'file',
+          message: `File size must be less than ${maxSize / (1024 * 1024)}MB`,
+          code: 'FILE_TOO_LARGE'
+        }]);
+      }
+
+      if (!allowedTypes.includes(file.mimetype)) {
+        return sendValidationError(res, [{
+          field: 'file',
+          message: `File type must be one of: ${allowedTypes.join(', ')}`,
+          code: 'INVALID_FILE_TYPE'
+        }]);
+      }
+    }
+
+    next();
+  };
+};
 
 // Validation middleware
 const validatePartnerCreation = [
@@ -174,7 +224,7 @@ router.post('/onboarding/start', validateOnboardingStart, startPartnerOnboarding
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
-router.get('/slug/:slug', validateSlug, getPartnerBySlug);
+router.get('/slug/:slug', validateSlug, authorize(['admin', 'partner']), getPartnerBySlug);
 
 /**
  * @swagger
@@ -196,6 +246,18 @@ router.get('/slug/:slug', validateSlug, getPartnerBySlug);
  */
 // Onboarding routes (public, identified by partner ID)
 router.put('/:id/business-info', validatePartnerId, validateBusinessInfo, updateBusinessInfo);
+
+// @route POST /api/partners/:id/upload-documents
+// @desc Upload documents for verification
+// @access Admin/Partner
+// Multer/cloudinary error handler wrapper for document upload
+// Document verification document upload: expects files under 'documents' field (array), up to 3 files
+router.post(
+  '/:id/upload-documents',
+  validatePartnerId,
+  uploaders.documentVerification.single('document'),
+  uploadDocumentsForVerification
+);
 
 /**
  * @swagger
@@ -273,14 +335,11 @@ router.put('/:id/activate', validatePartnerId, activatePartner);
 // Protected routes (authentication required)
 router.use(auth);
 
-// Admin-only routes
-router.use(authorize('admin'));
-
-router.post('/', validatePartnerCreation, createPartner);
-router.get('/', getPartners);
+router.post('/', validatePartnerCreation, authorize(['admin']), createPartner);
+router.get('/', authorize(['admin']), getPartners);
 router.get('/:id', validatePartnerId, getPartnerById);
-router.put('/:id', validatePartnerId, validatePartnerUpdate, updatePartner);
-router.delete('/:id', validatePartnerId, deletePartner);
+router.put('/:id', validatePartnerId, validatePartnerUpdate, authorize(['admin', 'partner']), updatePartner);
+router.delete('/:id', validatePartnerId, authorize(['admin']), deletePartner);
 
 /**
  * @swagger
@@ -317,6 +376,6 @@ router.delete('/:id', validatePartnerId, deletePartner);
  *         $ref: '#/components/responses/ForbiddenError'
  */
 // Partner notes
-router.post('/:id/notes', validatePartnerId, validateNote, addPartnerNote);
+router.post('/:id/notes', validatePartnerId, validateNote, authorize(['admin']), addPartnerNote);
 
 module.exports = router;

@@ -1,5 +1,5 @@
 const cloudinaryLib = require('cloudinary');
-const cloudinary = cloudinaryLib.v2;
+const cloudinary = cloudinaryLib;
 const CloudinaryStorage = require('multer-storage-cloudinary');
 const multer = require('multer');
 
@@ -88,7 +88,10 @@ const storageConfigs = {
   jobs: createStorage('localpro/jobs', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']),
   
   // General purpose uploads (job proofs, attachments, etc.)
-  general: createStorage('localpro/general', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'mp4', 'mov', 'avi', 'webm'])
+  general: createStorage('localpro/general', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'mp4', 'mov', 'avi', 'webm']),
+
+  // Document verification images
+  documentVerification: createStorage('localpro/document-verification', ['jpg', 'jpeg', 'png']),
 };
 
 // Create multer uploaders for each storage type

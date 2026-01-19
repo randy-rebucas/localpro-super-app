@@ -69,52 +69,211 @@
           "name": "Verify Email OTP",
           "request": {
             "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"otp\": \"123456\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/auth/verify-email-otp",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "verify-email-otp"]
-            }
-          }
-        },
-        {
-          "name": "Login",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "var jsonData = pm.response.json();",
-                  "",
-                  "pm.test(\"Response has token\", function () {",
-                  "    pm.expect(jsonData.token).to.exist;",
-                  "});",
-                  "",
-                  "// Save token to environment",
-                  "if (jsonData.token) {",
-                  "    pm.environment.set(\"auth_token\", jsonData.token);",
-                  "}",
-                  "",
-                  "if (jsonData.refreshToken) {",
-                  "    pm.environment.set(\"refresh_token\", jsonData.refreshToken);",
-                  "}"
+            "item": [
+              {
+                "name": "Partners",
+                "item": [
+                  {
+                    "name": "Create Partner (Admin)",
+                    "request": {
+                      "method": "POST",
+                      "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                      ],
+                      "body": {
+                        "mode": "raw",
+                        "raw": "{\n  \"name\": \"Test Partner\",\n  \"email\": \"test@partner.com\",\n  \"phoneNumber\": \"+1234567890\",\n  \"businessInfo\": {},\n  \"slug\": \"test-partner\"\n}"
+                      },
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners"]
+                      }
+                    },
+                    "response": []
+                  },
+                  {
+                    "name": "Get All Partners (Admin)",
+                    "request": {
+                      "method": "GET",
+                      "header": [],
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners"]
+                      }
+                    },
+                    "response": []
+                  },
+                  {
+                    "name": "Get Partner By ID (Admin)",
+                    "request": {
+                      "method": "GET",
+                      "header": [],
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners/:id",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners", ":id"]
+                      }
+                    },
+                    "response": []
+                  },
+                  {
+                    "name": "Update Partner (Admin)",
+                    "request": {
+                      "method": "PUT",
+                      "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                      ],
+                      "body": {
+                        "mode": "raw",
+                        "raw": "{\n  \"name\": \"Updated Name\"\n}"
+                      },
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners/:id",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners", ":id"]
+                      }
+                    },
+                    "response": []
+                  },
+                  {
+                    "name": "Delete Partner (Admin)",
+                    "request": {
+                      "method": "DELETE",
+                      "header": [],
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners/:id",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners", ":id"]
+                      }
+                    },
+                    "response": []
+                  },
+                  {
+                    "name": "Add Partner Note (Admin)",
+                    "request": {
+                      "method": "POST",
+                      "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                      ],
+                      "body": {
+                        "mode": "raw",
+                        "raw": "{\n  \"content\": \"This is a note.\"\n}"
+                      },
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners/:id/notes",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners", ":id", "notes"]
+                      }
+                    },
+                    "response": []
+                  },
+                  {
+                    "name": "Start Partner Onboarding (Public)",
+                    "request": {
+                      "method": "POST",
+                      "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                      ],
+                      "body": {
+                        "mode": "raw",
+                        "raw": "{\n  \"name\": \"Test Partner\",\n  \"email\": \"test@partner.com\",\n  \"phoneNumber\": \"+1234567890\",\n  \"managedBy\": \"userId\"\n}"
+                      },
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners/onboarding/start",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners", "onboarding", "start"]
+                      }
+                    },
+                    "response": []
+                  },
+                  {
+                    "name": "Update Business Info (Public)",
+                    "request": {
+                      "method": "PUT",
+                      "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                      ],
+                      "body": {
+                        "mode": "raw",
+                        "raw": "{\n  \"businessInfo\": {\n    \"companyName\": \"Test Company\"\n  }\n}"
+                      },
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners/onboarding/:id/business-info",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners", "onboarding", ":id", "business-info"]
+                      }
+                    },
+                    "response": []
+                  },
+                  {
+                    "name": "Complete Verification (Public)",
+                    "request": {
+                      "method": "PUT",
+                      "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                      ],
+                      "body": {
+                        "mode": "raw",
+                        "raw": "{\n  \"documents\": [\"doc1.pdf\"]\n}"
+                      },
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners/onboarding/:id/verification",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners", "onboarding", ":id", "verification"]
+                      }
+                    },
+                    "response": []
+                  },
+                  {
+                    "name": "Complete API Setup (Public)",
+                    "request": {
+                      "method": "PUT",
+                      "header": [
+                        { "key": "Content-Type", "value": "application/json" }
+                      ],
+                      "body": {
+                        "mode": "raw",
+                        "raw": "{\n  \"webhookUrl\": \"https://webhook.site/\",\n  \"callbackUrl\": \"https://callback.site/\"\n}"
+                      },
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners/onboarding/:id/api-setup",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners", "onboarding", ":id", "api-setup"]
+                      }
+                    },
+                    "response": []
+                  },
+                  {
+                    "name": "Activate Partner (Public)",
+                    "request": {
+                      "method": "PUT",
+                      "header": [],
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners/onboarding/:id/activate",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners", "onboarding", ":id", "activate"]
+                      }
+                    },
+                    "response": []
+                  },
+                  {
+                    "name": "Get Partner By Slug (Public)",
+                    "request": {
+                      "method": "GET",
+                      "header": [],
+                      "url": {
+                        "raw": "{{baseUrl}}/api/partners/slug/:slug",
+                        "host": ["{{baseUrl}}"],
+                        "path": ["api", "partners", "slug", ":slug"]
+                      }
+                    },
+                    "response": []
+                  }
                 ]
               }
-            }
-          ],
+            ],
           "request": {
             "method": "POST",
             "header": [],
