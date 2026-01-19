@@ -1254,6 +1254,56 @@ const getPartnerBySlug = async (req, res) => {
   }
 };
 
+// @desc    Get partner by managedBy user ID
+// @route   GET /api/partners/managed/:userId
+// @access  Admin/Partner
+const getPartnerByManageId = async (req, res) => {
+  try {
+    const { manageId } = req.params;
+    const partner = await Partner.findOne({ managedBy: manageId, deleted: { $ne: true } })
+      .populate('managedBy', 'firstName lastName email');
+
+    if (!partner) {
+      return res.status(404).json({
+        success: false,
+        message: 'Partner not found',
+        code: 'PARTNER_NOT_FOUND'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        partner: {
+          id: partner._id,
+          name: partner.name,
+          email: partner.email,
+          phoneNumber: partner.phoneNumber,
+          slug: partner.slug,
+          status: partner.status,
+          businessInfo: partner.businessInfo,
+          apiCredentials: partner.apiCredentials,
+          onboarding: partner.onboarding,
+          verification: partner.verification,
+          usage: partner.usage,
+          notes: partner.notes,
+          tags: partner.tags,
+          managedBy: partner.managedBy,
+          createdAt: partner.createdAt,
+          updatedAt: partner.updatedAt
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get partner by managedBy ID', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve partner',
+      code: 'PARTNER_RETRIEVAL_ERROR'
+    });
+  }
+};
+
 module.exports = {
   createPartner,
   getPartners,
@@ -1267,5 +1317,6 @@ module.exports = {
   completeApiSetup,
   activatePartner,
   getPartnerBySlug,
-  uploadDocumentsForVerification
+  uploadDocumentsForVerification,
+  getPartnerByManageId
 };

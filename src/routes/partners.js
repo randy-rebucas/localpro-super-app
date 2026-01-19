@@ -1,4 +1,3 @@
-// Document upload (verification)
 const { uploaders } = require('../config/cloudinary');
 const { uploadDocumentsForVerification } = require('../controllers/partnerController');
 
@@ -18,7 +17,8 @@ const {
   completeVerification,
   completeApiSetup,
   activatePartner,
-  getPartnerBySlug
+  getPartnerBySlug,
+  getPartnerByManageId
 } = require('../controllers/partnerController');
 
 // Validation middleware
@@ -331,5 +331,27 @@ router.delete('/:id', validatePartnerId, authorize(['admin']), deletePartner);
  */
 // Partner notes
 router.post('/:id/notes', validatePartnerId, validateNote, authorize(['admin']), addPartnerNote);
+
+/**
+ * @swagger
+ * /api/partners/manage/{manageId}:
+ *   get:
+ *     summary: Get partner by manage ID
+ *     tags: [Partners]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: manageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Partner details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+router.get('/manage/:manageId', getPartnerByManageId);
 
 module.exports = router;
