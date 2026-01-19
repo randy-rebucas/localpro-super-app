@@ -1,7 +1,6 @@
 // @desc    Upload documents for partner verification
 // @route   POST /api/partners/:id/upload-documents
 // @access  Admin/Partner
-const { uploaders } = require('../config/cloudinary');
 const Partner = require('../models/Partner');
 const { logger } = require('../utils/logger');
 const { auditLogger } = require('../utils/auditLogger');
@@ -771,7 +770,7 @@ const updateBusinessInfo = async (req, res) => {
     // Note: We complete the step even if businessInfo is empty to allow
     // partners to skip optional fields and move to next step
     try {
-      let result = await partner.completeOnboardingStep('business_info', businessInfo || {});
+      await partner.completeOnboardingStep('business_info', businessInfo || {});
     } catch (stepError) {
       // If completeOnboardingStep fails, try manual save
       const stepIndex = partner.onboarding.steps.findIndex(s => s.step === 'business_info');
@@ -803,7 +802,6 @@ const updateBusinessInfo = async (req, res) => {
       await partner.save();
       console.log('Manual save successful');
     }
-
     logger.info('Partner business info updated', {
       partnerId: partner._id,
       hasCompanyName: !!businessInfo?.companyName

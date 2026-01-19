@@ -21,52 +21,6 @@ const {
   getPartnerBySlug
 } = require('../controllers/partnerController');
 
-const validateFileUpload = (options = {}) => {
-  return (req, res, next) => {
-    const {
-      maxSize = 5 * 1024 * 1024,
-      allowedTypes = ['image/jpeg', 'image/png', 'image/gif'],
-      required = true
-    } = options;
-
-    // If file is not required and no file is provided, skip validation
-    if (!required && !req.file && !req.files) {
-      return next();
-    }
-
-    // If file is required but not provided, return error
-    if (required && !req.file && !req.files) {
-      return sendValidationError(res, [{
-        field: 'file',
-        message: 'No file uploaded',
-        code: 'NO_FILE_UPLOADED'
-      }]);
-    }
-
-    const files = req.files || [req.file];
-
-    for (const file of files) {
-      if (file.size > maxSize) {
-        return sendValidationError(res, [{
-          field: 'file',
-          message: `File size must be less than ${maxSize / (1024 * 1024)}MB`,
-          code: 'FILE_TOO_LARGE'
-        }]);
-      }
-
-      if (!allowedTypes.includes(file.mimetype)) {
-        return sendValidationError(res, [{
-          field: 'file',
-          message: `File type must be one of: ${allowedTypes.join(', ')}`,
-          code: 'INVALID_FILE_TYPE'
-        }]);
-      }
-    }
-
-    next();
-  };
-};
-
 // Validation middleware
 const validatePartnerCreation = [
   body('name')
