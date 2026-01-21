@@ -4,7 +4,7 @@ const { uploadDocumentsForVerification } = require('../controllers/partnerContro
 const express = require('express');
 const router = express.Router();
 const { auth, authorize } = require('../middleware/auth');
-const { body, param, query } = require('express-validator');
+const { body, param } = require('express-validator');
 const {
   createPartner,
   getPartners,
