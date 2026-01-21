@@ -4,7 +4,7 @@ const { uploadDocumentsForVerification } = require('../controllers/partnerContro
 const express = require('express');
 const router = express.Router();
 const { auth, authorize } = require('../middleware/auth');
-const { body, param } = require('express-validator');
+const { body, param, query } = require('express-validator');
 const {
   createPartner,
   getPartners,
@@ -18,7 +18,9 @@ const {
   completeApiSetup,
   activatePartner,
   getPartnerBySlug,
-  getPartnerByManageId
+  getPartnerByManageId,
+  attachedDocumentForVerification,
+  deleteAttachedDocumentForVerification
 } = require('../controllers/partnerController');
 
 // Validation middleware
@@ -353,5 +355,13 @@ router.post('/:id/notes', validatePartnerId, validateNote, authorize(['admin']),
  *         $ref: '#/components/responses/NotFoundError'
  */
 router.get('/manage/:manageId', getPartnerByManageId);
+
+router.put('/:id/attach-document/:documentType',
+  validatePartnerId,
+  uploaders.documentVerification.single('document'),
+  attachedDocumentForVerification);
+
+router.delete('/:id/delete-attach-document/:documentId',
+  deleteAttachedDocumentForVerification);
 
 module.exports = router;

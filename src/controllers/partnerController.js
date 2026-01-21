@@ -5,6 +5,7 @@ const Partner = require('../models/Partner');
 const { logger } = require('../utils/logger');
 const { auditLogger } = require('../utils/auditLogger');
 const { validationResult } = require('express-validator');
+const { cloudinaryUtils } = require('../config/cloudinary');
 
 // @desc    Create a new partner (admin only)
 // @route   POST /api/partners
@@ -1304,6 +1305,173 @@ const getPartnerByManageId = async (req, res) => {
   }
 };
 
+// @desc    Partner onboarding - Complete verification
+// @route   PUT /api/partners/onboarding/:id/attach-verification
+// @access  Public
+const attachedDocumentForVerification = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array(),
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    const { id, documentType } = req.params;
+
+    const partner = await Partner.findById(id);
+
+    if (!partner || partner.deleted) {
+      return res.status(404).json({
+        success: false,
+        message: 'Partner not found',
+        code: 'PARTNER_NOT_FOUND'
+      });
+    }
+
+    // Ensure verification and documents array exist
+    if (!partner.verification) {
+      partner.verification = {};
+    }
+    if (!Array.isArray(partner.verification.documents)) {
+      partner.verification.documents = [];
+    }
+    partner.verification.documents.push({
+      type: documentType,
+      name: req.file.originalname,
+      url: req.file.url,
+      publicId: req.file.public_id,
+      uploadedAt: new Date(),
+      verified: false
+    });
+
+    await partner.save();
+
+
+    res.json({
+      success: true,
+      message: 'Verification completed successfully',
+      data: {
+        partner: {
+          id: partner._id,
+          verification: partner.verification,
+          onboarding: partner.onboarding
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to complete verification', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      partnerId: req.params.id,
+      body: req.body
+    });
+
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors,
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // Generic error response
+    res.status(500).json({
+      success: false,
+      message: 'Failed to complete verification',
+      code: 'VERIFICATION_ERROR',
+      ...(process.env.NODE_ENV === 'development' && {
+        error: error.message,
+        details: error.stack
+      })
+    });
+  }
+};
+
+// @desc    Delete attached document for verification (Cloudinary)
+// @route   DELETE /api/partners/onboarding/:id/verification/:documentId
+// @access  Admin/Partner
+const deleteAttachedDocumentForVerification = async (req, res) => {
+  try {
+    const { id, documentId } = req.params;
+
+    const partner = await Partner.findById(id);
+    if (!partner || partner.deleted) {
+      return res.status(404).json({
+        success: false,
+        message: 'Partner not found',
+        code: 'PARTNER_NOT_FOUND'
+      });
+    }
+    if (!partner.verification || !Array.isArray(partner.verification.documents)) {
+      return res.status(404).json({
+        success: false,
+        message: 'No verification documents found',
+        code: 'DOCUMENTS_NOT_FOUND'
+      });
+    }
+
+    // Find document index
+    const docIndex = partner.verification.documents.findIndex(doc => {
+      return doc._id.toString() === documentId;
+    });
+
+    if (docIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Document not found',
+        code: 'DOCUMENT_NOT_FOUND'
+      });
+    }
+
+    // Remove from Cloudinary
+    await cloudinaryUtils.deleteFile(partner.verification.documents[docIndex].publicId);
+
+    // Remove from array
+    partner.verification.documents.splice(docIndex, 1);
+    await partner.save();
+
+    res.json({
+      success: true,
+      message: 'Document deleted successfully',
+      data: {
+        partner: {
+          id: partner._id,
+          verification: partner.verification
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to delete verification document', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      partnerId: req.params.id,
+      body: req.body
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete verification document',
+      code: 'DOCUMENT_DELETE_ERROR',
+      ...(process.env.NODE_ENV === 'development' && {
+        error: error.message,
+        details: error.stack
+      })
+    });
+  }
+};
+
 module.exports = {
   createPartner,
   getPartners,
@@ -1318,5 +1486,7 @@ module.exports = {
   activatePartner,
   getPartnerBySlug,
   uploadDocumentsForVerification,
-  getPartnerByManageId
-};
+  getPartnerByManageId,
+  attachedDocumentForVerification,
+  deleteAttachedDocumentForVerification
+}
