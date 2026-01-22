@@ -57,8 +57,7 @@ const jobSchema = new mongoose.Schema({
     required: true
   },
   subcategory: {
-    type: String,
-    required: true
+    type: String
   },
   jobType: {
     type: String,

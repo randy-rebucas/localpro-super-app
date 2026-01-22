@@ -975,7 +975,7 @@ const getMyJobs = async (req, res) => {
       .limit(Number(limit));
 
     const total = await Job.countDocuments(filter);
-
+    
     res.status(200).json({
       success: true,
       count: jobs.length,

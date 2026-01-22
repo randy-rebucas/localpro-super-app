@@ -110,7 +110,7 @@ router.get('/my-applications',
   getMyApplications
 );
 router.get('/my-jobs', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin', 'partner'), 
   validatePaginationParams,
   getMyJobs
 );
@@ -150,7 +150,7 @@ router.get('/my-jobs',
  *         $ref: '#/components/responses/ForbiddenError'
  */
 // Job management routes (Employer/Admin only)
-router.post('/', authorize('provider', 'admin'), createJob);
+router.post('/', authorize('provider', 'admin', 'partner'), createJob);
 
 /**
  * @swagger
@@ -178,24 +178,24 @@ router.get('/:id',
   getJob
 );
 router.put('/:id', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin', 'partner'), 
   validateObjectIdParam('id'),
   updateJob
 );
 router.delete('/:id', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin', 'partner'), 
   validateObjectIdParam('id'),
   deleteJob
 );
 router.post('/:id/logo', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin', 'partner'), 
   validateObjectIdParam('id'),
   uploaders.jobs.single('logo'),
   validateFileUpload({ maxSize: 2 * 1024 * 1024, allowedTypes: ['image/jpeg', 'image/png'] }),
   uploadCompanyLogo
 );
 router.get('/:id/stats', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin', 'partner'), 
   validateObjectIdParam('id'),
   getJobStats
 );
@@ -252,13 +252,13 @@ router.delete('/:id/applications/:applicationId',
 
 // Application management routes (Employer/Admin only)
 router.get('/:id/applications', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin', 'partner'), 
   validateObjectIdParam('id'),
   validatePaginationParams,
   getJobApplications
 );
 router.put('/:id/applications/:applicationId/status', 
-  authorize('provider', 'admin'), 
+  authorize('provider', 'admin', 'partner'), 
   validateObjectIdParam('id'),
   validateObjectIdParam('applicationId'),
   updateApplicationStatus
