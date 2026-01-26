@@ -20,7 +20,8 @@ const {
   deleteUserBadge,
   resetUserPassword,
   sendEmailToUser,
-  exportUserData
+  exportUserData,
+  getUserNotes
 } = require('../controllers/userManagementController');
 
 const router = express.Router();
@@ -296,5 +297,32 @@ router.get('/:id/export',
   authorize(['admin', 'partner']),
   exportUserData
 );
+
+/**
+ * @swagger
+ * /api/users/{id}/notes:
+ *   get:
+ *     summary: Get notes for a user
+ *     tags: [Admin, Partner]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: List of notes for the user
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
+router.get('/:id/notes',
+  authorize(['admin', 'agency_admin', 'agency_owner', 'partner']),
+  getUserNotes
+);
+
 
 module.exports = router;

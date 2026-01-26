@@ -76,7 +76,7 @@ const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 const { generalLimiter, marketplaceLimiter } = require('./middleware/rateLimiter');
 const liveChatWebSocketService = require('./services/liveChatWebSocketService');
 const AllowedOrigin = require('./models/AllowedOrigin');
-
+const supportRoutes = require('./routes/support');
 const app = express();
 
 // Trust proxy - necessary when behind reverse proxy/load balancer (e.g., Render, nginx)
@@ -115,11 +115,11 @@ async function getAllowedOrigins() {
 async function initializeApplication() {
   try {
     logger.info('🚀 Initializing LocalPro Super App...');
-    
+
     // Run all startup checks
     await startupValidator.runValidation();
     const summary = startupValidator.getSummary();
-    
+
     if (!summary.canProceed) {
       logger.error('❌ Critical startup validation failures detected:', {
         criticalFailures: summary.criticalFailures,
@@ -127,34 +127,34 @@ async function initializeApplication() {
       });
       process.exit(1);
     }
-    
+
     if (summary.warnings.length > 0) {
       logger.warn('⚠️  Startup validation warnings:', {
         warnings: summary.warnings,
         totalChecks: summary.totalChecks
       });
     }
-    
+
     logger.info('✅ Application startup validation completed successfully');
-    
+
     // Connect to MongoDB after validation
     await connectDB();
-    
+
     // Verify database connection after connecting
     const mongoose = require('mongoose');
     if (mongoose.connection.readyState !== 1) {
       logger.error('❌ Database connection failed after connection attempt');
       process.exit(1);
     }
-    
+
     logger.info('✅ Database connection verified successfully');
-    
+
     // Initialize automated services (tracks services for graceful shutdown)
     await initializeAutomatedServices();
-    
+
     // Start the server
     startServer();
-    
+
   } catch (error) {
     logger.error('❌ Application initialization failed:', error);
     process.exit(1);
@@ -165,7 +165,7 @@ async function initializeApplication() {
 function startServer() {
   // Security middleware
   app.use(helmet());
-  
+
   // Enhanced CORS configuration
   const corsOptions = {
     origin: async function (origin, callback) {
@@ -190,9 +190,9 @@ function startServer() {
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key', 'X-API-Secret'],
     exposedHeaders: ['X-Total-Count', 'X-Page', 'X-Limit']
   };
-  
+
   app.use(cors(corsOptions));
-  
+
   // Handle preflight requests explicitly
   app.options('*', cors(corsOptions));
 
@@ -218,12 +218,12 @@ function startServer() {
   // Only parse JSON for requests with JSON content-type
   app.use((req, res, next) => {
     const contentType = req.get('content-type') || '';
-    
+
     // Skip JSON parsing for multipart/form-data (handled by multer)
     if (contentType.includes('multipart/form-data')) {
       return next();
     }
-    
+
     // Only parse JSON if content-type indicates JSON
     if (contentType.includes('application/json') || contentType.includes('text/json')) {
       express.json({ limit: '10mb' })(req, res, (err) => {
@@ -235,7 +235,7 @@ function startServer() {
             path: req.path,
             method: req.method
           });
-          
+
           // If it's a JSON parsing error, return a helpful error
           if (err instanceof SyntaxError && err.message.includes('JSON')) {
             return res.status(400).json({
@@ -245,7 +245,7 @@ function startServer() {
               details: 'This endpoint expects JSON format. Please ensure your request body is valid JSON.'
             });
           }
-          
+
           return next(err);
         }
         next();
@@ -255,7 +255,7 @@ function startServer() {
       next();
     }
   });
-  
+
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
   // Request ID middleware (add unique ID to each request)
@@ -275,7 +275,7 @@ function startServer() {
   // Logging middleware
   app.use(morgan('combined', { stream: logger.stream }));
   app.use(requestLogger);
-  
+
   // Enhanced request logging with performance tracking is available in src/middleware/requestLogger.js
   // To enable: const { requestLogger: enhancedRequestLogger } = require('./middleware/requestLogger');
   // Then: app.use(enhancedRequestLogger({ logBody: false, logHeaders: false }));
@@ -322,64 +322,64 @@ function startServer() {
    *                   format: date-time
    */
   app.get('/', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    message: 'LocalPro Super App API is running',
-    version: '1.0.0',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    baseUrl: `${req.protocol}://${req.get('host')}`,
-    
-    // Summarized Info
-    summary: {
-      description: 'LocalPro Super App - A comprehensive platform connecting local service providers with customers',
-      features: [
-        'Service Marketplace & Bookings',
-        'Learning Academy & Certifications', 
-        'Equipment & Supplies Management',
-        'Financial Management & Payments',
-        'Job Board & Employment',
-        'Trust & Verification System',
-        'Real-time Communication',
-        'Analytics & Insights',
-        'Referral System & Rewards',
-        'Agency Management',
-        'User & App Settings',
-        'User Management System',
-        'Global Search System',
-        'Announcements & Notifications',
-        'User Activities & Feed'
-      ],
-      totalEndpoints: 20,
-      authentication: 'Bearer Token',
-      rateLimit: 'Enabled (100 req/15min)'
-    },
+    res.status(200).json({
+      status: 'OK',
+      message: 'LocalPro Super App API is running',
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      baseUrl: `${req.protocol}://${req.get('host')}`,
 
-    // Company Info
-    company: {
-      name: 'LocalPro Super App',
-      tagline: 'Connecting Local Professionals with Opportunities',
-      mission: 'Empowering local service providers and creating opportunities for growth and success',
-      founded: '2024',
-      location: ''
-    },
+      // Summarized Info
+      summary: {
+        description: 'LocalPro Super App - A comprehensive platform connecting local service providers with customers',
+        features: [
+          'Service Marketplace & Bookings',
+          'Learning Academy & Certifications',
+          'Equipment & Supplies Management',
+          'Financial Management & Payments',
+          'Job Board & Employment',
+          'Trust & Verification System',
+          'Real-time Communication',
+          'Analytics & Insights',
+          'Referral System & Rewards',
+          'Agency Management',
+          'User & App Settings',
+          'User Management System',
+          'Global Search System',
+          'Announcements & Notifications',
+          'User Activities & Feed'
+        ],
+        totalEndpoints: 20,
+        authentication: 'Bearer Token',
+        rateLimit: 'Enabled (100 req/15min)'
+      },
 
-    // Contact Info
-    contact: {
-      support: 'api-support@localpro.com',
-      technical: 'tech@localpro.com',
-      business: 'business@localpro.com',
-      documentation: 'Contact API support for detailed documentation'
-    },
+      // Company Info
+      company: {
+        name: 'LocalPro Super App',
+        tagline: 'Connecting Local Professionals with Opportunities',
+        mission: 'Empowering local service providers and creating opportunities for growth and success',
+        founded: '2024',
+        location: ''
+      },
 
-    // Postman Collection Link
-    postmanCollection: {
-      name: 'LocalPro-Super-App-API',
-      description: 'Complete API collection with all endpoints and examples',
-      link: `${req.protocol}://${req.get('host')}/LocalPro-Super-App-API.postman_collection.json`,
-      openInNewTab: true
-    }
-  });
+      // Contact Info
+      contact: {
+        support: 'api-support@localpro.com',
+        technical: 'tech@localpro.com',
+        business: 'business@localpro.com',
+        documentation: 'Contact API support for detailed documentation'
+      },
+
+      // Postman Collection Link
+      postmanCollection: {
+        name: 'LocalPro-Super-App-API',
+        description: 'Complete API collection with all endpoints and examples',
+        link: `${req.protocol}://${req.get('host')}/LocalPro-Super-App-API.postman_collection.json`,
+        openInNewTab: true
+      }
+    });
   });
 
   // Health check functions
@@ -393,7 +393,7 @@ function startServer() {
         2: 'connecting',
         3: 'disconnecting'
       };
-      
+
       return {
         status: state === 1 ? 'healthy' : 'unhealthy',
         state: states[state] || 'unknown',
@@ -416,7 +416,7 @@ function startServer() {
       paymaya: { status: 'unknown', response_time: null },
       cloudinary: { status: 'unknown', response_time: null }
     };
-    
+
     // For now, just return basic status
     // In production, you might want to actually ping these services
     return apis;
@@ -456,7 +456,7 @@ function startServer() {
     const externalApis = await checkExternalAPIs();
 
     // Determine overall health status
-    const isHealthy = 
+    const isHealthy =
       databaseHealth.status === 'healthy' &&
       process.uptime() > 0;
 
@@ -495,7 +495,7 @@ function startServer() {
     const hours = Math.floor((seconds % 86400) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    
+
     if (days > 0) {
       return `${days}d ${hours}h ${minutes}m ${secs}s`;
     } else if (hours > 0) {
@@ -522,7 +522,7 @@ function startServer() {
   // Swagger API Documentation
   const swaggerUi = require('swagger-ui-express');
   const swaggerSpec = require('./config/swagger');
-  
+
   // Serve Swagger UI
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     customCss: '.swagger-ui .topbar { display: none }',
@@ -582,46 +582,46 @@ function startServer() {
   app.use('/api/quotes', quotesInvoicesRoutes);
   app.use('/api/invoices', quotesInvoicesRoutes);
   app.use('/api/masked-calls', maskedCallsRoutes);
-  
+
   // GPS & Time Tracking Routes
   app.use('/api/time-entries', timeEntriesRoutes);
   app.use('/api/gps-logs', gpsLogsRoutes);
   app.use('/api/geofence-events', geofenceEventsRoutes);
-  
+
   // AI Marketplace Routes
   app.use('/api/ai/marketplace', aiMarketplaceRoutes);
-  
+
   // AI Users Routes
   app.use('/api/ai/users', aiUsersRoutes);
-  
+
   // AI Bot Routes (AI Operating System)
   app.use('/api/ai-bot', aiBotRoutes);
-  
+
   // Escrow and Payment Routes
   app.use('/api/escrows', escrowRoutes);
   app.use('/webhooks', escrowWebhookRoutes);
-  
+
   // Monitoring and Performance Routes
   app.use('/api/monitoring', monitoringRoutes);
   app.use('/api/monitoring/alerts', alertsRoutes.router);
   app.use('/api/monitoring/database', databaseMonitoringRoutes);
   app.use('/api/monitoring/stream', metricsStreamRoutes.router);
-  
+
   // Database Optimization Routes
   app.use('/api/database/optimization', databaseOptimizationRoutes);
-  
+
   // Live Chat Routes (Public - No Auth Required)
   app.use('/api/live-chat', liveChatRoutes);
-  
+
   // Live Chat Admin Routes (Requires Auth)
   app.use('/api/admin/live-chat', adminLiveChatRoutes);
-  
+
   // Notification Routes
   app.use('/api/notifications', notificationsRoutes);
-  
+
   // Webhook Routes
   app.use('/api/webhooks', webhookRoutes);
-  
+
   // Email Marketing Routes
   app.use('/api/email-marketing', emailMarketingRoutes);
 
@@ -629,7 +629,8 @@ function startServer() {
   app.use('/api/partners', partnersRoutes);
   app.use('/api/staff', staffRoutes);
   app.use('/api/permissions', permissionsRoutes);
-
+  // Register support routes after app is initialized
+  app.use('/api/support', supportRoutes);
   // 404 handler
   app.use('*', (req, res) => {
     res.status(404).json({
@@ -651,26 +652,26 @@ function startServer() {
     const PORT = process.env.PORT || 5000;
     const http = require('http');
     const { WebSocketServer } = require('ws');
-    
+
     // Create HTTP server
     httpServer = http.createServer(app);
-    
+
     // Create WebSocket server for live chat
-    const wss = new WebSocketServer({ 
+    const wss = new WebSocketServer({
       server: httpServer,
       path: '/ws/live-chat'
     });
-    
+
     // Initialize live chat WebSocket service
     liveChatWebSocketService.initialize(wss);
-    
+
     httpServer.listen(PORT, () => {
       logger.info('LocalPro Super App API Started', {
         port: PORT,
         environment: process.env.NODE_ENV || 'development',
         timestamp: new Date().toISOString()
       });
-      
+
       logger.info(`🚀 LocalPro Super App API running on port ${PORT}`);
       logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
       logger.info(`📊 Logging enabled with Winston`);
@@ -687,7 +688,7 @@ let automatedServices = [];
 // Initialize automated services (tracks services for graceful shutdown)
 async function initializeAutomatedServices() {
   automatedServices = []; // Reset list
-  
+
   try {
     // Automated Backup Service
     if (process.env.ENABLE_AUTOMATED_BACKUPS === 'true' || process.env.NODE_ENV === 'production') {
@@ -901,13 +902,13 @@ async function initializeAutomatedServices() {
     if (process.env.ENABLE_AI_BOT !== 'false') {
       const aiBotService = require('./services/aiBotService');
       const aiBotEventListener = require('./services/aiBotEventListener');
-      
+
       // Initialize AI Bot
       await aiBotService.initialize();
-      
+
       // Start event listener
       aiBotEventListener.start();
-      
+
       logger.info('✅ AI Bot service (AI Operating System) started');
     }
 
@@ -921,14 +922,14 @@ async function initializeAutomatedServices() {
 // Graceful shutdown handler
 async function gracefulShutdown(signal) {
   logger.info(`Received ${signal}. Starting graceful shutdown...`);
-  
+
   try {
     // Close HTTP server (stop accepting new connections)
     if (httpServer) {
       return new Promise((resolve) => {
         httpServer.close(() => {
           logger.info('HTTP server closed');
-          
+
           // Use async IIFE to handle async operations in the callback
           (async () => {
             try {
@@ -943,26 +944,26 @@ async function gracefulShutdown(signal) {
                   }
                 }
               }
-              
+
               // Stop database performance monitor
               const dbMonitor = require('./services/databasePerformanceMonitor');
               if (dbMonitor && typeof dbMonitor.stopMonitoring === 'function') {
                 dbMonitor.stopMonitoring();
               }
-              
+
               // Cleanup metrics stream
               const { cleanup: cleanupMetricsStream } = require('./routes/metricsStream');
               if (cleanupMetricsStream) {
                 cleanupMetricsStream();
               }
-              
+
               // Close MongoDB connection
               const mongoose = require('mongoose');
               if (mongoose.connection.readyState === 1) {
                 await mongoose.connection.close();
                 logger.info('MongoDB connection closed');
               }
-              
+
               logger.info('Graceful shutdown completed');
               resolve();
               process.exit(0);
@@ -972,7 +973,7 @@ async function gracefulShutdown(signal) {
             }
           })();
         });
-        
+
         // Force shutdown after 10 seconds
         setTimeout(() => {
           logger.error('Forced shutdown after timeout');
@@ -990,12 +991,12 @@ async function gracefulShutdown(signal) {
           }
         }
       }
-      
+
       const mongoose = require('mongoose');
       if (mongoose.connection.readyState === 1) {
         await mongoose.connection.close();
       }
-      
+
       process.exit(0);
     }
   } catch (error) {

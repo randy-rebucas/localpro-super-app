@@ -25,7 +25,7 @@ const getAllUsers = async (req, res) => {
     } = req.query;
 
     console
-.log('Get all users query params:', req.query);
+      .log('Get all users query params:', req.query);
     // Build filter object
     const baseFilters = {};
 
@@ -38,7 +38,7 @@ const getAllUsers = async (req, res) => {
     if (partnerId && typeof partnerId === 'string' && partnerId.trim() !== '') {
       baseFilters.partnerId = partnerId.trim();
     }
-    
+
     // Exclude soft-deleted users unless explicitly requested
     if (includeDeleted !== 'true') {
       const UserManagement = require('../models/UserManagement');
@@ -48,7 +48,7 @@ const getAllUsers = async (req, res) => {
         baseFilters._id = { $nin: deletedUserIds };
       }
     }
-    
+
     // Role filter - only add if not empty (multi-role support)
     // Since roles is an array field, we need to use $in operator to check if role exists in array
     if (role && (typeof role === 'string' ? role.trim() !== '' : true)) {
@@ -62,7 +62,7 @@ const getAllUsers = async (req, res) => {
         baseFilters.roles = { $in: [roleValue] };
       }
     }
-    
+
     // Status filters - handle string 'true'/'false' and boolean values
     if (isActive !== undefined && isActive !== '') {
       if (typeof isActive === 'string') {
@@ -71,7 +71,7 @@ const getAllUsers = async (req, res) => {
         baseFilters.isActive = Boolean(isActive);
       }
     }
-    
+
     if (isVerified !== undefined && isVerified !== '') {
       if (typeof isVerified === 'string') {
         baseFilters.isVerified = isVerified.toLowerCase() === 'true';
@@ -79,10 +79,10 @@ const getAllUsers = async (req, res) => {
         baseFilters.isVerified = Boolean(isVerified);
       }
     }
-    
+
     // Build final filter - combine base filters with search if present
     let filter = {};
-    
+
     // Search filter - trim and validate
     const searchTerm = search && typeof search === 'string' ? search.trim() : search;
     if (searchTerm && searchTerm !== '') {
@@ -95,7 +95,7 @@ const getAllUsers = async (req, res) => {
           { 'profile.businessName': { $regex: searchTerm, $options: 'i' } }
         ]
       };
-      
+
       // If we have both base filters and search, combine them with $and
       if (Object.keys(baseFilters).length > 0) {
         filter = {
@@ -211,38 +211,38 @@ const getAllUsers = async (req, res) => {
     // Audit log
     await auditLogger.logUser('user_list', req, { type: 'user', id: null, name: 'Users' }, {}, { filter, pagination: { page, limit } });
 
-      // Attach lastLoginAt from UserManagement for each user
-      const UserManagement = require('../models/UserManagement');
-      const userIds = users.map(u => u._id);
-      const managements = await UserManagement.find({ user: { $in: userIds } }).lean();
-      const managementMap = new Map(managements.map(m => [m.user.toString(), m]));
+    // Attach lastLoginAt from UserManagement for each user
+    const UserManagement = require('../models/UserManagement');
+    const userIds = users.map(u => u._id);
+    const managements = await UserManagement.find({ user: { $in: userIds } }).lean();
+    const managementMap = new Map(managements.map(m => [m.user.toString(), m]));
 
-      const usersWithLogin = users.map(user => {
-        const userObj = user.toObject ? user.toObject() : user;
-        const mgmt = managementMap.get(userObj._id.toString());
-        userObj.lastLoginAt = mgmt && mgmt.lastLoginAt ? mgmt.lastLoginAt : null;
-        userObj.lastLoginDisplay = mgmt && mgmt.lastLoginAt ? mgmt.lastLoginAt : 'Never';
-        // Add status management fields
-        userObj.status = mgmt && mgmt.status ? mgmt.status : null;
-        userObj.statusReason = mgmt && mgmt.statusReason ? mgmt.statusReason : null;
-        userObj.statusUpdatedAt = mgmt && mgmt.statusUpdatedAt ? mgmt.statusUpdatedAt : null;
-        userObj.statusUpdatedBy = mgmt && mgmt.statusUpdatedBy ? mgmt.statusUpdatedBy : null;
-        userObj.isDeleted = mgmt && mgmt.deletedAt ? true : false;
-        return userObj;
-      });
+    const usersWithLogin = users.map(user => {
+      const userObj = user.toObject ? user.toObject() : user;
+      const mgmt = managementMap.get(userObj._id.toString());
+      userObj.lastLoginAt = mgmt && mgmt.lastLoginAt ? mgmt.lastLoginAt : null;
+      userObj.lastLoginDisplay = mgmt && mgmt.lastLoginAt ? mgmt.lastLoginAt : 'Never';
+      // Add status management fields
+      userObj.status = mgmt && mgmt.status ? mgmt.status : null;
+      userObj.statusReason = mgmt && mgmt.statusReason ? mgmt.statusReason : null;
+      userObj.statusUpdatedAt = mgmt && mgmt.statusUpdatedAt ? mgmt.statusUpdatedAt : null;
+      userObj.statusUpdatedBy = mgmt && mgmt.statusUpdatedBy ? mgmt.statusUpdatedBy : null;
+      userObj.isDeleted = mgmt && mgmt.deletedAt ? true : false;
+      return userObj;
+    });
 
-      res.status(200).json({
-        success: true,
-        data: {
-          users: usersWithLogin,
-          pagination: {
-            current: parseInt(page),
-            pages: Math.ceil(total / parseInt(limit)),
-            total,
-            limit: parseInt(limit)
-          }
+    res.status(200).json({
+      success: true,
+      data: {
+        users: usersWithLogin,
+        pagination: {
+          current: parseInt(page),
+          pages: Math.ceil(total / parseInt(limit)),
+          total,
+          limit: parseInt(limit)
         }
-      });
+      }
+    });
   } catch (error) {
     // Per tests, return success even if query chain throws
     res.status(200).json({
@@ -276,9 +276,9 @@ const getUserById = async (req, res) => {
       .populate('trust')
       .populate({
         path: 'referral',
-        populate: { 
-          path: 'referredBy', 
-          select: 'firstName lastName email phoneNumber' 
+        populate: {
+          path: 'referredBy',
+          select: 'firstName lastName email phoneNumber'
         }
       })
       .populate('settings')
@@ -330,7 +330,7 @@ const getUserById = async (req, res) => {
           .populate('performance')
           .select('-financialInfo -onboarding')
           .lean();
-        
+
         if (provider) {
           userObj.provider = provider;
         } else {
@@ -461,7 +461,7 @@ const createUser = async (req, res) => {
     if (partnerId) {
       userData.partnerId = partnerId;
     }
-    
+
     // Handle gender - validate and include if provided
     if (gender !== undefined) {
       if (gender && !['male', 'female', 'other', 'prefer_not_to_say'].includes(gender)) {
@@ -472,7 +472,7 @@ const createUser = async (req, res) => {
       }
       userData.gender = gender || null;
     }
-    
+
     // Handle birthdate - convert string to Date if provided
     if (birthdate !== undefined) {
       if (birthdate && typeof birthdate === 'string') {
@@ -514,7 +514,7 @@ const updateUser = async (req, res) => {
     if (!user) {
       return res.status(200).json({ success: true, data: {} });
     }
-    
+
     // Check if user is soft-deleted
     const management = await user.ensureManagement();
     if (management.deletedAt) {
@@ -552,14 +552,14 @@ const updateUser = async (req, res) => {
         if (!source || typeof source !== 'object' || Array.isArray(source)) {
           return source !== undefined ? source : target;
         }
-        
+
         const result = { ...target };
         Object.keys(source).forEach(key => {
           if (source[key] === undefined) {
             // Skip undefined values - don't overwrite existing
             return;
           }
-          
+
           if (
             source[key] &&
             typeof source[key] === 'object' &&
@@ -580,11 +580,11 @@ const updateUser = async (req, res) => {
 
       // Clean profile data - remove undefined values
       const cleanedProfile = removeUndefined(updateData.profile);
-      
+
       // Handle GeoJSON coordinates conversion for profile.address
       if (cleanedProfile.address?.coordinates) {
         const coords = cleanedProfile.address.coordinates;
-        
+
         // Convert GeoJSON format [lng, lat] to {lat, lng}
         if (Array.isArray(coords) && coords.length === 2) {
           cleanedProfile.address.coordinates = {
@@ -608,7 +608,7 @@ const updateUser = async (req, res) => {
 
       // Deep merge profile
       const mergedProfile = deepMerge(user.profile || {}, cleanedProfile);
-      
+
       // Final cleanup: Explicitly remove undefined values from nested objects that cause Mongoose casting errors
       const problematicFields = ['avatar', 'insurance', 'backgroundCheck', 'availability'];
       problematicFields.forEach(field => {
@@ -617,17 +617,17 @@ const updateUser = async (req, res) => {
           delete mergedProfile[field];
         }
       });
-      
+
       // Additional safety: Clean the entire profile object one more time to catch any missed undefined values
       const finalClean = removeUndefined(mergedProfile);
-      
+
       // Ensure problematic fields are completely removed if they're still undefined after cleaning
       problematicFields.forEach(field => {
         if (finalClean[field] === undefined) {
           delete finalClean[field];
         }
       });
-      
+
       // Assign the fully cleaned profile
       user.profile = finalClean;
       delete updateData.profile; // Remove from updateData to avoid overwriting
@@ -635,11 +635,11 @@ const updateUser = async (req, res) => {
 
     // Validate phoneNumber uniqueness if being updated
     if (updateData.phoneNumber !== undefined && updateData.phoneNumber !== user.phoneNumber) {
-      const existingUser = await User.findOne({ 
+      const existingUser = await User.findOne({
         phoneNumber: updateData.phoneNumber,
         _id: { $ne: id }
       });
-      
+
       if (existingUser) {
         return res.status(400).json({
           success: false,
@@ -647,7 +647,7 @@ const updateUser = async (req, res) => {
           code: 'PHONE_NUMBER_ALREADY_EXISTS'
         });
       }
-      
+
       // Validate phone number format
       const phoneRegex = /^\+[1-9]\d{4,14}$/;
       if (!phoneRegex.test(updateData.phoneNumber)) {
@@ -657,7 +657,7 @@ const updateUser = async (req, res) => {
           code: 'INVALID_PHONE_FORMAT'
         });
       }
-      
+
       user.phoneNumber = updateData.phoneNumber.trim();
       delete updateData.phoneNumber;
     }
@@ -675,7 +675,7 @@ const updateUser = async (req, res) => {
       user.markModified('gender'); // Explicitly mark as modified
       delete updateData.gender;
     }
-    
+
     if (updateData.birthdate !== undefined) {
       // Convert birthdate string to Date if provided
       if (updateData.birthdate && typeof updateData.birthdate === 'string') {
@@ -709,8 +709,8 @@ const updateUser = async (req, res) => {
     res.status(200).json({ success: true, message: 'User updated successfully', data: user });
   } catch (_error) {
     console.error('Update user error:', _error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Server error',
       error: process.env.NODE_ENV === 'development' ? _error.message : undefined
     });
@@ -737,13 +737,13 @@ const updateUserStatus = async (req, res) => {
     const userRoles = req.user.roles || [];
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
-    
+
     // Ensure agency is populated for both users
     const userAgency = await user.ensureAgency();
     const reqUserAgency = await req.user.ensureAgency();
-    
-    const canUpdateStatus = isAdmin || 
-                           (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
+
+    const canUpdateStatus = isAdmin ||
+      (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
 
     if (!canUpdateStatus) {
       return res.status(403).json({
@@ -818,13 +818,13 @@ const updateUserVerification = async (req, res) => {
     const userRoles = req.user.roles || [];
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
-    
+
     // Ensure agency is populated for both users
     const userAgency = await user.ensureAgency();
     const reqUserAgency = await req.user.ensureAgency();
-    
-    const canUpdateVerification = isAdmin || 
-                                 (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
+
+    const canUpdateVerification = isAdmin ||
+      (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
 
     if (!canUpdateVerification) {
       return res.status(403).json({
@@ -841,15 +841,15 @@ const updateUserVerification = async (req, res) => {
     if (verification.businessVerified) await user.verify('business');
     if (verification.addressVerified) await user.verify('address');
     if (verification.bankAccountVerified) await user.verify('bankAccount');
-    
+
     // Update overall verification status
     await user.populate('trust');
     const verificationSummary = trust.getVerificationSummary();
     user.isVerified = verificationSummary.verifiedCount > 0;
-    
+
     // Recalculate trust score
     await user.calculateTrustScore();
-    
+
     await user.save();
 
     // Get trust summary for response
@@ -905,13 +905,13 @@ const addUserBadge = async (req, res) => {
     const userRoles = req.user.roles || [];
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     const isAgencyAdmin = req.user.hasRole ? req.user.hasRole('agency_admin') : userRoles.includes('agency_admin');
-    
+
     // Ensure agency is populated for both users
     const userAgency = await user.ensureAgency();
     const reqUserAgency = await req.user.ensureAgency();
-    
-    const canAddBadge = isAdmin || 
-                       (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
+
+    const canAddBadge = isAdmin ||
+      (isAgencyAdmin && userAgency?.agencyId?.toString() === reqUserAgency?.agencyId?.toString());
 
     if (!canAddBadge) {
       return res.status(403).json({
@@ -922,7 +922,7 @@ const addUserBadge = async (req, res) => {
 
     // Add badge
     await user.addBadge(type, description);
-    
+
     await user.save();
 
     // Get trust summary for response
@@ -966,7 +966,7 @@ const getUserStats = async (req, res) => {
       const userIds = matchingAgencies.map(ua => ua.user);
       filter._id = { $in: userIds };
     }
-    
+
     // Exclude soft-deleted users
     const UserManagement = require('../models/UserManagement');
     const deletedUserManagements = await UserManagement.find({ deletedAt: { $ne: null } }).select('user');
@@ -974,7 +974,7 @@ const getUserStats = async (req, res) => {
     if (deletedUserIds.length > 0) {
       if (filter._id && filter._id.$in) {
         // If we already have an $in filter, combine with $nin
-        filter._id = { 
+        filter._id = {
           $in: filter._id.$in.filter(id => !deletedUserIds.some(did => did.toString() === id.toString()))
         };
       } else {
@@ -1125,8 +1125,8 @@ const deleteUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete user error:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Server error',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -1278,7 +1278,7 @@ const updateUserRoles = async (req, res) => {
 
     const validRoles = ['client', 'provider', 'admin', 'supplier', 'instructor', 'agency_owner', 'agency_admin', 'partner', 'staff'];
     const invalidRoles = roles.filter(role => !validRoles.includes(role));
-    
+
     if (invalidRoles.length > 0) {
       return res.status(400).json({
         success: false,
@@ -1426,7 +1426,7 @@ const resetUserPassword = async (req, res) => {
     // Generate temporary password
     const crypto = require('crypto');
     const tempPassword = crypto.randomBytes(12).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
-    
+
     // Set password (will be hashed by pre-save hook)
     user.password = tempPassword;
     await user.save();
@@ -1567,9 +1567,9 @@ const exportUserData = async (req, res) => {
     const UserActivity = require('../models/UserActivity');
     const UserWallet = require('../models/UserWallet');
     const Provider = require('../models/Provider');
-    
+
     const userObj = user.toObject ? user.toObject() : user;
-    
+
     // Fetch provider data if user has provider role
     let providerData = null;
     if (userObj.roles && userObj.roles.includes('provider')) {
@@ -1588,7 +1588,7 @@ const exportUserData = async (req, res) => {
           .populate('performance')
           .select('-financialInfo -onboarding')
           .lean();
-        
+
         if (provider) {
           providerData = provider;
         }
@@ -1597,7 +1597,7 @@ const exportUserData = async (req, res) => {
         console.error('Error fetching provider data:', providerError);
       }
     }
-    
+
     const [management, activities, wallet] = await Promise.all([
       UserManagement.findOne({ user: id }),
       UserActivity.find({ userId: id }).limit(100).sort({ createdAt: -1 }),
@@ -1637,6 +1637,42 @@ const exportUserData = async (req, res) => {
   }
 };
 
+const getUserNotes = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { limit, skip, sortBy, sortOrder } = req.query;
+    const UserManagement = require('../models/UserManagement');
+    // Find the user management document for this user
+    const userManagement = await UserManagement.findOne({ user: id });
+    if (!userManagement) {
+      return res.status(404).json({ success: false, message: 'User management record not found' });
+    }
+    // Parse options from query
+    const options = {
+      limit: limit ? parseInt(limit) : undefined,
+      skip: skip ? parseInt(skip) : undefined,
+      sortBy: sortBy || 'addedAt',
+      sortOrder: sortOrder ? parseInt(sortOrder) : -1
+    };
+    // Use the instance method to get notes
+    let notes = userManagement.getNotes(options);
+    console.log('Fetched notes:', notes);
+    // Filter notes where addedBy is not null
+    notes = notes.filter(note => note.addedBy != null);
+    res.status(200).json({
+      success: true,
+      data: notes
+    });
+  } catch (error) {
+    console.error('Get user notes error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -1656,5 +1692,6 @@ module.exports = {
   deleteUserBadge,
   resetUserPassword,
   sendEmailToUser,
-  exportUserData
+  exportUserData,
+  getUserNotes
 };
