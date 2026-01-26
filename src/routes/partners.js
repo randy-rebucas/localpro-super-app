@@ -1,3 +1,4 @@
+
 const { uploaders } = require('../config/cloudinary');
 const { uploadDocumentsForVerification } = require('../controllers/partnerController');
 
@@ -20,8 +21,10 @@ const {
   getPartnerBySlug,
   getPartnerByManageId,
   attachedDocumentForVerification,
-  deleteAttachedDocumentForVerification
+  deleteAttachedDocumentForVerification,
+  getPartnerAnalytics
 } = require('../controllers/partnerController');
+
 
 // Validation middleware
 const validatePartnerCreation = [
@@ -363,5 +366,8 @@ router.put('/:id/attach-document/:documentType',
 
 router.delete('/:id/delete-attach-document/:documentId',
   deleteAttachedDocumentForVerification);
+
+// Get analytics dashboard/data for a partner
+router.get('/:id/analytics', validatePartnerId,  authorize(['admin', 'partner']), getPartnerAnalytics);
 
 module.exports = router;

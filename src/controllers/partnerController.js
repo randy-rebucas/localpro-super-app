@@ -1,3 +1,4 @@
+
 // @desc    Upload documents for partner verification
 // @route   POST /api/partners/:id/upload-documents
 // @access  Admin/Partner
@@ -1472,6 +1473,56 @@ const deleteAttachedDocumentForVerification = async (req, res) => {
   }
 };
 
+// @desc    Get analytics dashboard/data for a partner
+// @route   GET /api/partners/:id/analytics
+// @access  Partner/Admin
+const getPartnerAnalytics = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+    // Fetch the partner to check ownership
+    const partner = await Partner.findById(id);
+    if (!partner || partner.deleted) {
+      return res.status(404).json({
+        success: false,
+        message: 'Partner not found',
+        code: 'PARTNER_NOT_FOUND'
+      });
+    }
+
+    // Only allow access if user is admin or manages this partner
+    const isAdmin = user && (user.role === 'admin' || user.roles?.includes('admin'));
+    const isOwner = user && partner.managedBy && partner.managedBy.toString() === user._id.toString();
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: You do not have access to this analytics data',
+        code: 'FORBIDDEN'
+      });
+    }
+
+    // TODO: Replace with real analytics aggregation logic
+    // For now, return sample analytics data
+    const analytics = {
+      jobsPosted: 12,
+      bookings: 34,
+      revenue: 56000,
+      activeUsers: 8,
+      completedJobs: 10,
+      cancelledJobs: 2,
+      averageRating: 4.7,
+      last30Days: {
+        jobs: 4,
+        bookings: 9,
+        revenue: 12000
+      }
+    };
+    res.status(200).json({ success: true, data: analytics });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
 module.exports = {
   createPartner,
   getPartners,
@@ -1488,5 +1539,6 @@ module.exports = {
   uploadDocumentsForVerification,
   getPartnerByManageId,
   attachedDocumentForVerification,
-  deleteAttachedDocumentForVerification
+  deleteAttachedDocumentForVerification,
+  getPartnerAnalytics
 }
