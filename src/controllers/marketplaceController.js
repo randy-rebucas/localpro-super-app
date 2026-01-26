@@ -8,6 +8,7 @@ const NotificationService = require('../services/notificationService');
 const mongoose = require('mongoose');
 const { ReadPreference } = require('mongodb');
 const logger = require('../config/logger');
+
 const { 
   sendPaginated, 
   sendSuccess, 
@@ -20,6 +21,7 @@ const {
   validatePagination, 
   validateObjectId
 } = require('../utils/controllerValidation');
+const { bookingSchema } = require('../utils/validation');
 
 // @desc    Get all services
 // @route   GET /api/marketplace/services
@@ -1377,54 +1379,34 @@ const uploadServiceImages = async (req, res) => {
 // @route   POST /api/marketplace/bookings
 // @access  Private
 const createBooking = async (req, res) => {
-  // Start session with primary read preference (required for transactions)
-  // Transactions require 'primary' read preference, not 'primaryPreferred'
-  // Use connection's startSession to ensure read preference is set correctly
-  const session = await mongoose.connection.startSession({
+  // Transactions require primary read preference; enforce it explicitly
+  const session = await mongoose.connection.startSession();
+  const transactionOptions = {
     readPreference: ReadPreference.PRIMARY,
     readConcern: { level: 'majority' },
     writeConcern: { w: 'majority' }
-  });
-  
+  };
+
   try {
     // Extract booking data - handle both direct body and formData structure
     const bookingData = req.body.formData || req.body;
-    const { serviceId, providerId, bookingDate, bookingTime, duration, paymentMethod, address, specialInstructions } = bookingData;
-    
-    // Validate required fields
-    if (!serviceId) {
-      return sendValidationError(res, [{
-        field: 'serviceId',
-        message: 'Service ID is required',
-        code: 'SERVICE_ID_REQUIRED'
-      }]);
+    console.log('Create booking request data:', bookingData);
+
+    // Validate payload using Joi bookingSchema
+    const { error, value: validatedBooking } = bookingSchema.validate(bookingData, { abortEarly: false });
+    if (error) {
+      const validationErrors = error.details.map(err => ({
+        field: err.path.join('.'),
+        message: err.message,
+        code: 'BOOKING_VALIDATION_ERROR'
+      }));
+      return sendValidationError(res, validationErrors);
     }
 
-    if (!validateObjectId(serviceId)) {
-      return sendValidationError(res, [{
-        field: 'serviceId',
-        message: 'Invalid service ID format',
-        code: 'INVALID_SERVICE_ID'
-      }]);
-    }
+    // Extract validated fields
+    const { serviceId, providerId, bookingDate, bookingTime, duration, paymentMethod, address, specialInstructions } = validatedBooking;
 
-    if (!bookingDate) {
-      return sendValidationError(res, [{
-        field: 'bookingDate',
-        message: 'Booking date is required',
-        code: 'BOOKING_DATE_REQUIRED'
-      }]);
-    }
-
-    if (!duration || typeof duration !== 'number' || duration <= 0) {
-      return sendValidationError(res, [{
-        field: 'duration',
-        message: 'Duration is required and must be a positive number',
-        code: 'DURATION_REQUIRED'
-      }]);
-    }
-
-    // Validate payment method if provided
+    // Validate payment method if provided (not in Joi schema)
     const validPaymentMethods = ['cash', 'card', 'bank_transfer', 'paypal', 'paymaya', 'paymongo'];
     if (paymentMethod && !validPaymentMethods.includes(paymentMethod)) {
       return sendValidationError(res, [{
@@ -1614,7 +1596,7 @@ const createBooking = async (req, res) => {
         { $inc: { 'rating.count': 1 } },
         { session }
       );
-    });
+    }, transactionOptions);
 
     // Handle PayPal payment if payment method is PayPal (outside transaction)
     if (paymentMethod === 'paypal' && createdBooking) {

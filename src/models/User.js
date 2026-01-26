@@ -178,6 +178,20 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'UserActivity'
   },
+  // Partner relationship (to identify users added from partners)
+  partnerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Partner',
+    default: null,
+    index: true
+  },
+  // Registration method (e.g., 'partner', 'direct', 'admin')
+  registrationMethod: {
+    type: String,
+    enum: ['partner', 'direct', 'admin'],
+    default: 'direct',
+    index: true
+  },
   // Agency relationship (for agency_owner and agency_admin roles)
   agency: {
     type: mongoose.Schema.Types.ObjectId,

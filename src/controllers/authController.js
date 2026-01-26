@@ -411,7 +411,8 @@ const verifyCode = async (req, res) => {
         phoneNumber,
         firstName: null,
         lastName: null,
-        isVerified: true
+        isVerified: true,
+        registrationMethod: 'direct'
         // Note: Trust, Activity, Management, Wallet, and Referral documents will be created automatically via post-save hook
       });
 
@@ -1744,7 +1745,8 @@ const registerWithEmail = async (req, res) => {
       lastName: lastName?.trim() || null,
       emailVerificationCode: otpCode,
       lastEmailOTPSent: new Date(),
-      isVerified: false // Will be verified after OTP confirmation
+      isVerified: false, // Will be verified after OTP confirmation
+      registrationMethod: 'direct'
     });
 
     // Send OTP email

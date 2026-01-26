@@ -3,6 +3,8 @@ const Provider = require('../models/Provider');
 const EmailService = require('../services/emailService');
 const { auditLogger } = require('../utils/auditLogger');
 
+const { isValidObjectId } = require('../utils/objectIdUtils');
+
 // @desc    Get all users with filtering and pagination
 // @route   GET /api/users
 // @access  Admin/Manager
@@ -17,11 +19,25 @@ const getAllUsers = async (req, res) => {
       search,
       sortBy = 'createdAt',
       sortOrder = 'desc',
-      includeDeleted = false
+      includeDeleted = false,
+      registrationMethod, // e.g., "partner", "direct", "admin"
+      partnerId
     } = req.query;
 
+    console
+.log('Get all users query params:', req.query);
     // Build filter object
     const baseFilters = {};
+
+    // Filter by registrationMethod if provided
+    if (registrationMethod && typeof registrationMethod === 'string' && registrationMethod.trim() !== '') {
+      baseFilters.registrationMethod = registrationMethod.trim();
+    }
+
+    // Filter by partnerId if provided
+    if (partnerId && typeof partnerId === 'string' && partnerId.trim() !== '') {
+      baseFilters.partnerId = partnerId.trim();
+    }
     
     // Exclude soft-deleted users unless explicitly requested
     if (includeDeleted !== 'true') {
@@ -243,7 +259,15 @@ const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
     const { includeDeleted = false } = req.query;
-    
+
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user id format.'
+      });
+    }
+
     // Populate all referenced collections
     const user = await User.findById(id)
       .select('-password -refreshToken -verificationCode -emailVerificationCode')
@@ -274,7 +298,7 @@ const getUserById = async (req, res) => {
         data: {}
       });
     }
-    
+
     // Check if user is soft-deleted (unless explicitly requested)
     if (includeDeleted !== 'true') {
       const management = await user.ensureManagement();
@@ -400,7 +424,8 @@ const getUserById = async (req, res) => {
 // @access  Admin
 const createUser = async (req, res) => {
   try {
-    const { phoneNumber, firstName, lastName, email, gender, birthdate } = req.body;
+    console.log(req.body);
+    const { phoneNumber, firstName, lastName, email, gender, birthdate, registrationMethod, partnerId } = req.body;
 
     if (!phoneNumber || !firstName || !lastName) {
       return res.status(400).json({
@@ -428,6 +453,14 @@ const createUser = async (req, res) => {
 
     // Prepare user data with proper date conversion
     const userData = { ...req.body };
+
+    // Set registrationMethod and partnerId if provided, else default registrationMethod to 'admin'
+    userData.registrationMethod = registrationMethod && ['partner', 'direct', 'admin'].includes(registrationMethod)
+      ? registrationMethod
+      : 'admin';
+    if (partnerId) {
+      userData.partnerId = partnerId;
+    }
     
     // Handle gender - validate and include if provided
     if (gender !== undefined) {
@@ -454,7 +487,6 @@ const createUser = async (req, res) => {
     }
 
     const user = await User.create(userData);
-
     res.status(201).json({
       success: true,
       data: user,

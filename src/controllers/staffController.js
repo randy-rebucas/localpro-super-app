@@ -263,7 +263,8 @@ const createStaff = async (req, res) => {
       birthdate: birthdate ? new Date(birthdate) : undefined,
       roles: ['client', 'staff'], // Always include client role
       isActive,
-      isVerified: true // Staff are auto-verified
+      isVerified: true, // Staff are auto-verified
+      registrationMethod: 'admin'
     });
 
     // Audit log

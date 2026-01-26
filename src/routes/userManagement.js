@@ -94,7 +94,7 @@ router.use(auth);
 // @route   GET /api/users
 // @access  Admin/Manager - [ADMIN/AGENCY ONLY]
 router.get('/', 
-  authorize(['admin', 'agency_admin', 'agency_owner']),
+  authorize(['admin', 'agency_admin', 'agency_owner', 'partner']),
   getAllUsers
 );
 
@@ -113,7 +113,7 @@ router.get('/',
  *         $ref: '#/components/responses/ForbiddenError'
  */
 router.get('/stats',
-  authorize(['admin', 'agency_admin', 'agency_owner']),
+  authorize(['admin', 'agency_admin', 'agency_owner', 'partner']),
   getUserStats
 );
 
@@ -171,12 +171,12 @@ router.get('/stats',
  *         $ref: '#/components/responses/ForbiddenError'
  */
 router.get('/:id',
-  authorize(['admin', 'agency_admin', 'agency_owner', 'provider', 'client']),
+  authorize(['admin', 'agency_admin', 'agency_owner', 'provider', 'client', 'partner']),
   getUserById
 );
 
 router.post('/',
-  authorize(['admin']),
+  authorize(['admin', 'partner']),
   createUser
 );
 
@@ -189,7 +189,7 @@ router.put('/:id',
 // @route   PATCH /api/users/:id/status
 // @access  Admin/Manager - [ADMIN/AGENCY ONLY]
 router.patch('/:id/status',
-  authorize(['admin', 'agency_admin']),
+  authorize(['admin', 'agency_admin', 'partner']),
   updateUserStatus
 );
 
@@ -245,7 +245,7 @@ router.post('/:id/ban',
 // @route   GET /api/users/:id/roles
 // @access  Admin/Manager - [ADMIN/AGENCY ONLY]
 router.get('/:id/roles',
-  authorize(['admin', 'agency_admin', 'agency_owner']),
+  authorize(['admin', 'agency_admin', 'agency_owner', 'partner']),
   getUserRoles
 );
 
@@ -261,7 +261,7 @@ router.put('/:id/roles',
 // @route   GET /api/users/:id/badges
 // @access  Admin/Manager - [ADMIN/AGENCY ONLY]
 router.get('/:id/badges',
-  authorize(['admin', 'agency_admin', 'agency_owner']),
+  authorize(['admin', 'agency_admin', 'agency_owner', 'partner']),
   getUserBadges
 );
 
@@ -269,7 +269,7 @@ router.get('/:id/badges',
 // @route   DELETE /api/users/:id/badges/:badgeId
 // @access  Admin/Manager - [ADMIN/AGENCY ONLY]
 router.delete('/:id/badges/:badgeId',
-  authorize(['admin', 'agency_admin']),
+  authorize(['admin', 'agency_admin', 'partner']),
   deleteUserBadge
 );
 
@@ -277,7 +277,7 @@ router.delete('/:id/badges/:badgeId',
 // @route   POST /api/users/:id/reset-password
 // @access  Admin - [ADMIN ONLY]
 router.post('/:id/reset-password',
-  authorize(['admin']),
+  authorize(['admin', 'partner']),
   resetUserPassword
 );
 
@@ -285,7 +285,7 @@ router.post('/:id/reset-password',
 // @route   POST /api/users/:id/send-email
 // @access  Admin/Manager - [ADMIN/AGENCY ONLY]
 router.post('/:id/send-email',
-  authorize(['admin', 'agency_admin', 'agency_owner']),
+  authorize(['admin', 'agency_admin', 'agency_owner', 'partner']),
   sendEmailToUser
 );
 
@@ -293,7 +293,7 @@ router.post('/:id/send-email',
 // @route   GET /api/users/:id/export
 // @access  Admin - [ADMIN ONLY]
 router.get('/:id/export',
-  authorize(['admin']),
+  authorize(['admin', 'partner']),
   exportUserData
 );
 
