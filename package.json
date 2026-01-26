@@ -26,7 +26,8 @@
     "verify": "node scripts/verify-setup.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "security:audit": "npm audit --audit-level=high"
+    "security:audit": "npm audit --audit-level=high",
+    "add:origin": "node scripts/add-origin.js"
   },
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.4.2",
