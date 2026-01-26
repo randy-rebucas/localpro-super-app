@@ -151,7 +151,8 @@ function startServer() {
         'http://localhost:3000',
         'http://localhost:3001',
         'http://127.0.0.1:3000',
-        'http://127.0.0.1:3001'
+        'http://127.0.0.1:3001',
+        'https://lp-partner-portal.vercel.app/'
       ];
       
       // In development, be more permissive
