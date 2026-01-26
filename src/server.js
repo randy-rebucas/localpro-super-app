@@ -75,6 +75,7 @@ const geofenceEventsRoutes = require('./routes/geofenceEvents');
 const { metricsMiddleware } = require('./middleware/metricsMiddleware');
 const { generalLimiter, marketplaceLimiter } = require('./middleware/rateLimiter');
 const liveChatWebSocketService = require('./services/liveChatWebSocketService');
+const AllowedOrigin = require('./models/AllowedOrigin');
 
 const app = express();
 
@@ -84,6 +85,31 @@ app.set('trust proxy', 1);
 // Initialize startup validator with comprehensive checks
 const startupValidator = new StartupValidator();
 createDefaultChecks(startupValidator);
+
+// Helper to cache allowed origins in memory
+let allowedOriginsCache = null;
+let allowedOriginsCacheTime = 0;
+const ALLOWED_ORIGINS_CACHE_TTL = 60 * 1000; // 1 minute
+
+async function getAllowedOrigins() {
+  // Use cache if not expired
+  if (allowedOriginsCache && Date.now() - allowedOriginsCacheTime < ALLOWED_ORIGINS_CACHE_TTL) {
+    return allowedOriginsCache;
+  }
+  try {
+    const docs = await AllowedOrigin.find({}, 'origin').lean();
+    allowedOriginsCache = docs.map(doc => doc.origin);
+    allowedOriginsCacheTime = Date.now();
+    // Always allow localhost/dev for safety
+    if (process.env.NODE_ENV === 'development') {
+      allowedOriginsCache.push('http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001');
+    }
+    return allowedOriginsCache;
+  } catch (e) {
+    // Fallback to default if DB fails
+    return [process.env.FRONTEND_URL || 'http://localhost:3000'];
+  }
+}
 
 // Run startup validation
 async function initializeApplication() {
@@ -142,29 +168,21 @@ function startServer() {
   
   // Enhanced CORS configuration
   const corsOptions = {
-    origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, curl, Postman, etc.)
+    origin: async function (origin, callback) {
       if (!origin) return callback(null, true);
-      
-      const allowedOrigins = [
-        process.env.FRONTEND_URL || 'http://localhost:3000',
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://127.0.0.1:3000',
-        'http://127.0.0.1:3001',
-        'https://lp-partner-portal.vercel.app/'
-      ];
-      
-      // In development, be more permissive
-      if (process.env.NODE_ENV === 'development') {
-        return callback(null, true);
-      }
-      
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
+      try {
+        const allowedOrigins = await getAllowedOrigins();
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        if (process.env.NODE_ENV === 'development') {
+          return callback(null, true);
+        }
         logger.warn('CORS blocked origin', { origin, allowedOrigins });
         callback(new Error('Not allowed by CORS'));
+      } catch (e) {
+        logger.error('CORS DB error', e);
+        callback(new Error('CORS check failed'));
       }
     },
     credentials: true,
@@ -622,6 +640,10 @@ function startServer() {
 
   // Error handling middleware
   app.use(errorHandler);
+
+  // Register CORS admin routes
+  const corsOriginsRoutes = require('./routes/corsOrigins');
+  app.use('/api/admin/cors-origins', require('./middleware/auth').auth, corsOriginsRoutes);
 
   // Start the server (skip in test environment)
   if (process.env.NODE_ENV !== 'test') {
