@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const corsOriginController = require('../controllers/corsOriginController');
-const { requireAdmin } = require('../middleware/requireAdmin');
+const requireAdmin = require('../middleware/requireAdmin');
 
 // List all allowed origins
 router.get('/', requireAdmin, corsOriginController.listOrigins);

@@ -641,9 +641,10 @@ function startServer() {
   // Error handling middleware
   app.use(errorHandler);
 
-  // Register CORS admin routes
+  // Register CORS admin routes (after errorHandler, before 404)
   const corsOriginsRoutes = require('./routes/corsOrigins');
-  app.use('/api/admin/cors-origins', require('./middleware/auth').auth, corsOriginsRoutes);
+  const { auth } = require('./middleware/auth');
+  app.use('/api/admin/cors-origins', auth, corsOriginsRoutes);
 
   // Start the server (skip in test environment)
   if (process.env.NODE_ENV !== 'test') {
