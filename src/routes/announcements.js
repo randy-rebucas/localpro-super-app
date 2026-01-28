@@ -309,7 +309,7 @@ router.use(auth);
  *   }
  * }
  */
-router.get('/my/list', queryValidation, getMyAnnouncements);
+router.get('/my/list', authorize(['client', 'provider', 'admin', 'agency_admin', 'agency_owner']), queryValidation, getMyAnnouncements);
 
 /**
  * @swagger
@@ -368,7 +368,7 @@ router.post('/', authorize(['admin', 'agency_admin', 'agency_owner']), createAnn
  *   "data": {...}
  * }
  */
-router.put('/:id', paramValidation, updateAnnouncementValidation, updateAnnouncement);
+router.put('/:id', authorize(['admin', 'agency_admin', 'agency_owner']), paramValidation, updateAnnouncementValidation, updateAnnouncement);
 
 /**
  * @route   DELETE /api/announcements/:id
@@ -382,7 +382,7 @@ router.put('/:id', paramValidation, updateAnnouncementValidation, updateAnnounce
  *   "message": "Announcement deleted successfully"
  * }
  */
-router.delete('/:id', paramValidation, deleteAnnouncement);
+router.delete('/:id', authorize(['admin', 'agency_admin', 'agency_owner']), paramValidation, deleteAnnouncement);
 
 /**
  * @route   POST /api/announcements/:id/acknowledge
@@ -399,7 +399,7 @@ router.delete('/:id', paramValidation, deleteAnnouncement);
  *   }
  * }
  */
-router.post('/:id/acknowledge', paramValidation, acknowledgeAnnouncement);
+router.post('/:id/acknowledge', authorize(['client', 'provider', 'admin', 'agency_admin', 'agency_owner']), paramValidation, acknowledgeAnnouncement);
 
 /**
  * @route   POST /api/announcements/:id/comments
@@ -418,7 +418,7 @@ router.post('/:id/acknowledge', paramValidation, acknowledgeAnnouncement);
  *   }
  * }
  */
-router.post('/:id/comments', paramValidation, addCommentValidation, addComment);
+router.post('/:id/comments', authorize(['client', 'provider', 'admin', 'agency_admin', 'agency_owner']), paramValidation, addCommentValidation, addComment);
 
 /**
  * @route   GET /api/announcements/admin/statistics

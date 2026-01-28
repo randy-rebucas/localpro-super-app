@@ -292,7 +292,7 @@ router.get('/alerts/history', (req, res) => {
  *         description: Current thresholds
  */
 // Update alert thresholds
-router.post('/alerts/thresholds', (req, res) => {
+router.post('/alerts/thresholds', authorize('admin'), (req, res) => {
   try {
     const { thresholds } = req.body;
     
@@ -331,7 +331,7 @@ router.get('/alerts/thresholds', (req, res) => {
 });
 
 // Manual alert trigger (for testing)
-router.post('/alerts/trigger', (req, res) => {
+router.post('/alerts/trigger', authorize('admin'), (req, res) => {
   try {
     const { type, severity = 'info', message, value } = req.body;
     
@@ -362,7 +362,7 @@ router.post('/alerts/trigger', (req, res) => {
 });
 
 // Clear alert history
-router.delete('/alerts/history', (req, res) => {
+router.delete('/alerts/history', authorize('admin'), (req, res) => {
   try {
     const count = alertHistory.length;
     alertHistory = [];

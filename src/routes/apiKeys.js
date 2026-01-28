@@ -107,8 +107,8 @@ router.use(auth);
  *       200:
  *         description: List of API keys
  */
-router.post('/', validateCreateApiKey, createApiKey);
-router.get('/', validateQueryParams, getApiKeys);
+router.post('/', authorize('admin'), validateCreateApiKey, createApiKey);
+router.get('/', authorize('admin'), validateQueryParams, getApiKeys);
 
 /**
  * @swagger
@@ -122,7 +122,7 @@ router.get('/', validateQueryParams, getApiKeys);
  *       200:
  *         description: API key statistics
  */
-router.get('/stats', getApiKeyStats);
+router.get('/stats', authorize('admin'), getApiKeyStats);
 
 /**
  * @swagger
@@ -175,9 +175,9 @@ router.get('/stats', getApiKeyStats);
  *       200:
  *         description: API key deleted
  */
-router.get('/:id', validateApiKeyId, getApiKeyById);
-router.put('/:id', validateUpdateApiKey, updateApiKey);
-router.delete('/:id', validateApiKeyId, deleteApiKey);
+router.get('/:id', authorize('admin'), validateApiKeyId, getApiKeyById);
+router.put('/:id', authorize('admin'), validateUpdateApiKey, updateApiKey);
+router.delete('/:id', authorize('admin'), validateApiKeyId, deleteApiKey);
 
 /**
  * @swagger
@@ -198,7 +198,7 @@ router.delete('/:id', validateApiKeyId, deleteApiKey);
  *       200:
  *         description: Secret key regenerated
  */
-router.post('/:id/regenerate-secret', validateApiKeyId, regenerateSecret);
+router.post('/:id/regenerate-secret', authorize('admin'), validateApiKeyId, regenerateSecret);
 
 module.exports = router;
 

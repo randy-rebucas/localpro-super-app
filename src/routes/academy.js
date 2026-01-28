@@ -280,7 +280,7 @@ router.delete('/courses/:id/videos/:videoId', authorize('instructor', 'admin'), 
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 // Enrollment routes
-router.post('/courses/:id/enroll', enrollInCourse);
+router.post('/courses/:id/enroll', authorize('client'), enrollInCourse);
 
 /**
  * @swagger
@@ -312,17 +312,17 @@ router.post('/courses/:id/enroll', enrollInCourse);
  *       200:
  *         description: Progress updated
  */
-router.put('/courses/:id/progress', updateCourseProgress);
+router.put('/courses/:id/progress', authorize('client'), updateCourseProgress);
 
 // Review routes
-router.post('/courses/:id/reviews', addCourseReview);
-router.post('/courses/:id/favorite', favoriteCourse);
-router.delete('/courses/:id/favorite', unfavoriteCourse);
+router.post('/courses/:id/reviews', authorize('client'), addCourseReview);
+router.post('/courses/:id/favorite', authorize('client'), favoriteCourse);
+router.delete('/courses/:id/favorite', authorize('client'), unfavoriteCourse);
 
 // User-specific routes
-router.get('/my-courses', getMyCourses);
-router.get('/my-created-courses', getMyCreatedCourses);
-router.get('/my-favorite-courses', getMyFavoriteCourses);
+router.get('/my-courses', authorize('client'), getMyCourses);
+router.get('/my-created-courses', authorize('instructor', 'admin'), getMyCreatedCourses);
+router.get('/my-favorite-courses', authorize('client'), getMyFavoriteCourses);
 
 // Statistics route (Admin only) - [ADMIN ONLY]
 router.get('/statistics', authorize('admin'), getCourseStatistics);

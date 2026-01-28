@@ -238,7 +238,7 @@ router.get('/provider', authorize(['provider', 'admin']), timeframeValidation, g
  * @param   providerId - Provider user ID
  * @query   timeframe
  */
-router.get('/provider/:providerId', [
+router.get('/provider/:providerId', authorize(['provider', 'admin']), [
   param('providerId')
     .isMongoId()
     .withMessage('Invalid provider ID'),
@@ -269,6 +269,6 @@ router.get('/custom', authorize(['admin']), [
  * @access  Private
  * @body    eventType, module, data
  */
-router.post('/track', trackEvent);
+router.post('/track', authorize(['admin', 'provider', 'client']), trackEvent);
 
 module.exports = router;

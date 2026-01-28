@@ -284,7 +284,7 @@ router.use(auth);
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
-router.get('/feed', queryValidation, getActivityFeed);
+router.get('/feed', authorize('client'), queryValidation, getActivityFeed);
 
 /**
  * @swagger
@@ -307,7 +307,7 @@ router.get('/feed', queryValidation, getActivityFeed);
  *       200:
  *         description: User activities
  */
-router.get('/my', queryValidation, getUserActivities);
+router.get('/my', authorize('client'), queryValidation, getUserActivities);
 
 /**
  * @route   GET /api/activities/user/:userId
@@ -325,7 +325,7 @@ router.get('/my', queryValidation, getUserActivities);
  *   }
  * }
  */
-router.get('/user/:userId', paramValidation, queryValidation, getSpecificUserActivities);
+router.get('/user/:userId', authorize('admin'), paramValidation, queryValidation, getSpecificUserActivities);
 
 /**
  * @route   GET /api/activities/:id
@@ -341,7 +341,7 @@ router.get('/user/:userId', paramValidation, queryValidation, getSpecificUserAct
  *   }
  * }
  */
-router.get('/:id', paramValidation, getActivity);
+router.get('/:id', authorize('client'), paramValidation, getActivity);
 
 /**
  * @route   POST /api/activities
@@ -371,7 +371,7 @@ router.get('/:id', paramValidation, getActivity);
  *   "data": {...}
  * }
  */
-router.post('/', createActivityValidation, createActivity);
+router.post('/', authorize('client'), createActivityValidation, createActivity);
 
 /**
  * @route   PUT /api/activities/:id
@@ -387,7 +387,7 @@ router.post('/', createActivityValidation, createActivity);
  *   "data": {...}
  * }
  */
-router.put('/:id', paramValidation, updateActivityValidation, updateActivity);
+router.put('/:id', authorize('client', 'admin'), paramValidation, updateActivityValidation, updateActivity);
 
 /**
  * @route   DELETE /api/activities/:id
@@ -401,7 +401,7 @@ router.put('/:id', paramValidation, updateActivityValidation, updateActivity);
  *   "message": "Activity deleted successfully"
  * }
  */
-router.delete('/:id', paramValidation, deleteActivity);
+router.delete('/:id', authorize('client', 'admin'), paramValidation, deleteActivity);
 
 /**
  * @route   POST /api/activities/:id/interactions
@@ -426,7 +426,7 @@ router.delete('/:id', paramValidation, deleteActivity);
  *   }
  * }
  */
-router.post('/:id/interactions', paramValidation, interactionValidation, addInteraction);
+router.post('/:id/interactions', authorize('client'), paramValidation, interactionValidation, addInteraction);
 
 /**
  * @route   DELETE /api/activities/:id/interactions
@@ -448,7 +448,7 @@ router.post('/:id/interactions', paramValidation, interactionValidation, addInte
  *   }
  * }
  */
-router.delete('/:id/interactions', paramValidation, interactionValidation, removeInteraction);
+router.delete('/:id/interactions', authorize('client'), paramValidation, interactionValidation, removeInteraction);
 
 /**
  * @route   GET /api/activities/stats/my
@@ -470,7 +470,7 @@ router.delete('/:id/interactions', paramValidation, interactionValidation, remov
  *   }
  * }
  */
-router.get('/stats/my', queryValidation, getActivityStats);
+router.get('/stats/my', authorize('client'), queryValidation, getActivityStats);
 
 /**
  * @route   GET /api/activities/stats/global
@@ -512,7 +512,7 @@ router.get('/stats/global', authorize(['admin']), queryValidation, getGlobalActi
  *   }
  * }
  */
-router.get('/metadata', getActivityMetadata);
+router.get('/metadata', authorize('client'), getActivityMetadata);
 
 /**
  * @route   GET /api/activities/timeline
@@ -535,7 +535,7 @@ router.get('/metadata', getActivityMetadata);
  *   }
  * }
  */
-router.get('/timeline', queryValidation, getActivityTimeline);
+router.get('/timeline', authorize('client'), queryValidation, getActivityTimeline);
 
 /**
  * @route   GET /api/activities/points
@@ -551,7 +551,7 @@ router.get('/timeline', queryValidation, getActivityTimeline);
  *   }
  * }
  */
-router.get('/points', getTotalPoints);
+router.get('/points', authorize('client'), getTotalPoints);
 
 /**
  * @route   GET /api/activities/leaderboard
@@ -576,6 +576,6 @@ router.get('/points', getTotalPoints);
  *   }
  * }
  */
-router.get('/leaderboard', queryValidation, getLeaderboard);
+router.get('/leaderboard', authorize('client'), queryValidation, getLeaderboard);
 
 module.exports = router;

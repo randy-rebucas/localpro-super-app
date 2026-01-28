@@ -206,16 +206,16 @@ router.use(auth);
 // Statistics route (Admin only) - Must be before /:id routes to avoid route conflict
 router.get('/statistics', authorize('admin'), getAdStatistics);
 
-router.post('/', createAd);
-router.put('/:id', updateAd);
-router.delete('/:id', deleteAd);
+router.post('/', authorize('provider', 'admin'), createAd);
+router.put('/:id', authorize('provider', 'admin'), updateAd);
+router.delete('/:id', authorize('provider', 'admin'), deleteAd);
 
 // Image management routes - All authenticated users can manage images for their own ads
-router.post('/:id/images', uploadAdImages);
-router.delete('/:id/images/:imageId', deleteAdImage);
+router.post('/:id/images', authorize('provider', 'admin'), uploadAdImages);
+router.delete('/:id/images/:imageId', authorize('provider', 'admin'), deleteAdImage);
 
 // Ad promotion routes - All authenticated users can promote their own ads
-router.post('/:id/promote', promoteAd);
+router.post('/:id/promote', authorize('provider', 'admin'), promoteAd);
 
 // Admin moderation routes
 router.get('/pending', authorize('admin'), getPendingAds);
@@ -223,7 +223,7 @@ router.put('/:id/approve', authorize('admin'), approveAd);
 router.put('/:id/reject', authorize('admin'), rejectAd);
 
 // Analytics routes
-router.get('/:id/analytics', getAdAnalytics);
+router.get('/:id/analytics', authorize('admin'), getAdAnalytics);
 
 /**
  * @swagger
@@ -247,6 +247,6 @@ router.get('/:id/analytics', getAdAnalytics);
  *         description: List of my ads
  */
 // User-specific routes
-router.get('/my-ads', getMyAds);
+router.get('/my-ads', authorize('provider'), getMyAds);
 
 module.exports = router;

@@ -128,7 +128,7 @@ router.get('/:id', getAgency); // Get single agency (public)
 router.use(auth); // All routes below require authentication
 
 // Agency verification management
-router.patch('/:id/verification', updateAgencyVerification); // Update agency verification
+router.patch('/:id/verification', authorize('admin'), updateAgencyVerification); // Update agency verification
 
 /**
  * @swagger
@@ -164,7 +164,7 @@ router.patch('/:id/verification', updateAgencyVerification); // Update agency ve
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 // Agency management routes
-router.post('/', createAgencyValidation, createAgency); // Create agency
+router.post('/', authorize('admin'), createAgencyValidation, createAgency); // Create agency
 
 /**
  * @swagger
@@ -200,7 +200,7 @@ router.post('/', createAgencyValidation, createAgency); // Create agency
  *       200:
  *         description: Agency deleted
  */
-router.put('/:id', updateAgencyValidation, updateAgency); // Update agency
+router.put('/:id', authorize('admin'), updateAgencyValidation, updateAgency); // Update agency
 /**
  * @swagger
  * /api/agencies/{id}:
@@ -245,8 +245,8 @@ router.put('/:id', updateAgencyValidation, updateAgency); // Update agency
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
-router.patch('/:id', updateAgencyValidation, patchAgency); // Patch agency (partial update)
-router.delete('/:id', deleteAgency); // Delete agency
+router.patch('/:id', authorize('admin'), updateAgencyValidation, patchAgency); // Patch agency (partial update)
+router.delete('/:id', authorize('admin'), deleteAgency); // Delete agency
 
 /**
  * @swagger
@@ -277,7 +277,7 @@ router.delete('/:id', deleteAgency); // Delete agency
  *       200:
  *         description: Logo uploaded
  */
-router.post('/:id/logo', uploaders.userProfiles.single('logo'), uploadAgencyLogo); // Upload logo
+router.post('/:id/logo', authorize('admin', 'provider'), uploaders.userProfiles.single('logo'), uploadAgencyLogo); // Upload logo
 
 /**
  * @swagger
@@ -311,7 +311,7 @@ router.post('/:id/logo', uploaders.userProfiles.single('logo'), uploadAgencyLogo
  *         description: Provider added
  */
 // Provider management routes
-router.post('/:id/providers', addProvider); // Add provider
+router.post('/:id/providers', authorize('admin', 'provider'), addProvider); // Add provider
 
 /**
  * @swagger
@@ -338,7 +338,7 @@ router.post('/:id/providers', addProvider); // Add provider
  *       200:
  *         description: Provider removed
  */
-router.delete('/:id/providers/:providerId', removeProvider); // Remove provider
+router.delete('/:id/providers/:providerId', authorize('admin', 'provider'), removeProvider); // Remove provider
 
 /**
  * @swagger
@@ -377,18 +377,18 @@ router.delete('/:id/providers/:providerId', removeProvider); // Remove provider
  *       200:
  *         description: Provider status updated
  */
-router.put('/:id/providers/:providerId/status', updateProviderStatus); // Update provider status
+router.put('/:id/providers/:providerId/status', authorize('admin', 'provider'), updateProviderStatus); // Update provider status
 
 // Admin management routes
-router.post('/:id/admins', addAdmin); // Add admin
-router.delete('/:id/admins/:adminId', removeAdmin); // Remove admin
+router.post('/:id/admins', authorize('admin'), addAdmin); // Add admin
+router.delete('/:id/admins/:adminId', authorize('admin'), removeAdmin); // Remove admin
 
 // Analytics routes
-router.get('/:id/analytics', getAgencyAnalytics); // Get agency analytics
+router.get('/:id/analytics', authorize('admin'), getAgencyAnalytics); // Get agency analytics
 
 // User agency routes
-router.get('/my/agencies', getMyAgencies); // Get my agencies
-router.post('/join', joinAgency); // Join agency
-router.post('/leave', leaveAgency); // Leave agency
+router.get('/my/agencies', authorize('client'), getMyAgencies); // Get my agencies
+router.post('/join', authorize('client'), joinAgency); // Join agency
+router.post('/leave', authorize('client'), leaveAgency); // Leave agency
 
 module.exports = router;
