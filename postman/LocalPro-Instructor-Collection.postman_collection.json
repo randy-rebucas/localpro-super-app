@@ -1,0 +1,354 @@
+{
+  "info": {
+    "_postman_id": "localpro-instructor-collection",
+    "name": "LocalPro API - Instructor Role",
+    "description": "Complete API collection for Instructor users. Create and manage courses, track enrollments, and handle academy-related features.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register as Instructor",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"instructor@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Instructor\",\n  \"phone\": \"+1234567890\",\n  \"role\": \"instructor\",\n  \"expertise\": [\"plumbing\", \"electrical\"],\n  \"bio\": \"Experienced professional with 10+ years in the industry\"\n}"},
+            "url": {"raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"]}
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{"listen": "test", "script": {"exec": ["const response = pm.response.json();", "if (response.token || response.accessToken) pm.environment.set('accessToken', response.token || response.accessToken);", "if (response.refreshToken) pm.environment.set('refreshToken', response.refreshToken);", "if (response.user) { pm.environment.set('userId', response.user._id); pm.environment.set('instructorId', response.user._id); }"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"instructor@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"},
+            "url": {"raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"]}
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"]}}
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Instructor\",\n  \"bio\": \"Senior instructor with expertise in multiple trades\",\n  \"expertise\": [\"plumbing\", \"electrical\", \"hvac\"],\n  \"certifications\": [\"Master Plumber\", \"Licensed Electrician\"],\n  \"yearsExperience\": 15\n}"},
+            "url": {"raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"]}
+          }
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "body": {"mode": "formdata", "formdata": [{"key": "avatar", "type": "file", "src": ""}]},
+            "url": {"raw": "{{baseUrl}}/auth/avatar", "host": ["{{baseUrl}}"], "path": ["auth", "avatar"]}
+          }
+        },
+        {
+          "name": "Upload Portfolio",
+          "request": {
+            "method": "POST",
+            "body": {"mode": "formdata", "formdata": [{"key": "images", "type": "file", "src": ""}]},
+            "url": {"raw": "{{baseUrl}}/auth/upload-portfolio", "host": ["{{baseUrl}}"], "path": ["auth", "upload-portfolio"]}
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {"method": "POST", "url": {"raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"]}}
+        }
+      ]
+    },
+    {
+      "name": "Course Management",
+      "item": [
+        {
+          "name": "Create Course",
+          "event": [{"listen": "test", "script": {"exec": ["const response = pm.response.json();", "if (response._id || response.id || response.course) pm.environment.set('courseId', response._id || response.id || response.course._id);"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"title\": \"Professional Plumbing Fundamentals\",\n  \"description\": \"Complete guide to professional plumbing techniques\",\n  \"category\": \"plumbing\",\n  \"level\": \"beginner\",\n  \"price\": 1999,\n  \"currency\": \"PHP\",\n  \"duration\": 600,\n  \"language\": \"en\",\n  \"objectives\": [\n    \"Understand plumbing basics\",\n    \"Learn pipe installation\",\n    \"Master leak detection and repair\"\n  ],\n  \"requirements\": [\n    \"No prior experience required\",\n    \"Basic tools recommended\"\n  ],\n  \"syllabus\": [\n    {\n      \"title\": \"Introduction to Plumbing\",\n      \"lessons\": [\n        {\"title\": \"Overview\", \"duration\": 30},\n        {\"title\": \"Safety First\", \"duration\": 45}\n      ]\n    }\n  ]\n}"},
+            "url": {"raw": "{{baseUrl}}/academy/courses", "host": ["{{baseUrl}}"], "path": ["academy", "courses"]}
+          }
+        },
+        {
+          "name": "Get My Created Courses",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/academy/my-created-courses?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["academy", "my-created-courses"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get All Courses",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/academy/courses?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["academy", "courses"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Course Details",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/academy/courses/{{courseId}}", "host": ["{{baseUrl}}"], "path": ["academy", "courses", "{{courseId}}"]}}
+        },
+        {
+          "name": "Update Course",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"title\": \"Updated Course Title\",\n  \"description\": \"Updated description with more details\",\n  \"price\": 2499\n}"},
+            "url": {"raw": "{{baseUrl}}/academy/courses/{{courseId}}", "host": ["{{baseUrl}}"], "path": ["academy", "courses", "{{courseId}}"]}
+          }
+        },
+        {
+          "name": "Patch Course",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"published\"\n}"},
+            "url": {"raw": "{{baseUrl}}/academy/courses/{{courseId}}", "host": ["{{baseUrl}}"], "path": ["academy", "courses", "{{courseId}}"]}
+          }
+        },
+        {
+          "name": "Upload Course Thumbnail",
+          "request": {
+            "method": "POST",
+            "body": {"mode": "formdata", "formdata": [{"key": "thumbnail", "type": "file", "src": ""}]},
+            "url": {"raw": "{{baseUrl}}/academy/courses/{{courseId}}/thumbnail", "host": ["{{baseUrl}}"], "path": ["academy", "courses", "{{courseId}}", "thumbnail"]}
+          }
+        },
+        {
+          "name": "Upload Course Video",
+          "request": {
+            "method": "POST",
+            "body": {"mode": "formdata", "formdata": [{"key": "video", "type": "file", "src": ""}, {"key": "title", "type": "text", "value": "Lesson 1"}, {"key": "lessonId", "type": "text", "value": "lesson1"}]},
+            "url": {"raw": "{{baseUrl}}/academy/courses/{{courseId}}/videos", "host": ["{{baseUrl}}"], "path": ["academy", "courses", "{{courseId}}", "videos"]}
+          }
+        },
+        {
+          "name": "Delete Course Video",
+          "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/academy/courses/{{courseId}}/videos/{{videoId}}", "host": ["{{baseUrl}}"], "path": ["academy", "courses", "{{courseId}}", "videos", "{{videoId}}"]}}
+        },
+        {
+          "name": "Delete Course",
+          "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/academy/courses/{{courseId}}", "host": ["{{baseUrl}}"], "path": ["academy", "courses", "{{courseId}}"]}}
+        }
+      ]
+    },
+    {
+      "name": "Categories Management",
+      "item": [
+        {
+          "name": "Get Categories",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/academy/categories", "host": ["{{baseUrl}}"], "path": ["academy", "categories"]}}
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Advanced Plumbing\",\n  \"description\": \"Advanced plumbing techniques and certifications\",\n  \"icon\": \"plumbing-icon\"\n}"},
+            "url": {"raw": "{{baseUrl}}/academy/categories", "host": ["{{baseUrl}}"], "path": ["academy", "categories"]}
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Updated Category Name\",\n  \"description\": \"Updated description\"\n}"},
+            "url": {"raw": "{{baseUrl}}/academy/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["academy", "categories", "{{categoryId}}"]}
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/academy/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["academy", "categories", "{{categoryId}}"]}}
+        }
+      ]
+    },
+    {
+      "name": "Certifications Management",
+      "item": [
+        {
+          "name": "Get Certifications",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/academy/certifications", "host": ["{{baseUrl}}"], "path": ["academy", "certifications"]}}
+        },
+        {
+          "name": "Create Certification",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Certified Professional Plumber\",\n  \"description\": \"Official certification for professional plumbers\",\n  \"requirements\": [\n    \"Complete Plumbing Fundamentals course\",\n    \"Pass certification exam with 80%+\",\n    \"Complete 10 hours of practical training\"\n  ],\n  \"validityPeriod\": 24,\n  \"examDuration\": 120,\n  \"passingScore\": 80\n}"},
+            "url": {"raw": "{{baseUrl}}/academy/certifications", "host": ["{{baseUrl}}"], "path": ["academy", "certifications"]}
+          }
+        },
+        {
+          "name": "Update Certification",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Updated Certification Name\",\n  \"passingScore\": 85\n}"},
+            "url": {"raw": "{{baseUrl}}/academy/certifications/{{certificationId}}", "host": ["{{baseUrl}}"], "path": ["academy", "certifications", "{{certificationId}}"]}
+          }
+        },
+        {
+          "name": "Delete Certification",
+          "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/academy/certifications/{{certificationId}}", "host": ["{{baseUrl}}"], "path": ["academy", "certifications", "{{certificationId}}"]}}
+        }
+      ]
+    },
+    {
+      "name": "Enrollments Management",
+      "item": [
+        {
+          "name": "List Enrollments",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/academy/enrollments?page=1&limit=20&courseId=", "host": ["{{baseUrl}}"], "path": ["academy", "enrollments"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}, {"key": "courseId", "value": ""}]}}
+        },
+        {
+          "name": "Update Enrollment Status",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"completed\",\n  \"completedAt\": \"2024-12-15\"\n}"},
+            "url": {"raw": "{{baseUrl}}/academy/enrollments/{{enrollmentId}}/status", "host": ["{{baseUrl}}"], "path": ["academy", "enrollments", "{{enrollmentId}}", "status"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "item": [
+        {
+          "name": "Get Financial Overview",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/overview", "host": ["{{baseUrl}}"], "path": ["finance", "overview"]}}
+        },
+        {
+          "name": "Get Transactions",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/transactions?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["finance", "transactions"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Earnings",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/earnings?startDate=2024-01-01&endDate=2024-12-31", "host": ["{{baseUrl}}"], "path": ["finance", "earnings"], "query": [{"key": "startDate", "value": "2024-01-01"}, {"key": "endDate", "value": "2024-12-31"}]}}
+        },
+        {
+          "name": "Request Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"amount\": 5000,\n  \"method\": \"bank_transfer\",\n  \"accountDetails\": {\n    \"bankName\": \"BDO\",\n    \"accountNumber\": \"1234567890\",\n    \"accountName\": \"John Instructor\"\n  }\n}"},
+            "url": {"raw": "{{baseUrl}}/finance/withdraw", "host": ["{{baseUrl}}"], "path": ["finance", "withdraw"]}
+          }
+        },
+        {
+          "name": "Get Withdrawals",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/withdrawals?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["finance", "withdrawals"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Tax Documents",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/tax-documents?year=2024", "host": ["{{baseUrl}}"], "path": ["finance", "tax-documents"], "query": [{"key": "year", "value": "2024"}]}}
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get My Analytics",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/analytics/user", "host": ["{{baseUrl}}"], "path": ["analytics", "user"]}}
+        },
+        {
+          "name": "Track Event",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"event\": \"course_published\",\n  \"properties\": {\n    \"courseId\": \"{{courseId}}\"\n  }\n}"},
+            "url": {"raw": "{{baseUrl}}/analytics/track", "host": ["{{baseUrl}}"], "path": ["analytics", "track"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/notifications?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["notifications"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/notifications/unread-count", "host": ["{{baseUrl}}"], "path": ["notifications", "unread-count"]}}
+        },
+        {
+          "name": "Mark as Read",
+          "request": {"method": "PUT", "url": {"raw": "{{baseUrl}}/notifications/{{notificationId}}/read", "host": ["{{baseUrl}}"], "path": ["notifications", "{{notificationId}}", "read"]}}
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {"method": "PUT", "url": {"raw": "{{baseUrl}}/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["notifications", "read-all"]}}
+        }
+      ]
+    },
+    {
+      "name": "Support",
+      "item": [
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"subject\": \"Course upload issue\",\n  \"description\": \"Unable to upload video for my course\",\n  \"category\": \"technical\",\n  \"priority\": \"medium\"\n}"},
+            "url": {"raw": "{{baseUrl}}/support/tickets", "host": ["{{baseUrl}}"], "path": ["support", "tickets"]}
+          }
+        },
+        {
+          "name": "Get My Tickets",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/support/tickets?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["support", "tickets"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Ticket Details",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/support/tickets/{{ticketId}}", "host": ["{{baseUrl}}"], "path": ["support", "tickets", "{{ticketId}}"]}}
+        },
+        {
+          "name": "Add Reply",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"message\": \"Here is the error message I'm seeing...\"\n}"},
+            "url": {"raw": "{{baseUrl}}/support/tickets/{{ticketId}}/replies", "host": ["{{baseUrl}}"], "path": ["support", "tickets", "{{ticketId}}", "replies"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Announcements",
+      "item": [
+        {
+          "name": "Get Announcements",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/announcements?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["announcements"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Announcement Details",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/announcements/{{announcementId}}", "host": ["{{baseUrl}}"], "path": ["announcements", "{{announcementId}}"]}}
+        }
+      ]
+    },
+    {
+      "name": "Referrals",
+      "item": [
+        {
+          "name": "Get My Referral Code",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/referrals/my-code", "host": ["{{baseUrl}}"], "path": ["referrals", "my-code"]}}
+        },
+        {
+          "name": "Get My Referrals",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/referrals/my-referrals", "host": ["{{baseUrl}}"], "path": ["referrals", "my-referrals"]}}
+        },
+        {
+          "name": "Get Referral Stats",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/referrals/stats", "host": ["{{baseUrl}}"], "path": ["referrals", "stats"]}}
+        }
+      ]
+    }
+  ]
+}

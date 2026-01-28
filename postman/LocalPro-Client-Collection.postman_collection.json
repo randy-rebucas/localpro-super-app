@@ -1,0 +1,2278 @@
+{
+  "info": {
+    "_postman_id": "localpro-client-collection",
+    "name": "LocalPro API - Client Role",
+    "description": "Complete API collection for Client users. Includes authentication, marketplace browsing, bookings, activities, academy enrollment, support, and personal account management.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-refresh token if needed",
+          "const tokenExpiry = pm.environment.get('tokenExpiry');",
+          "if (tokenExpiry && Date.now() > tokenExpiry) {",
+          "    console.log('Token expired, consider refreshing');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "Authentication endpoints for client users",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+1234567890\",\n  \"role\": \"client\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new client account"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.token || response.accessToken) {",
+                  "    pm.environment.set('accessToken', response.token || response.accessToken);",
+                  "}",
+                  "if (response.refreshToken) {",
+                  "    pm.environment.set('refreshToken', response.refreshToken);",
+                  "}",
+                  "if (response.user && response.user._id) {",
+                  "    pm.environment.set('userId', response.user._id);",
+                  "    pm.environment.set('userEmail', response.user.email);",
+                  "    pm.environment.set('userRole', response.user.role);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password"
+          }
+        },
+        {
+          "name": "Login with Email OTP - Send Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login-email"]
+            },
+            "description": "Request OTP code for email login"
+          }
+        },
+        {
+          "name": "Verify Email OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.token || response.accessToken) {",
+                  "    pm.environment.set('accessToken', response.token || response.accessToken);",
+                  "}",
+                  "if (response.refreshToken) {",
+                  "    pm.environment.set('refreshToken', response.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-email-otp"]
+            },
+            "description": "Verify email OTP and get authentication token"
+          }
+        },
+        {
+          "name": "Login with MPIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.token || response.accessToken) {",
+                  "    pm.environment.set('accessToken', response.token || response.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client@example.com\",\n  \"mpin\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/mpin/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "mpin", "login"]
+            },
+            "description": "Login using MPIN"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.token || response.accessToken) {",
+                  "    pm.environment.set('accessToken', response.token || response.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Refresh access token"
+          }
+        },
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Get current authenticated user's profile"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+1234567890\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Manila\",\n    \"state\": \"Metro Manila\",\n    \"zipCode\": \"1000\",\n    \"country\": \"Philippines\"\n  },\n  \"preferences\": {\n    \"notifications\": true,\n    \"newsletter\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Update user profile information"
+          }
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "avatar"]
+            },
+            "description": "Upload profile avatar image"
+          }
+        },
+        {
+          "name": "Set MPIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mpin\": \"1234\",\n  \"confirmMpin\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/mpin/set",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "mpin", "set"]
+            },
+            "description": "Set MPIN for quick login"
+          }
+        },
+        {
+          "name": "Get MPIN Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/mpin/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "mpin", "status"]
+            },
+            "description": "Check if MPIN is enabled"
+          }
+        },
+        {
+          "name": "Disable MPIN",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/mpin",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "mpin"]
+            },
+            "description": "Disable MPIN authentication"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout and invalidate token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Marketplace",
+      "description": "Browse and book services from the marketplace",
+      "item": [
+        {
+          "name": "Services",
+          "item": [
+            {
+              "name": "Get All Services",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services?page=1&limit=20&category=&search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services"],
+                  "query": [
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"},
+                    {"key": "category", "value": ""},
+                    {"key": "search", "value": ""}
+                  ]
+                },
+                "description": "Get list of available services"
+              }
+            },
+            {
+              "name": "Get Service Categories",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/categories",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "categories"]
+                },
+                "description": "Get all service categories"
+              }
+            },
+            {
+              "name": "Get Nearby Services",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/nearby?lat=14.5995&lng=120.9842&radius=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "nearby"],
+                  "query": [
+                    {"key": "lat", "value": "14.5995"},
+                    {"key": "lng", "value": "120.9842"},
+                    {"key": "radius", "value": "10"}
+                  ]
+                },
+                "description": "Get services near a location"
+              }
+            },
+            {
+              "name": "Get Service Details",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const response = pm.response.json();",
+                      "if (response._id || response.id) {",
+                      "    pm.environment.set('serviceId', response._id || response.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "{{serviceId}}"]
+                },
+                "description": "Get details of a specific service"
+              }
+            },
+            {
+              "name": "Get Service Providers",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/providers",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "{{serviceId}}", "providers"]
+                },
+                "description": "Get providers offering this service"
+              }
+            },
+            {
+              "name": "Get My Services",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/my-services",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "my-services"]
+                },
+                "description": "Get services associated with my account"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Providers",
+          "item": [
+            {
+              "name": "Get Provider Details",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/providers/{{providerId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "providers", "{{providerId}}"]
+                },
+                "description": "Get details of a service provider"
+              }
+            },
+            {
+              "name": "Get Provider Services",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/providers/{{providerId}}/services",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "providers", "{{providerId}}", "services"]
+                },
+                "description": "Get all services offered by a provider"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bookings",
+          "item": [
+            {
+              "name": "Create Booking",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const response = pm.response.json();",
+                      "if (response._id || response.id || response.booking) {",
+                      "    pm.environment.set('bookingId', response._id || response.id || response.booking._id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"providerId\": \"{{providerId}}\",\n  \"scheduledDate\": \"2024-12-20\",\n  \"scheduledTime\": \"10:00\",\n  \"duration\": 60,\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Manila\",\n    \"state\": \"Metro Manila\",\n    \"zipCode\": \"1000\"\n  },\n  \"notes\": \"Please arrive on time\",\n  \"paymentMethod\": \"cash\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings"]
+                },
+                "description": "Create a new service booking"
+              }
+            },
+            {
+              "name": "Get My Bookings",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/my-bookings?page=1&limit=20&status=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "my-bookings"],
+                  "query": [
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"},
+                    {"key": "status", "value": ""}
+                  ]
+                },
+                "description": "Get all my bookings"
+              }
+            },
+            {
+              "name": "Get All Bookings",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings?page=1&limit=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings"],
+                  "query": [
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"}
+                  ]
+                },
+                "description": "Get all bookings"
+              }
+            },
+            {
+              "name": "Get Booking Details",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}"]
+                },
+                "description": "Get details of a specific booking"
+              }
+            },
+            {
+              "name": "Update Booking Status",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"cancelled\",\n  \"reason\": \"Changed plans\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/status",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "status"]
+                },
+                "description": "Update booking status (cancel, complete, etc.)"
+              }
+            },
+            {
+              "name": "Upload Booking Photos",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "photos",
+                      "type": "file",
+                      "src": ""
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/photos",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "photos"]
+                },
+                "description": "Upload photos for a booking"
+              }
+            },
+            {
+              "name": "Add Review",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent service! Very professional and punctual.\",\n  \"tags\": [\"professional\", \"punctual\", \"friendly\"]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/review",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "review"]
+                },
+                "description": "Add a review for a completed booking"
+              }
+            },
+            {
+              "name": "Approve PayPal Payment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orderId\": \"{{paypalOrderId}}\",\n  \"bookingId\": \"{{bookingId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/paypal/approve",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "paypal", "approve"]
+                },
+                "description": "Approve PayPal payment for booking"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "description": "Browse and apply for jobs",
+      "item": [
+        {
+          "name": "Get All Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs?page=1&limit=20&category=&search=&type=",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "category", "value": ""},
+                {"key": "search", "value": ""},
+                {"key": "type", "value": ""}
+              ]
+            },
+            "description": "Get list of available jobs"
+          }
+        },
+        {
+          "name": "Search Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/search?q=developer&location=Manila&type=full-time",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "search"],
+              "query": [
+                {"key": "q", "value": "developer"},
+                {"key": "location", "value": "Manila"},
+                {"key": "type", "value": "full-time"}
+              ]
+            },
+            "description": "Search for jobs"
+          }
+        },
+        {
+          "name": "Get Job Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "categories"]
+            },
+            "description": "Get all job categories"
+          }
+        },
+        {
+          "name": "Get Job Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response._id || response.id) {",
+                  "    pm.environment.set('jobId', response._id || response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}"]
+            },
+            "description": "Get details of a specific job"
+          }
+        },
+        {
+          "name": "Apply for Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coverLetter\": \"I am very interested in this position and believe my skills match your requirements...\",\n  \"resumeUrl\": \"https://example.com/resume.pdf\",\n  \"expectedSalary\": 50000,\n  \"availableDate\": \"2024-01-15\",\n  \"answers\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "apply"]
+            },
+            "description": "Apply for a job"
+          }
+        },
+        {
+          "name": "Get My Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/my-applications?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "my-applications"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            },
+            "description": "Get all my job applications"
+          }
+        },
+        {
+          "name": "Withdraw Application",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}"]
+            },
+            "description": "Withdraw a job application"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Academy",
+      "description": "Browse and enroll in courses",
+      "item": [
+        {
+          "name": "Courses",
+          "item": [
+            {
+              "name": "Get All Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/academy/courses?page=1&limit=20&category=&search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "courses"],
+                  "query": [
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"},
+                    {"key": "category", "value": ""},
+                    {"key": "search", "value": ""}
+                  ]
+                },
+                "description": "Get list of available courses"
+              }
+            },
+            {
+              "name": "Get Featured Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/academy/featured",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "featured"]
+                },
+                "description": "Get featured courses"
+              }
+            },
+            {
+              "name": "Get Course Categories",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/academy/categories",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "categories"]
+                },
+                "description": "Get all course categories"
+              }
+            },
+            {
+              "name": "Get Course Details",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const response = pm.response.json();",
+                      "if (response._id || response.id) {",
+                      "    pm.environment.set('courseId', response._id || response.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/academy/courses/{{courseId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "courses", "{{courseId}}"]
+                },
+                "description": "Get details of a specific course"
+              }
+            },
+            {
+              "name": "Enroll in Course",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"paymentMethod\": \"card\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/academy/courses/{{courseId}}/enroll",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "courses", "{{courseId}}", "enroll"]
+                },
+                "description": "Enroll in a course"
+              }
+            },
+            {
+              "name": "Update Course Progress",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lessonId\": \"lesson123\",\n  \"progress\": 75,\n  \"completed\": false\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/academy/courses/{{courseId}}/progress",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "courses", "{{courseId}}", "progress"]
+                },
+                "description": "Update progress on a course"
+              }
+            },
+            {
+              "name": "Add Course Review",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent course! Very informative and well-structured.\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/academy/courses/{{courseId}}/reviews",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "courses", "{{courseId}}", "reviews"]
+                },
+                "description": "Add a review for a course"
+              }
+            },
+            {
+              "name": "Favorite Course",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/academy/courses/{{courseId}}/favorite",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "courses", "{{courseId}}", "favorite"]
+                },
+                "description": "Add course to favorites"
+              }
+            },
+            {
+              "name": "Unfavorite Course",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/academy/courses/{{courseId}}/favorite",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "courses", "{{courseId}}", "favorite"]
+                },
+                "description": "Remove course from favorites"
+              }
+            }
+          ]
+        },
+        {
+          "name": "My Learning",
+          "item": [
+            {
+              "name": "Get My Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/academy/my-courses?page=1&limit=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "my-courses"],
+                  "query": [
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"}
+                  ]
+                },
+                "description": "Get courses I'm enrolled in"
+              }
+            },
+            {
+              "name": "Get My Favorite Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/academy/my-favorite-courses",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "my-favorite-courses"]
+                },
+                "description": "Get my favorited courses"
+              }
+            },
+            {
+              "name": "Get Certifications",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/academy/certifications",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["academy", "certifications"]
+                },
+                "description": "Get available certifications"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Activities",
+      "description": "Activity feed and interactions",
+      "item": [
+        {
+          "name": "Get Activity Feed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activities/feed?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "feed"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            },
+            "description": "Get activity feed"
+          }
+        },
+        {
+          "name": "Get My Activities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activities/my?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "my"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            },
+            "description": "Get my activities"
+          }
+        },
+        {
+          "name": "Get Activity by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activities/{{activityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "{{activityId}}"]
+            },
+            "description": "Get a specific activity"
+          }
+        },
+        {
+          "name": "Create Activity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"post\",\n  \"content\": \"Just completed my first booking!\",\n  \"visibility\": \"public\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/activities",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities"]
+            },
+            "description": "Create a new activity"
+          }
+        },
+        {
+          "name": "Update Activity",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated content\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/activities/{{activityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "{{activityId}}"]
+            },
+            "description": "Update an activity"
+          }
+        },
+        {
+          "name": "Delete Activity",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activities/{{activityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "{{activityId}}"]
+            },
+            "description": "Delete an activity"
+          }
+        },
+        {
+          "name": "Add Interaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"like\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/activities/{{activityId}}/interactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "{{activityId}}", "interactions"]
+            },
+            "description": "Like or interact with an activity"
+          }
+        },
+        {
+          "name": "Remove Interaction",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activities/{{activityId}}/interactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "{{activityId}}", "interactions"]
+            },
+            "description": "Remove interaction from an activity"
+          }
+        },
+        {
+          "name": "Get My Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activities/stats/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "stats", "my"]
+            },
+            "description": "Get my activity statistics"
+          }
+        },
+        {
+          "name": "Get Timeline",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activities/timeline",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "timeline"]
+            },
+            "description": "Get activity timeline"
+          }
+        },
+        {
+          "name": "Get Points",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activities/points",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "points"]
+            },
+            "description": "Get activity points"
+          }
+        },
+        {
+          "name": "Get Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activities/leaderboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "leaderboard"]
+            },
+            "description": "Get activity leaderboard"
+          }
+        },
+        {
+          "name": "Get Metadata",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activities/metadata",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities", "metadata"]
+            },
+            "description": "Get activity metadata"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ads",
+      "description": "Browse advertisements",
+      "item": [
+        {
+          "name": "Get All Ads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ads?page=1&limit=20&category=",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "category", "value": ""}
+              ]
+            },
+            "description": "Get list of ads"
+          }
+        },
+        {
+          "name": "Get Featured Ads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ads/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads", "featured"]
+            },
+            "description": "Get featured ads"
+          }
+        },
+        {
+          "name": "Get Ad Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ads/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads", "categories"]
+            },
+            "description": "Get ad categories"
+          }
+        },
+        {
+          "name": "Get Ad Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ads/{{adId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads", "{{adId}}"]
+            },
+            "description": "Get ad details"
+          }
+        },
+        {
+          "name": "Track Ad Click",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ads/{{adId}}/click",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads", "{{adId}}", "click"]
+            },
+            "description": "Track ad click"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agencies",
+      "description": "View and join agencies",
+      "item": [
+        {
+          "name": "Get All Agencies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agencies?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["agencies"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            },
+            "description": "Get list of agencies"
+          }
+        },
+        {
+          "name": "Get Agency Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agencies/{{agencyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["agencies", "{{agencyId}}"]
+            },
+            "description": "Get agency details"
+          }
+        },
+        {
+          "name": "Get My Agencies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agencies/my/agencies",
+              "host": ["{{baseUrl}}"],
+              "path": ["agencies", "my", "agencies"]
+            },
+            "description": "Get agencies I'm part of"
+          }
+        },
+        {
+          "name": "Join Agency",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agencyId\": \"{{agencyId}}\",\n  \"message\": \"I would like to join your agency\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agencies/join",
+              "host": ["{{baseUrl}}"],
+              "path": ["agencies", "join"]
+            },
+            "description": "Request to join an agency"
+          }
+        },
+        {
+          "name": "Leave Agency",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agencyId\": \"{{agencyId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agencies/leave",
+              "host": ["{{baseUrl}}"],
+              "path": ["agencies", "leave"]
+            },
+            "description": "Leave an agency"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Announcements",
+      "description": "View announcements",
+      "item": [
+        {
+          "name": "Get All Announcements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/announcements?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["announcements"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            },
+            "description": "Get list of announcements"
+          }
+        },
+        {
+          "name": "Get Announcement Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/announcements/{{announcementId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["announcements", "{{announcementId}}"]
+            },
+            "description": "Get announcement details"
+          }
+        },
+        {
+          "name": "Get My Announcements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/announcements/my/list",
+              "host": ["{{baseUrl}}"],
+              "path": ["announcements", "my", "list"]
+            },
+            "description": "Get announcements relevant to me"
+          }
+        },
+        {
+          "name": "Acknowledge Announcement",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/announcements/{{announcementId}}/acknowledge",
+              "host": ["{{baseUrl}}"],
+              "path": ["announcements", "{{announcementId}}", "acknowledge"]
+            },
+            "description": "Acknowledge an announcement"
+          }
+        },
+        {
+          "name": "Add Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Thanks for the update!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/announcements/{{announcementId}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["announcements", "{{announcementId}}", "comments"]
+            },
+            "description": "Add a comment to an announcement"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "Manage notifications",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?page=1&limit=20&read=",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "read", "value": ""}
+              ]
+            },
+            "description": "Get all notifications"
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/unread-count",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "unread-count"]
+            },
+            "description": "Get unread notification count"
+          }
+        },
+        {
+          "name": "Mark as Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}", "read"]
+            },
+            "description": "Mark notification as read"
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "read-all"]
+            },
+            "description": "Mark all notifications as read"
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}"]
+            },
+            "description": "Delete a notification"
+          }
+        },
+        {
+          "name": "Update Preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": true,\n  \"push\": true,\n  \"sms\": false,\n  \"categories\": {\n    \"bookings\": true,\n    \"promotions\": true,\n    \"updates\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "preferences"]
+            },
+            "description": "Update notification preferences"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "description": "Financial operations",
+      "item": [
+        {
+          "name": "Get Financial Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/finance/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "overview"]
+            },
+            "description": "Get financial overview"
+          }
+        },
+        {
+          "name": "Get Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/finance/transactions?page=1&limit=20&type=",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "transactions"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "type", "value": ""}
+              ]
+            },
+            "description": "Get transaction history"
+          }
+        },
+        {
+          "name": "Request Top-up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000,\n  \"paymentMethod\": \"gcash\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/finance/top-up",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "top-up"]
+            },
+            "description": "Request wallet top-up"
+          }
+        },
+        {
+          "name": "Get My Top-up Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/finance/top-ups/my-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "top-ups", "my-requests"]
+            },
+            "description": "Get my top-up requests"
+          }
+        },
+        {
+          "name": "Update Wallet Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"autoTopUp\": false,\n  \"lowBalanceAlert\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/finance/wallet/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "wallet", "settings"]
+            },
+            "description": "Update wallet settings"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Support",
+      "description": "Support ticket management",
+      "item": [
+        {
+          "name": "Create Ticket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response._id || response.id || response.ticket) {",
+                  "    pm.environment.set('ticketId', response._id || response.id || response.ticket._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Issue with my booking\",\n  \"description\": \"I need help with booking #12345\",\n  \"category\": \"booking\",\n  \"priority\": \"medium\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/support/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["support", "tickets"]
+            },
+            "description": "Create a support ticket"
+          }
+        },
+        {
+          "name": "Get My Tickets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/support/tickets?page=1&limit=20&status=",
+              "host": ["{{baseUrl}}"],
+              "path": ["support", "tickets"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "status", "value": ""}
+              ]
+            },
+            "description": "Get my support tickets"
+          }
+        },
+        {
+          "name": "Get Ticket Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/support/tickets/{{ticketId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["support", "tickets", "{{ticketId}}"]
+            },
+            "description": "Get ticket details"
+          }
+        },
+        {
+          "name": "Add Reply to Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Thank you for the update. Here is more information...\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/support/tickets/{{ticketId}}/replies",
+              "host": ["{{baseUrl}}"],
+              "path": ["support", "tickets", "{{ticketId}}", "replies"]
+            },
+            "description": "Add reply to a ticket"
+          }
+        },
+        {
+          "name": "Get Ticket Replies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/support/tickets/{{ticketId}}/replies",
+              "host": ["{{baseUrl}}"],
+              "path": ["support", "tickets", "{{ticketId}}", "replies"]
+            },
+            "description": "Get all replies for a ticket"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Referrals",
+      "description": "Referral program",
+      "item": [
+        {
+          "name": "Get My Referral Code",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/referrals/my-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["referrals", "my-code"]
+            },
+            "description": "Get my referral code"
+          }
+        },
+        {
+          "name": "Get My Referrals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/referrals/my-referrals",
+              "host": ["{{baseUrl}}"],
+              "path": ["referrals", "my-referrals"]
+            },
+            "description": "Get people I've referred"
+          }
+        },
+        {
+          "name": "Apply Referral Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{referralCode}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/referrals/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["referrals", "apply"]
+            },
+            "description": "Apply a referral code"
+          }
+        },
+        {
+          "name": "Get Referral Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/referrals/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["referrals", "stats"]
+            },
+            "description": "Get my referral statistics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Favorites",
+      "description": "Manage favorites",
+      "item": [
+        {
+          "name": "Get My Favorites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/favorites?type=",
+              "host": ["{{baseUrl}}"],
+              "path": ["favorites"],
+              "query": [
+                {"key": "type", "value": ""}
+              ]
+            },
+            "description": "Get all my favorites"
+          }
+        },
+        {
+          "name": "Add to Favorites",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemType\": \"service\",\n  \"itemId\": \"{{serviceId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/favorites",
+              "host": ["{{baseUrl}}"],
+              "path": ["favorites"]
+            },
+            "description": "Add item to favorites"
+          }
+        },
+        {
+          "name": "Remove from Favorites",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/favorites/{{favoriteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["favorites", "{{favoriteId}}"]
+            },
+            "description": "Remove item from favorites"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Live Chat",
+      "description": "Live chat support",
+      "item": [
+        {
+          "name": "Start Chat Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"subject\": \"Need help with booking\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/live-chat/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["live-chat", "sessions"]
+            },
+            "description": "Start a new chat session"
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hello, I need help with my booking\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/live-chat/sessions/{{sessionId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["live-chat", "sessions", "{{sessionId}}", "messages"]
+            },
+            "description": "Send a chat message"
+          }
+        },
+        {
+          "name": "Get Chat Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/live-chat/sessions/{{sessionId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["live-chat", "sessions", "{{sessionId}}", "messages"]
+            },
+            "description": "Get chat messages"
+          }
+        },
+        {
+          "name": "End Chat Session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/live-chat/sessions/{{sessionId}}/end",
+              "host": ["{{baseUrl}}"],
+              "path": ["live-chat", "sessions", "{{sessionId}}", "end"]
+            },
+            "description": "End chat session"
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Assistant",
+      "description": "AI-powered features",
+      "item": [
+        {
+          "name": "Get Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"I need a plumber for a leaky faucet\",\n  \"location\": {\n    \"lat\": 14.5995,\n    \"lng\": 120.9842\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/recommendations",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "recommendations"]
+            },
+            "description": "Get AI-powered recommendations"
+          }
+        },
+        {
+          "name": "Price Estimator",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceType\": \"plumbing\",\n  \"description\": \"Fix leaky faucet\",\n  \"location\": \"Manila\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/price-estimator",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "price-estimator"]
+            },
+            "description": "Get AI price estimation"
+          }
+        },
+        {
+          "name": "Service Matcher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requirements\": \"Need someone to clean my 3-bedroom apartment\",\n  \"budget\": 2000,\n  \"preferredDate\": \"2024-12-20\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/service-matcher",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "service-matcher"]
+            },
+            "description": "Match services to requirements"
+          }
+        },
+        {
+          "name": "Booking Assistant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"I want to book a cleaning service for next Saturday\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/booking-assistant",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "booking-assistant"]
+            },
+            "description": "AI booking assistance"
+          }
+        },
+        {
+          "name": "Scheduling Assistant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"preferredDates\": [\"2024-12-20\", \"2024-12-21\"],\n  \"preferredTimes\": [\"morning\", \"afternoon\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/scheduling-assistant",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "scheduling-assistant"]
+            },
+            "description": "AI scheduling assistance"
+          }
+        },
+        {
+          "name": "Generate Bio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profession\": \"Software Developer\",\n  \"experience\": \"5 years\",\n  \"skills\": [\"JavaScript\", \"Python\", \"React\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/users/bio-generator",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "users", "bio-generator"]
+            },
+            "description": "Generate user bio using AI"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "description": "Global search",
+      "item": [
+        {
+          "name": "Global Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search?q=cleaning&type=&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["search"],
+              "query": [
+                {"key": "q", "value": "cleaning"},
+                {"key": "type", "value": ""},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            },
+            "description": "Search across all content"
+          }
+        },
+        {
+          "name": "Search Suggestions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search/suggestions?q=clean",
+              "host": ["{{baseUrl}}"],
+              "path": ["search", "suggestions"],
+              "query": [
+                {"key": "q", "value": "clean"}
+              ]
+            },
+            "description": "Get search suggestions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "description": "Personal analytics",
+      "item": [
+        {
+          "name": "Get My Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "user"]
+            },
+            "description": "Get my personal analytics"
+          }
+        },
+        {
+          "name": "Track Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"page_view\",\n  \"properties\": {\n    \"page\": \"service_details\",\n    \"serviceId\": \"{{serviceId}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/analytics/track",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "track"]
+            },
+            "description": "Track an analytics event"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "description": "App settings",
+      "item": [
+        {
+          "name": "Get App Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings"]
+            },
+            "description": "Get application settings"
+          }
+        },
+        {
+          "name": "Get User Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "user"]
+            },
+            "description": "Get user-specific settings"
+          }
+        },
+        {
+          "name": "Update User Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"dark\",\n  \"language\": \"en\",\n  \"timezone\": \"Asia/Manila\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "user"]
+            },
+            "description": "Update user settings"
+          }
+        }
+      ]
+    }
+  ]
+}

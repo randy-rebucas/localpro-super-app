@@ -1,0 +1,377 @@
+{
+  "info": {
+    "_postman_id": "localpro-partner-collection",
+    "name": "LocalPro API - Partner Role",
+    "description": "Complete API collection for Partner users. Manage partner operations, create jobs, manage users, and access partner-specific features.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [{"listen": "test", "script": {"exec": ["const response = pm.response.json();", "if (response.token || response.accessToken) pm.environment.set('accessToken', response.token || response.accessToken);", "if (response.refreshToken) pm.environment.set('refreshToken', response.refreshToken);", "if (response.user) { pm.environment.set('userId', response.user._id); pm.environment.set('partnerId', response.user._id); }"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"partner@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"},
+            "url": {"raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"]}
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"]}}
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"firstName\": \"Partner\",\n  \"lastName\": \"Company\",\n  \"companyName\": \"Partner Corp\",\n  \"phone\": \"+1234567890\"\n}"},
+            "url": {"raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"]}
+          }
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "body": {"mode": "formdata", "formdata": [{"key": "avatar", "type": "file", "src": ""}]},
+            "url": {"raw": "{{baseUrl}}/auth/avatar", "host": ["{{baseUrl}}"], "path": ["auth", "avatar"]}
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {"method": "POST", "url": {"raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"]}}
+        }
+      ]
+    },
+    {
+      "name": "Partner Management",
+      "item": [
+        {
+          "name": "Get Partner Profile",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/partners/profile", "host": ["{{baseUrl}}"], "path": ["partners", "profile"]}}
+        },
+        {
+          "name": "Update Partner Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"companyName\": \"Partner Corp Updated\",\n  \"description\": \"Leading partner in service delivery\",\n  \"website\": \"https://partnercorp.com\",\n  \"address\": {\n    \"street\": \"123 Partner Ave\",\n    \"city\": \"Manila\",\n    \"country\": \"Philippines\"\n  }\n}"},
+            "url": {"raw": "{{baseUrl}}/partners/profile", "host": ["{{baseUrl}}"], "path": ["partners", "profile"]}
+          }
+        },
+        {
+          "name": "Get Partner Stats",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/partners/stats", "host": ["{{baseUrl}}"], "path": ["partners", "stats"]}}
+        },
+        {
+          "name": "Get Partner Analytics",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/partners/analytics", "host": ["{{baseUrl}}"], "path": ["partners", "analytics"]}}
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users?page=1&limit=20&role=", "host": ["{{baseUrl}}"], "path": ["users"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}, {"key": "role", "value": ""}]}}
+        },
+        {
+          "name": "Get User Stats",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users/stats", "host": ["{{baseUrl}}"], "path": ["users", "stats"]}}
+        },
+        {
+          "name": "Get User by ID",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"]}}
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"New\",\n  \"lastName\": \"User\",\n  \"role\": \"client\",\n  \"phone\": \"+1234567890\"\n}"},
+            "url": {"raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"]}
+          }
+        },
+        {
+          "name": "Update User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"active\"\n}"},
+            "url": {"raw": "{{baseUrl}}/users/{{userId}}/status", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "status"]}
+          }
+        },
+        {
+          "name": "Get User Roles",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users/{{userId}}/roles", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "roles"]}}
+        },
+        {
+          "name": "Get User Badges",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users/{{userId}}/badges", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "badges"]}}
+        },
+        {
+          "name": "Delete Badge",
+          "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/users/{{userId}}/badges/{{badgeId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "badges", "{{badgeId}}"]}}
+        },
+        {
+          "name": "Reset User Password",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"newPassword\": \"NewPassword123!\"\n}"},
+            "url": {"raw": "{{baseUrl}}/users/{{userId}}/reset-password", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "reset-password"]}
+          }
+        },
+        {
+          "name": "Send Email to User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"subject\": \"Welcome to our Partner Program\",\n  \"message\": \"Thank you for joining our partner program.\"\n}"},
+            "url": {"raw": "{{baseUrl}}/users/{{userId}}/send-email", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "send-email"]}
+          }
+        },
+        {
+          "name": "Export User Data",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users/{{userId}}/export", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "export"]}}
+        },
+        {
+          "name": "Get User Notes",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users/{{userId}}/notes", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "notes"]}}
+        }
+      ]
+    },
+    {
+      "name": "Jobs Management",
+      "item": [
+        {
+          "name": "Create Job",
+          "event": [{"listen": "test", "script": {"exec": ["const response = pm.response.json();", "if (response._id || response.id || response.job) pm.environment.set('jobId', response._id || response.id || response.job._id);"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"title\": \"Service Provider Needed\",\n  \"description\": \"Looking for experienced service providers to join our network\",\n  \"category\": \"general\",\n  \"type\": \"full-time\",\n  \"location\": \"Manila\",\n  \"salary\": {\n    \"min\": 20000,\n    \"max\": 35000,\n    \"currency\": \"PHP\",\n    \"period\": \"monthly\"\n  },\n  \"requirements\": [\"3+ years experience\", \"Good communication skills\"],\n  \"benefits\": [\"Health insurance\", \"Training provided\"],\n  \"applicationDeadline\": \"2024-12-31\"\n}"},
+            "url": {"raw": "{{baseUrl}}/jobs", "host": ["{{baseUrl}}"], "path": ["jobs"]}
+          }
+        },
+        {
+          "name": "Get All Jobs",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/jobs?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["jobs"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get My Jobs",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/jobs/my-jobs?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["jobs", "my-jobs"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Job Details",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/jobs/{{jobId}}", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}"]}}
+        },
+        {
+          "name": "Update Job",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"title\": \"Updated Job Title\",\n  \"salary\": {\n    \"min\": 25000,\n    \"max\": 40000\n  }\n}"},
+            "url": {"raw": "{{baseUrl}}/jobs/{{jobId}}", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}"]}
+          }
+        },
+        {
+          "name": "Upload Job Logo",
+          "request": {
+            "method": "POST",
+            "body": {"mode": "formdata", "formdata": [{"key": "logo", "type": "file", "src": ""}]},
+            "url": {"raw": "{{baseUrl}}/jobs/{{jobId}}/logo", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}", "logo"]}
+          }
+        },
+        {
+          "name": "Get Job Statistics",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/jobs/{{jobId}}/stats", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}", "stats"]}}
+        },
+        {
+          "name": "Get Job Applications",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/jobs/{{jobId}}/applications?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}", "applications"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Update Application Status",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"interview\",\n  \"notes\": \"Schedule interview for next week\"\n}"},
+            "url": {"raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/status", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "status"]}
+          }
+        },
+        {
+          "name": "Delete Job",
+          "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/jobs/{{jobId}}", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}"]}}
+        },
+        {
+          "name": "Get Job Categories",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/jobs/categories", "host": ["{{baseUrl}}"], "path": ["jobs", "categories"]}}
+        }
+      ]
+    },
+    {
+      "name": "Marketplace",
+      "item": [
+        {
+          "name": "Get Services",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/marketplace/services?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["marketplace", "services"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Service Categories",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/marketplace/services/categories", "host": ["{{baseUrl}}"], "path": ["marketplace", "services", "categories"]}}
+        },
+        {
+          "name": "Get Providers",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/providers?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["providers"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "item": [
+        {
+          "name": "Get Financial Overview",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/overview", "host": ["{{baseUrl}}"], "path": ["finance", "overview"]}}
+        },
+        {
+          "name": "Get Transactions",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/transactions?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["finance", "transactions"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Earnings",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/earnings", "host": ["{{baseUrl}}"], "path": ["finance", "earnings"]}}
+        },
+        {
+          "name": "Get Reports",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/reports?type=monthly&year=2024", "host": ["{{baseUrl}}"], "path": ["finance", "reports"], "query": [{"key": "type", "value": "monthly"}, {"key": "year", "value": "2024"}]}}
+        },
+        {
+          "name": "Request Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"amount\": 50000,\n  \"method\": \"bank_transfer\",\n  \"accountDetails\": {\n    \"bankName\": \"BDO\",\n    \"accountNumber\": \"1234567890\",\n    \"accountName\": \"Partner Corp\"\n  }\n}"},
+            "url": {"raw": "{{baseUrl}}/finance/withdraw", "host": ["{{baseUrl}}"], "path": ["finance", "withdraw"]}
+          }
+        },
+        {
+          "name": "Get Withdrawals",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/withdrawals", "host": ["{{baseUrl}}"], "path": ["finance", "withdrawals"]}}
+        },
+        {
+          "name": "Get Tax Documents",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/tax-documents?year=2024", "host": ["{{baseUrl}}"], "path": ["finance", "tax-documents"], "query": [{"key": "year", "value": "2024"}]}}
+        }
+      ]
+    },
+    {
+      "name": "Referrals",
+      "item": [
+        {
+          "name": "Get My Referral Code",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/referrals/my-code", "host": ["{{baseUrl}}"], "path": ["referrals", "my-code"]}}
+        },
+        {
+          "name": "Get My Referrals",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/referrals/my-referrals", "host": ["{{baseUrl}}"], "path": ["referrals", "my-referrals"]}}
+        },
+        {
+          "name": "Get Referral Stats",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/referrals/stats", "host": ["{{baseUrl}}"], "path": ["referrals", "stats"]}}
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/notifications?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["notifications"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/notifications/unread-count", "host": ["{{baseUrl}}"], "path": ["notifications", "unread-count"]}}
+        },
+        {
+          "name": "Mark as Read",
+          "request": {"method": "PUT", "url": {"raw": "{{baseUrl}}/notifications/{{notificationId}}/read", "host": ["{{baseUrl}}"], "path": ["notifications", "{{notificationId}}", "read"]}}
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {"method": "PUT", "url": {"raw": "{{baseUrl}}/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["notifications", "read-all"]}}
+        }
+      ]
+    },
+    {
+      "name": "Support",
+      "item": [
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"subject\": \"Partner integration issue\",\n  \"description\": \"Need help with API integration\",\n  \"category\": \"technical\",\n  \"priority\": \"high\"\n}"},
+            "url": {"raw": "{{baseUrl}}/support/tickets", "host": ["{{baseUrl}}"], "path": ["support", "tickets"]}
+          }
+        },
+        {
+          "name": "Get My Tickets",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/support/tickets?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["support", "tickets"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Ticket Details",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/support/tickets/{{ticketId}}", "host": ["{{baseUrl}}"], "path": ["support", "tickets", "{{ticketId}}"]}}
+        },
+        {
+          "name": "Add Reply",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"message\": \"Here is more details about the issue...\"\n}"},
+            "url": {"raw": "{{baseUrl}}/support/tickets/{{ticketId}}/replies", "host": ["{{baseUrl}}"], "path": ["support", "tickets", "{{ticketId}}", "replies"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Announcements",
+      "item": [
+        {
+          "name": "Get Announcements",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/announcements?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["announcements"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Announcement Details",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/announcements/{{announcementId}}", "host": ["{{baseUrl}}"], "path": ["announcements", "{{announcementId}}"]}}
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get My Analytics",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/analytics/user", "host": ["{{baseUrl}}"], "path": ["analytics", "user"]}}
+        },
+        {
+          "name": "Track Event",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"event\": \"partner_action\",\n  \"properties\": {\n    \"action\": \"job_created\"\n  }\n}"},
+            "url": {"raw": "{{baseUrl}}/analytics/track", "host": ["{{baseUrl}}"], "path": ["analytics", "track"]}
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,319 @@
+{
+  "info": {
+    "_postman_id": "localpro-agency-admin-collection",
+    "name": "LocalPro API - Agency Admin Role",
+    "description": "Complete API collection for Agency Admin users. Manage agency operations, providers, users, and announcements with administrative privileges.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [{"listen": "test", "script": {"exec": ["const response = pm.response.json();", "if (response.token || response.accessToken) pm.environment.set('accessToken', response.token || response.accessToken);", "if (response.refreshToken) pm.environment.set('refreshToken', response.refreshToken);", "if (response.user) pm.environment.set('userId', response.user._id);"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"agencyadmin@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"},
+            "url": {"raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"]}
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"]}}
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"firstName\": \"Agency\",\n  \"lastName\": \"Admin\",\n  \"phone\": \"+1234567890\"\n}"},
+            "url": {"raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"]}
+          }
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "body": {"mode": "formdata", "formdata": [{"key": "avatar", "type": "file", "src": ""}]},
+            "url": {"raw": "{{baseUrl}}/auth/avatar", "host": ["{{baseUrl}}"], "path": ["auth", "avatar"]}
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {"method": "POST", "url": {"raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"]}}
+        }
+      ]
+    },
+    {
+      "name": "Agency Management",
+      "item": [
+        {
+          "name": "Get All Agencies",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/agencies?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["agencies"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Agency Details",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/agencies/{{agencyId}}", "host": ["{{baseUrl}}"], "path": ["agencies", "{{agencyId}}"]}}
+        },
+        {
+          "name": "Upload Agency Logo",
+          "request": {
+            "method": "POST",
+            "body": {"mode": "formdata", "formdata": [{"key": "logo", "type": "file", "src": ""}]},
+            "url": {"raw": "{{baseUrl}}/agencies/{{agencyId}}/logo", "host": ["{{baseUrl}}"], "path": ["agencies", "{{agencyId}}", "logo"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Provider Management",
+      "item": [
+        {
+          "name": "Add Provider to Agency",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"providerId\": \"{{providerId}}\"\n}"},
+            "url": {"raw": "{{baseUrl}}/agencies/{{agencyId}}/providers", "host": ["{{baseUrl}}"], "path": ["agencies", "{{agencyId}}", "providers"]}
+          }
+        },
+        {
+          "name": "Remove Provider from Agency",
+          "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/agencies/{{agencyId}}/providers/{{providerId}}", "host": ["{{baseUrl}}"], "path": ["agencies", "{{agencyId}}", "providers", "{{providerId}}"]}}
+        },
+        {
+          "name": "Update Provider Status",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"active\"\n}"},
+            "url": {"raw": "{{baseUrl}}/agencies/{{agencyId}}/providers/{{providerId}}/status", "host": ["{{baseUrl}}"], "path": ["agencies", "{{agencyId}}", "providers", "{{providerId}}", "status"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["users"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get User Stats",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users/stats", "host": ["{{baseUrl}}"], "path": ["users", "stats"]}}
+        },
+        {
+          "name": "Get User by ID",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"]}}
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"Name\"\n}"},
+            "url": {"raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"]}
+          }
+        },
+        {
+          "name": "Update User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"active\"\n}"},
+            "url": {"raw": "{{baseUrl}}/users/{{userId}}/status", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "status"]}
+          }
+        },
+        {
+          "name": "Update User Verification",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"verified\": true\n}"},
+            "url": {"raw": "{{baseUrl}}/users/{{userId}}/verification", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "verification"]}
+          }
+        },
+        {
+          "name": "Add Badge to User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"badge\": \"star_performer\",\n  \"reason\": \"Outstanding service delivery\"\n}"},
+            "url": {"raw": "{{baseUrl}}/users/{{userId}}/badges", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "badges"]}
+          }
+        },
+        {
+          "name": "Get User Badges",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users/{{userId}}/badges", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "badges"]}}
+        },
+        {
+          "name": "Delete Badge",
+          "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/users/{{userId}}/badges/{{badgeId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "badges", "{{badgeId}}"]}}
+        },
+        {
+          "name": "Get User Roles",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users/{{userId}}/roles", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "roles"]}}
+        },
+        {
+          "name": "Send Email to User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"subject\": \"Agency Update\",\n  \"message\": \"Important information about your account.\"\n}"},
+            "url": {"raw": "{{baseUrl}}/users/{{userId}}/send-email", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "send-email"]}
+          }
+        },
+        {
+          "name": "Get User Notes",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/users/{{userId}}/notes", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "notes"]}}
+        }
+      ]
+    },
+    {
+      "name": "Announcements Management",
+      "item": [
+        {
+          "name": "Get All Announcements",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/announcements?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["announcements"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get My Announcements",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/announcements/my/list", "host": ["{{baseUrl}}"], "path": ["announcements", "my", "list"]}}
+        },
+        {
+          "name": "Create Announcement",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"title\": \"Team Update\",\n  \"content\": \"Important updates for all team members\",\n  \"type\": \"info\",\n  \"targetRoles\": [\"provider\"],\n  \"priority\": \"medium\",\n  \"agencyId\": \"{{agencyId}}\"\n}"},
+            "url": {"raw": "{{baseUrl}}/announcements", "host": ["{{baseUrl}}"], "path": ["announcements"]}
+          }
+        },
+        {
+          "name": "Update Announcement",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"title\": \"Updated Announcement\",\n  \"content\": \"Updated content\"\n}"},
+            "url": {"raw": "{{baseUrl}}/announcements/{{announcementId}}", "host": ["{{baseUrl}}"], "path": ["announcements", "{{announcementId}}"]}
+          }
+        },
+        {
+          "name": "Delete Announcement",
+          "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/announcements/{{announcementId}}", "host": ["{{baseUrl}}"], "path": ["announcements", "{{announcementId}}"]}}
+        },
+        {
+          "name": "Acknowledge Announcement",
+          "request": {"method": "POST", "url": {"raw": "{{baseUrl}}/announcements/{{announcementId}}/acknowledge", "host": ["{{baseUrl}}"], "path": ["announcements", "{{announcementId}}", "acknowledge"]}}
+        }
+      ]
+    },
+    {
+      "name": "Marketplace",
+      "item": [
+        {
+          "name": "Get Services",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/marketplace/services?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["marketplace", "services"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Bookings",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/marketplace/bookings?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["marketplace", "bookings"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "item": [
+        {
+          "name": "Get Financial Overview",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/overview", "host": ["{{baseUrl}}"], "path": ["finance", "overview"]}}
+        },
+        {
+          "name": "Get Transactions",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/transactions?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["finance", "transactions"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Reports",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/reports?type=monthly&year=2024", "host": ["{{baseUrl}}"], "path": ["finance", "reports"], "query": [{"key": "type", "value": "monthly"}, {"key": "year", "value": "2024"}]}}
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/notifications?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["notifications"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/notifications/unread-count", "host": ["{{baseUrl}}"], "path": ["notifications", "unread-count"]}}
+        },
+        {
+          "name": "Mark as Read",
+          "request": {"method": "PUT", "url": {"raw": "{{baseUrl}}/notifications/{{notificationId}}/read", "host": ["{{baseUrl}}"], "path": ["notifications", "{{notificationId}}", "read"]}}
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {"method": "PUT", "url": {"raw": "{{baseUrl}}/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["notifications", "read-all"]}}
+        }
+      ]
+    },
+    {
+      "name": "Support",
+      "item": [
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"subject\": \"Admin access issue\",\n  \"description\": \"Need help with admin permissions\",\n  \"category\": \"account\",\n  \"priority\": \"medium\"\n}"},
+            "url": {"raw": "{{baseUrl}}/support/tickets", "host": ["{{baseUrl}}"], "path": ["support", "tickets"]}
+          }
+        },
+        {
+          "name": "Get My Tickets",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/support/tickets?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["support", "tickets"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Ticket Details",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/support/tickets/{{ticketId}}", "host": ["{{baseUrl}}"], "path": ["support", "tickets", "{{ticketId}}"]}}
+        },
+        {
+          "name": "Add Reply",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"message\": \"Additional information...\"\n}"},
+            "url": {"raw": "{{baseUrl}}/support/tickets/{{ticketId}}/replies", "host": ["{{baseUrl}}"], "path": ["support", "tickets", "{{ticketId}}", "replies"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get My Analytics",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/analytics/user", "host": ["{{baseUrl}}"], "path": ["analytics", "user"]}}
+        },
+        {
+          "name": "Track Event",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"event\": \"admin_action\",\n  \"properties\": {\n    \"action\": \"user_update\"\n  }\n}"},
+            "url": {"raw": "{{baseUrl}}/analytics/track", "host": ["{{baseUrl}}"], "path": ["analytics", "track"]}
+          }
+        }
+      ]
+    }
+  ]
+}

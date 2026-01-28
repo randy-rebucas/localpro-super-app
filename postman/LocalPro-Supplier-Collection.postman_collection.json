@@ -1,0 +1,335 @@
+{
+  "info": {
+    "_postman_id": "localpro-supplier-collection",
+    "name": "LocalPro API - Supplier Role",
+    "description": "Complete API collection for Supplier users. Manage supplies, inventory, orders, and supplier-specific features.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register as Supplier",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"supplier@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"firstName\": \"Supply\",\n  \"lastName\": \"Company\",\n  \"phone\": \"+1234567890\",\n  \"role\": \"supplier\",\n  \"businessName\": \"Premium Supplies Co.\",\n  \"businessType\": \"wholesale\"\n}"},
+            "url": {"raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"]}
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{"listen": "test", "script": {"exec": ["const response = pm.response.json();", "if (response.token || response.accessToken) pm.environment.set('accessToken', response.token || response.accessToken);", "if (response.refreshToken) pm.environment.set('refreshToken', response.refreshToken);", "if (response.user) { pm.environment.set('userId', response.user._id); pm.environment.set('supplierId', response.user._id); }"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"supplier@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"},
+            "url": {"raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"]}
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"]}}
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"firstName\": \"Supply\",\n  \"lastName\": \"Company\",\n  \"businessName\": \"Premium Supplies Co.\",\n  \"businessDescription\": \"Leading supplier of professional cleaning supplies\",\n  \"address\": {\n    \"street\": \"123 Supply St\",\n    \"city\": \"Manila\",\n    \"country\": \"Philippines\"\n  }\n}"},
+            "url": {"raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"]}
+          }
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "body": {"mode": "formdata", "formdata": [{"key": "avatar", "type": "file", "src": ""}]},
+            "url": {"raw": "{{baseUrl}}/auth/avatar", "host": ["{{baseUrl}}"], "path": ["auth", "avatar"]}
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {"method": "POST", "url": {"raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"]}}
+        }
+      ]
+    },
+    {
+      "name": "Supplies Management",
+      "item": [
+        {
+          "name": "Create Supply Item",
+          "event": [{"listen": "test", "script": {"exec": ["const response = pm.response.json();", "if (response._id || response.id) pm.environment.set('supplyId', response._id || response.id);"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Professional Cleaning Solution\",\n  \"description\": \"Industrial-strength cleaning solution for all surfaces\",\n  \"category\": \"cleaning_supplies\",\n  \"sku\": \"CLN-001\",\n  \"price\": 250,\n  \"unit\": \"liter\",\n  \"minOrderQuantity\": 10,\n  \"stock\": 1000,\n  \"specifications\": {\n    \"volume\": \"1L\",\n    \"type\": \"concentrate\"\n  }\n}"},
+            "url": {"raw": "{{baseUrl}}/supplies", "host": ["{{baseUrl}}"], "path": ["supplies"]}
+          }
+        },
+        {
+          "name": "Get My Supplies",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/supplies?page=1&limit=20&category=", "host": ["{{baseUrl}}"], "path": ["supplies"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}, {"key": "category", "value": ""}]}}
+        },
+        {
+          "name": "Get Supply by ID",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/supplies/{{supplyId}}", "host": ["{{baseUrl}}"], "path": ["supplies", "{{supplyId}}"]}}
+        },
+        {
+          "name": "Update Supply",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Updated Supply Name\",\n  \"price\": 275,\n  \"stock\": 1500\n}"},
+            "url": {"raw": "{{baseUrl}}/supplies/{{supplyId}}", "host": ["{{baseUrl}}"], "path": ["supplies", "{{supplyId}}"]}
+          }
+        },
+        {
+          "name": "Upload Supply Images",
+          "request": {
+            "method": "POST",
+            "body": {"mode": "formdata", "formdata": [{"key": "images", "type": "file", "src": ""}]},
+            "url": {"raw": "{{baseUrl}}/supplies/{{supplyId}}/images", "host": ["{{baseUrl}}"], "path": ["supplies", "{{supplyId}}", "images"]}
+          }
+        },
+        {
+          "name": "Update Stock",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"stock\": 2000,\n  \"reason\": \"Restocked from warehouse\"\n}"},
+            "url": {"raw": "{{baseUrl}}/supplies/{{supplyId}}/stock", "host": ["{{baseUrl}}"], "path": ["supplies", "{{supplyId}}", "stock"]}
+          }
+        },
+        {
+          "name": "Delete Supply",
+          "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/supplies/{{supplyId}}", "host": ["{{baseUrl}}"], "path": ["supplies", "{{supplyId}}"]}}
+        },
+        {
+          "name": "Get Supply Categories",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/supplies/categories", "host": ["{{baseUrl}}"], "path": ["supplies", "categories"]}}
+        },
+        {
+          "name": "Bulk Update Stock",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"items\": [\n    {\"supplyId\": \"supply1\", \"stock\": 100},\n    {\"supplyId\": \"supply2\", \"stock\": 200}\n  ]\n}"},
+            "url": {"raw": "{{baseUrl}}/supplies/bulk/stock", "host": ["{{baseUrl}}"], "path": ["supplies", "bulk", "stock"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders Management",
+      "item": [
+        {
+          "name": "Get My Orders",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/supplies/orders?page=1&limit=20&status=", "host": ["{{baseUrl}}"], "path": ["supplies", "orders"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}, {"key": "status", "value": ""}]}}
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/supplies/orders/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["supplies", "orders", "{{orderId}}"]}}
+        },
+        {
+          "name": "Accept Order",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"accepted\",\n  \"estimatedDelivery\": \"2024-12-20\"\n}"},
+            "url": {"raw": "{{baseUrl}}/supplies/orders/{{orderId}}/status", "host": ["{{baseUrl}}"], "path": ["supplies", "orders", "{{orderId}}", "status"]}
+          }
+        },
+        {
+          "name": "Process Order",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"processing\"\n}"},
+            "url": {"raw": "{{baseUrl}}/supplies/orders/{{orderId}}/status", "host": ["{{baseUrl}}"], "path": ["supplies", "orders", "{{orderId}}", "status"]}
+          }
+        },
+        {
+          "name": "Ship Order",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"shipped\",\n  \"trackingNumber\": \"TRK123456789\",\n  \"carrier\": \"LBC\"\n}"},
+            "url": {"raw": "{{baseUrl}}/supplies/orders/{{orderId}}/status", "host": ["{{baseUrl}}"], "path": ["supplies", "orders", "{{orderId}}", "status"]}
+          }
+        },
+        {
+          "name": "Complete Order",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"delivered\"\n}"},
+            "url": {"raw": "{{baseUrl}}/supplies/orders/{{orderId}}/status", "host": ["{{baseUrl}}"], "path": ["supplies", "orders", "{{orderId}}", "status"]}
+          }
+        },
+        {
+          "name": "Reject Order",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"rejected\",\n  \"reason\": \"Out of stock\"\n}"},
+            "url": {"raw": "{{baseUrl}}/supplies/orders/{{orderId}}/status", "host": ["{{baseUrl}}"], "path": ["supplies", "orders", "{{orderId}}", "status"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "item": [
+        {
+          "name": "Get Financial Overview",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/overview", "host": ["{{baseUrl}}"], "path": ["finance", "overview"]}}
+        },
+        {
+          "name": "Get Transactions",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/transactions?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["finance", "transactions"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Earnings",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/earnings?startDate=2024-01-01&endDate=2024-12-31", "host": ["{{baseUrl}}"], "path": ["finance", "earnings"], "query": [{"key": "startDate", "value": "2024-01-01"}, {"key": "endDate", "value": "2024-12-31"}]}}
+        },
+        {
+          "name": "Request Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"amount\": 10000,\n  \"method\": \"bank_transfer\",\n  \"accountDetails\": {\n    \"bankName\": \"BDO\",\n    \"accountNumber\": \"1234567890\",\n    \"accountName\": \"Premium Supplies Co.\"\n  }\n}"},
+            "url": {"raw": "{{baseUrl}}/finance/withdraw", "host": ["{{baseUrl}}"], "path": ["finance", "withdraw"]}
+          }
+        },
+        {
+          "name": "Get Withdrawals",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/withdrawals?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["finance", "withdrawals"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Reports",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/finance/reports?type=monthly&year=2024", "host": ["{{baseUrl}}"], "path": ["finance", "reports"], "query": [{"key": "type", "value": "monthly"}, {"key": "year", "value": "2024"}]}}
+        }
+      ]
+    },
+    {
+      "name": "Quotes & Invoices",
+      "item": [
+        {
+          "name": "Create Quote",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"clientId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"supplyId\": \"{{supplyId}}\",\n      \"quantity\": 50,\n      \"unitPrice\": 250\n    }\n  ],\n  \"validUntil\": \"2024-12-31\",\n  \"notes\": \"Bulk order discount applied\"\n}"},
+            "url": {"raw": "{{baseUrl}}/quotes-invoices/quotes", "host": ["{{baseUrl}}"], "path": ["quotes-invoices", "quotes"]}
+          }
+        },
+        {
+          "name": "Get My Quotes",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/quotes-invoices/quotes?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["quotes-invoices", "quotes"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Create Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"clientId\": \"{{userId}}\",\n  \"orderId\": \"{{orderId}}\",\n  \"items\": [\n    {\n      \"description\": \"Cleaning Supplies Order\",\n      \"quantity\": 50,\n      \"unitPrice\": 250\n    }\n  ],\n  \"dueDate\": \"2024-12-31\"\n}"},
+            "url": {"raw": "{{baseUrl}}/quotes-invoices/invoices", "host": ["{{baseUrl}}"], "path": ["quotes-invoices", "invoices"]}
+          }
+        },
+        {
+          "name": "Get My Invoices",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/quotes-invoices/invoices?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["quotes-invoices", "invoices"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/notifications?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["notifications"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/notifications/unread-count", "host": ["{{baseUrl}}"], "path": ["notifications", "unread-count"]}}
+        },
+        {
+          "name": "Mark as Read",
+          "request": {"method": "PUT", "url": {"raw": "{{baseUrl}}/notifications/{{notificationId}}/read", "host": ["{{baseUrl}}"], "path": ["notifications", "{{notificationId}}", "read"]}}
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {"method": "PUT", "url": {"raw": "{{baseUrl}}/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["notifications", "read-all"]}}
+        }
+      ]
+    },
+    {
+      "name": "Support",
+      "item": [
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"subject\": \"Order payment issue\",\n  \"description\": \"Need assistance with payment for order #123\",\n  \"category\": \"payment\",\n  \"priority\": \"medium\"\n}"},
+            "url": {"raw": "{{baseUrl}}/support/tickets", "host": ["{{baseUrl}}"], "path": ["support", "tickets"]}
+          }
+        },
+        {
+          "name": "Get My Tickets",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/support/tickets?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["support", "tickets"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Ticket Details",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/support/tickets/{{ticketId}}", "host": ["{{baseUrl}}"], "path": ["support", "tickets", "{{ticketId}}"]}}
+        },
+        {
+          "name": "Add Reply",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"message\": \"Additional information about the issue...\"\n}"},
+            "url": {"raw": "{{baseUrl}}/support/tickets/{{ticketId}}/replies", "host": ["{{baseUrl}}"], "path": ["support", "tickets", "{{ticketId}}", "replies"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Announcements",
+      "item": [
+        {
+          "name": "Get Announcements",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/announcements?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["announcements"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}}
+        },
+        {
+          "name": "Get Announcement Details",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/announcements/{{announcementId}}", "host": ["{{baseUrl}}"], "path": ["announcements", "{{announcementId}}"]}}
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get My Analytics",
+          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/analytics/user", "host": ["{{baseUrl}}"], "path": ["analytics", "user"]}}
+        },
+        {
+          "name": "Track Event",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"event\": \"supply_viewed\",\n  \"properties\": {\n    \"supplyId\": \"{{supplyId}}\"\n  }\n}"},
+            "url": {"raw": "{{baseUrl}}/analytics/track", "host": ["{{baseUrl}}"], "path": ["analytics", "track"]}
+          }
+        }
+      ]
+    }
+  ]
+}

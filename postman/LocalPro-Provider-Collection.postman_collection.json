@@ -1,0 +1,1691 @@
+{
+  "info": {
+    "_postman_id": "localpro-provider-collection",
+    "name": "LocalPro API - Provider Role",
+    "description": "Complete API collection for Service Provider users. Includes service management, booking management, ads, analytics, finance, and provider-specific features.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "Authentication endpoints for provider users",
+      "item": [
+        {
+          "name": "Register as Provider",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"provider@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Provider\",\n  \"phone\": \"+1234567890\",\n  \"role\": \"provider\",\n  \"businessName\": \"Jane's Services\",\n  \"serviceCategories\": [\"cleaning\", \"plumbing\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.token || response.accessToken) {",
+                  "    pm.environment.set('accessToken', response.token || response.accessToken);",
+                  "}",
+                  "if (response.refreshToken) {",
+                  "    pm.environment.set('refreshToken', response.refreshToken);",
+                  "}",
+                  "if (response.user) {",
+                  "    pm.environment.set('userId', response.user._id);",
+                  "    pm.environment.set('providerId', response.user._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"provider@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Provider\",\n  \"businessName\": \"Jane's Premium Services\",\n  \"bio\": \"Professional service provider with 5 years experience\",\n  \"skills\": [\"cleaning\", \"plumbing\", \"electrical\"],\n  \"certifications\": [\"Licensed Plumber\", \"Safety Certified\"],\n  \"serviceAreas\": [\"Manila\", \"Quezon City\"],\n  \"hourlyRate\": 500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "avatar", "type": "file", "src": ""}]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "avatar"]
+            }
+          }
+        },
+        {
+          "name": "Upload Portfolio",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "images", "type": "file", "src": ""}]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/upload-portfolio",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "upload-portfolio"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Service Management",
+      "description": "Manage services offered",
+      "item": [
+        {
+          "name": "Create Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response._id || response.id || response.service) {",
+                  "    pm.environment.set('serviceId', response._id || response.id || response.service._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional House Cleaning\",\n  \"description\": \"Comprehensive house cleaning service including all rooms, bathrooms, and kitchen\",\n  \"category\": \"cleaning\",\n  \"subcategory\": \"house_cleaning\",\n  \"pricing\": {\n    \"type\": \"fixed\",\n    \"amount\": 1500,\n    \"currency\": \"PHP\"\n  },\n  \"duration\": 180,\n  \"serviceArea\": [\"Manila\", \"Makati\", \"Quezon City\"],\n  \"tags\": [\"cleaning\", \"house\", \"professional\"],\n  \"availability\": {\n    \"days\": [\"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\"],\n    \"startTime\": \"08:00\",\n    \"endTime\": \"18:00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services"]
+            }
+          }
+        },
+        {
+          "name": "Get My Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/my-services?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "my-services"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Service Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Premium House Cleaning\",\n  \"description\": \"Updated description with more details\",\n  \"pricing\": {\n    \"type\": \"fixed\",\n    \"amount\": 1800,\n    \"currency\": \"PHP\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}"]
+            }
+          }
+        },
+        {
+          "name": "Upload Service Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "images", "type": "file", "src": ""}]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/images",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "images"]
+            }
+          }
+        },
+        {
+          "name": "Activate Service",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "activate"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate Service",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/deactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "deactivate"]
+            }
+          }
+        },
+        {
+          "name": "Delete Service",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Service Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "categories"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Booking Management",
+      "description": "Manage bookings as a provider",
+      "item": [
+        {
+          "name": "Get My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings?page=1&limit=20&status=",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "status", "value": ""}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Booking Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}"]
+            }
+          }
+        },
+        {
+          "name": "Accept Booking",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"accepted\",\n  \"message\": \"I'll be there on time!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Reject Booking",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"rejected\",\n  \"reason\": \"Schedule conflict\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Start Service",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Complete Booking",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\",\n  \"notes\": \"Service completed successfully\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Upload Booking Photos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "photos", "type": "file", "src": ""}]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/photos",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "photos"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Availability Management",
+      "description": "Manage availability and schedule",
+      "item": [
+        {
+          "name": "Create Availability",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dayOfWeek\": \"monday\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"17:00\",\n  \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/availability",
+              "host": ["{{baseUrl}}"],
+              "path": ["availability"]
+            }
+          }
+        },
+        {
+          "name": "Get My Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/availability",
+              "host": ["{{baseUrl}}"],
+              "path": ["availability"]
+            }
+          }
+        },
+        {
+          "name": "Get Calendar View",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/availability/calendar?month=12&year=2024",
+              "host": ["{{baseUrl}}"],
+              "path": ["availability", "calendar"],
+              "query": [
+                {"key": "month", "value": "12"},
+                {"key": "year", "value": "2024"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Availability",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startTime\": \"08:00\",\n  \"endTime\": \"18:00\",\n  \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/availability/{{availabilityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["availability", "{{availabilityId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Availability",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/availability/{{availabilityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["availability", "{{availabilityId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Schedules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/availability/schedules",
+              "host": ["{{baseUrl}}"],
+              "path": ["availability", "schedules"]
+            }
+          }
+        },
+        {
+          "name": "Add Time Off",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2024-12-24\",\n  \"endDate\": \"2024-12-26\",\n  \"reason\": \"Holiday break\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/availability/time-off",
+              "host": ["{{baseUrl}}"],
+              "path": ["availability", "time-off"]
+            }
+          }
+        },
+        {
+          "name": "Get Reschedule Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/availability/reschedule",
+              "host": ["{{baseUrl}}"],
+              "path": ["availability", "reschedule"]
+            }
+          }
+        },
+        {
+          "name": "Approve Reschedule",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/availability/reschedule/{{rescheduleId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["availability", "reschedule", "{{rescheduleId}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Reschedule",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Cannot accommodate this time\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/availability/reschedule/{{rescheduleId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["availability", "reschedule", "{{rescheduleId}}", "reject"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ads Management",
+      "description": "Create and manage advertisements",
+      "item": [
+        {
+          "name": "Create Ad",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response._id || response.id || response.ad) {",
+                  "    pm.environment.set('adId', response._id || response.id || response.ad._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional Cleaning Services\",\n  \"description\": \"Get 20% off your first booking!\",\n  \"category\": \"services\",\n  \"type\": \"banner\",\n  \"targetAudience\": {\n    \"locations\": [\"Manila\", \"Makati\"],\n    \"interests\": [\"cleaning\", \"home services\"]\n  },\n  \"budget\": {\n    \"daily\": 500,\n    \"total\": 5000\n  },\n  \"startDate\": \"2024-12-01\",\n  \"endDate\": \"2024-12-31\",\n  \"callToAction\": {\n    \"text\": \"Book Now\",\n    \"url\": \"https://app.localpro.com/book\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ads",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads"]
+            }
+          }
+        },
+        {
+          "name": "Get My Ads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ads/my-ads?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads", "my-ads"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Ad Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ads/{{adId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads", "{{adId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Ad",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Ad Title\",\n  \"description\": \"Updated description\",\n  \"budget\": {\n    \"daily\": 600,\n    \"total\": 6000\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ads/{{adId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads", "{{adId}}"]
+            }
+          }
+        },
+        {
+          "name": "Upload Ad Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "images", "type": "file", "src": ""}]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ads/{{adId}}/images",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads", "{{adId}}", "images"]
+            }
+          }
+        },
+        {
+          "name": "Delete Ad Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ads/{{adId}}/images/{{imageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads", "{{adId}}", "images", "{{imageId}}"]
+            }
+          }
+        },
+        {
+          "name": "Promote Ad",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"promotionType\": \"featured\",\n  \"duration\": 7\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ads/{{adId}}/promote",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads", "{{adId}}", "promote"]
+            }
+          }
+        },
+        {
+          "name": "Delete Ad",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ads/{{adId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ads", "{{adId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "description": "Create and manage job postings",
+      "item": [
+        {
+          "name": "Create Job",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response._id || response.id || response.job) {",
+                  "    pm.environment.set('jobId', response._id || response.id || response.job._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Experienced Cleaner Needed\",\n  \"description\": \"Looking for an experienced cleaner to join our team\",\n  \"category\": \"cleaning\",\n  \"type\": \"full-time\",\n  \"location\": \"Manila\",\n  \"salary\": {\n    \"min\": 15000,\n    \"max\": 25000,\n    \"currency\": \"PHP\",\n    \"period\": \"monthly\"\n  },\n  \"requirements\": [\"2+ years experience\", \"Own cleaning equipment\"],\n  \"benefits\": [\"Health insurance\", \"Paid leave\"],\n  \"applicationDeadline\": \"2024-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"]
+            }
+          }
+        },
+        {
+          "name": "Get My Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/my-jobs?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "my-jobs"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Job Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Job",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Job Title\",\n  \"salary\": {\n    \"min\": 18000,\n    \"max\": 28000\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}"]
+            }
+          }
+        },
+        {
+          "name": "Upload Job Logo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "logo", "type": "file", "src": ""}]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/logo",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "logo"]
+            }
+          }
+        },
+        {
+          "name": "Get Job Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Job Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Application Status",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shortlisted\",\n  \"notes\": \"Strong candidate\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Delete Job",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agency Management",
+      "description": "Manage agency membership",
+      "item": [
+        {
+          "name": "Get All Agencies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agencies?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["agencies"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Agency Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agencies/{{agencyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["agencies", "{{agencyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Upload Agency Logo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "logo", "type": "file", "src": ""}]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agencies/{{agencyId}}/logo",
+              "host": ["{{baseUrl}}"],
+              "path": ["agencies", "{{agencyId}}", "logo"]
+            }
+          }
+        },
+        {
+          "name": "Add Provider to Agency",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerId\": \"{{providerId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agencies/{{agencyId}}/providers",
+              "host": ["{{baseUrl}}"],
+              "path": ["agencies", "{{agencyId}}", "providers"]
+            }
+          }
+        },
+        {
+          "name": "Remove Provider from Agency",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agencies/{{agencyId}}/providers/{{providerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["agencies", "{{agencyId}}", "providers", "{{providerId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Provider Status",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agencies/{{agencyId}}/providers/{{providerId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["agencies", "{{agencyId}}", "providers", "{{providerId}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "description": "Financial management",
+      "item": [
+        {
+          "name": "Get Financial Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/finance/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "overview"]
+            }
+          }
+        },
+        {
+          "name": "Get Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/finance/transactions?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "transactions"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Earnings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/finance/earnings?startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "earnings"],
+              "query": [
+                {"key": "startDate", "value": "2024-01-01"},
+                {"key": "endDate", "value": "2024-12-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Expenses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/finance/expenses?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "expenses"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Expense",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"supplies\",\n  \"amount\": 500,\n  \"description\": \"Cleaning supplies\",\n  \"date\": \"2024-12-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/finance/expenses",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "expenses"]
+            }
+          }
+        },
+        {
+          "name": "Get Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/finance/reports?type=monthly&year=2024",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "reports"],
+              "query": [
+                {"key": "type", "value": "monthly"},
+                {"key": "year", "value": "2024"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Request Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"method\": \"bank_transfer\",\n  \"accountDetails\": {\n    \"bankName\": \"BDO\",\n    \"accountNumber\": \"1234567890\",\n    \"accountName\": \"Jane Provider\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/finance/withdraw",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "withdraw"]
+            }
+          }
+        },
+        {
+          "name": "Get Withdrawals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/finance/withdrawals?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "withdrawals"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Tax Documents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/finance/tax-documents?year=2024",
+              "host": ["{{baseUrl}}"],
+              "path": ["finance", "tax-documents"],
+              "query": [
+                {"key": "year", "value": "2024"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "description": "Provider analytics and insights",
+      "item": [
+        {
+          "name": "Get Provider Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/provider",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "provider"]
+            }
+          }
+        },
+        {
+          "name": "Get Detailed Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/provider/{{providerId}}?startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "provider", "{{providerId}}"],
+              "query": [
+                {"key": "startDate", "value": "2024-01-01"},
+                {"key": "endDate", "value": "2024-12-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Track Event",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"service_viewed\",\n  \"properties\": {\n    \"serviceId\": \"{{serviceId}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/analytics/track",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "track"]
+            }
+          }
+        },
+        {
+          "name": "Get Metadata",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/metadata",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "metadata"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quotes & Invoices",
+      "description": "Manage quotes and invoices",
+      "item": [
+        {
+          "name": "Create Quote",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response._id || response.id) {",
+                  "    pm.environment.set('quoteId', response._id || response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"description\": \"House Cleaning Service\",\n      \"quantity\": 1,\n      \"unitPrice\": 1500\n    },\n    {\n      \"description\": \"Deep Carpet Cleaning\",\n      \"quantity\": 2,\n      \"unitPrice\": 500\n    }\n  ],\n  \"validUntil\": \"2024-12-31\",\n  \"notes\": \"Price valid for 30 days\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quotes-invoices/quotes",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes-invoices", "quotes"]
+            }
+          }
+        },
+        {
+          "name": "Get My Quotes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotes-invoices/quotes?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes-invoices", "quotes"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Quote Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotes-invoices/quotes/{{quoteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes-invoices", "quotes", "{{quoteId}}"]
+            }
+          }
+        },
+        {
+          "name": "Convert Quote to Invoice",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotes-invoices/quotes/{{quoteId}}/convert",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes-invoices", "quotes", "{{quoteId}}", "convert"]
+            }
+          }
+        },
+        {
+          "name": "Create Invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response._id || response.id) {",
+                  "    pm.environment.set('invoiceId', response._id || response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{userId}}\",\n  \"bookingId\": \"{{bookingId}}\",\n  \"items\": [\n    {\n      \"description\": \"House Cleaning Service\",\n      \"quantity\": 1,\n      \"unitPrice\": 1500\n    }\n  ],\n  \"dueDate\": \"2024-12-31\",\n  \"notes\": \"Thank you for your business!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quotes-invoices/invoices",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes-invoices", "invoices"]
+            }
+          }
+        },
+        {
+          "name": "Get My Invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotes-invoices/invoices?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes-invoices", "invoices"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Invoice Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotes-invoices/invoices/{{invoiceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes-invoices", "invoices", "{{invoiceId}}"]
+            }
+          }
+        },
+        {
+          "name": "Send Invoice",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotes-invoices/invoices/{{invoiceId}}/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes-invoices", "invoices", "{{invoiceId}}", "send"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Tools",
+      "description": "AI-powered tools for providers",
+      "item": [
+        {
+          "name": "Generate Service Description",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceType\": \"house_cleaning\",\n  \"features\": [\"deep cleaning\", \"eco-friendly products\", \"experienced staff\"],\n  \"targetAudience\": \"busy professionals\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/description-generator",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "description-generator"]
+            }
+          }
+        },
+        {
+          "name": "Generate Description from Title",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional Deep House Cleaning\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/description-from-title",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "description-from-title"]
+            }
+          }
+        },
+        {
+          "name": "Pricing Optimizer",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"currentPrice\": 1500,\n  \"competitors\": [],\n  \"demand\": \"high\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/pricing-optimizer",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "pricing-optimizer"]
+            }
+          }
+        },
+        {
+          "name": "Demand Forecast",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"period\": \"next_month\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/demand-forecast",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "demand-forecast"]
+            }
+          }
+        },
+        {
+          "name": "Review Insights",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerId\": \"{{providerId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/review-insights",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "review-insights"]
+            }
+          }
+        },
+        {
+          "name": "Response Assistant",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewId\": \"review123\",\n  \"reviewText\": \"Great service but arrived 10 minutes late\",\n  \"rating\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/response-assistant",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "response-assistant"]
+            }
+          }
+        },
+        {
+          "name": "Listing Optimizer",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/marketplace/listing-optimizer",
+              "host": ["{{baseUrl}}"],
+              "path": ["ai", "marketplace", "listing-optimizer"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "Notification management",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/unread-count",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "unread-count"]
+            }
+          }
+        },
+        {
+          "name": "Mark as Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "read-all"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Support",
+      "description": "Support tickets",
+      "item": [
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Issue with payment\",\n  \"description\": \"I haven't received my payment for last week\",\n  \"category\": \"payment\",\n  \"priority\": \"high\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/support/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["support", "tickets"]
+            }
+          }
+        },
+        {
+          "name": "Get My Tickets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/support/tickets?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["support", "tickets"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Ticket Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/support/tickets/{{ticketId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["support", "tickets", "{{ticketId}}"]
+            }
+          }
+        },
+        {
+          "name": "Add Reply",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Here is additional information...\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/support/tickets/{{ticketId}}/replies",
+              "host": ["{{baseUrl}}"],
+              "path": ["support", "tickets", "{{ticketId}}", "replies"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Time Tracking",
+      "description": "Track time for services",
+      "item": [
+        {
+          "name": "Start Time Entry",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"description\": \"Started cleaning service\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/time-entries/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["time-entries", "start"]
+            }
+          }
+        },
+        {
+          "name": "Stop Time Entry",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Completed all tasks\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/time-entries/stop",
+              "host": ["{{baseUrl}}"],
+              "path": ["time-entries", "stop"]
+            }
+          }
+        },
+        {
+          "name": "Get My Time Entries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/time-entries?startDate=2024-12-01&endDate=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["time-entries"],
+              "query": [
+                {"key": "startDate", "value": "2024-12-01"},
+                {"key": "endDate", "value": "2024-12-31"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Referrals",
+      "description": "Referral program",
+      "item": [
+        {
+          "name": "Get My Referral Code",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/referrals/my-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["referrals", "my-code"]
+            }
+          }
+        },
+        {
+          "name": "Get My Referrals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/referrals/my-referrals",
+              "host": ["{{baseUrl}}"],
+              "path": ["referrals", "my-referrals"]
+            }
+          }
+        },
+        {
+          "name": "Get Referral Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/referrals/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["referrals", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Announcements",
+      "description": "View announcements",
+      "item": [
+        {
+          "name": "Get Announcements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/announcements?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["announcements"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Announcements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/announcements/my/list",
+              "host": ["{{baseUrl}}"],
+              "path": ["announcements", "my", "list"]
+            }
+          }
+        },
+        {
+          "name": "Acknowledge Announcement",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/announcements/{{announcementId}}/acknowledge",
+              "host": ["{{baseUrl}}"],
+              "path": ["announcements", "{{announcementId}}", "acknowledge"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
