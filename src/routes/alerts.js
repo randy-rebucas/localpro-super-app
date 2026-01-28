@@ -5,6 +5,7 @@ const {
   recordBusinessEvent 
 } = require('../middleware/metricsMiddleware');
 const logger = require('../config/logger');
+const { authorize } = require('../middleware/auth');
 
 // Alert configuration
 const getAlertThresholds = () => ({

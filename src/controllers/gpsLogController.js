@@ -1,3 +1,122 @@
+/**
+ * @desc    Delete a GPS log by ID
+ * @route   DELETE /api/gps-logs/:id
+ * @access  Private
+ */
+const deleteGPSLog = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!validateObjectId(id)) {
+      return sendValidationError(res, [{
+        field: 'id',
+        message: 'Invalid GPS log ID format',
+        code: 'INVALID_GPS_LOG_ID'
+      }]);
+    }
+    const gpsLog = await GPSLog.findByIdAndDelete(id);
+    if (!gpsLog) {
+      return sendNotFoundError(res, 'GPS log not found');
+    }
+    logger.info(`GPS log deleted: ${id}`);
+    return res.status(204).send();
+  } catch (err) {
+    logger.error('Error deleting GPS log:', err);
+    return sendServerError(res, 'Failed to delete GPS log');
+  }
+};
+/**
+ * @desc    Update a GPS log by ID
+ * @route   PUT /api/gps-logs/:id
+ * @access  Private
+ */
+const updateGPSLog = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!validateObjectId(id)) {
+      return sendValidationError(res, [{
+        field: 'id',
+        message: 'Invalid GPS log ID format',
+        code: 'INVALID_GPS_LOG_ID'
+      }]);
+    }
+    const updateFields = {};
+    const allowedFields = ['latitude', 'longitude', 'accuracy', 'altitude', 'speed', 'heading', 'timestamp', 'timeEntryId'];
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updateFields[field] = req.body[field];
+      }
+    }
+    if (Object.keys(updateFields).length === 0) {
+      return sendValidationError(res, [{
+        message: 'No valid fields provided for update',
+        code: 'NO_UPDATE_FIELDS'
+      }]);
+    }
+    // Validate coordinates if present
+    if (updateFields.latitude !== undefined && (typeof updateFields.latitude !== 'number' || updateFields.latitude < -90 || updateFields.latitude > 90)) {
+      return sendValidationError(res, [{
+        field: 'latitude',
+        message: 'Latitude must be a number between -90 and 90',
+        code: 'INVALID_LATITUDE'
+      }]);
+    }
+    if (updateFields.longitude !== undefined && (typeof updateFields.longitude !== 'number' || updateFields.longitude < -180 || updateFields.longitude > 180)) {
+      return sendValidationError(res, [{
+        field: 'longitude',
+        message: 'Longitude must be a number between -180 and 180',
+        code: 'INVALID_LONGITUDE'
+      }]);
+    }
+    if (updateFields.heading !== undefined && (updateFields.heading < 0 || updateFields.heading > 360)) {
+      return sendValidationError(res, [{
+        field: 'heading',
+        message: 'Heading must be a number between 0 and 360',
+        code: 'INVALID_HEADING'
+      }]);
+    }
+    if (updateFields.timeEntryId && !validateObjectId(updateFields.timeEntryId)) {
+      return sendValidationError(res, [{
+        field: 'timeEntryId',
+        message: 'Invalid time entry ID format',
+        code: 'INVALID_TIME_ENTRY_ID'
+      }]);
+    }
+    const gpsLog = await GPSLog.findByIdAndUpdate(id, updateFields, { new: true });
+    if (!gpsLog) {
+      return sendNotFoundError(res, 'GPS log not found');
+    }
+    logger.info(`GPS log updated: ${gpsLog._id}`);
+    return res.json({ success: true, data: gpsLog, message: 'GPS log updated successfully' });
+  } catch (err) {
+    logger.error('Error updating GPS log:', err);
+    return sendServerError(res, 'Failed to update GPS log');
+  }
+};
+/**
+ * @desc    Get a GPS log by ID
+ * @route   GET /api/gps-logs/:id
+ * @access  Private
+ */
+const getGPSLogById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!validateObjectId(id)) {
+      return sendValidationError(res, [{
+        field: 'id',
+        message: 'Invalid GPS log ID format',
+        code: 'INVALID_GPS_LOG_ID'
+      }]);
+    }
+    const gpsLog = await GPSLog.findById(id);
+    if (!gpsLog) {
+      return sendNotFoundError(res, 'GPS log not found');
+    }
+    return res.json({ success: true, data: gpsLog });
+  } catch (err) {
+    logger.error('Error fetching GPS log by ID:', err);
+    return sendServerError(res, 'Failed to fetch GPS log');
+  }
+};
 const GPSLog = require('../models/GPSLog');
 const TimeEntry = require('../models/TimeEntry');
 const logger = require('../config/logger');
@@ -325,5 +444,8 @@ module.exports = {
   createGPSLog,
   batchCreateGPSLogs,
   getGPSLogsByTimeEntry,
-  getGPSLogs
+  getGPSLogs,
+  getGPSLogById,
+  updateGPSLog,
+  deleteGPSLog
 };

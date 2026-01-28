@@ -2,7 +2,7 @@ const express = require('express');
 const { body, param, query } = require('express-validator');
 const router = express.Router();
 
-const { auth } = require('../middleware/auth');
+const { auth, authorize } = require('../middleware/auth');
 const {
   createApiKey,
   getApiKeys,

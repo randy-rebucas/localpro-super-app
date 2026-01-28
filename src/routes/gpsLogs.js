@@ -15,97 +15,8 @@ const {
 const validateGPSLogId = [
   param('id').isMongoId().withMessage('Invalid GPS log ID')
 ];
-/**
- * @swagger
- * /api/gps-logs/{id}:
- *   get:
- *     summary: Get a single GPS log by ID
- *     tags: [GPS Logs]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: GPS log found
- *       404:
- *         description: GPS log not found
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *   put:
- *     summary: Update a GPS log by ID
- *     tags: [GPS Logs]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               latitude:
- *                 type: number
- *               longitude:
- *                 type: number
- *               accuracy:
- *                 type: number
- *               altitude:
- *                 type: number
- *               speed:
- *                 type: number
- *               heading:
- *                 type: number
- *               timestamp:
- *                 type: string
- *                 format: date-time
- *     responses:
- *       200:
- *         description: GPS log updated
- *       400:
- *         description: Validation error
- *       404:
- *         description: GPS log not found
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *   delete:
- *     summary: Delete a GPS log by ID
- *     tags: [GPS Logs]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       204:
- *         description: GPS log deleted
- *       404:
- *         description: GPS log not found
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- */
-router.get('/:id', validateGPSLogId, getGPSLogById);
-router.put('/:id', validateGPSLogId, validateCreateGPSLog, updateGPSLog);
-router.delete('/:id', validateGPSLogId, deleteGPSLog);
 
 // Validation middleware
-const validateTimeEntryId = [
-  param('timeEntryId').isMongoId().withMessage('Invalid time entry ID')
-];
-
 const validateCreateGPSLog = [
   body('timeEntryId').optional().isMongoId().withMessage('Invalid time entry ID'),
   body('latitude').isFloat({ min: -90, max: 90 }).withMessage('Latitude must be between -90 and 90'),
@@ -115,6 +26,10 @@ const validateCreateGPSLog = [
   body('speed').optional().isFloat({ min: 0 }).withMessage('Speed must be a positive number'),
   body('heading').optional().isFloat({ min: 0, max: 360 }).withMessage('Heading must be between 0 and 360'),
   body('timestamp').optional().isISO8601().withMessage('timestamp must be a valid ISO 8601 date')
+];
+
+const validateTimeEntryId = [
+  param('timeEntryId').isMongoId().withMessage('Invalid time entry ID')
 ];
 
 const validateBatchCreateGPSLogs = [
@@ -302,5 +217,90 @@ router.post('/batch', validateBatchCreateGPSLogs, batchCreateGPSLogs);
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/time-entry/:timeEntryId', validateTimeEntryId, validateQueryParams, getGPSLogsByTimeEntry);
+/**
+ * @swagger
+ * /api/gps-logs/{id}:
+ *   get:
+ *     summary: Get a single GPS log by ID
+ *     tags: [GPS Logs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: GPS log found
+ *       404:
+ *         description: GPS log not found
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *   put:
+ *     summary: Update a GPS log by ID
+ *     tags: [GPS Logs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               latitude:
+ *                 type: number
+ *               longitude:
+ *                 type: number
+ *               accuracy:
+ *                 type: number
+ *               altitude:
+ *                 type: number
+ *               speed:
+ *                 type: number
+ *               heading:
+ *                 type: number
+ *               timestamp:
+ *                 type: string
+ *                 format: date-time
+ *     responses:
+ *       200:
+ *         description: GPS log updated
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: GPS log not found
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *   delete:
+ *     summary: Delete a GPS log by ID
+ *     tags: [GPS Logs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: GPS log deleted
+ *       404:
+ *         description: GPS log not found
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/:id', validateGPSLogId, getGPSLogById);
+router.put('/:id', validateGPSLogId, validateCreateGPSLog, updateGPSLog);
+router.delete('/:id', validateGPSLogId, deleteGPSLog);
 
 module.exports = router;
