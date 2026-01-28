@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(git -C \"C:\\\\Users\\\\corew\\\\localpro-super-app\" log --oneline --all)",
+      "Bash(pnpm add:*)"
+    ]
+  }
+}

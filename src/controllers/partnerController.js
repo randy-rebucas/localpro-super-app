@@ -1479,6 +1479,7 @@ const deleteAttachedDocumentForVerification = async (req, res) => {
 const getPartnerAnalytics = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('Fetching analytics for partner ID:', id);  
     const user = req.user;
     // Fetch the partner to check ownership
     const partner = await Partner.findById(id);

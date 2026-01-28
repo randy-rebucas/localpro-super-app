@@ -294,11 +294,6 @@ router.put('/:id/activate', validatePartnerId, activatePartner);
 // Protected routes (authentication required)
 router.use(auth);
 
-router.post('/', validatePartnerCreation, authorize(['admin']), createPartner);
-router.get('/', authorize(['admin']), getPartners);
-router.get('/:id', validatePartnerId, getPartnerById);
-router.put('/:id', validatePartnerId, validatePartnerUpdate, authorize(['admin', 'partner']), updatePartner);
-router.delete('/:id', validatePartnerId, authorize(['admin']), deletePartner);
 
 /**
  * @swagger
@@ -369,5 +364,11 @@ router.delete('/:id/delete-attach-document/:documentId',
 
 // Get analytics dashboard/data for a partner
 router.get('/:id/analytics', validatePartnerId,  authorize(['admin', 'partner']), getPartnerAnalytics);
+
+router.post('/', validatePartnerCreation, authorize(['admin']), createPartner);
+router.get('/', authorize(['admin']), getPartners);
+router.get('/:id', validatePartnerId, getPartnerById);
+router.put('/:id', validatePartnerId, validatePartnerUpdate, authorize(['admin', 'partner']), updatePartner);
+router.delete('/:id', validatePartnerId, authorize(['admin']), deletePartner);
 
 module.exports = router;
