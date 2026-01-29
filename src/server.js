@@ -631,6 +631,14 @@ function startServer() {
   app.use('/api/permissions', permissionsRoutes);
   // Register support routes after app is initialized
   app.use('/api/support', supportRoutes);
+
+
+  // Register modular feature routers
+  // app.use('/api/jobs', jobsFeatureRoutes);
+  // app.use('/api/analytics', analyticsFeatureRoutes);
+  // app.use('/api/users', usersFeatureRoutes);
+  // app.use('/api/marketplace', bookingsFeatureRoutes);
+
   // 404 handler
   app.use('*', (req, res) => {
     res.status(404).json({
@@ -1024,3 +1032,4 @@ if (require.main === module) {
 }
 
 module.exports = app;
+
