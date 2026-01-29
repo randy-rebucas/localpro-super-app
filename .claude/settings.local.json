@@ -3,7 +3,14 @@
     "allow": [
       "Bash(tree:*)",
       "Bash(git -C \"C:\\\\Users\\\\corew\\\\localpro-super-app\" log --oneline --all)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(timeout 15 npm run dev:*)",
+      "Bash(npm install:*)",
+      "Bash(dir:*)",
+      "Bash(wc:*)"
     ]
   }
 }
