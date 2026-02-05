@@ -673,6 +673,496 @@
                 },
                 "description": "Approve PayPal payment for booking"
               }
+            },
+            {
+              "name": "Create Recurring Booking",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const response = pm.response.json();",
+                      "if (response.data && response.data._id) {",
+                      "    pm.environment.set('bookingId', response.data._id);",
+                      "    pm.environment.set('bookingNumber', response.data.bookingNumber);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"providerId\": \"{{providerId}}\",\n  \"bookingDate\": \"2026-02-15T10:00:00.000Z\",\n  \"duration\": 120,\n  \"durationUnit\": \"minutes\",\n  \"timeSlot\": {\n    \"start\": \"10:00\",\n    \"end\": \"12:00\"\n  },\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Manila\",\n    \"state\": \"Metro Manila\",\n    \"zipCode\": \"1000\",\n    \"coordinates\": {\n      \"type\": \"Point\",\n      \"coordinates\": [120.9842, 14.5995]\n    }\n  },\n  \"recurring\": {\n    \"isRecurring\": true,\n    \"type\": \"weekly\",\n    \"daysOfWeek\": [\"monday\", \"thursday\"],\n    \"endDate\": \"2026-06-30\",\n    \"maxOccurrences\": 20\n  },\n  \"specialInstructions\": \"Please bring eco-friendly cleaning products\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings"]
+                },
+                "description": "Create a recurring service booking"
+              }
+            },
+            {
+              "name": "Get Booking by Number",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/number/{{bookingNumber}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "number", "{{bookingNumber}}"]
+                },
+                "description": "Get booking by booking number"
+              }
+            },
+            {
+              "name": "Cancel Booking",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Schedule conflict\",\n  \"reasonCode\": \"client_request\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/cancel",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "cancel"]
+                },
+                "description": "Cancel a booking"
+              }
+            },
+            {
+              "name": "Reschedule Booking",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"newDate\": \"2026-02-20T14:00:00.000Z\",\n  \"reason\": \"Changed my availability\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/reschedule",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "reschedule"]
+                },
+                "description": "Reschedule a booking to a new date"
+              }
+            },
+            {
+              "name": "Get Upcoming Bookings",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/upcoming?limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "upcoming"],
+                  "query": [
+                    {"key": "limit", "value": "10"}
+                  ]
+                },
+                "description": "Get upcoming bookings"
+              }
+            },
+            {
+              "name": "Sign Off Booking",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"signature\": \"base64_encoded_signature_image\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/signoff",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "signoff"]
+                },
+                "description": "Sign off on completed service"
+              }
+            },
+            {
+              "name": "Add Tip",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"amount\": 100,\n  \"method\": \"gcash\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tip",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "tip"]
+                },
+                "description": "Add a tip for the service provider"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GPS Tracking",
+          "item": [
+            {
+              "name": "Get Provider Location",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tracking",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "tracking"]
+                },
+                "description": "Get current provider location for active booking"
+              }
+            },
+            {
+              "name": "Get Provider ETA",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tracking/eta",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "tracking", "eta"]
+                },
+                "description": "Get estimated time of arrival"
+              }
+            },
+            {
+              "name": "Get Tracking Status",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tracking/status",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "tracking", "status"]
+                },
+                "description": "Get tracking status (arrived, in_progress, etc.)"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Disputes",
+          "item": [
+            {
+              "name": "Open Dispute",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Service was not completed as described\",\n  \"reasonCode\": \"quality\",\n  \"description\": \"The provider did not clean the kitchen as agreed in the booking.\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "dispute"]
+                },
+                "description": "Open a dispute for a booking"
+              }
+            },
+            {
+              "name": "Get Dispute Details",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "dispute"]
+                },
+                "description": "Get dispute details for a booking"
+              }
+            },
+            {
+              "name": "Add Dispute Evidence",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {"key": "file", "type": "file", "src": ""},
+                    {"key": "type", "value": "photo", "type": "text"},
+                    {"key": "description", "value": "Photo of uncleaned kitchen area", "type": "text"}
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/evidence",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "evidence"]
+                },
+                "description": "Add evidence to a dispute"
+              }
+            },
+            {
+              "name": "Add Dispute Message",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"message\": \"I have attached photos showing the areas that were not cleaned.\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/messages",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "messages"]
+                },
+                "description": "Add a message to the dispute thread"
+              }
+            },
+            {
+              "name": "Get Dispute Messages",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/messages",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "messages"]
+                },
+                "description": "Get all messages in a dispute"
+              }
+            },
+            {
+              "name": "Get My Disputes",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/disputes?status=&page=1&limit=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "disputes"],
+                  "query": [
+                    {"key": "status", "value": ""},
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"}
+                  ]
+                },
+                "description": "Get all my disputes"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reviews (Enhanced)",
+          "item": [
+            {
+              "name": "Add Detailed Review",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent service! Very professional and thorough.\",\n  \"categories\": {\n    \"quality\": 5,\n    \"timeliness\": 5,\n    \"communication\": 4,\n    \"value\": 5\n  },\n  \"wouldRecommend\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/review",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "review"]
+                },
+                "description": "Add a detailed review with category ratings"
+              }
+            },
+            {
+              "name": "Upload Review Photos",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {"key": "photos", "type": "file", "src": ""}
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/review/photos",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "bookings", "{{bookingId}}", "review", "photos"]
+                },
+                "description": "Upload photos to accompany your review"
+              }
+            },
+            {
+              "name": "Mark Review Helpful",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/reviews/{{reviewId}}/helpful",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "reviews", "{{reviewId}}", "helpful"]
+                },
+                "description": "Mark a review as helpful"
+              }
+            },
+            {
+              "name": "Get Service Reviews",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/reviews?page=1&limit=20&sort=recent",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "{{serviceId}}", "reviews"],
+                  "query": [
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"},
+                    {"key": "sort", "value": "recent"}
+                  ]
+                },
+                "description": "Get reviews for a service"
+              }
+            },
+            {
+              "name": "Get Provider Reviews",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/providers/{{providerId}}/reviews?page=1&limit=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "providers", "{{providerId}}", "reviews"],
+                  "query": [
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"}
+                  ]
+                },
+                "description": "Get reviews for a provider"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Featured & Discovery",
+          "item": [
+            {
+              "name": "Get Featured Services",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/featured?limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "featured"],
+                  "query": [
+                    {"key": "limit", "value": "10"}
+                  ]
+                },
+                "description": "Get featured services"
+              }
+            },
+            {
+              "name": "Get Top Rated Services",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/top-rated?limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "top-rated"],
+                  "query": [
+                    {"key": "limit", "value": "10"}
+                  ]
+                },
+                "description": "Get top rated services"
+              }
+            },
+            {
+              "name": "Search Services",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/search?q=cleaning&category=&minPrice=&maxPrice=&page=1&limit=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "search"],
+                  "query": [
+                    {"key": "q", "value": "cleaning"},
+                    {"key": "category", "value": ""},
+                    {"key": "minPrice", "value": ""},
+                    {"key": "maxPrice", "value": ""},
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"}
+                  ]
+                },
+                "description": "Full-text search for services"
+              }
+            },
+            {
+              "name": "Get Service by Slug",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/slug/{{serviceSlug}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "slug", "{{serviceSlug}}"]
+                },
+                "description": "Get service by URL slug"
+              }
+            },
+            {
+              "name": "Get Services by Category",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/category/{{categoryId}}?page=1&limit=20&sortBy=rating.average&sortOrder=-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "category", "{{categoryId}}"],
+                  "query": [
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"},
+                    {"key": "sortBy", "value": "rating.average"},
+                    {"key": "sortOrder", "value": "-1"}
+                  ]
+                },
+                "description": "Get services by category with sorting"
+              }
+            },
+            {
+              "name": "Calculate Service Price",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"quantity\": 1,\n  \"packageId\": \"{{packageId}}\",\n  \"addOnIds\": [\"{{addOnId}}\"],\n  \"promoCode\": \"CLEAN15\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/calculate-price",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "{{serviceId}}", "calculate-price"]
+                },
+                "description": "Calculate total price with packages, add-ons, and promotions"
+              }
+            },
+            {
+              "name": "Check Service Availability",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/availability?date=2026-02-15&timeSlot=10:00",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["marketplace", "services", "{{serviceId}}", "availability"],
+                  "query": [
+                    {"key": "date", "value": "2026-02-15"},
+                    {"key": "timeSlot", "value": "10:00"}
+                  ]
+                },
+                "description": "Check if service is available on a specific date/time"
+              }
             }
           ]
         }
@@ -2271,6 +2761,798 @@
             },
             "description": "Update user settings"
           }
+        }
+      ]
+    },
+    {
+      "name": "Account Security",
+      "description": "Account security features including 2FA, sessions, and password management",
+      "item": [
+        {
+          "name": "Two-Factor Authentication",
+          "item": [
+            {
+              "name": "Setup 2FA",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"method\": \"authenticator\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/2fa/setup",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "2fa", "setup"]
+                },
+                "description": "Setup two-factor authentication. Returns QR code for authenticator apps."
+              }
+            },
+            {
+              "name": "Verify 2FA",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"123456\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/2fa/verify",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "2fa", "verify"]
+                },
+                "description": "Verify and activate 2FA with code from authenticator app"
+              }
+            },
+            {
+              "name": "Get 2FA Status",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/2fa/status",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "2fa", "status"]
+                },
+                "description": "Get current 2FA status"
+              }
+            },
+            {
+              "name": "Regenerate Backup Codes",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"123456\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/2fa/backup-codes",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "2fa", "backup-codes"]
+                },
+                "description": "Generate new backup codes (requires current 2FA code)"
+              }
+            },
+            {
+              "name": "Disable 2FA",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"yourPassword\",\n  \"code\": \"123456\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/2fa",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "2fa"]
+                },
+                "description": "Disable two-factor authentication"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sessions",
+          "item": [
+            {
+              "name": "Get Active Sessions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/sessions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "sessions"]
+                },
+                "description": "Get all active login sessions"
+              }
+            },
+            {
+              "name": "Revoke Session",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/sessions/{{sessionId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "sessions", "{{sessionId}}"]
+                },
+                "description": "Revoke a specific session"
+              }
+            },
+            {
+              "name": "Revoke All Sessions",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"exceptCurrent\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/sessions/revoke-all",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "sessions", "revoke-all"]
+                },
+                "description": "Revoke all sessions except current"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Password",
+          "item": [
+            {
+              "name": "Request Password Reset",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/password/reset-request",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "password", "reset-request"]
+                },
+                "description": "Request a password reset link"
+              }
+            },
+            {
+              "name": "Validate Reset Token",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/password/validate-token/{{resetToken}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "password", "validate-token", "{{resetToken}}"]
+                },
+                "description": "Validate a password reset token"
+              }
+            },
+            {
+              "name": "Reset Password",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"NewSecurePassword123!\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/password/reset",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "password", "reset"]
+                },
+                "description": "Reset password with token"
+              }
+            },
+            {
+              "name": "Change Password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"currentPassword\": \"CurrentPassword123!\",\n  \"newPassword\": \"NewSecurePassword123!\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/password/change",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "password", "change"]
+                },
+                "description": "Change password (requires current password)"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trusted Devices",
+          "item": [
+            {
+              "name": "Get Trusted Devices",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/trusted-devices",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "trusted-devices"]
+                },
+                "description": "Get list of trusted devices"
+              }
+            },
+            {
+              "name": "Add Trusted Device",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Device-Id",
+                    "value": "device-unique-id"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"deviceName\": \"My iPhone\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/trusted-devices",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "trusted-devices"]
+                },
+                "description": "Add current device to trusted devices"
+              }
+            },
+            {
+              "name": "Remove Trusted Device",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/trusted-devices/{{deviceId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "trusted-devices", "{{deviceId}}"]
+                },
+                "description": "Remove a device from trusted devices"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Security Overview",
+          "item": [
+            {
+              "name": "Get Security Overview",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/security",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "security"]
+                },
+                "description": "Get complete security overview"
+              }
+            },
+            {
+              "name": "Get Login History",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/login-history?limit=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "login-history"],
+                  "query": [
+                    {"key": "limit", "value": "20"}
+                  ]
+                },
+                "description": "Get login history"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Connected Accounts",
+      "description": "OAuth providers and external integrations",
+      "item": [
+        {
+          "name": "OAuth Providers",
+          "item": [
+            {
+              "name": "Get Connected Providers",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/oauth/providers",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "oauth", "providers"]
+                },
+                "description": "Get all connected OAuth providers"
+              }
+            },
+            {
+              "name": "Connect Google",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"providerId\": \"google-user-id\",\n  \"email\": \"user@gmail.com\",\n  \"displayName\": \"John Doe\",\n  \"accessToken\": \"google-access-token\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/oauth/google/connect",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "oauth", "google", "connect"]
+                },
+                "description": "Connect Google account"
+              }
+            },
+            {
+              "name": "Connect Facebook",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"providerId\": \"facebook-user-id\",\n  \"email\": \"user@email.com\",\n  \"displayName\": \"John Doe\",\n  \"accessToken\": \"facebook-access-token\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/oauth/facebook/connect",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "oauth", "facebook", "connect"]
+                },
+                "description": "Connect Facebook account"
+              }
+            },
+            {
+              "name": "Disconnect Provider",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/oauth/google/disconnect",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "oauth", "google", "disconnect"]
+                },
+                "description": "Disconnect an OAuth provider"
+              }
+            },
+            {
+              "name": "Login with OAuth",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"provider\": \"google\",\n  \"providerId\": \"google-user-id\",\n  \"email\": \"user@gmail.com\",\n  \"displayName\": \"John Doe\",\n  \"accessToken\": \"google-access-token\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/oauth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "oauth", "login"]
+                },
+                "description": "Login or register with OAuth"
+              }
+            }
+          ]
+        },
+        {
+          "name": "External IDs",
+          "item": [
+            {
+              "name": "Get External IDs",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/external-ids",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "external-ids"]
+                },
+                "description": "Get all external system IDs"
+              }
+            },
+            {
+              "name": "Link External ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"system\": \"stripe\",\n  \"externalId\": \"cus_123456789\",\n  \"metadata\": {\n    \"customerId\": \"cus_123456789\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/external-ids",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "external-ids"]
+                },
+                "description": "Link an external system ID"
+              }
+            },
+            {
+              "name": "Unlink External ID",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/external-ids/stripe",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "external-ids", "stripe"]
+                },
+                "description": "Unlink an external system ID"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Privacy & Compliance",
+      "description": "Privacy settings, GDPR compliance, and data management",
+      "item": [
+        {
+          "name": "Privacy Settings",
+          "item": [
+            {
+              "name": "Get Privacy Settings",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/privacy",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "privacy"]
+                },
+                "description": "Get complete privacy settings overview"
+              }
+            },
+            {
+              "name": "Get Consent Status",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/privacy/consent",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "privacy", "consent"]
+                },
+                "description": "Get current consent status"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consent Management",
+          "item": [
+            {
+              "name": "Give GDPR Consent",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"version\": \"1.0\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/privacy/consent/gdpr",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "privacy", "consent", "gdpr"]
+                },
+                "description": "Give GDPR consent"
+              }
+            },
+            {
+              "name": "Withdraw GDPR Consent",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/privacy/consent/gdpr",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "privacy", "consent", "gdpr"]
+                },
+                "description": "Withdraw GDPR consent"
+              }
+            },
+            {
+              "name": "Update Marketing Consent",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": true,\n  \"sms\": false,\n  \"push\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/privacy/consent/marketing",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "privacy", "consent", "marketing"]
+                },
+                "description": "Update marketing communication preferences"
+              }
+            },
+            {
+              "name": "Set Do Not Sell (CCPA)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"doNotSell\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/privacy/do-not-sell",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "privacy", "do-not-sell"]
+                },
+                "description": "Set Do Not Sell preference (CCPA compliance)"
+              }
+            },
+            {
+              "name": "Set Do Not Track",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"doNotTrack\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/privacy/do-not-track",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "privacy", "do-not-track"]
+                },
+                "description": "Set Do Not Track preference"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Account Deletion",
+          "item": [
+            {
+              "name": "Get Deletion Status",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/deletion",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "deletion"]
+                },
+                "description": "Get account deletion request status"
+              }
+            },
+            {
+              "name": "Request Account Deletion",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"No longer using the service\",\n  \"password\": \"yourPassword\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/deletion",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "deletion"]
+                },
+                "description": "Request account deletion (30-day grace period)"
+              }
+            },
+            {
+              "name": "Cancel Account Deletion",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/deletion",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "deletion"]
+                },
+                "description": "Cancel account deletion request"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Data Export",
+          "item": [
+            {
+              "name": "Export User Data",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/data/export",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "data", "export"]
+                },
+                "description": "Export all user data (GDPR right of access)"
+              }
+            },
+            {
+              "name": "Download User Data",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/data/download",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "data", "download"]
+                },
+                "description": "Download user data as JSON file"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agreements",
+          "item": [
+            {
+              "name": "Get Accepted Agreements",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/agreements",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "agreements"]
+                },
+                "description": "Get all accepted agreements"
+              }
+            },
+            {
+              "name": "Accept Agreement",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"terms_of_service\",\n  \"version\": \"2.0\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/account/agreements",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "agreements"]
+                },
+                "description": "Accept a terms/policy agreement"
+              }
+            },
+            {
+              "name": "Check Agreement",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/account/agreements/check?type=terms_of_service&version=2.0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["account", "agreements", "check"],
+                  "query": [
+                    {"key": "type", "value": "terms_of_service"},
+                    {"key": "version", "value": "2.0"}
+                  ]
+                },
+                "description": "Check if a specific agreement version is accepted"
+              }
+            }
+          ]
         }
       ]
     }

@@ -1807,7 +1807,7 @@ const loginWithEmail = async (req, res) => {
   const clientInfo = getClientInfo(req);
 
   try {
-    const { email, password } = req.body;
+    const { email, password, hasOTP = false } = req.body;
 
     // Input validation
     if (!email || !password) {
@@ -1884,73 +1884,114 @@ const loginWithEmail = async (req, res) => {
       });
     }
 
-    // Rate limiting check
-    const lastOTPSent = user.lastEmailOTPSent;
-    if (lastOTPSent) {
-      const now = new Date();
-      const timeDiff = now - lastOTPSent;
+    if (hasOTP) {
+      // Rate limiting check
+      const lastOTPSent = user.lastEmailOTPSent;
+      if (lastOTPSent) {
+        const now = new Date();
+        const timeDiff = now - lastOTPSent;
 
-      // Allow only one OTP per minute
-      if (timeDiff < 60000) {
-        logger.warn('Login with email failed: Rate limit exceeded', {
+        // Allow only one OTP per minute
+        if (timeDiff < 60000) {
+          logger.warn('Login with email failed: Rate limit exceeded', {
+            userId: user._id,
+            email: email.substring(0, 3) + '***@' + email.split('@')[1],
+            clientInfo,
+            duration: Date.now() - startTime
+          });
+          return res.status(429).json({
+            success: false,
+            message: 'Please wait before requesting another verification code',
+            code: 'RATE_LIMIT_EXCEEDED',
+            retryAfter: Math.ceil((60000 - timeDiff) / 1000)
+          });
+        }
+      }
+
+      // Generate OTP
+      const otpCode = generateOTP();
+
+      // Update user with OTP
+      user.emailVerificationCode = otpCode;
+      user.lastEmailOTPSent = new Date();
+      user._skipRelatedDocumentsCreation = true;
+      await user.save({ validateBeforeSave: false });
+      user._skipRelatedDocumentsCreation = false;
+
+      // Send OTP email
+      const emailResult = await EmailService.sendEmailOTP(
+        email.toLowerCase().trim(),
+        otpCode,
+        user.firstName || 'User'
+      );
+
+      if (!emailResult.success) {
+        logger.error('Failed to send email OTP', {
           userId: user._id,
           email: email.substring(0, 3) + '***@' + email.split('@')[1],
+          error: emailResult.error,
           clientInfo,
           duration: Date.now() - startTime
         });
-        return res.status(429).json({
+        return res.status(500).json({
           success: false,
-          message: 'Please wait before requesting another verification code',
-          code: 'RATE_LIMIT_EXCEEDED',
-          retryAfter: Math.ceil((60000 - timeDiff) / 1000)
+          message: 'Failed to send verification email. Please try again.',
+          code: 'EMAIL_SEND_FAILED'
         });
       }
-    }
 
-    // Generate OTP
-    const otpCode = generateOTP();
-
-    // Update user with OTP
-    user.emailVerificationCode = otpCode;
-    user.lastEmailOTPSent = new Date();
-    user._skipRelatedDocumentsCreation = true;
-    await user.save({ validateBeforeSave: false });
-    user._skipRelatedDocumentsCreation = false;
-
-    // Send OTP email
-    const emailResult = await EmailService.sendEmailOTP(
-      email.toLowerCase().trim(),
-      otpCode,
-      user.firstName || 'User'
-    );
-
-    if (!emailResult.success) {
-      logger.error('Failed to send email OTP', {
+      logger.info('Email OTP sent for login', {
         userId: user._id,
         email: email.substring(0, 3) + '***@' + email.split('@')[1],
-        error: emailResult.error,
         clientInfo,
         duration: Date.now() - startTime
       });
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to send verification email. Please try again.',
-        code: 'EMAIL_SEND_FAILED'
+
+      res.status(200).json({
+        success: true,
+        message: 'Verification code sent to your email',
+        email: email.substring(0, 3) + '***@' + email.split('@')[1] // Partially masked email
+      });
+    } else {
+      // Generate tokens
+      const token = generateToken(user);
+      const refreshToken = generateRefreshToken();
+      await saveRefreshToken(user, refreshToken);
+
+      const isNewUser = !user.firstName || !user.lastName;
+      logger.info('User logged in successfully', {
+        userId: user._id,
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        isNewUser,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      
+      // If no OTP required, proceed with login (generate tokens, etc.)
+      // This part can be implemented similarly to the OTP verification flow, but without OTP checks
+      return res.status(200).json({
+        success: true,
+        message: isNewUser ? 'Registration successful' : 'Login successful',
+        token,
+        refreshToken,
+        user: {
+          id: user._id,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          roles: user.roles || ['client'],
+          isVerified: user.isVerified,
+          subscription: user.localProPlusSubscription || null,
+          trustScore: (await user.ensureTrust()).trustScore,
+          profile: {
+            avatar: user.profile?.avatar,
+            bio: user.profile?.bio
+          }
+        },
+        isNewUser
       });
     }
-
-    logger.info('Email OTP sent for login', {
-      userId: user._id,
-      email: email.substring(0, 3) + '***@' + email.split('@')[1],
-      clientInfo,
-      duration: Date.now() - startTime
-    });
-
-    res.status(200).json({
-      success: true,
-      message: 'Verification code sent to your email',
-      email: email.substring(0, 3) + '***@' + email.split('@')[1] // Partially masked email
-    });
   } catch (error) {
     logger.error('Login with email error', {
       error: error.message,

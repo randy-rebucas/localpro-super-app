@@ -270,21 +270,40 @@ const getProviders = async (req, res) => {
       providers = await Provider.find(query)
         .populate({
           path: 'userId',
-          select: '-verificationCode -password',
+          model: 'User',
+          select: 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges createdAt',
           populate: userIdPopulateOptions
         })
         .populate({
           path: 'professionalInfo',
+          model: 'ProviderProfessionalInfo',
           populate: {
             path: 'specialties.skills',
+            model: 'ProviderSkill',
             select: 'name description category metadata'
           }
         })
-        .populate('businessInfo')
-        .populate('verification')
-        .populate('preferences')
-        .populate('performance')
-        .populate('financialInfo')
+        .populate({
+          path: 'businessInfo',
+          model: 'ProviderBusinessInfo'
+        })
+        .populate({
+          path: 'verification',
+          model: 'ProviderVerification'
+        })
+        .populate({
+          path: 'preferences',
+          model: 'ProviderPreferences'
+        })
+        .populate({
+          path: 'performance',
+          model: 'ProviderPerformance'
+        })
+        .populate({
+          path: 'financialInfo',
+          model: 'ProviderFinancialInfo',
+          select: '-bankAccount.accountNumber -bankAccount.routingNumber -taxInfo.taxId'
+        })
         .sort(sort)
         .skip(skip)
         .limit(parseInt(limit))
@@ -304,21 +323,40 @@ const getProviders = async (req, res) => {
         providers = await Provider.find(query)
           .populate({
             path: 'userId',
-            select: '-verificationCode -password',
+            model: 'User',
+            select: 'firstName lastName email phone phoneNumber profileImage profile roles isActive verification badges createdAt',
             populate: userIdPopulateWithoutAgency
           })
           .populate({
             path: 'professionalInfo',
+            model: 'ProviderProfessionalInfo',
             populate: {
               path: 'specialties.skills',
+              model: 'ProviderSkill',
               select: 'name description category metadata'
             }
           })
-          .populate('businessInfo')
-          .populate('verification')
-          .populate('preferences')
-          .populate('performance')
-          .populate('financialInfo')
+          .populate({
+            path: 'businessInfo',
+            model: 'ProviderBusinessInfo'
+          })
+          .populate({
+            path: 'verification',
+            model: 'ProviderVerification'
+          })
+          .populate({
+            path: 'preferences',
+            model: 'ProviderPreferences'
+          })
+          .populate({
+            path: 'performance',
+            model: 'ProviderPerformance'
+          })
+          .populate({
+            path: 'financialInfo',
+            model: 'ProviderFinancialInfo',
+            select: '-bankAccount.accountNumber -bankAccount.routingNumber -taxInfo.taxId'
+          })
           .sort(sort)
           .skip(skip)
           .limit(parseInt(limit))

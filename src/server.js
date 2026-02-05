@@ -38,6 +38,7 @@ const auditLogsRoutes = require('./routes/auditLogs');
 const providersRoutes = require('./routes/providers');
 const logsRoutes = require('./routes/logs');
 const userManagementRoutes = require('./routes/userManagement');
+const walletRoutes = require('./routes/wallet');
 const searchRoutes = require('./routes/search');
 const announcementsRoutes = require('./routes/announcements');
 const activitiesRoutes = require('./routes/activities');
@@ -77,6 +78,7 @@ const { generalLimiter, marketplaceLimiter } = require('./middleware/rateLimiter
 const liveChatWebSocketService = require('./services/liveChatWebSocketService');
 const AllowedOrigin = require('./models/AllowedOrigin');
 const supportRoutes = require('./routes/support');
+const accountRoutes = require('./routes/account');
 const app = express();
 
 // Trust proxy - necessary when behind reverse proxy/load balancer (e.g., Render, nginx)
@@ -544,6 +546,7 @@ function startServer() {
 
   // API Routes
   app.use('/api/auth', authRoutes);
+  app.use('/api/account', accountRoutes);
   app.use('/api/api-keys', apiKeysRoutes);
   app.use('/api/oauth', oauthRoutes);
   app.use('/api/marketplace', marketplaceRoutes);
@@ -570,6 +573,7 @@ function startServer() {
   app.use('/api/providers', providersRoutes);
   app.use('/api/logs', logsRoutes);
   app.use('/api/users', userManagementRoutes);
+  app.use('/api/wallet', walletRoutes);
   app.use('/api/search', searchRoutes);
   app.use('/api/announcements', announcementsRoutes);
   app.use('/api/activities', activitiesRoutes);

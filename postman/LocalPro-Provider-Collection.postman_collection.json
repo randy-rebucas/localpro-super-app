@@ -1686,6 +1686,746 @@
           }
         }
       ]
+    },
+    {
+      "name": "Service Management (Enhanced)",
+      "description": "Enhanced service management with SEO, packages, promotions, and approval workflow",
+      "item": [
+        {
+          "name": "Create Service (Full)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.data && response.data._id) {",
+                  "    pm.environment.set('serviceId', response.data._id);",
+                  "    pm.environment.set('serviceSlug', response.data.slug);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional House Cleaning\",\n  \"description\": \"Comprehensive house cleaning service including all rooms\",\n  \"shortDescription\": \"Expert house cleaning by certified professionals\",\n  \"category\": \"{{categoryId}}\",\n  \"subcategory\": \"house_cleaning\",\n  \"seo\": {\n    \"metaTitle\": \"Professional House Cleaning Services | LocalPro\",\n    \"metaDescription\": \"Get your home sparkling clean with our professional house cleaning service.\",\n    \"keywords\": [\"house cleaning\", \"home cleaning\", \"professional cleaner\"]\n  },\n  \"tags\": [\"cleaning\", \"house\", \"professional\"],\n  \"pricing\": {\n    \"type\": \"fixed\",\n    \"basePrice\": 1500,\n    \"currency\": \"PHP\",\n    \"depositRequired\": true,\n    \"depositPercentage\": 20\n  },\n  \"serviceType\": \"one_time\",\n  \"estimatedDuration\": {\n    \"min\": 120,\n    \"max\": 180,\n    \"unit\": \"minutes\"\n  },\n  \"availability\": {\n    \"schedule\": [\n      {\"day\": \"monday\", \"startTime\": \"08:00\", \"endTime\": \"18:00\", \"isAvailable\": true, \"slots\": 3},\n      {\"day\": \"tuesday\", \"startTime\": \"08:00\", \"endTime\": \"18:00\", \"isAvailable\": true, \"slots\": 3},\n      {\"day\": \"wednesday\", \"startTime\": \"08:00\", \"endTime\": \"18:00\", \"isAvailable\": true, \"slots\": 3},\n      {\"day\": \"thursday\", \"startTime\": \"08:00\", \"endTime\": \"18:00\", \"isAvailable\": true, \"slots\": 3},\n      {\"day\": \"friday\", \"startTime\": \"08:00\", \"endTime\": \"18:00\", \"isAvailable\": true, \"slots\": 3}\n    ],\n    \"leadTime\": 24,\n    \"maxAdvanceBooking\": 30,\n    \"instantBooking\": false\n  },\n  \"capacity\": {\n    \"maxDailyBookings\": 5,\n    \"maxConcurrentBookings\": 1\n  },\n  \"serviceArea\": {\n    \"coordinates\": {\n      \"type\": \"Point\",\n      \"coordinates\": [120.9842, 14.5995]\n    },\n    \"radius\": 25\n  },\n  \"features\": [\"Deep cleaning\", \"Eco-friendly products\", \"Satisfaction guaranteed\"],\n  \"inclusions\": [\"All rooms\", \"Bathrooms\", \"Kitchen\"],\n  \"exclusions\": [\"Laundry\", \"Ironing\"],\n  \"equipmentProvided\": true,\n  \"materialsIncluded\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services"]
+            }
+          }
+        },
+        {
+          "name": "Get Service by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/slug/{{serviceSlug}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "slug", "{{serviceSlug}}"]
+            }
+          }
+        },
+        {
+          "name": "Submit Service for Review",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "submit"]
+            }
+          }
+        },
+        {
+          "name": "Add Service Package",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Basic Package\",\n  \"description\": \"Standard cleaning for small apartments\",\n  \"price\": 1200,\n  \"compareAtPrice\": 1500,\n  \"features\": [\"Living room\", \"1 Bedroom\", \"1 Bathroom\"],\n  \"duration\": 90,\n  \"isPopular\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/packages",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "packages"]
+            }
+          }
+        },
+        {
+          "name": "Add Service Add-on",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Oven Cleaning\",\n  \"description\": \"Deep clean of oven interior and exterior\",\n  \"price\": 300,\n  \"category\": \"kitchen\",\n  \"maxQuantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/addons",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "addons"]
+            }
+          }
+        },
+        {
+          "name": "Update Service SEO",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seo\": {\n    \"metaTitle\": \"Best House Cleaning in Manila | LocalPro\",\n    \"metaDescription\": \"Top-rated house cleaning services in Metro Manila. Book now!\",\n    \"keywords\": [\"house cleaning manila\", \"best cleaner\", \"home cleaning service\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/seo",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "seo"]
+            }
+          }
+        },
+        {
+          "name": "Set Service Promotion",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"active\": true,\n  \"discountType\": \"percentage\",\n  \"discountValue\": 15,\n  \"promoCode\": \"CLEAN15\",\n  \"startDate\": \"2026-02-01\",\n  \"endDate\": \"2026-02-28\",\n  \"maxUses\": 50,\n  \"minOrderValue\": 1000,\n  \"applicableTo\": \"new_customers\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/promotions",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "promotions"]
+            }
+          }
+        },
+        {
+          "name": "Update Service Availability",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"availability\": {\n    \"schedule\": [\n      {\"day\": \"monday\", \"startTime\": \"07:00\", \"endTime\": \"19:00\", \"isAvailable\": true, \"slots\": 4},\n      {\"day\": \"tuesday\", \"startTime\": \"07:00\", \"endTime\": \"19:00\", \"isAvailable\": true, \"slots\": 4},\n      {\"day\": \"saturday\", \"startTime\": \"09:00\", \"endTime\": \"15:00\", \"isAvailable\": true, \"slots\": 2}\n    ],\n    \"leadTime\": 12,\n    \"maxAdvanceBooking\": 60,\n    \"instantBooking\": true\n  },\n  \"capacity\": {\n    \"maxDailyBookings\": 8,\n    \"maxConcurrentBookings\": 2\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/availability",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "availability"]
+            }
+          }
+        },
+        {
+          "name": "Archive Service",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/archive",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "archive"]
+            }
+          }
+        },
+        {
+          "name": "Link External ID to Service",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"system\": \"stripe\",\n  \"externalId\": \"prod_ABC123\",\n  \"metadata\": {\n    \"priceId\": \"price_XYZ789\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/external-ids",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "external-ids"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Service Analytics",
+      "description": "Service performance analytics and metrics",
+      "item": [
+        {
+          "name": "Get Service Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "analytics"]
+            }
+          }
+        },
+        {
+          "name": "Get Service Analytics (Date Range)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/analytics?startDate=2026-01-01&endDate=2026-02-28",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "analytics"],
+              "query": [
+                {"key": "startDate", "value": "2026-01-01"},
+                {"key": "endDate", "value": "2026-02-28"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Services Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/my-services/analytics?startDate=2026-01-01&endDate=2026-02-28",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "my-services", "analytics"],
+              "query": [
+                {"key": "startDate", "value": "2026-01-01"},
+                {"key": "endDate", "value": "2026-02-28"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Conversion Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/analytics/conversions",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "analytics", "conversions"]
+            }
+          }
+        },
+        {
+          "name": "Get Revenue Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/analytics/revenue?period=monthly",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "analytics", "revenue"],
+              "query": [
+                {"key": "period", "value": "monthly"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Booking Management (Enhanced)",
+      "description": "Enhanced booking management with GPS tracking, disputes, and reviews",
+      "item": [
+        {
+          "name": "Get Booking by Number",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/number/{{bookingNumber}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "number", "{{bookingNumber}}"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Booking",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Booking confirmed. See you soon!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "confirm"]
+            }
+          }
+        },
+        {
+          "name": "Start Service",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enableTracking\": true,\n  \"coordinates\": [120.9842, 14.5995]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "start"]
+            }
+          }
+        },
+        {
+          "name": "Complete Booking",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Service completed successfully. All areas cleaned.\",\n  \"checklist\": [\n    {\"item\": \"Living room\", \"completed\": true},\n    {\"item\": \"Kitchen\", \"completed\": true},\n    {\"item\": \"Bathrooms\", \"completed\": true}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "complete"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Emergency situation arose\",\n  \"reasonCode\": \"emergency\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Reschedule Booking",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newDate\": \"2026-02-15T10:00:00.000Z\",\n  \"reason\": \"Schedule conflict with another appointment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/reschedule",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "reschedule"]
+            }
+          }
+        },
+        {
+          "name": "Get Upcoming Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/upcoming?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "upcoming"],
+              "query": [
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Bookings by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings?startDate=2026-02-01&endDate=2026-02-28&status=confirmed",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings"],
+              "query": [
+                {"key": "startDate", "value": "2026-02-01"},
+                {"key": "endDate", "value": "2026-02-28"},
+                {"key": "status", "value": "confirmed"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Before Photos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "photos", "type": "file", "src": ""},
+                {"key": "type", "value": "before", "type": "text"}
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/photos",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "photos"]
+            }
+          }
+        },
+        {
+          "name": "Upload After Photos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "photos", "type": "file", "src": ""},
+                {"key": "type", "value": "after", "type": "text"}
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/photos",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "photos"]
+            }
+          }
+        },
+        {
+          "name": "Get Booking Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/stats?startDate=2026-01-01&endDate=2026-02-28",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "stats"],
+              "query": [
+                {"key": "startDate", "value": "2026-01-01"},
+                {"key": "endDate", "value": "2026-02-28"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "GPS Tracking",
+      "description": "Real-time GPS tracking for bookings",
+      "item": [
+        {
+          "name": "Update Provider Location",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coordinates\": [120.9842, 14.5995],\n  \"accuracy\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tracking/location",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "tracking", "location"]
+            }
+          }
+        },
+        {
+          "name": "Mark Arrived",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tracking/arrived",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "tracking", "arrived"]
+            }
+          }
+        },
+        {
+          "name": "Get Tracking History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tracking/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "tracking", "history"]
+            }
+          }
+        },
+        {
+          "name": "Enable/Disable Tracking",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tracking",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "tracking"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Booking Disputes",
+      "description": "Manage booking disputes and resolutions",
+      "item": [
+        {
+          "name": "Get My Disputes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/disputes?status=open&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "disputes"],
+              "query": [
+                {"key": "status", "value": "open"},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Dispute Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "dispute"]
+            }
+          }
+        },
+        {
+          "name": "Add Dispute Evidence",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "file", "type": "file", "src": ""},
+                {"key": "type", "value": "photo", "type": "text"},
+                {"key": "description", "value": "Photo evidence of completed work", "type": "text"}
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/evidence",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "evidence"]
+            }
+          }
+        },
+        {
+          "name": "Add Dispute Message",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"I have attached photos showing the work was completed as agreed.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "messages"]
+            }
+          }
+        },
+        {
+          "name": "Get Dispute Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "messages"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews Management",
+      "description": "Manage reviews and responses",
+      "item": [
+        {
+          "name": "Get My Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/reviews?page=1&limit=20&rating=",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "reviews"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "rating", "value": ""}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Service Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/reviews?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "reviews"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Respond to Review",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Thank you for your feedback! We're glad you were satisfied with our service.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/review/response",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "review", "response"]
+            }
+          }
+        },
+        {
+          "name": "Add Provider Review (Review Client)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Great client, very accommodating and easy to work with.\",\n  \"wouldWorkAgain\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/review/provider",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "review", "provider"]
+            }
+          }
+        },
+        {
+          "name": "Get Review Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/reviews/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "reviews", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Report Review",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"inappropriate_content\",\n  \"description\": \"Review contains false information\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/review/report",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "review", "report"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recurring Bookings",
+      "description": "Manage recurring booking schedules",
+      "item": [
+        {
+          "name": "Get Recurring Series",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/recurring",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "recurring"]
+            }
+          }
+        },
+        {
+          "name": "Get All Recurring Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/recurring?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "recurring"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Recurring Series",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancelFutureOnly\": true,\n  \"reason\": \"Client requested to stop recurring service\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/recurring/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "recurring", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Update Recurring Schedule",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"weekly\",\n  \"daysOfWeek\": [\"monday\", \"thursday\"],\n  \"endDate\": \"2026-06-30\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/recurring",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "recurring"]
+            }
+          }
+        }
+      ]
     }
   ]
 }
