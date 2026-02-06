@@ -1,0 +1,1711 @@
+{
+  "info": {
+    "_postman_id": "user-collection-2024",
+    "name": "LocalPro - User API",
+    "description": "Complete User API collection for LocalPro Super App.\n\nIncludes:\n- Authentication (Email, Phone, MPIN)\n- OAuth/Social Login\n- Two-Factor Authentication (2FA)\n- Session Management\n- Password Management\n- Trusted Devices\n- Privacy & GDPR Compliance\n- User Management (Admin)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "deviceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "resetToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Authentication",
+      "description": "Basic authentication endpoints for registration, login, and profile management",
+      "item": [
+        {
+          "name": "Register with Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user with email and password. An OTP will be sent to the email for verification."
+          }
+        },
+        {
+          "name": "Login with Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.tokens) {",
+                  "        pm.collectionVariables.set('accessToken', jsonData.data.tokens.accessToken);",
+                  "        pm.collectionVariables.set('refreshToken', jsonData.data.tokens.refreshToken);",
+                  "    }",
+                  "    if (jsonData.data && jsonData.data.user) {",
+                  "        pm.collectionVariables.set('userId', jsonData.data.user._id || jsonData.data.user.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password. Returns access and refresh tokens."
+          }
+        },
+        {
+          "name": "Send Verification Code (Phone)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/send-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "send-code"]
+            },
+            "description": "Send SMS verification code to phone number"
+          }
+        },
+        {
+          "name": "Verify Code (Phone)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-code"]
+            },
+            "description": "Verify the SMS code sent to phone number"
+          }
+        },
+        {
+          "name": "Verify Email OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-email-otp"]
+            },
+            "description": "Verify the OTP sent to email"
+          }
+        },
+        {
+          "name": "Check Email Availability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/check-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "check-email"]
+            },
+            "description": "Check if email is already registered"
+          }
+        },
+        {
+          "name": "Set Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"password\": \"NewPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/set-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "set-password"]
+            },
+            "description": "Set password for phone-registered user"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data) {",
+                  "        pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+                  "        if (jsonData.data.refreshToken) {",
+                  "            pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);",
+                  "        }",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Refresh access token using refresh token"
+          }
+        },
+        {
+          "name": "Get Current User (Me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Get current authenticated user's profile"
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Get current user profile (alias for /me)"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"profile\": {\n    \"bio\": \"Software developer with 5 years of experience\",\n    \"location\": {\n      \"city\": \"New York\",\n      \"country\": \"USA\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Update user profile information"
+          }
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "avatar"]
+            },
+            "description": "Upload user avatar image (max 2MB, JPEG/PNG)"
+          }
+        },
+        {
+          "name": "Upload Portfolio Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/upload-portfolio",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "upload-portfolio"]
+            },
+            "description": "Upload portfolio images (max 5 images, 5MB each)"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout current user and invalidate tokens"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. MPIN Authentication",
+      "description": "Mobile PIN authentication endpoints",
+      "item": [
+        {
+          "name": "Set MPIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mpin\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/mpin/set",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "mpin", "set"]
+            },
+            "description": "Set MPIN for the user (4-6 digits)"
+          }
+        },
+        {
+          "name": "Verify MPIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mpin\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/mpin/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "mpin", "verify"]
+            },
+            "description": "Verify MPIN (authenticated)"
+          }
+        },
+        {
+          "name": "Login with MPIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.tokens) {",
+                  "        pm.collectionVariables.set('accessToken', jsonData.data.tokens.accessToken);",
+                  "        pm.collectionVariables.set('refreshToken', jsonData.data.tokens.refreshToken);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"mpin\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/mpin/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "mpin", "login"]
+            },
+            "description": "Login with phone number and MPIN"
+          }
+        },
+        {
+          "name": "Get MPIN Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/mpin/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "mpin", "status"]
+            },
+            "description": "Get MPIN status (enabled, locked, attempts)"
+          }
+        },
+        {
+          "name": "Disable MPIN",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/mpin",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "mpin"]
+            },
+            "description": "Disable MPIN for the user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Two-Factor Authentication (2FA)",
+      "description": "Two-factor authentication setup and management",
+      "item": [
+        {
+          "name": "Setup 2FA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"authenticator\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/2fa/setup",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "2fa", "setup"]
+            },
+            "description": "Setup 2FA with method: 'sms', 'email', or 'authenticator'"
+          }
+        },
+        {
+          "name": "Verify and Activate 2FA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/2fa/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "2fa", "verify"]
+            },
+            "description": "Verify the 2FA code and activate 2FA"
+          }
+        },
+        {
+          "name": "Get 2FA Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/2fa/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "2fa", "status"]
+            },
+            "description": "Get current 2FA status and settings"
+          }
+        },
+        {
+          "name": "Regenerate Backup Codes",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/2fa/backup-codes",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "2fa", "backup-codes"]
+            },
+            "description": "Regenerate 2FA backup codes (invalidates old codes)"
+          }
+        },
+        {
+          "name": "Disable 2FA",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/2fa",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "2fa"]
+            },
+            "description": "Disable 2FA for the account"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Session Management",
+      "description": "Manage active sessions and devices",
+      "item": [
+        {
+          "name": "Get Active Sessions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.length > 0) {",
+                  "        pm.collectionVariables.set('sessionId', jsonData.data[0].sessionId);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "sessions"]
+            },
+            "description": "Get list of all active sessions"
+          }
+        },
+        {
+          "name": "Revoke Session",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/sessions/{{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "sessions", "{{sessionId}}"]
+            },
+            "description": "Revoke a specific session by ID"
+          }
+        },
+        {
+          "name": "Revoke All Sessions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exceptCurrent\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/sessions/revoke-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "sessions", "revoke-all"]
+            },
+            "description": "Revoke all sessions (optionally except current)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Password Management",
+      "description": "Password reset and change endpoints",
+      "item": [
+        {
+          "name": "Request Password Reset",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/password/reset-request",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "password", "reset-request"]
+            },
+            "description": "Request password reset link via email or phone"
+          }
+        },
+        {
+          "name": "Validate Reset Token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/password/validate-token/{{resetToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "password", "validate-token", "{{resetToken}}"]
+            },
+            "description": "Validate password reset token before use"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"NewPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/password/reset",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "password", "reset"]
+            },
+            "description": "Reset password using the token"
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"OldPassword123!\",\n  \"newPassword\": \"NewPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/password/change",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "password", "change"]
+            },
+            "description": "Change password (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Trusted Devices",
+      "description": "Manage trusted devices for enhanced security",
+      "item": [
+        {
+          "name": "Get Trusted Devices",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.length > 0) {",
+                  "        pm.collectionVariables.set('deviceId', jsonData.data[0].deviceId);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/trusted-devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "trusted-devices"]
+            },
+            "description": "Get list of trusted devices"
+          }
+        },
+        {
+          "name": "Add Trusted Device",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"device-unique-id-123\",\n  \"deviceFingerprint\": \"fingerprint-hash\",\n  \"deviceName\": \"My iPhone 15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/trusted-devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "trusted-devices"]
+            },
+            "description": "Add a device to trusted devices list"
+          }
+        },
+        {
+          "name": "Remove Trusted Device",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/trusted-devices/{{deviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "trusted-devices", "{{deviceId}}"]
+            },
+            "description": "Remove a device from trusted devices"
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. Login History & Security",
+      "description": "View login history and security overview",
+      "item": [
+        {
+          "name": "Get Login History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/login-history?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "login-history"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get login history (last 20 attempts)"
+          }
+        },
+        {
+          "name": "Get Security Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/security",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "security"]
+            },
+            "description": "Get comprehensive security overview"
+          }
+        }
+      ]
+    },
+    {
+      "name": "08. OAuth Providers",
+      "description": "Connect and manage OAuth/social login providers",
+      "item": [
+        {
+          "name": "Get Connected Providers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/oauth/providers",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "oauth", "providers"]
+            },
+            "description": "Get list of connected OAuth providers"
+          }
+        },
+        {
+          "name": "Connect Google",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerId\": \"google-user-id\",\n  \"email\": \"user@gmail.com\",\n  \"displayName\": \"John Doe\",\n  \"avatar\": \"https://lh3.googleusercontent.com/...\",\n  \"accessToken\": \"ya29.xxx\",\n  \"refreshToken\": \"1//xxx\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/oauth/google/connect",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "oauth", "google", "connect"]
+            },
+            "description": "Connect Google account"
+          }
+        },
+        {
+          "name": "Connect Facebook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerId\": \"facebook-user-id\",\n  \"email\": \"user@facebook.com\",\n  \"displayName\": \"John Doe\",\n  \"accessToken\": \"EAAx...\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/oauth/facebook/connect",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "oauth", "facebook", "connect"]
+            },
+            "description": "Connect Facebook account"
+          }
+        },
+        {
+          "name": "Connect Apple",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerId\": \"apple-user-id\",\n  \"email\": \"user@privaterelay.appleid.com\",\n  \"displayName\": \"John D.\",\n  \"accessToken\": \"apple-token\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/oauth/apple/connect",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "oauth", "apple", "connect"]
+            },
+            "description": "Connect Apple account"
+          }
+        },
+        {
+          "name": "Disconnect Provider",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/oauth/google/disconnect",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "oauth", "google", "disconnect"]
+            },
+            "description": "Disconnect an OAuth provider"
+          }
+        },
+        {
+          "name": "Login with OAuth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.tokens) {",
+                  "        pm.collectionVariables.set('accessToken', jsonData.data.tokens.accessToken);",
+                  "        pm.collectionVariables.set('refreshToken', jsonData.data.tokens.refreshToken);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"google\",\n  \"providerId\": \"google-user-id\",\n  \"email\": \"user@gmail.com\",\n  \"displayName\": \"John Doe\",\n  \"accessToken\": \"ya29.xxx\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/oauth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "oauth", "login"]
+            },
+            "description": "Login or register using OAuth provider"
+          }
+        }
+      ]
+    },
+    {
+      "name": "09. External IDs",
+      "description": "Link and manage external system IDs for integrations",
+      "item": [
+        {
+          "name": "Get External IDs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/external-ids",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "external-ids"]
+            },
+            "description": "Get all linked external system IDs"
+          }
+        },
+        {
+          "name": "Link External ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"system\": \"stripe\",\n  \"externalId\": \"cus_xxx123\",\n  \"metadata\": {\n    \"type\": \"customer\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/external-ids",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "external-ids"]
+            },
+            "description": "Link an external system ID"
+          }
+        },
+        {
+          "name": "Unlink External ID",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/external-ids/stripe",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "external-ids", "stripe"]
+            },
+            "description": "Unlink an external system ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Privacy & Consent",
+      "description": "Privacy settings and GDPR/CCPA compliance",
+      "item": [
+        {
+          "name": "Get Privacy Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/privacy",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "privacy"]
+            },
+            "description": "Get privacy settings overview"
+          }
+        },
+        {
+          "name": "Get Consent Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/privacy/consent",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "privacy", "consent"]
+            },
+            "description": "Get all consent statuses"
+          }
+        },
+        {
+          "name": "Give GDPR Consent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version\": \"1.0\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/privacy/consent/gdpr",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "privacy", "consent", "gdpr"]
+            },
+            "description": "Give GDPR consent with version"
+          }
+        },
+        {
+          "name": "Withdraw GDPR Consent",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/privacy/consent/gdpr",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "privacy", "consent", "gdpr"]
+            },
+            "description": "Withdraw GDPR consent"
+          }
+        },
+        {
+          "name": "Update Marketing Consent",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": true,\n  \"sms\": false,\n  \"push\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/privacy/consent/marketing",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "privacy", "consent", "marketing"]
+            },
+            "description": "Update marketing consent preferences"
+          }
+        },
+        {
+          "name": "Set Do Not Sell (CCPA)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doNotSell\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/privacy/do-not-sell",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "privacy", "do-not-sell"]
+            },
+            "description": "Set Do Not Sell preference (CCPA compliance)"
+          }
+        },
+        {
+          "name": "Set Do Not Track",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doNotTrack\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/privacy/do-not-track",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "privacy", "do-not-track"]
+            },
+            "description": "Set Do Not Track preference"
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Account Deletion",
+      "description": "Request and manage account deletion",
+      "item": [
+        {
+          "name": "Get Deletion Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/deletion",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "deletion"]
+            },
+            "description": "Get account deletion status"
+          }
+        },
+        {
+          "name": "Request Account Deletion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"No longer using the service\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/deletion",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "deletion"]
+            },
+            "description": "Request account deletion (30-day grace period)"
+          }
+        },
+        {
+          "name": "Cancel Account Deletion",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/deletion",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "deletion"]
+            },
+            "description": "Cancel pending account deletion request"
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Data Export",
+      "description": "Export user data for GDPR compliance",
+      "item": [
+        {
+          "name": "Export User Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/data/export",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "data", "export"]
+            },
+            "description": "Export all user data (GDPR data portability)"
+          }
+        },
+        {
+          "name": "Download User Data (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/data/download",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "data", "download"]
+            },
+            "description": "Download user data as JSON file"
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Agreements",
+      "description": "Terms, privacy policy, and other agreements",
+      "item": [
+        {
+          "name": "Get Accepted Agreements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/agreements",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "agreements"]
+            },
+            "description": "Get all accepted agreements"
+          }
+        },
+        {
+          "name": "Accept Agreement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"terms_of_service\",\n  \"version\": \"2.0\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/agreements",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "agreements"]
+            },
+            "description": "Accept an agreement (type: terms_of_service, privacy_policy, etc.)"
+          }
+        },
+        {
+          "name": "Check Agreement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/agreements/check?type=terms_of_service&version=2.0",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "agreements", "check"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "terms_of_service"
+                },
+                {
+                  "key": "version",
+                  "value": "2.0"
+                }
+              ]
+            },
+            "description": "Check if specific agreement version is accepted"
+          }
+        }
+      ]
+    },
+    {
+      "name": "14. User Management (Admin)",
+      "description": "Admin endpoints for managing users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=20&status=active",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "active"
+                }
+              ]
+            },
+            "description": "Get all users with filtering and pagination (Admin only)"
+          }
+        },
+        {
+          "name": "Get User Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "stats"]
+            },
+            "description": "Get user statistics (Admin only)"
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Get user details by ID"
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"firstName\": \"New\",\n  \"lastName\": \"User\",\n  \"roles\": [\"client\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Create a new user (Admin only)"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Update user information"
+          }
+        },
+        {
+          "name": "Update User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"suspended\",\n  \"reason\": \"Violation of terms\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "status"]
+            },
+            "description": "Update user status (activate/suspend)"
+          }
+        },
+        {
+          "name": "Update User Verification",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isVerified\": true,\n  \"verificationType\": \"identity\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/verification",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "verification"]
+            },
+            "description": "Update user verification status"
+          }
+        },
+        {
+          "name": "Get User Roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "roles"]
+            },
+            "description": "Get user roles"
+          }
+        },
+        {
+          "name": "Update User Roles",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roles\": [\"client\", \"provider\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "roles"]
+            },
+            "description": "Update user roles (Admin only)"
+          }
+        },
+        {
+          "name": "Get User Badges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/badges",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "badges"]
+            },
+            "description": "Get user badges"
+          }
+        },
+        {
+          "name": "Add User Badge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"badgeType\": \"verified_pro\",\n  \"description\": \"Verified professional service provider\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/badges",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "badges"]
+            },
+            "description": "Add badge to user"
+          }
+        },
+        {
+          "name": "Delete User Badge",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/badges/{{badgeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "badges", "{{badgeId}}"]
+            },
+            "description": "Remove badge from user"
+          }
+        },
+        {
+          "name": "Ban User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Repeated violations of community guidelines\",\n  \"duration\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/ban",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "ban"]
+            },
+            "description": "Ban user (Admin only)"
+          }
+        },
+        {
+          "name": "Delete User (Soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Soft delete user (Admin only)"
+          }
+        },
+        {
+          "name": "Restore User",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "restore"]
+            },
+            "description": "Restore soft-deleted user (Admin only)"
+          }
+        },
+        {
+          "name": "Reset User Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sendEmail\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "reset-password"]
+            },
+            "description": "Reset user password (Admin only)"
+          }
+        },
+        {
+          "name": "Send Email to User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Important Account Update\",\n  \"message\": \"Your account has been verified.\",\n  \"template\": \"account_update\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/send-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "send-email"]
+            },
+            "description": "Send email to user (Admin only)"
+          }
+        },
+        {
+          "name": "Export User Data (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/export",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "export"]
+            },
+            "description": "Export specific user's data (Admin only)"
+          }
+        },
+        {
+          "name": "Get User Notes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/notes",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "notes"]
+            },
+            "description": "Get notes for a user (Admin only)"
+          }
+        },
+        {
+          "name": "Bulk Update Users",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"user-id-1\", \"user-id-2\"],\n  \"updates\": {\n    \"status\": \"active\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/bulk",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "bulk"]
+            },
+            "description": "Bulk update users (Admin only)"
+          }
+        }
+      ]
+    }
+  ]
+}

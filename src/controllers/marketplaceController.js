@@ -3087,34 +3087,1760 @@ const activateService = async (req, res) => {
   }
 };
 
+// ============================================
+// ENHANCED SERVICE METHODS
+// ============================================
+
+// @desc    Get service by slug
+// @route   GET /api/marketplace/services/slug/:slug
+// @access  Public
+const getServiceBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const service = await Service.findBySlug(slug)
+      .populate('provider', 'firstName lastName profile.avatar profile.businessName profile.rating');
+
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    // Record view
+    await service.recordView(true);
+
+    return sendSuccess(res, service, 'Service retrieved successfully');
+  } catch (error) {
+    logger.error('Get service by slug error', { error: error.message, slug: req.params.slug });
+    return sendServerError(res, error, 'Failed to retrieve service', 'SERVICE_RETRIEVAL_ERROR');
+  }
+};
+
+// @desc    Submit service for review
+// @route   POST /api/marketplace/services/:id/submit
+// @access  Private (Provider)
+const submitServiceForReview = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    if (service.provider.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    await service.submit();
+
+    logger.info('Service submitted for review', { serviceId: service._id, userId: req.user.id });
+    return sendSuccess(res, service, 'Service submitted for review');
+  } catch (error) {
+    logger.error('Submit service error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to submit service', 'SERVICE_SUBMIT_ERROR');
+  }
+};
+
+// @desc    Approve service (Admin)
+// @route   POST /api/marketplace/services/:id/approve
+// @access  Private (Admin)
+const approveService = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const { notes } = req.body;
+    await service.approve(req.user.id, notes);
+
+    logger.info('Service approved', { serviceId: service._id, adminId: req.user.id });
+    return sendSuccess(res, service, 'Service approved successfully');
+  } catch (error) {
+    logger.error('Approve service error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to approve service', 'SERVICE_APPROVE_ERROR');
+  }
+};
+
+// @desc    Reject service (Admin)
+// @route   POST /api/marketplace/services/:id/reject
+// @access  Private (Admin)
+const rejectService = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const { reason } = req.body;
+    if (!reason) {
+      return sendValidationError(res, [{ field: 'reason', message: 'Rejection reason is required', code: 'REASON_REQUIRED' }]);
+    }
+
+    await service.reject(req.user.id, reason);
+
+    logger.info('Service rejected', { serviceId: service._id, adminId: req.user.id, reason });
+    return sendSuccess(res, service, 'Service rejected');
+  } catch (error) {
+    logger.error('Reject service error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to reject service', 'SERVICE_REJECT_ERROR');
+  }
+};
+
+// @desc    Feature service (Admin)
+// @route   POST /api/marketplace/services/:id/feature
+// @access  Private (Admin)
+const featureService = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const { until, position, reason } = req.body;
+    const featuredUntil = until ? new Date(until) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Default 30 days
+
+    await service.feature(featuredUntil, position, reason);
+
+    logger.info('Service featured', { serviceId: service._id, adminId: req.user.id, until: featuredUntil });
+    return sendSuccess(res, service, 'Service featured successfully');
+  } catch (error) {
+    logger.error('Feature service error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to feature service', 'SERVICE_FEATURE_ERROR');
+  }
+};
+
+// @desc    Unfeature service (Admin)
+// @route   DELETE /api/marketplace/services/:id/feature
+// @access  Private (Admin)
+const unfeatureService = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    await service.unfeature();
+
+    logger.info('Service unfeatured', { serviceId: service._id, adminId: req.user.id });
+    return sendSuccess(res, service, 'Service unfeatured successfully');
+  } catch (error) {
+    logger.error('Unfeature service error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to unfeature service', 'SERVICE_UNFEATURE_ERROR');
+  }
+};
+
+// @desc    Get featured services
+// @route   GET /api/marketplace/services/featured
+// @access  Public
+const getFeaturedServices = async (req, res) => {
+  try {
+    const paginationValidation = validatePagination(req.query);
+    if (!paginationValidation.isValid) {
+      return sendValidationError(res, paginationValidation.errors);
+    }
+    const { page: pageNum, limit: limitNum } = paginationValidation.data;
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = {
+      isActive: true,
+      status: 'approved',
+      'featured.isFeatured': true,
+      'featured.featuredUntil': { $gte: new Date() }
+    };
+
+    const services = await Service.find(filter)
+      .populate('provider', 'firstName lastName profile.avatar profile.businessName')
+      .sort({ 'featured.featuredPosition': 1, 'featured.featuredAt': -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    const total = await Service.countDocuments(filter);
+    const pagination = createPagination(pageNum, limitNum, total);
+
+    return sendPaginated(res, services, pagination, 'Featured services retrieved successfully');
+  } catch (error) {
+    logger.error('Get featured services error', { error: error.message });
+    return sendServerError(res, error, 'Failed to retrieve featured services', 'FEATURED_SERVICES_ERROR');
+  }
+};
+
+// @desc    Get service analytics
+// @route   GET /api/marketplace/services/:id/analytics
+// @access  Private (Provider/Admin)
+const getServiceAnalytics = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id).select('provider analytics rating');
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    // Get booking stats for the service
+    const bookingStats = await Booking.aggregate([
+      { $match: { service: service._id } },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+          totalRevenue: { $sum: '$pricing.totalAmount' }
+        }
+      }
+    ]);
+
+    const analytics = {
+      ...service.analytics,
+      rating: service.rating,
+      bookingsByStatus: bookingStats.reduce((acc, stat) => {
+        acc[stat._id] = { count: stat.count, revenue: stat.totalRevenue };
+        return acc;
+      }, {})
+    };
+
+    return sendSuccess(res, analytics, 'Service analytics retrieved successfully');
+  } catch (error) {
+    logger.error('Get service analytics error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to retrieve analytics', 'ANALYTICS_ERROR');
+  }
+};
+
+// @desc    Add service package
+// @route   POST /api/marketplace/services/:id/packages
+// @access  Private (Provider/Admin)
+const addServicePackage = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const { name, description, price, compareAtPrice, features, duration, isPopular } = req.body;
+    if (!name || !price) {
+      return sendValidationError(res, [{ field: 'name/price', message: 'Name and price are required', code: 'REQUIRED_FIELDS' }]);
+    }
+
+    service.servicePackages.push({ name, description, price, compareAtPrice, features, duration, isPopular, sortOrder: service.servicePackages.length });
+    await service.save();
+
+    logger.info('Service package added', { serviceId: service._id, packageName: name, userId: req.user.id });
+    return sendSuccess(res, service.servicePackages, 'Package added successfully', 201);
+  } catch (error) {
+    logger.error('Add service package error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to add package', 'PACKAGE_ADD_ERROR');
+  }
+};
+
+// @desc    Update service package
+// @route   PUT /api/marketplace/services/:id/packages/:packageId
+// @access  Private (Provider/Admin)
+const updateServicePackage = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const pkg = service.servicePackages.id(req.params.packageId);
+    if (!pkg) {
+      return sendNotFoundError(res, 'Package not found', 'PACKAGE_NOT_FOUND');
+    }
+
+    const { name, description, price, compareAtPrice, features, duration, isPopular, sortOrder } = req.body;
+    if (name !== undefined) pkg.name = name;
+    if (description !== undefined) pkg.description = description;
+    if (price !== undefined) pkg.price = price;
+    if (compareAtPrice !== undefined) pkg.compareAtPrice = compareAtPrice;
+    if (features !== undefined) pkg.features = features;
+    if (duration !== undefined) pkg.duration = duration;
+    if (isPopular !== undefined) pkg.isPopular = isPopular;
+    if (sortOrder !== undefined) pkg.sortOrder = sortOrder;
+
+    await service.save();
+
+    logger.info('Service package updated', { serviceId: service._id, packageId: req.params.packageId, userId: req.user.id });
+    return sendSuccess(res, pkg, 'Package updated successfully');
+  } catch (error) {
+    logger.error('Update service package error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to update package', 'PACKAGE_UPDATE_ERROR');
+  }
+};
+
+// @desc    Delete service package
+// @route   DELETE /api/marketplace/services/:id/packages/:packageId
+// @access  Private (Provider/Admin)
+const deleteServicePackage = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const pkg = service.servicePackages.id(req.params.packageId);
+    if (!pkg) {
+      return sendNotFoundError(res, 'Package not found', 'PACKAGE_NOT_FOUND');
+    }
+
+    pkg.deleteOne();
+    await service.save();
+
+    logger.info('Service package deleted', { serviceId: service._id, packageId: req.params.packageId, userId: req.user.id });
+    return sendSuccess(res, null, 'Package deleted successfully');
+  } catch (error) {
+    logger.error('Delete service package error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to delete package', 'PACKAGE_DELETE_ERROR');
+  }
+};
+
+// @desc    Add service add-on
+// @route   POST /api/marketplace/services/:id/addons
+// @access  Private (Provider/Admin)
+const addServiceAddOn = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const { name, description, price, duration, maxQuantity, isRequired } = req.body;
+    if (!name || price === undefined) {
+      return sendValidationError(res, [{ field: 'name/price', message: 'Name and price are required', code: 'REQUIRED_FIELDS' }]);
+    }
+
+    service.addOns.push({ name, description, price, duration, maxQuantity: maxQuantity || 1, isRequired: isRequired || false });
+    await service.save();
+
+    logger.info('Service add-on added', { serviceId: service._id, addOnName: name, userId: req.user.id });
+    return sendSuccess(res, service.addOns, 'Add-on added successfully', 201);
+  } catch (error) {
+    logger.error('Add service add-on error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to add add-on', 'ADDON_ADD_ERROR');
+  }
+};
+
+// @desc    Update service add-on
+// @route   PUT /api/marketplace/services/:id/addons/:addonId
+// @access  Private (Provider/Admin)
+const updateServiceAddOn = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const addon = service.addOns.id(req.params.addonId);
+    if (!addon) {
+      return sendNotFoundError(res, 'Add-on not found', 'ADDON_NOT_FOUND');
+    }
+
+    const { name, description, price, duration, maxQuantity, isRequired, isAvailable } = req.body;
+    if (name !== undefined) addon.name = name;
+    if (description !== undefined) addon.description = description;
+    if (price !== undefined) addon.price = price;
+    if (duration !== undefined) addon.duration = duration;
+    if (maxQuantity !== undefined) addon.maxQuantity = maxQuantity;
+    if (isRequired !== undefined) addon.isRequired = isRequired;
+    if (isAvailable !== undefined) addon.isAvailable = isAvailable;
+
+    await service.save();
+
+    logger.info('Service add-on updated', { serviceId: service._id, addonId: req.params.addonId, userId: req.user.id });
+    return sendSuccess(res, addon, 'Add-on updated successfully');
+  } catch (error) {
+    logger.error('Update service add-on error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to update add-on', 'ADDON_UPDATE_ERROR');
+  }
+};
+
+// @desc    Delete service add-on
+// @route   DELETE /api/marketplace/services/:id/addons/:addonId
+// @access  Private (Provider/Admin)
+const deleteServiceAddOn = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const addon = service.addOns.id(req.params.addonId);
+    if (!addon) {
+      return sendNotFoundError(res, 'Add-on not found', 'ADDON_NOT_FOUND');
+    }
+
+    addon.deleteOne();
+    await service.save();
+
+    logger.info('Service add-on deleted', { serviceId: service._id, addonId: req.params.addonId, userId: req.user.id });
+    return sendSuccess(res, null, 'Add-on deleted successfully');
+  } catch (error) {
+    logger.error('Delete service add-on error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to delete add-on', 'ADDON_DELETE_ERROR');
+  }
+};
+
+// @desc    Update service SEO
+// @route   PUT /api/marketplace/services/:id/seo
+// @access  Private (Provider/Admin)
+const updateServiceSEO = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const { metaTitle, metaDescription, keywords, canonicalUrl } = req.body;
+    if (!service.seo) service.seo = {};
+    if (metaTitle !== undefined) service.seo.metaTitle = metaTitle;
+    if (metaDescription !== undefined) service.seo.metaDescription = metaDescription;
+    if (keywords !== undefined) service.seo.keywords = keywords;
+    if (canonicalUrl !== undefined) service.seo.canonicalUrl = canonicalUrl;
+
+    await service.save();
+
+    logger.info('Service SEO updated', { serviceId: service._id, userId: req.user.id });
+    return sendSuccess(res, service.seo, 'SEO updated successfully');
+  } catch (error) {
+    logger.error('Update service SEO error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to update SEO', 'SEO_UPDATE_ERROR');
+  }
+};
+
+// @desc    Create service promotion
+// @route   POST /api/marketplace/services/:id/promotions
+// @access  Private (Provider/Admin)
+const createServicePromotion = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const { discountType, discountValue, promoCode, startDate, endDate, maxUses, minOrderValue, applicableTo } = req.body;
+
+    if (!discountType || discountValue === undefined) {
+      return sendValidationError(res, [{ field: 'discountType/discountValue', message: 'Discount type and value are required', code: 'REQUIRED_FIELDS' }]);
+    }
+
+    service.promotions = {
+      active: true,
+      discountType,
+      discountValue,
+      promoCode: promoCode || null,
+      startDate: startDate ? new Date(startDate) : new Date(),
+      endDate: endDate ? new Date(endDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      maxUses: maxUses || 0,
+      usedCount: 0,
+      minOrderValue: minOrderValue || 0,
+      applicableTo: applicableTo || 'all'
+    };
+
+    await service.save();
+
+    logger.info('Service promotion created', { serviceId: service._id, discountType, discountValue, userId: req.user.id });
+    return sendSuccess(res, service.promotions, 'Promotion created successfully', 201);
+  } catch (error) {
+    logger.error('Create service promotion error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to create promotion', 'PROMOTION_CREATE_ERROR');
+  }
+};
+
+// @desc    End service promotion
+// @route   DELETE /api/marketplace/services/:id/promotions
+// @access  Private (Provider/Admin)
+const endServicePromotion = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    service.promotions.active = false;
+    service.promotions.endDate = new Date();
+    await service.save();
+
+    logger.info('Service promotion ended', { serviceId: service._id, userId: req.user.id });
+    return sendSuccess(res, service.promotions, 'Promotion ended successfully');
+  } catch (error) {
+    logger.error('End service promotion error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to end promotion', 'PROMOTION_END_ERROR');
+  }
+};
+
+// @desc    Update service availability
+// @route   PUT /api/marketplace/services/:id/availability
+// @access  Private (Provider/Admin)
+const updateServiceAvailability = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const { schedule, timezone, leadTime, maxAdvanceBooking, bufferTime, instantBooking } = req.body;
+
+    if (!service.availability) service.availability = {};
+    if (schedule !== undefined) service.availability.schedule = schedule;
+    if (timezone !== undefined) service.availability.timezone = timezone;
+    if (leadTime !== undefined) service.availability.leadTime = leadTime;
+    if (maxAdvanceBooking !== undefined) service.availability.maxAdvanceBooking = maxAdvanceBooking;
+    if (bufferTime !== undefined) service.availability.bufferTime = bufferTime;
+    if (instantBooking !== undefined) service.availability.instantBooking = instantBooking;
+
+    await service.save();
+
+    logger.info('Service availability updated', { serviceId: service._id, userId: req.user.id });
+    return sendSuccess(res, service.availability, 'Availability updated successfully');
+  } catch (error) {
+    logger.error('Update service availability error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to update availability', 'AVAILABILITY_UPDATE_ERROR');
+  }
+};
+
+// @desc    Archive service
+// @route   POST /api/marketplace/services/:id/archive
+// @access  Private (Provider/Admin)
+const archiveService = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    await service.archive();
+
+    logger.info('Service archived', { serviceId: service._id, userId: req.user.id });
+    return sendSuccess(res, service, 'Service archived successfully');
+  } catch (error) {
+    logger.error('Archive service error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to archive service', 'SERVICE_ARCHIVE_ERROR');
+  }
+};
+
+// @desc    Link external ID to service
+// @route   POST /api/marketplace/services/:id/external-ids
+// @access  Private (Provider/Admin)
+const linkServiceExternalId = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return sendNotFoundError(res, 'Service not found', 'SERVICE_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = service.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const { system, externalId, metadata } = req.body;
+    if (!system || !externalId) {
+      return sendValidationError(res, [{ field: 'system/externalId', message: 'System and external ID are required', code: 'REQUIRED_FIELDS' }]);
+    }
+
+    await service.linkExternalId(system, externalId, metadata);
+
+    logger.info('Service external ID linked', { serviceId: service._id, system, externalId, userId: req.user.id });
+    return sendSuccess(res, service.externalIds, 'External ID linked successfully');
+  } catch (error) {
+    logger.error('Link service external ID error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to link external ID', 'EXTERNAL_ID_LINK_ERROR');
+  }
+};
+
+// @desc    Get pending review services (Admin)
+// @route   GET /api/marketplace/services/pending-review
+// @access  Private (Admin)
+const getPendingReviewServices = async (req, res) => {
+  try {
+    const paginationValidation = validatePagination(req.query);
+    if (!paginationValidation.isValid) {
+      return sendValidationError(res, paginationValidation.errors);
+    }
+    const { page: pageNum, limit: limitNum } = paginationValidation.data;
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = { status: 'pending_review', 'approval.status': 'pending' };
+
+    const services = await Service.find(filter)
+      .populate('provider', 'firstName lastName email profile.businessName')
+      .sort({ createdAt: 1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    const total = await Service.countDocuments(filter);
+    const pagination = createPagination(pageNum, limitNum, total);
+
+    return sendPaginated(res, services, pagination, 'Pending review services retrieved successfully');
+  } catch (error) {
+    logger.error('Get pending review services error', { error: error.message });
+    return sendServerError(res, error, 'Failed to retrieve pending services', 'PENDING_SERVICES_ERROR');
+  }
+};
+
+// ============================================
+// ENHANCED BOOKING METHODS
+// ============================================
+
+// @desc    Get booking by booking number
+// @route   GET /api/marketplace/bookings/number/:bookingNumber
+// @access  Private
+const getBookingByNumber = async (req, res) => {
+  try {
+    const { bookingNumber } = req.params;
+
+    const booking = await Booking.findOne({ bookingNumber })
+      .populate('service', 'title category pricing images')
+      .populate('client', 'firstName lastName email phone profile.avatar')
+      .populate('provider', 'firstName lastName email phone profile.avatar profile.businessName');
+
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const userId = req.user.id;
+    const isClient = booking.client._id.toString() === userId;
+    const isProvider = booking.provider._id.toString() === userId;
+    const isAdmin = req.user.roles?.includes('admin');
+
+    if (!isClient && !isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    return sendSuccess(res, booking, 'Booking retrieved successfully');
+  } catch (error) {
+    logger.error('Get booking by number error', { error: error.message, bookingNumber: req.params.bookingNumber });
+    return sendServerError(res, error, 'Failed to retrieve booking', 'BOOKING_RETRIEVAL_ERROR');
+  }
+};
+
+// @desc    Confirm booking
+// @route   POST /api/marketplace/bookings/:id/confirm
+// @access  Private (Provider)
+const confirmBooking = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const isProvider = booking.provider.toString() === req.user.id;
+    const isAdmin = req.user.roles?.includes('admin');
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Only the provider can confirm bookings', code: 'UNAUTHORIZED' });
+    }
+
+    await booking.confirm(req.user.id);
+
+    // Send notification to client
+    try {
+      await NotificationService.sendNotification({
+        userId: booking.client,
+        type: 'booking_confirmed',
+        title: 'Booking Confirmed',
+        message: 'Your booking has been confirmed by the provider.',
+        data: { bookingId: booking._id },
+        priority: 'high'
+      });
+    } catch (notifyError) {
+      logger.warn('Booking confirmation notification failed', { bookingId: booking._id, error: notifyError.message });
+    }
+
+    logger.info('Booking confirmed', { bookingId: booking._id, userId: req.user.id });
+    return sendSuccess(res, booking, 'Booking confirmed successfully');
+  } catch (error) {
+    logger.error('Confirm booking error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to confirm booking', 'BOOKING_CONFIRM_ERROR');
+  }
+};
+
+// @desc    Start booking service
+// @route   POST /api/marketplace/bookings/:id/start
+// @access  Private (Provider)
+const startBooking = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const isProvider = booking.provider.toString() === req.user.id;
+    if (!isProvider) {
+      return res.status(403).json({ success: false, message: 'Only the provider can start the service', code: 'UNAUTHORIZED' });
+    }
+
+    await booking.startService(req.user.id);
+
+    // Notify client
+    try {
+      await NotificationService.sendNotification({
+        userId: booking.client,
+        type: 'service_started',
+        title: 'Service Started',
+        message: 'The provider has started working on your service.',
+        data: { bookingId: booking._id },
+        priority: 'high'
+      });
+    } catch (notifyError) {
+      logger.warn('Service started notification failed', { bookingId: booking._id, error: notifyError.message });
+    }
+
+    logger.info('Booking service started', { bookingId: booking._id, userId: req.user.id });
+    return sendSuccess(res, booking, 'Service started successfully');
+  } catch (error) {
+    logger.error('Start booking error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to start service', 'BOOKING_START_ERROR');
+  }
+};
+
+// @desc    Complete booking
+// @route   POST /api/marketplace/bookings/:id/complete
+// @access  Private (Provider)
+const completeBooking = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const isProvider = booking.provider.toString() === req.user.id;
+    if (!isProvider) {
+      return res.status(403).json({ success: false, message: 'Only the provider can complete the service', code: 'UNAUTHORIZED' });
+    }
+
+    const { notes } = req.body;
+    await booking.complete(req.user.id, notes);
+
+    // Notify client
+    try {
+      await NotificationService.sendNotification({
+        userId: booking.client,
+        type: 'service_completed',
+        title: 'Service Completed',
+        message: 'Your service has been completed. Please leave a review.',
+        data: { bookingId: booking._id },
+        priority: 'medium'
+      });
+    } catch (notifyError) {
+      logger.warn('Service completed notification failed', { bookingId: booking._id, error: notifyError.message });
+    }
+
+    logger.info('Booking completed', { bookingId: booking._id, userId: req.user.id });
+    return sendSuccess(res, booking, 'Service completed successfully');
+  } catch (error) {
+    logger.error('Complete booking error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to complete service', 'BOOKING_COMPLETE_ERROR');
+  }
+};
+
+// @desc    Cancel booking
+// @route   POST /api/marketplace/bookings/:id/cancel
+// @access  Private
+const cancelBooking = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const userId = req.user.id;
+    const isClient = booking.client.toString() === userId;
+    const isProvider = booking.provider.toString() === userId;
+    const isAdmin = req.user.roles?.includes('admin');
+
+    if (!isClient && !isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized to cancel this booking', code: 'UNAUTHORIZED' });
+    }
+
+    const { reason, reasonCode } = req.body;
+    if (!reason) {
+      return sendValidationError(res, [{ field: 'reason', message: 'Cancellation reason is required', code: 'REASON_REQUIRED' }]);
+    }
+
+    await booking.cancel(userId, reason, reasonCode || 'other');
+
+    // Notify the other party
+    const notifyUserId = isClient ? booking.provider : booking.client;
+    try {
+      await NotificationService.sendNotification({
+        userId: notifyUserId,
+        type: 'booking_cancelled',
+        title: 'Booking Cancelled',
+        message: `The booking has been cancelled. Reason: ${reason}`,
+        data: { bookingId: booking._id },
+        priority: 'high'
+      });
+    } catch (notifyError) {
+      logger.warn('Booking cancellation notification failed', { bookingId: booking._id, error: notifyError.message });
+    }
+
+    logger.info('Booking cancelled', { bookingId: booking._id, userId, reason });
+    return sendSuccess(res, booking, 'Booking cancelled successfully');
+  } catch (error) {
+    logger.error('Cancel booking error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to cancel booking', 'BOOKING_CANCEL_ERROR');
+  }
+};
+
+// @desc    Reschedule booking
+// @route   POST /api/marketplace/bookings/:id/reschedule
+// @access  Private
+const rescheduleBooking = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const userId = req.user.id;
+    const isClient = booking.client.toString() === userId;
+    const isProvider = booking.provider.toString() === userId;
+    const isAdmin = req.user.roles?.includes('admin');
+
+    if (!isClient && !isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized to reschedule this booking', code: 'UNAUTHORIZED' });
+    }
+
+    const { newDate, reason } = req.body;
+    if (!newDate) {
+      return sendValidationError(res, [{ field: 'newDate', message: 'New date is required', code: 'DATE_REQUIRED' }]);
+    }
+
+    const newDateTime = new Date(newDate);
+    if (isNaN(newDateTime.getTime()) || newDateTime <= new Date()) {
+      return sendValidationError(res, [{ field: 'newDate', message: 'New date must be a valid future date', code: 'INVALID_DATE' }]);
+    }
+
+    await booking.reschedule(newDateTime, userId, reason);
+
+    // Notify the other party
+    const notifyUserId = isClient ? booking.provider : booking.client;
+    try {
+      await NotificationService.sendNotification({
+        userId: notifyUserId,
+        type: 'booking_rescheduled',
+        title: 'Booking Rescheduled',
+        message: `The booking has been rescheduled to ${newDateTime.toLocaleDateString()}.`,
+        data: { bookingId: booking._id },
+        priority: 'high'
+      });
+    } catch (notifyError) {
+      logger.warn('Booking reschedule notification failed', { bookingId: booking._id, error: notifyError.message });
+    }
+
+    logger.info('Booking rescheduled', { bookingId: booking._id, userId, newDate: newDateTime });
+    return sendSuccess(res, booking, 'Booking rescheduled successfully');
+  } catch (error) {
+    logger.error('Reschedule booking error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to reschedule booking', 'BOOKING_RESCHEDULE_ERROR');
+  }
+};
+
+// @desc    Update provider location (GPS tracking)
+// @route   POST /api/marketplace/bookings/:id/location
+// @access  Private (Provider)
+const updateProviderLocation = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const isProvider = booking.provider.toString() === req.user.id;
+    if (!isProvider) {
+      return res.status(403).json({ success: false, message: 'Only the provider can update location', code: 'UNAUTHORIZED' });
+    }
+
+    const { lat, lng, accuracy } = req.body;
+    if (lat === undefined || lng === undefined) {
+      return sendValidationError(res, [{ field: 'lat/lng', message: 'Coordinates are required', code: 'COORDINATES_REQUIRED' }]);
+    }
+
+    const coordinates = { type: 'Point', coordinates: [lng, lat] };
+    await booking.updateProviderLocation(coordinates, accuracy);
+
+    return sendSuccess(res, { location: booking.tracking.providerLocation }, 'Location updated successfully');
+  } catch (error) {
+    logger.error('Update provider location error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, 'Failed to update location', 'LOCATION_UPDATE_ERROR');
+  }
+};
+
+// @desc    Mark provider arrived
+// @route   POST /api/marketplace/bookings/:id/arrived
+// @access  Private (Provider)
+const markProviderArrived = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const isProvider = booking.provider.toString() === req.user.id;
+    if (!isProvider) {
+      return res.status(403).json({ success: false, message: 'Only the provider can mark arrival', code: 'UNAUTHORIZED' });
+    }
+
+    await booking.markArrived();
+
+    // Notify client
+    try {
+      await NotificationService.sendNotification({
+        userId: booking.client,
+        type: 'provider_arrived',
+        title: 'Provider Arrived',
+        message: 'The service provider has arrived at your location.',
+        data: { bookingId: booking._id },
+        priority: 'high'
+      });
+    } catch (notifyError) {
+      logger.warn('Provider arrived notification failed', { bookingId: booking._id, error: notifyError.message });
+    }
+
+    logger.info('Provider marked arrived', { bookingId: booking._id, userId: req.user.id });
+    return sendSuccess(res, { arrivedAt: booking.tracking.arrivedAt }, 'Provider arrival marked successfully');
+  } catch (error) {
+    logger.error('Mark provider arrived error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, 'Failed to mark arrival', 'ARRIVAL_MARK_ERROR');
+  }
+};
+
+// @desc    Get booking location history
+// @route   GET /api/marketplace/bookings/:id/location-history
+// @access  Private
+const getLocationHistory = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id).select('client provider tracking');
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const userId = req.user.id;
+    const isClient = booking.client.toString() === userId;
+    const isProvider = booking.provider.toString() === userId;
+    const isAdmin = req.user.roles?.includes('admin');
+
+    if (!isClient && !isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    return sendSuccess(res, {
+      currentLocation: booking.tracking.providerLocation,
+      arrivedAt: booking.tracking.arrivedAt,
+      history: booking.tracking.locationHistory
+    }, 'Location history retrieved successfully');
+  } catch (error) {
+    logger.error('Get location history error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, 'Failed to retrieve location history', 'LOCATION_HISTORY_ERROR');
+  }
+};
+
+// @desc    Open dispute
+// @route   POST /api/marketplace/bookings/:id/dispute
+// @access  Private
+const openDispute = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const userId = req.user.id;
+    const isClient = booking.client.toString() === userId;
+    const isProvider = booking.provider.toString() === userId;
+
+    if (!isClient && !isProvider) {
+      return res.status(403).json({ success: false, message: 'Not authorized to open dispute', code: 'UNAUTHORIZED' });
+    }
+
+    const { reason, reasonCode, description } = req.body;
+    if (!reason || !description) {
+      return sendValidationError(res, [{ field: 'reason/description', message: 'Reason and description are required', code: 'REQUIRED_FIELDS' }]);
+    }
+
+    await booking.openDispute(userId, reason, reasonCode || 'other', description);
+
+    // Notify the other party and admin
+    const notifyUserId = isClient ? booking.provider : booking.client;
+    try {
+      await NotificationService.sendNotification({
+        userId: notifyUserId,
+        type: 'dispute_opened',
+        title: 'Dispute Opened',
+        message: `A dispute has been opened for your booking. Reason: ${reason}`,
+        data: { bookingId: booking._id },
+        priority: 'high'
+      });
+    } catch (notifyError) {
+      logger.warn('Dispute notification failed', { bookingId: booking._id, error: notifyError.message });
+    }
+
+    logger.info('Dispute opened', { bookingId: booking._id, userId, reason });
+    return sendSuccess(res, booking.dispute, 'Dispute opened successfully', 201);
+  } catch (error) {
+    logger.error('Open dispute error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to open dispute', 'DISPUTE_OPEN_ERROR');
+  }
+};
+
+// @desc    Add dispute evidence
+// @route   POST /api/marketplace/bookings/:id/dispute/evidence
+// @access  Private
+const addDisputeEvidence = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const userId = req.user.id;
+    const isClient = booking.client.toString() === userId;
+    const isProvider = booking.provider.toString() === userId;
+    const isAdmin = req.user.roles?.includes('admin');
+
+    if (!isClient && !isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const { type, url, description } = req.body;
+    if (!type || !url) {
+      return sendValidationError(res, [{ field: 'type/url', message: 'Evidence type and URL are required', code: 'REQUIRED_FIELDS' }]);
+    }
+
+    await booking.addDisputeEvidence(userId, type, url, description);
+
+    logger.info('Dispute evidence added', { bookingId: booking._id, userId, type });
+    return sendSuccess(res, booking.dispute.evidence, 'Evidence added successfully');
+  } catch (error) {
+    logger.error('Add dispute evidence error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to add evidence', 'EVIDENCE_ADD_ERROR');
+  }
+};
+
+// @desc    Add dispute message
+// @route   POST /api/marketplace/bookings/:id/dispute/messages
+// @access  Private
+const addDisputeMessage = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const userId = req.user.id;
+    const isClient = booking.client.toString() === userId;
+    const isProvider = booking.provider.toString() === userId;
+    const isAdmin = req.user.roles?.includes('admin');
+
+    if (!isClient && !isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const { message, isInternal } = req.body;
+    if (!message) {
+      return sendValidationError(res, [{ field: 'message', message: 'Message is required', code: 'MESSAGE_REQUIRED' }]);
+    }
+
+    // Only admins can send internal messages
+    const internal = isAdmin ? (isInternal || false) : false;
+    await booking.addDisputeMessage(userId, message, internal);
+
+    logger.info('Dispute message added', { bookingId: booking._id, userId });
+    return sendSuccess(res, booking.dispute.messages, 'Message added successfully');
+  } catch (error) {
+    logger.error('Add dispute message error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to add message', 'MESSAGE_ADD_ERROR');
+  }
+};
+
+// @desc    Resolve dispute (Admin)
+// @route   POST /api/marketplace/bookings/:id/dispute/resolve
+// @access  Private (Admin)
+const resolveDispute = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const { outcome, refundAmount, notes } = req.body;
+    if (!outcome) {
+      return sendValidationError(res, [{ field: 'outcome', message: 'Resolution outcome is required', code: 'OUTCOME_REQUIRED' }]);
+    }
+
+    await booking.resolveDispute(req.user.id, outcome, refundAmount || 0, notes);
+
+    // Notify both parties
+    try {
+      await Promise.all([
+        NotificationService.sendNotification({
+          userId: booking.client,
+          type: 'dispute_resolved',
+          title: 'Dispute Resolved',
+          message: `Your dispute has been resolved. Outcome: ${outcome}`,
+          data: { bookingId: booking._id },
+          priority: 'high'
+        }),
+        NotificationService.sendNotification({
+          userId: booking.provider,
+          type: 'dispute_resolved',
+          title: 'Dispute Resolved',
+          message: `A dispute has been resolved. Outcome: ${outcome}`,
+          data: { bookingId: booking._id },
+          priority: 'high'
+        })
+      ]);
+    } catch (notifyError) {
+      logger.warn('Dispute resolution notification failed', { bookingId: booking._id, error: notifyError.message });
+    }
+
+    logger.info('Dispute resolved', { bookingId: booking._id, adminId: req.user.id, outcome });
+    return sendSuccess(res, booking.dispute, 'Dispute resolved successfully');
+  } catch (error) {
+    logger.error('Resolve dispute error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to resolve dispute', 'DISPUTE_RESOLVE_ERROR');
+  }
+};
+
+// @desc    Get bookings with disputes (Admin)
+// @route   GET /api/marketplace/bookings/disputes
+// @access  Private (Admin)
+const getDisputedBookings = async (req, res) => {
+  try {
+    const paginationValidation = validatePagination(req.query);
+    if (!paginationValidation.isValid) {
+      return sendValidationError(res, paginationValidation.errors);
+    }
+    const { page: pageNum, limit: limitNum } = paginationValidation.data;
+    const skip = (pageNum - 1) * limitNum;
+
+    const { status } = req.query;
+    const filter = { 'dispute.hasDispute': true };
+    if (status) {
+      filter['dispute.status'] = status;
+    }
+
+    const bookings = await Booking.find(filter)
+      .populate('service', 'title')
+      .populate('client', 'firstName lastName email')
+      .populate('provider', 'firstName lastName email profile.businessName')
+      .sort({ 'dispute.openedAt': -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    const total = await Booking.countDocuments(filter);
+    const pagination = createPagination(pageNum, limitNum, total);
+
+    return sendPaginated(res, bookings, pagination, 'Disputed bookings retrieved successfully');
+  } catch (error) {
+    logger.error('Get disputed bookings error', { error: error.message });
+    return sendServerError(res, error, 'Failed to retrieve disputed bookings', 'DISPUTES_ERROR');
+  }
+};
+
+// @desc    Add client review
+// @route   POST /api/marketplace/bookings/:id/reviews/client
+// @access  Private (Client)
+const addClientReview = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const isClient = booking.client.toString() === req.user.id;
+    if (!isClient) {
+      return res.status(403).json({ success: false, message: 'Only the client can add this review', code: 'UNAUTHORIZED' });
+    }
+
+    const { rating, comment, categories, wouldRecommend, photos } = req.body;
+    if (!rating || !comment) {
+      return sendValidationError(res, [{ field: 'rating/comment', message: 'Rating and comment are required', code: 'REQUIRED_FIELDS' }]);
+    }
+
+    await booking.addClientReview(rating, comment, categories || {}, wouldRecommend !== false, photos || []);
+
+    logger.info('Client review added', { bookingId: booking._id, userId: req.user.id, rating });
+    return sendSuccess(res, booking.review.client, 'Review added successfully', 201);
+  } catch (error) {
+    logger.error('Add client review error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to add review', 'REVIEW_ADD_ERROR');
+  }
+};
+
+// @desc    Add provider review
+// @route   POST /api/marketplace/bookings/:id/reviews/provider
+// @access  Private (Provider)
+const addProviderReview = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const isProvider = booking.provider.toString() === req.user.id;
+    if (!isProvider) {
+      return res.status(403).json({ success: false, message: 'Only the provider can add this review', code: 'UNAUTHORIZED' });
+    }
+
+    const { rating, comment, wouldWorkAgain } = req.body;
+    if (!rating) {
+      return sendValidationError(res, [{ field: 'rating', message: 'Rating is required', code: 'RATING_REQUIRED' }]);
+    }
+
+    await booking.addProviderReview(rating, comment || '', wouldWorkAgain !== false);
+
+    logger.info('Provider review added', { bookingId: booking._id, userId: req.user.id, rating });
+    return sendSuccess(res, booking.review.provider, 'Review added successfully', 201);
+  } catch (error) {
+    logger.error('Add provider review error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to add review', 'REVIEW_ADD_ERROR');
+  }
+};
+
+// @desc    Respond to client review
+// @route   POST /api/marketplace/bookings/:id/reviews/respond
+// @access  Private (Provider)
+const respondToReview = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const isProvider = booking.provider.toString() === req.user.id;
+    if (!isProvider) {
+      return res.status(403).json({ success: false, message: 'Only the provider can respond to reviews', code: 'UNAUTHORIZED' });
+    }
+
+    const { message } = req.body;
+    if (!message) {
+      return sendValidationError(res, [{ field: 'message', message: 'Response message is required', code: 'MESSAGE_REQUIRED' }]);
+    }
+
+    await booking.respondToReview(message);
+
+    logger.info('Review response added', { bookingId: booking._id, userId: req.user.id });
+    return sendSuccess(res, booking.review.client.response, 'Response added successfully');
+  } catch (error) {
+    logger.error('Respond to review error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to respond to review', 'REVIEW_RESPOND_ERROR');
+  }
+};
+
+// @desc    Get service reviews
+// @route   GET /api/marketplace/services/:id/reviews
+// @access  Public
+const getServiceReviews = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid service ID format', code: 'INVALID_SERVICE_ID' }]);
+    }
+
+    const paginationValidation = validatePagination(req.query);
+    if (!paginationValidation.isValid) {
+      return sendValidationError(res, paginationValidation.errors);
+    }
+    const { page: pageNum, limit: limitNum } = paginationValidation.data;
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = {
+      service: req.params.id,
+      status: 'completed',
+      'review.client': { $exists: true }
+    };
+
+    const bookings = await Booking.find(filter)
+      .populate('client', 'firstName lastName profile.avatar')
+      .select('review.client createdAt')
+      .sort({ 'review.client.createdAt': -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    const reviews = bookings.map(b => ({
+      ...b.review.client,
+      client: b.client,
+      bookingDate: b.createdAt
+    }));
+
+    const total = await Booking.countDocuments(filter);
+    const pagination = createPagination(pageNum, limitNum, total);
+
+    return sendPaginated(res, reviews, pagination, 'Reviews retrieved successfully');
+  } catch (error) {
+    logger.error('Get service reviews error', { error: error.message, serviceId: req.params.id });
+    return sendServerError(res, error, 'Failed to retrieve reviews', 'REVIEWS_ERROR');
+  }
+};
+
+// @desc    Add tip to booking
+// @route   POST /api/marketplace/bookings/:id/tip
+// @access  Private (Client)
+const addBookingTip = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const isClient = booking.client.toString() === req.user.id;
+    if (!isClient) {
+      return res.status(403).json({ success: false, message: 'Only the client can add a tip', code: 'UNAUTHORIZED' });
+    }
+
+    const { amount, method, transactionId } = req.body;
+    if (!amount || amount <= 0) {
+      return sendValidationError(res, [{ field: 'amount', message: 'Valid tip amount is required', code: 'AMOUNT_REQUIRED' }]);
+    }
+
+    await booking.addTip(amount, method || 'cash', transactionId);
+
+    // Notify provider
+    try {
+      await NotificationService.sendNotification({
+        userId: booking.provider,
+        type: 'tip_received',
+        title: 'Tip Received',
+        message: `You received a tip of ${amount} ${booking.pricing.currency || 'PHP'}!`,
+        data: { bookingId: booking._id, amount },
+        priority: 'medium'
+      });
+    } catch (notifyError) {
+      logger.warn('Tip notification failed', { bookingId: booking._id, error: notifyError.message });
+    }
+
+    logger.info('Tip added', { bookingId: booking._id, amount, userId: req.user.id });
+    return sendSuccess(res, booking.tip, 'Tip added successfully');
+  } catch (error) {
+    logger.error('Add tip error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, 'Failed to add tip', 'TIP_ADD_ERROR');
+  }
+};
+
+// @desc    Sign off booking completion
+// @route   POST /api/marketplace/bookings/:id/signoff
+// @access  Private (Client)
+const signOffBooking = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const isClient = booking.client.toString() === req.user.id;
+    if (!isClient) {
+      return res.status(403).json({ success: false, message: 'Only the client can sign off', code: 'UNAUTHORIZED' });
+    }
+
+    const { signature } = req.body;
+    await booking.signOff(req.user.id, signature);
+
+    logger.info('Booking signed off', { bookingId: booking._id, userId: req.user.id });
+    return sendSuccess(res, booking.completion, 'Booking signed off successfully');
+  } catch (error) {
+    logger.error('Sign off booking error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, 'Failed to sign off booking', 'SIGNOFF_ERROR');
+  }
+};
+
+// @desc    Get booking statistics for provider
+// @route   GET /api/marketplace/bookings/stats
+// @access  Private (Provider)
+const getBookingStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const isProvider = req.user.roles?.includes('provider');
+
+    const matchFilter = isProvider ? { provider: new mongoose.Types.ObjectId(userId) } : { client: new mongoose.Types.ObjectId(userId) };
+
+    const stats = await Booking.aggregate([
+      { $match: matchFilter },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+          totalRevenue: { $sum: '$pricing.totalAmount' }
+        }
+      }
+    ]);
+
+    const monthlyStats = await Booking.aggregate([
+      { $match: { ...matchFilter, createdAt: { $gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) } } },
+      {
+        $group: {
+          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+          count: { $sum: 1 },
+          revenue: { $sum: '$pricing.totalAmount' }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
+    ]);
+
+    const summary = {
+      byStatus: stats.reduce((acc, s) => { acc[s._id] = { count: s.count, revenue: s.totalRevenue }; return acc; }, {}),
+      monthly: monthlyStats.map(m => ({
+        year: m._id.year,
+        month: m._id.month,
+        count: m.count,
+        revenue: m.revenue
+      })),
+      total: stats.reduce((acc, s) => acc + s.count, 0),
+      totalRevenue: stats.reduce((acc, s) => acc + s.totalRevenue, 0)
+    };
+
+    return sendSuccess(res, summary, 'Booking statistics retrieved successfully');
+  } catch (error) {
+    logger.error('Get booking stats error', { error: error.message, userId: req.user?.id });
+    return sendServerError(res, error, 'Failed to retrieve statistics', 'STATS_ERROR');
+  }
+};
+
+// @desc    Link external ID to booking
+// @route   POST /api/marketplace/bookings/:id/external-ids
+// @access  Private (Provider/Admin)
+const linkBookingExternalId = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    const isAdmin = req.user.roles?.includes('admin');
+    const isProvider = booking.provider.toString() === req.user.id;
+    if (!isProvider && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized', code: 'UNAUTHORIZED' });
+    }
+
+    const { system, externalId, metadata } = req.body;
+    if (!system || !externalId) {
+      return sendValidationError(res, [{ field: 'system/externalId', message: 'System and external ID are required', code: 'REQUIRED_FIELDS' }]);
+    }
+
+    await booking.linkExternalId(system, externalId, metadata);
+
+    logger.info('Booking external ID linked', { bookingId: booking._id, system, externalId, userId: req.user.id });
+    return sendSuccess(res, booking.externalIds, 'External ID linked successfully');
+  } catch (error) {
+    logger.error('Link booking external ID error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, 'Failed to link external ID', 'EXTERNAL_ID_LINK_ERROR');
+  }
+};
+
 module.exports = {
+  // Service - Basic
   getServices,
   getService,
+  getServiceBySlug,
   getNearbyServices,
+  createService,
+  updateService,
+  deleteService,
+  deactivateService,
+  activateService,
+  uploadServiceImages,
+
+  // Service - Categories
   getServiceCategories,
   getCategoryDetails,
   listServiceCategoriesAdmin,
   createServiceCategory,
   updateServiceCategory,
   deleteServiceCategory,
-  createService,
-  updateService,
-  deleteService,
-  uploadServiceImages,
-  createBooking,
-  getBooking,
-  getBookings,
-  updateBookingStatus,
-  uploadBookingPhotos,
-  addReview,
-  approvePayPalBooking,
-  getPayPalOrderDetails,
+
+  // Service - Approval Workflow
+  submitServiceForReview,
+  approveService,
+  rejectService,
+  getPendingReviewServices,
+
+  // Service - Featuring
+  featureService,
+  unfeatureService,
+  getFeaturedServices,
+
+  // Service - Packages & Add-ons
+  addServicePackage,
+  updateServicePackage,
+  deleteServicePackage,
+  addServiceAddOn,
+  updateServiceAddOn,
+  deleteServiceAddOn,
+
+  // Service - SEO, Promotions, Availability
+  updateServiceSEO,
+  createServicePromotion,
+  endServicePromotion,
+  updateServiceAvailability,
+  archiveService,
+
+  // Service - Analytics & External
+  getServiceAnalytics,
+  linkServiceExternalId,
+  getServiceReviews,
+
+  // Service - Provider
   getMyServices,
-  getMyBookings,
   getProvidersForService,
   getProviderDetails,
   getProviderServices,
-  deactivateService,
-  activateService
+
+  // Booking - Basic
+  createBooking,
+  getBooking,
+  getBookings,
+  getBookingByNumber,
+  getMyBookings,
+  updateBookingStatus,
+  uploadBookingPhotos,
+
+  // Booking - Workflow
+  confirmBooking,
+  startBooking,
+  completeBooking,
+  cancelBooking,
+  rescheduleBooking,
+  signOffBooking,
+
+  // Booking - GPS Tracking
+  updateProviderLocation,
+  markProviderArrived,
+  getLocationHistory,
+
+  // Booking - Disputes
+  openDispute,
+  addDisputeEvidence,
+  addDisputeMessage,
+  resolveDispute,
+  getDisputedBookings,
+
+  // Booking - Reviews
+  addReview,
+  addClientReview,
+  addProviderReview,
+  respondToReview,
+
+  // Booking - Payments & Tips
+  approvePayPalBooking,
+  getPayPalOrderDetails,
+  addBookingTip,
+
+  // Booking - Analytics & External
+  getBookingStats,
+  linkBookingExternalId
 };
 

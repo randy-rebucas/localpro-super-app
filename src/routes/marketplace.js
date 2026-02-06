@@ -1,225 +1,222 @@
 const express = require('express');
+const { body, param, query } = require('express-validator');
 const { auth, authorize } = require('../middleware/auth');
-const { 
-  validateObjectIdParam, 
-  validatePaginationParams, 
+const {
+  validateObjectIdParam,
+  validatePaginationParams,
   validateSearchParams
 } = require('../middleware/routeValidation');
 const {
+  // Service - Basic
   getServices,
   getService,
+  getServiceBySlug,
   getNearbyServices,
+  createService,
+  updateService,
+  deleteService,
+  deactivateService,
+  activateService,
+  uploadServiceImages,
+
+  // Service - Categories
   getServiceCategories,
   getCategoryDetails,
   listServiceCategoriesAdmin,
   createServiceCategory,
   updateServiceCategory,
   deleteServiceCategory,
-  createService,
-  updateService,
-  deleteService,
-  uploadServiceImages,
-  createBooking,
-  getBooking,
-  getBookings,
-  updateBookingStatus,
-  uploadBookingPhotos,
-  addReview,
-  approvePayPalBooking,
-  getPayPalOrderDetails,
+
+  // Service - Approval Workflow
+  submitServiceForReview,
+  approveService,
+  rejectService,
+  getPendingReviewServices,
+
+  // Service - Featuring
+  featureService,
+  unfeatureService,
+  getFeaturedServices,
+
+  // Service - Packages & Add-ons
+  addServicePackage,
+  updateServicePackage,
+  deleteServicePackage,
+  addServiceAddOn,
+  updateServiceAddOn,
+  deleteServiceAddOn,
+
+  // Service - SEO, Promotions, Availability
+  updateServiceSEO,
+  createServicePromotion,
+  endServicePromotion,
+  updateServiceAvailability,
+  archiveService,
+
+  // Service - Analytics & External
+  getServiceAnalytics,
+  linkServiceExternalId,
+  getServiceReviews,
+
+  // Service - Provider
   getMyServices,
-  getMyBookings,
   getProvidersForService,
   getProviderDetails,
   getProviderServices,
-  deactivateService,
-  activateService
+
+  // Booking - Basic
+  createBooking,
+  getBooking,
+  getBookings,
+  getBookingByNumber,
+  getMyBookings,
+  updateBookingStatus,
+  uploadBookingPhotos,
+
+  // Booking - Workflow
+  confirmBooking,
+  startBooking,
+  completeBooking,
+  cancelBooking,
+  rescheduleBooking,
+  signOffBooking,
+
+  // Booking - GPS Tracking
+  updateProviderLocation,
+  markProviderArrived,
+  getLocationHistory,
+
+  // Booking - Disputes
+  openDispute,
+  addDisputeEvidence,
+  addDisputeMessage,
+  resolveDispute,
+  getDisputedBookings,
+
+  // Booking - Reviews
+  addReview,
+  addClientReview,
+  addProviderReview,
+  respondToReview,
+
+  // Booking - Payments & Tips
+  approvePayPalBooking,
+  getPayPalOrderDetails,
+  addBookingTip,
+
+  // Booking - Analytics & External
+  getBookingStats,
+  linkBookingExternalId
 } = require('../controllers/marketplaceController');
 const { uploaders } = require('../config/cloudinary');
 
 const router = express.Router();
+
+// ============================================
+// PUBLIC SERVICE ROUTES
+// ============================================
 
 /**
  * @swagger
  * /api/marketplace/services:
  *   get:
  *     summary: Get list of services
- *     tags: [Marketplace]
+ *     tags: [Marketplace - Services]
  *     security: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Items per page
- *       - in: query
- *         name: category
- *         schema:
- *           type: string
- *         description: Filter by category
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: Search term
- *       - in: query
- *         name: minPrice
- *         schema:
- *           type: number
- *         description: Minimum price
- *       - in: query
- *         name: maxPrice
- *         schema:
- *           type: number
- *         description: Maximum price
- *     responses:
- *       200:
- *         description: List of services
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/PaginatedResponse'
- *       400:
- *         $ref: '#/components/responses/ValidationError'
  */
-// Public routes
-router.get('/services', 
+router.get('/services',
   validatePaginationParams,
   validateSearchParams,
   getServices
 );
+
 /**
  * @swagger
  * /api/marketplace/services/categories:
  *   get:
  *     summary: Get service categories
- *     tags: [Marketplace]
+ *     tags: [Marketplace - Categories]
  *     security: []
- *     responses:
- *       200:
- *         description: List of service categories
  */
-// Category routes - specific routes must come before parameterized routes
 router.get('/services/categories', getServiceCategories);
 
 /**
  * @swagger
- * /api/marketplace/services/categories/{category}:
+ * /api/marketplace/services/categories/:category:
  *   get:
  *     summary: Get category details
- *     tags: [Marketplace]
+ *     tags: [Marketplace - Categories]
  *     security: []
- *     parameters:
- *       - in: path
- *         name: category
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Category details
- *       404:
- *         $ref: '#/components/responses/NotFoundError'
  */
 router.get('/services/categories/:category', getCategoryDetails);
+
+/**
+ * @swagger
+ * /api/marketplace/services/featured:
+ *   get:
+ *     summary: Get featured services
+ *     tags: [Marketplace - Services]
+ *     security: []
+ */
+router.get('/services/featured', validatePaginationParams, getFeaturedServices);
 
 /**
  * @swagger
  * /api/marketplace/services/nearby:
  *   get:
  *     summary: Get nearby services
- *     tags: [Marketplace]
+ *     tags: [Marketplace - Services]
  *     security: []
- *     parameters:
- *       - in: query
- *         name: latitude
- *         required: true
- *         schema:
- *           type: number
- *       - in: query
- *         name: longitude
- *         required: true
- *         schema:
- *           type: number
- *       - in: query
- *         name: radius
- *         schema:
- *           type: number
- *           default: 10
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: List of nearby services
  */
-router.get('/services/nearby', 
+router.get('/services/nearby',
   validateSearchParams,
   getNearbyServices
 );
 
 /**
  * @swagger
- * /api/marketplace/services/{id}:
+ * /api/marketplace/services/slug/:slug:
+ *   get:
+ *     summary: Get service by slug
+ *     tags: [Marketplace - Services]
+ *     security: []
+ */
+router.get('/services/slug/:slug', getServiceBySlug);
+
+/**
+ * @swagger
+ * /api/marketplace/services/:id/reviews:
+ *   get:
+ *     summary: Get service reviews
+ *     tags: [Marketplace - Reviews]
+ *     security: []
+ */
+router.get('/services/:id/reviews',
+  validateObjectIdParam('id'),
+  validatePaginationParams,
+  getServiceReviews
+);
+
+/**
+ * @swagger
+ * /api/marketplace/services/:id:
  *   get:
  *     summary: Get service by ID
- *     tags: [Marketplace]
+ *     tags: [Marketplace - Services]
  *     security: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     responses:
- *       200:
- *         description: Service details
- *       404:
- *         $ref: '#/components/responses/NotFoundError'
  */
-router.get('/services/:id', 
+router.get('/services/:id',
   validateObjectIdParam('id'),
   getService
 );
 
 /**
  * @swagger
- * /api/marketplace/services/{id}/providers:
+ * /api/marketplace/services/:id/providers:
  *   get:
  *     summary: Get providers for a service
- *     tags: [Marketplace]
+ *     tags: [Marketplace - Services]
  *     security: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: List of providers for the service
  */
 router.get('/services/:id/providers',
   validateObjectIdParam('id'),
@@ -229,31 +226,12 @@ router.get('/services/:id/providers',
 
 /**
  * @swagger
- * /api/marketplace/providers/{providerId}/services:
+ * /api/marketplace/providers/:providerId/services:
  *   get:
  *     summary: Get services by provider
- *     tags: [Marketplace]
+ *     tags: [Marketplace - Providers]
  *     security: []
- *     parameters:
- *       - in: path
- *         name: providerId
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: List of provider services
  */
-// Provider routes - specific routes must come before parameterized routes
 router.get('/providers/:providerId/services',
   validateObjectIdParam('providerId'),
   validatePaginationParams,
@@ -262,173 +240,135 @@ router.get('/providers/:providerId/services',
 
 /**
  * @swagger
- * /api/marketplace/providers/{id}:
+ * /api/marketplace/providers/:id:
  *   get:
  *     summary: Get provider details
- *     tags: [Marketplace]
+ *     tags: [Marketplace - Providers]
  *     security: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     responses:
- *       200:
- *         description: Provider details
- *       404:
- *         $ref: '#/components/responses/NotFoundError'
  */
-// Provider details route
 router.get('/providers/:id',
   validateObjectIdParam('id'),
   getProviderDetails
 );
 
-// Protected routes
+// ============================================
+// PROTECTED ROUTES - Require Authentication
+// ============================================
 router.use(auth);
+
+// ============================================
+// ADMIN - Category Management
+// ============================================
 
 /**
  * @swagger
  * /api/marketplace/services/categories/manage:
  *   get:
- *     summary: List service categories for admin management (Admin only)
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: List of categories for management
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
+ *     summary: List service categories for admin management
+ *     tags: [Marketplace - Admin]
  */
-// Service category management (Admin)
 router.get('/services/categories/manage', authorize('admin'), listServiceCategoriesAdmin);
 
-/**
- * @swagger
- * /api/marketplace/services/categories:
- *   post:
- *     summary: Create service category (Admin only)
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - name
- *             properties:
- *               name:
- *                 type: string
- *               description:
- *                 type: string
- *               icon:
- *                 type: string
- *     responses:
- *       201:
- *         description: Category created
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-router.post('/services/categories', authorize('admin'), createServiceCategory);
+router.post('/services/categories',
+  authorize('admin'),
+  body('key').notEmpty().withMessage('Key is required'),
+  body('name').notEmpty().withMessage('Name is required'),
+  createServiceCategory
+);
+
+router.put('/services/categories/:id',
+  authorize('admin'),
+  validateObjectIdParam('id'),
+  updateServiceCategory
+);
+
+router.delete('/services/categories/:id',
+  authorize('admin'),
+  validateObjectIdParam('id'),
+  deleteServiceCategory
+);
+
+// ============================================
+// ADMIN - Service Approval Workflow
+// ============================================
 
 /**
  * @swagger
- * /api/marketplace/services/categories/{id}:
- *   put:
- *     summary: Update service category (Admin only)
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               description:
- *                 type: string
- *               icon:
- *                 type: string
- *     responses:
- *       200:
- *         description: Category updated
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- *   delete:
- *     summary: Delete service category (Admin only)
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     responses:
- *       200:
- *         description: Category deleted
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
+ * /api/marketplace/services/pending-review:
+ *   get:
+ *     summary: Get services pending review (Admin)
+ *     tags: [Marketplace - Admin]
  */
-router.put('/services/categories/:id', authorize('admin'), updateServiceCategory);
-router.delete('/services/categories/:id', authorize('admin'), deleteServiceCategory);
+router.get('/services/pending-review',
+  authorize('admin'),
+  validatePaginationParams,
+  getPendingReviewServices
+);
+
+router.post('/services/:id/approve',
+  authorize('admin'),
+  validateObjectIdParam('id'),
+  approveService
+);
+
+router.post('/services/:id/reject',
+  authorize('admin'),
+  validateObjectIdParam('id'),
+  body('reason').notEmpty().withMessage('Rejection reason is required'),
+  rejectService
+);
+
+// ============================================
+// ADMIN - Service Featuring
+// ============================================
+
+router.post('/services/:id/feature',
+  authorize('admin'),
+  validateObjectIdParam('id'),
+  featureService
+);
+
+router.delete('/services/:id/feature',
+  authorize('admin'),
+  validateObjectIdParam('id'),
+  unfeatureService
+);
+
+// ============================================
+// ADMIN - Dispute Management
+// ============================================
+
+/**
+ * @swagger
+ * /api/marketplace/bookings/disputes:
+ *   get:
+ *     summary: Get all disputed bookings (Admin)
+ *     tags: [Marketplace - Admin]
+ */
+router.get('/bookings/disputes',
+  authorize('admin'),
+  validatePaginationParams,
+  getDisputedBookings
+);
+
+router.post('/bookings/:id/dispute/resolve',
+  authorize('admin'),
+  validateObjectIdParam('id'),
+  body('outcome').notEmpty().withMessage('Resolution outcome is required'),
+  resolveDispute
+);
+
+// ============================================
+// MY SERVICES & BOOKINGS
+// ============================================
 
 /**
  * @swagger
  * /api/marketplace/my-services:
  *   get:
- *     summary: Get my services (Provider only)
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [active, inactive, pending]
- *     responses:
- *       200:
- *         description: List of my services
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
+ *     summary: Get my services (Provider)
+ *     tags: [Marketplace - Provider]
  */
-// My services route
 router.get('/my-services', getMyServices);
 
 /**
@@ -436,521 +376,329 @@ router.get('/my-services', getMyServices);
  * /api/marketplace/my-bookings:
  *   get:
  *     summary: Get my bookings
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [pending, confirmed, completed, cancelled]
- *       - in: query
- *         name: role
- *         schema:
- *           type: string
- *           enum: [client, provider]
- *           description: Filter by booking role
- *     responses:
- *       200:
- *         description: List of my bookings
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
+ *     tags: [Marketplace - Bookings]
  */
-// My bookings route
 router.get('/my-bookings', getMyBookings);
 
-// Service routes
-// Allow both JSON and multipart/form-data for service creation (with optional images)
-// Create conditional middleware that only applies multer for multipart requests
+// ============================================
+// SERVICE CRUD - Provider/Admin
+// ============================================
+
+// Conditional middleware for multipart/form-data
 const optionalImageUpload = (req, res, next) => {
   const contentType = req.get('content-type') || '';
   if (contentType.includes('multipart/form-data')) {
-    // Apply multer middleware for multipart requests
     return uploaders.marketplace.array('images', 5)(req, res, next);
   }
-  // Skip multer for JSON requests
   next();
 };
 
-/**
- * @swagger
- * /api/marketplace/services:
- *   post:
- *     summary: Create a new service (Provider/Admin only)
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - title
- *               - category
- *               - price
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               category:
- *                 type: string
- *               price:
- *                 type: number
- *               images:
- *                 type: array
- *                 items:
- *                   type: string
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               category:
- *                 type: string
- *               price:
- *                 type: number
- *               images:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
- *     responses:
- *       201:
- *         description: Service created successfully
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-router.post('/services', authorize('provider', 'admin'), optionalImageUpload, createService);
+router.post('/services',
+  authorize('provider', 'admin'),
+  optionalImageUpload,
+  createService
+);
 
-/**
- * @swagger
- * /api/marketplace/services/{id}:
- *   put:
- *     summary: Update service (Provider/Admin only)
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               category:
- *                 type: string
- *               price:
- *                 type: number
- *     responses:
- *       200:
- *         description: Service updated
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- *   delete:
- *     summary: Delete service (Provider/Admin only)
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     responses:
- *       200:
- *         description: Service deleted
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-router.put('/services/:id', authorize('provider', 'admin'), updateService);
+router.put('/services/:id',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  updateService
+);
 
-/**
- * @swagger
- * /api/marketplace/services/{id}/deactivate:
- *   patch:
- *     summary: Deactivate service (Provider/Admin only)
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     responses:
- *       200:
- *         description: Service deactivated
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-router.patch('/services/:id/deactivate', authorize('provider', 'admin'), deactivateService);
+router.delete('/services/:id',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  deleteService
+);
 
-/**
- * @swagger
- * /api/marketplace/services/{id}/activate:
- *   patch:
- *     summary: Activate service (Provider/Admin only)
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     responses:
- *       200:
- *         description: Service activated
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-router.patch('/services/:id/activate', authorize('provider', 'admin'), activateService);
+router.patch('/services/:id/deactivate',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  deactivateService
+);
 
-router.delete('/services/:id', authorize('provider', 'admin'), deleteService);
+router.patch('/services/:id/activate',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  activateService
+);
 
-/**
- * @swagger
- * /api/marketplace/services/{id}/images:
- *   post:
- *     summary: Upload service images (Provider/Admin only)
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               images:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
- *                 maxItems: 5
- *     responses:
- *       200:
- *         description: Images uploaded successfully
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-router.post('/services/:id/images', authorize('provider', 'admin'), uploaders.marketplace.array('images', 5), uploadServiceImages);
+router.post('/services/:id/images',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  uploaders.marketplace.array('images', 5),
+  uploadServiceImages
+);
 
-/**
- * @swagger
- * /api/marketplace/bookings:
- *   post:
- *     summary: Create a new booking
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - serviceId
- *               - providerId
- *               - scheduledDate
- *             properties:
- *               serviceId:
- *                 type: string
- *                 format: ObjectId
- *               providerId:
- *                 type: string
- *                 format: ObjectId
- *               scheduledDate:
- *                 type: string
- *                 format: date-time
- *               address:
- *                 type: object
- *               notes:
- *                 type: string
- *     responses:
- *       201:
- *         description: Booking created successfully
- *       400:
- *         $ref: '#/components/responses/ValidationError'
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *   get:
- *     summary: Get user's bookings
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [pending, confirmed, completed, cancelled]
- *     responses:
- *       200:
- *         description: List of bookings
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- */
-// Booking routes
+// ============================================
+// SERVICE - Approval Workflow (Provider)
+// ============================================
+
+router.post('/services/:id/submit',
+  authorize('provider'),
+  validateObjectIdParam('id'),
+  submitServiceForReview
+);
+
+router.post('/services/:id/archive',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  archiveService
+);
+
+// ============================================
+// SERVICE - Packages & Add-ons
+// ============================================
+
+router.post('/services/:id/packages',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  body('name').notEmpty().withMessage('Package name is required'),
+  body('price').isNumeric().withMessage('Package price is required'),
+  addServicePackage
+);
+
+router.put('/services/:id/packages/:packageId',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  updateServicePackage
+);
+
+router.delete('/services/:id/packages/:packageId',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  deleteServicePackage
+);
+
+router.post('/services/:id/addons',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  body('name').notEmpty().withMessage('Add-on name is required'),
+  body('price').isNumeric().withMessage('Add-on price is required'),
+  addServiceAddOn
+);
+
+router.put('/services/:id/addons/:addonId',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  updateServiceAddOn
+);
+
+router.delete('/services/:id/addons/:addonId',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  deleteServiceAddOn
+);
+
+// ============================================
+// SERVICE - SEO, Promotions, Availability
+// ============================================
+
+router.put('/services/:id/seo',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  updateServiceSEO
+);
+
+router.post('/services/:id/promotions',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  body('discountType').isIn(['percentage', 'fixed']).withMessage('Invalid discount type'),
+  body('discountValue').isNumeric().withMessage('Discount value is required'),
+  createServicePromotion
+);
+
+router.delete('/services/:id/promotions',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  endServicePromotion
+);
+
+router.put('/services/:id/availability',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  updateServiceAvailability
+);
+
+// ============================================
+// SERVICE - Analytics & External IDs
+// ============================================
+
+router.get('/services/:id/analytics',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  getServiceAnalytics
+);
+
+router.post('/services/:id/external-ids',
+  authorize('provider', 'admin'),
+  validateObjectIdParam('id'),
+  body('system').notEmpty().withMessage('System is required'),
+  body('externalId').notEmpty().withMessage('External ID is required'),
+  linkServiceExternalId
+);
+
+// ============================================
+// BOOKING - Basic Operations
+// ============================================
+
 router.post('/bookings', createBooking);
+
 router.get('/bookings', getBookings);
-/**
- * @swagger
- * /api/marketplace/bookings/{id}:
- *   get:
- *     summary: Get booking by ID
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     responses:
- *       200:
- *         description: Booking details
- *       404:
- *         $ref: '#/components/responses/NotFoundError'
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- */
-router.get('/bookings/:id', validateObjectIdParam('id'), getBooking);
-/**
- * @swagger
- * /api/marketplace/bookings/{id}/status:
- *   put:
- *     summary: Update booking status
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - status
- *             properties:
- *               status:
- *                 type: string
- *                 enum: [pending, confirmed, completed, cancelled]
- *     responses:
- *       200:
- *         description: Booking status updated
- *       400:
- *         $ref: '#/components/responses/ValidationError'
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- */
-router.put('/bookings/:id/status', updateBookingStatus);
 
-/**
- * @swagger
- * /api/marketplace/bookings/{id}/photos:
- *   post:
- *     summary: Upload booking photos
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               photos:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
- *                 maxItems: 5
- *     responses:
- *       200:
- *         description: Photos uploaded successfully
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- */
-router.post('/bookings/:id/photos', uploaders.marketplace.array('photos', 5), uploadBookingPhotos);
+router.get('/bookings/stats', getBookingStats);
 
-/**
- * @swagger
- * /api/marketplace/bookings/{id}/review:
- *   post:
- *     summary: Add review to booking
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required:
- *               - rating
- *               - comment
- *             properties:
- *               rating:
- *                 type: integer
- *                 minimum: 1
- *                 maximum: 5
- *               comment:
- *                 type: string
- *               photos:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
- *                 maxItems: 3
- *     responses:
- *       201:
- *         description: Review added successfully
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- */
-router.post('/bookings/:id/review', uploaders.marketplace.array('photos', 3), addReview);
+router.get('/bookings/number/:bookingNumber', getBookingByNumber);
 
-/**
- * @swagger
- * /api/marketplace/bookings/paypal/approve:
- *   post:
- *     summary: Approve PayPal booking
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - orderID
- *               - bookingId
- *             properties:
- *               orderID:
- *                 type: string
- *               bookingId:
- *                 type: string
- *                 format: ObjectId
- *     responses:
- *       200:
- *         description: Booking approved
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- */
-// PayPal routes
+router.get('/bookings/:id',
+  validateObjectIdParam('id'),
+  getBooking
+);
+
+router.put('/bookings/:id/status',
+  validateObjectIdParam('id'),
+  updateBookingStatus
+);
+
+router.post('/bookings/:id/photos',
+  validateObjectIdParam('id'),
+  uploaders.marketplace.array('photos', 5),
+  uploadBookingPhotos
+);
+
+// ============================================
+// BOOKING - Workflow (Confirm, Start, Complete, Cancel, Reschedule)
+// ============================================
+
+router.post('/bookings/:id/confirm',
+  validateObjectIdParam('id'),
+  confirmBooking
+);
+
+router.post('/bookings/:id/start',
+  validateObjectIdParam('id'),
+  startBooking
+);
+
+router.post('/bookings/:id/complete',
+  validateObjectIdParam('id'),
+  completeBooking
+);
+
+router.post('/bookings/:id/cancel',
+  validateObjectIdParam('id'),
+  body('reason').notEmpty().withMessage('Cancellation reason is required'),
+  cancelBooking
+);
+
+router.post('/bookings/:id/reschedule',
+  validateObjectIdParam('id'),
+  body('newDate').notEmpty().withMessage('New date is required'),
+  rescheduleBooking
+);
+
+router.post('/bookings/:id/signoff',
+  validateObjectIdParam('id'),
+  signOffBooking
+);
+
+// ============================================
+// BOOKING - GPS Tracking
+// ============================================
+
+router.post('/bookings/:id/location',
+  validateObjectIdParam('id'),
+  body('lat').isNumeric().withMessage('Latitude is required'),
+  body('lng').isNumeric().withMessage('Longitude is required'),
+  updateProviderLocation
+);
+
+router.post('/bookings/:id/arrived',
+  validateObjectIdParam('id'),
+  markProviderArrived
+);
+
+router.get('/bookings/:id/location-history',
+  validateObjectIdParam('id'),
+  getLocationHistory
+);
+
+// ============================================
+// BOOKING - Disputes
+// ============================================
+
+router.post('/bookings/:id/dispute',
+  validateObjectIdParam('id'),
+  body('reason').notEmpty().withMessage('Dispute reason is required'),
+  body('description').notEmpty().withMessage('Dispute description is required'),
+  openDispute
+);
+
+router.post('/bookings/:id/dispute/evidence',
+  validateObjectIdParam('id'),
+  body('type').notEmpty().withMessage('Evidence type is required'),
+  body('url').notEmpty().withMessage('Evidence URL is required'),
+  addDisputeEvidence
+);
+
+router.post('/bookings/:id/dispute/messages',
+  validateObjectIdParam('id'),
+  body('message').notEmpty().withMessage('Message is required'),
+  addDisputeMessage
+);
+
+// ============================================
+// BOOKING - Reviews
+// ============================================
+
+router.post('/bookings/:id/review',
+  validateObjectIdParam('id'),
+  uploaders.marketplace.array('photos', 3),
+  addReview
+);
+
+router.post('/bookings/:id/reviews/client',
+  validateObjectIdParam('id'),
+  body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be 1-5'),
+  body('comment').notEmpty().withMessage('Comment is required'),
+  addClientReview
+);
+
+router.post('/bookings/:id/reviews/provider',
+  validateObjectIdParam('id'),
+  body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be 1-5'),
+  addProviderReview
+);
+
+router.post('/bookings/:id/reviews/respond',
+  validateObjectIdParam('id'),
+  body('message').notEmpty().withMessage('Response message is required'),
+  respondToReview
+);
+
+// ============================================
+// BOOKING - Payments & Tips
+// ============================================
+
 router.post('/bookings/paypal/approve', approvePayPalBooking);
 
-/**
- * @swagger
- * /api/marketplace/bookings/paypal/order/{orderId}:
- *   get:
- *     summary: Get PayPal order details
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: orderId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: PayPal order details
- *       404:
- *         $ref: '#/components/responses/NotFoundError'
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- */
 router.get('/bookings/paypal/order/:orderId', getPayPalOrderDetails);
+
+router.post('/bookings/:id/tip',
+  validateObjectIdParam('id'),
+  body('amount').isNumeric().withMessage('Tip amount is required'),
+  addBookingTip
+);
+
+// ============================================
+// BOOKING - External IDs
+// ============================================
+
+router.post('/bookings/:id/external-ids',
+  validateObjectIdParam('id'),
+  body('system').notEmpty().withMessage('System is required'),
+  body('externalId').notEmpty().withMessage('External ID is required'),
+  linkBookingExternalId
+);
 
 module.exports = router;

@@ -1,0 +1,850 @@
+{
+  "info": {
+    "_postman_id": "localpro-jobs-collection",
+    "name": "LocalPro API - Jobs & ATS",
+    "description": "Complete Job Board and Applicant Tracking System (ATS) API. Includes job posting, applications, interviews, offers, referrals, and analytics.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+  },
+  "item": [
+    {
+      "name": "Public - Job Discovery",
+      "description": "Public endpoints for browsing and searching jobs",
+      "item": [
+        {
+          "name": "Get Job Categories",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get All Jobs",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Jobs",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/search?q=developer&category={{categoryId}}&jobType=full_time&experienceLevel=mid&location=Manila&minSalary=30000&maxSalary=100000",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "search"],
+              "query": [
+                {"key": "q", "value": "developer"},
+                {"key": "category", "value": "{{categoryId}}"},
+                {"key": "jobType", "value": "full_time"},
+                {"key": "experienceLevel", "value": "mid"},
+                {"key": "location", "value": "Manila"},
+                {"key": "minSalary", "value": "30000"},
+                {"key": "maxSalary", "value": "100000"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Featured Jobs",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/featured?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "featured"],
+              "query": [{"key": "limit", "value": "10"}]
+            }
+          }
+        },
+        {
+          "name": "Get Urgent Jobs",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/urgent?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "urgent"],
+              "query": [{"key": "limit", "value": "10"}]
+            }
+          }
+        },
+        {
+          "name": "Get Remote Jobs",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/remote?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "remote"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Nearby Jobs",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/nearby?lat=14.5995&lng=120.9842&maxDistance=25",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "nearby"],
+              "query": [
+                {"key": "lat", "value": "14.5995"},
+                {"key": "lng", "value": "120.9842"},
+                {"key": "maxDistance", "value": "25"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Job by ID",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Job by Slug",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/slug/{{jobSlug}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "slug", "{{jobSlug}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Job by Number",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/number/{{jobNumber}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "number", "{{jobNumber}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employer - Job Management",
+      "description": "Create and manage job postings",
+      "item": [
+        {
+          "name": "Create Job (Full)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.data && response.data._id) {",
+                  "    pm.environment.set('jobId', response.data._id);",
+                  "    pm.environment.set('jobSlug', response.data.slug);",
+                  "    pm.environment.set('jobNumber', response.data.jobNumber);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Software Engineer\",\n  \"description\": \"We are looking for an experienced software engineer to join our growing team. You will be responsible for designing and implementing scalable backend systems.\",\n  \"shortDescription\": \"Join our team as a Senior Software Engineer\",\n  \"category\": \"{{categoryId}}\",\n  \"subcategory\": \"backend_development\",\n  \"seo\": {\n    \"metaTitle\": \"Senior Software Engineer | Tech Company\",\n    \"metaDescription\": \"Exciting opportunity for experienced software engineers. Competitive salary and benefits.\",\n    \"keywords\": [\"software engineer\", \"backend\", \"nodejs\", \"mongodb\"]\n  },\n  \"tags\": [\"engineering\", \"backend\", \"senior\", \"remote-friendly\"],\n  \"company\": {\n    \"name\": \"Tech Solutions Inc.\",\n    \"website\": \"https://techsolutions.example.com\",\n    \"size\": \"medium\",\n    \"industry\": \"Technology\",\n    \"about\": \"Leading technology company specializing in innovative software solutions.\",\n    \"culture\": {\n      \"description\": \"We value innovation, collaboration, and work-life balance.\",\n      \"values\": [\"Innovation\", \"Teamwork\", \"Excellence\"],\n      \"perks\": [\"Free lunch\", \"Gym membership\", \"Learning budget\"]\n    },\n    \"techStack\": [\"Node.js\", \"MongoDB\", \"React\", \"AWS\"]\n  },\n  \"location\": {\n    \"type\": \"hybrid\",\n    \"primary\": {\n      \"address\": \"123 Tech Street, Makati City\",\n      \"city\": \"Makati\",\n      \"state\": \"Metro Manila\",\n      \"country\": \"Philippines\",\n      \"zipCode\": \"1234\"\n    },\n    \"remoteDetails\": {\n      \"timezone\": \"Asia/Manila\",\n      \"timezoneFlexibility\": \"flexible\",\n      \"equipmentProvided\": true\n    },\n    \"travelRequired\": {\n      \"required\": false\n    }\n  },\n  \"jobType\": \"full_time\",\n  \"experienceLevel\": \"senior\",\n  \"positionsAvailable\": 2,\n  \"salary\": {\n    \"min\": 80000,\n    \"max\": 120000,\n    \"currency\": \"PHP\",\n    \"period\": \"monthly\",\n    \"isNegotiable\": true,\n    \"showRange\": true,\n    \"equity\": {\n      \"hasEquity\": true,\n      \"percentage\": 0.5,\n      \"vestingPeriod\": 48\n    },\n    \"bonus\": {\n      \"hasBonus\": true,\n      \"type\": \"performance\",\n      \"description\": \"Annual performance bonus up to 2 months salary\"\n    },\n    \"thirteenthMonth\": true\n  },\n  \"benefits\": [\n    {\"type\": \"health_insurance\", \"description\": \"HMO coverage for employee and 2 dependents\", \"isHighlighted\": true},\n    {\"type\": \"paid_time_off\", \"description\": \"20 days vacation leave\"},\n    {\"type\": \"remote_work\", \"description\": \"Work from home 3 days a week\"},\n    {\"type\": \"professional_development\", \"description\": \"PHP 50,000 annual learning budget\"}\n  ],\n  \"requirements\": {\n    \"skills\": [\n      {\"name\": \"Node.js\", \"level\": \"expert\", \"yearsRequired\": 3, \"isRequired\": true, \"category\": \"technical\"},\n      {\"name\": \"MongoDB\", \"level\": \"advanced\", \"yearsRequired\": 2, \"isRequired\": true, \"category\": \"technical\"},\n      {\"name\": \"REST API Design\", \"level\": \"expert\", \"isRequired\": true, \"category\": \"technical\"},\n      {\"name\": \"Communication\", \"level\": \"advanced\", \"isRequired\": true, \"category\": \"soft\"}\n    ],\n    \"education\": {\n      \"level\": \"bachelor\",\n      \"fields\": [\"Computer Science\", \"Information Technology\"],\n      \"isRequired\": false\n    },\n    \"experience\": {\n      \"minYears\": 5,\n      \"maxYears\": 10,\n      \"description\": \"5+ years of backend development experience\"\n    },\n    \"languages\": [\n      {\"language\": \"English\", \"proficiency\": \"professional\", \"isRequired\": true}\n    ]\n  },\n  \"responsibilities\": [\n    {\"text\": \"Design and implement scalable backend services\", \"priority\": 1},\n    {\"text\": \"Lead code reviews and mentor junior developers\", \"priority\": 2},\n    {\"text\": \"Collaborate with product team to define technical requirements\", \"priority\": 3}\n  ],\n  \"qualifications\": [\n    {\"text\": \"5+ years experience with Node.js\", \"isRequired\": true},\n    {\"text\": \"Experience with microservices architecture\", \"isRequired\": true},\n    {\"text\": \"AWS certification\", \"isRequired\": false}\n  ],\n  \"niceToHave\": [\"GraphQL experience\", \"Kubernetes knowledge\", \"Open source contributions\"],\n  \"screeningQuestions\": [\n    {\"question\": \"How many years of Node.js experience do you have?\", \"type\": \"number\", \"isRequired\": true, \"isKnockout\": true, \"knockoutAnswer\": 0, \"weight\": 2},\n    {\"question\": \"Are you authorized to work in the Philippines?\", \"type\": \"yes_no\", \"isRequired\": true, \"isKnockout\": true, \"knockoutAnswer\": false},\n    {\"question\": \"Why are you interested in this role?\", \"type\": \"textarea\", \"isRequired\": true, \"weight\": 1}\n  ],\n  \"applicationProcess\": {\n    \"deadline\": \"2026-03-31\",\n    \"startDate\": \"2026-04-15\",\n    \"requireResume\": true,\n    \"requireCoverLetter\": true,\n    \"requirePortfolio\": false,\n    \"stages\": [\n      {\"name\": \"Application Review\", \"order\": 1, \"estimatedDuration\": 3},\n      {\"name\": \"Phone Screen\", \"order\": 2, \"estimatedDuration\": 7},\n      {\"name\": \"Technical Interview\", \"order\": 3, \"estimatedDuration\": 7},\n      {\"name\": \"Final Interview\", \"order\": 4, \"estimatedDuration\": 5},\n      {\"name\": \"Offer\", \"order\": 5, \"estimatedDuration\": 3}\n    ],\n    \"interviewRounds\": 3\n  },\n  \"referralProgram\": {\n    \"enabled\": true,\n    \"bonus\": {\n      \"amount\": 10000,\n      \"currency\": \"PHP\",\n      \"type\": \"fixed\",\n      \"payoutCondition\": \"after_probation\"\n    }\n  },\n  \"compliance\": {\n    \"eeoStatement\": \"We are an equal opportunity employer.\",\n    \"eeoEnabled\": true\n  },\n  \"expiresAt\": \"2026-04-30\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"]
+            }
+          }
+        },
+        {
+          "name": "Get My Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/my-jobs?page=1&limit=20&status=active",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "my-jobs"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "status", "value": "active"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Job",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Software Engineer (Updated)\",\n  \"salary\": {\n    \"min\": 90000,\n    \"max\": 130000\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}"]
+            }
+          }
+        },
+        {
+          "name": "Upload Company Logo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "logo", "type": "file", "src": ""}
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/logo",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "logo"]
+            }
+          }
+        },
+        {
+          "name": "Delete Job",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employer - Job Workflow",
+      "description": "Job status management and workflow",
+      "item": [
+        {
+          "name": "Publish Job",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/publish",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "publish"]
+            }
+          }
+        },
+        {
+          "name": "Pause Job",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Reviewing current applications before accepting more\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/pause",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "pause"]
+            }
+          }
+        },
+        {
+          "name": "Close Job",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Position no longer available\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/close",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "close"]
+            }
+          }
+        },
+        {
+          "name": "Mark Job as Filled",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/fill",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "fill"]
+            }
+          }
+        },
+        {
+          "name": "Reopen Job",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/reopen",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "reopen"]
+            }
+          }
+        },
+        {
+          "name": "Archive Job",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/archive",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "archive"]
+            }
+          }
+        },
+        {
+          "name": "Promote Job",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"promotionType\": \"premium\",\n  \"until\": \"2026-03-31T23:59:59.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/promote",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "promote"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employer - Analytics",
+      "description": "Job performance analytics and statistics",
+      "item": [
+        {
+          "name": "Get Job Stats (Legacy)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Job Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "analytics"]
+            }
+          }
+        },
+        {
+          "name": "Get Hiring Funnel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/funnel",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "funnel"]
+            }
+          }
+        },
+        {
+          "name": "Get Employer Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/employer-stats?startDate=2026-01-01&endDate=2026-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "employer-stats"],
+              "query": [
+                {"key": "startDate", "value": "2026-01-01"},
+                {"key": "endDate", "value": "2026-12-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Expiring Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/expiring?days=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "expiring"],
+              "query": [{"key": "days", "value": "7"}]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Applicant - Applications",
+      "description": "Job application management for applicants",
+      "item": [
+        {
+          "name": "Apply for Job",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.data && response.data.applicationId) {",
+                  "    pm.environment.set('applicationId', response.data.applicationId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "coverLetter", "value": "I am excited to apply for this position. With my 6 years of experience in backend development and expertise in Node.js and MongoDB, I believe I would be a great fit for your team.", "type": "text"},
+                {"key": "expectedSalary", "value": "100000", "type": "text"},
+                {"key": "availability", "value": "2026-04-01", "type": "text"},
+                {"key": "portfolio", "value": "https://github.com/myportfolio", "type": "text"},
+                {"key": "resume", "type": "file", "src": ""},
+                {"key": "answers", "value": "[{\"questionId\": \"q1\", \"answer\": 6}, {\"questionId\": \"q2\", \"answer\": true}, {\"questionId\": \"q3\", \"answer\": \"I am passionate about building scalable systems and your tech stack aligns perfectly with my expertise.\"}]", "type": "text"}
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "apply"]
+            }
+          }
+        },
+        {
+          "name": "Get My Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/my-applications?page=1&limit=20&status=",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "my-applications"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "status", "value": ""}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Withdraw Application",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}"]
+            }
+          }
+        },
+        {
+          "name": "Respond to Offer - Accept",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accepted\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/offer/respond",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "offer", "respond"]
+            }
+          }
+        },
+        {
+          "name": "Respond to Offer - Decline",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accepted\": false,\n  \"declineReason\": \"Accepted another offer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/offer/respond",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "offer", "respond"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employer - Application Management",
+      "description": "Manage applications for posted jobs",
+      "item": [
+        {
+          "name": "Get Job Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications?page=1&limit=20&status=",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "status", "value": ""}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Application Status",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shortlisted\",\n  \"feedback\": \"Strong technical background, moving to interview stage\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Update Application Score",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skills\": 85,\n  \"experience\": 90,\n  \"cultural\": 80,\n  \"manual\": 88\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/score",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "score"]
+            }
+          }
+        },
+        {
+          "name": "Reject Application",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"not_qualified\",\n  \"customReason\": \"Insufficient experience with required technologies\",\n  \"feedback\": \"We encourage you to apply again after gaining more experience with microservices architecture.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "reject"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employer - Interview Management",
+      "description": "Schedule and manage interviews",
+      "item": [
+        {
+          "name": "Schedule Interview",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.data && response.data.interviewId) {",
+                  "    pm.environment.set('interviewId', response.data.interviewId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"video\",\n  \"scheduledAt\": \"2026-02-15T10:00:00.000Z\",\n  \"duration\": 60,\n  \"timezone\": \"Asia/Manila\",\n  \"location\": {\n    \"type\": \"video\",\n    \"meetingLink\": \"https://meet.google.com/abc-defg-hij\",\n    \"platform\": \"meet\"\n  },\n  \"interviewers\": [\n    {\"name\": \"John Smith\", \"role\": \"Engineering Manager\"},\n    {\"name\": \"Jane Doe\", \"role\": \"Senior Developer\"}\n  ],\n  \"round\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/interviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "interviews"]
+            }
+          }
+        },
+        {
+          "name": "Update Interview Status",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/interviews/{{interviewId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "interviews", "{{interviewId}}"]
+            }
+          }
+        },
+        {
+          "name": "Reschedule Interview",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newDate\": \"2026-02-17T14:00:00.000Z\",\n  \"reason\": \"Interviewer has a conflict, rescheduling to later in the week\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/interviews/{{interviewId}}/reschedule",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "interviews", "{{interviewId}}", "reschedule"]
+            }
+          }
+        },
+        {
+          "name": "Submit Interview Feedback",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"strengths\": [\"Strong technical skills\", \"Good communication\", \"Problem-solving ability\"],\n  \"weaknesses\": [\"Limited experience with Kubernetes\"],\n  \"notes\": \"Candidate demonstrated solid understanding of backend architecture and was able to solve the coding challenge efficiently.\",\n  \"recommendation\": \"hire\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/interviews/{{interviewId}}/feedback",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "interviews", "{{interviewId}}", "feedback"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employer - Offer Management",
+      "description": "Send and manage job offers",
+      "item": [
+        {
+          "name": "Send Job Offer",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salary\": {\n    \"amount\": 100000,\n    \"currency\": \"PHP\",\n    \"period\": \"monthly\"\n  },\n  \"startDate\": \"2026-04-01\",\n  \"signingBonus\": 20000,\n  \"equity\": \"0.25% over 4 years with 1 year cliff\",\n  \"benefits\": [\"HMO for employee + 2 dependents\", \"20 days VL\", \"Work from home 3x/week\", \"PHP 50k learning budget\"],\n  \"terms\": \"6 months probation period. Annual performance review.\",\n  \"expiresAt\": \"2026-02-28\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/offer",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "offer"]
+            }
+          }
+        },
+        {
+          "name": "Withdraw Offer",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Position requirements have changed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}/offer",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}", "offer"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Referrals",
+      "description": "Job referral program management",
+      "item": [
+        {
+          "name": "Add Referral",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"referredEmail\": \"friend@example.com\",\n  \"referredName\": \"Friend Name\",\n  \"notes\": \"Former colleague, excellent developer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/referrals",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "referrals"]
+            }
+          }
+        },
+        {
+          "name": "Get Job Referrals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/referrals",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "referrals"]
+            }
+          }
+        },
+        {
+          "name": "Get My Referrals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/my-referrals",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "my-referrals"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Job Management",
+      "description": "Admin-only job management features",
+      "item": [
+        {
+          "name": "Feature Job",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"until\": \"2026-03-31T23:59:59.000Z\",\n  \"position\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/feature",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "feature"]
+            }
+          }
+        },
+        {
+          "name": "Unfeature Job",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/feature",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "feature"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:5000/api"},
+    {"key": "jobId", "value": ""},
+    {"key": "jobSlug", "value": ""},
+    {"key": "jobNumber", "value": ""},
+    {"key": "applicationId", "value": ""},
+    {"key": "interviewId", "value": ""},
+    {"key": "categoryId", "value": ""}
+  ]
+}

@@ -1,0 +1,1395 @@
+{
+  "info": {
+    "name": "LocalPro Rentals API",
+    "description": "Complete API collection for LocalPro Rentals - Equipment & Item Rental Marketplace",
+    "version": "2.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "rentalItemId",
+      "value": ""
+    },
+    {
+      "key": "rentalId",
+      "value": ""
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    },
+    {
+      "key": "disputeId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Public - Browse Items",
+      "item": [
+        {
+          "name": "Get All Rental Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "category", "value": "tools", "disabled": true },
+                { "key": "subcategory", "value": "power-tools", "disabled": true },
+                { "key": "condition", "value": "excellent", "disabled": true },
+                { "key": "priceMin", "value": "10", "disabled": true },
+                { "key": "priceMax", "value": "100", "disabled": true },
+                { "key": "sort", "value": "price_low", "disabled": true }
+              ]
+            },
+            "description": "Get all rental items with filtering and pagination"
+          }
+        },
+        {
+          "name": "Search Rental Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/search?q=drill&category=tools",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "search"],
+              "query": [
+                { "key": "q", "value": "drill" },
+                { "key": "category", "value": "tools" },
+                { "key": "priceMin", "value": "10", "disabled": true },
+                { "key": "priceMax", "value": "50", "disabled": true },
+                { "key": "availableNow", "value": "true", "disabled": true }
+              ]
+            },
+            "description": "Search rental items by keyword and filters"
+          }
+        },
+        {
+          "name": "Get Rental Item by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}"]
+            },
+            "description": "Get detailed information about a specific rental item"
+          }
+        },
+        {
+          "name": "Get Rental Item by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/slug/dewalt-cordless-drill",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "slug", "dewalt-cordless-drill"]
+            },
+            "description": "Get rental item by URL-friendly slug"
+          }
+        },
+        {
+          "name": "Get Featured Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/featured?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "featured"],
+              "query": [
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Get featured rental items"
+          }
+        },
+        {
+          "name": "Get Popular Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/popular?limit=10&category=tools",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "popular"],
+              "query": [
+                { "key": "limit", "value": "10" },
+                { "key": "category", "value": "tools", "disabled": true }
+              ]
+            },
+            "description": "Get popular rental items by completed rentals"
+          }
+        },
+        {
+          "name": "Get Nearby Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/nearby?lat=40.7128&lng=-74.0060&radius=25",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "nearby"],
+              "query": [
+                { "key": "lat", "value": "40.7128" },
+                { "key": "lng", "value": "-74.0060" },
+                { "key": "radius", "value": "25" }
+              ]
+            },
+            "description": "Get rental items near a location"
+          }
+        },
+        {
+          "name": "Get Rental Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "categories"]
+            },
+            "description": "Get all rental categories"
+          }
+        },
+        {
+          "name": "Get Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "categories", "{{categoryId}}"]
+            },
+            "description": "Get category details by ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Availability & Pricing",
+      "item": [
+        {
+          "name": "Check Item Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/availability?startDate=2024-02-15&endDate=2024-02-18&quantity=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "availability"],
+              "query": [
+                { "key": "startDate", "value": "2024-02-15" },
+                { "key": "endDate", "value": "2024-02-18" },
+                { "key": "quantity", "value": "1" }
+              ]
+            },
+            "description": "Check if item is available for specific dates"
+          }
+        },
+        {
+          "name": "Calculate Rental Price",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/price?startDate=2024-02-15&endDate=2024-02-18&quantity=1&delivery=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "price"],
+              "query": [
+                { "key": "startDate", "value": "2024-02-15" },
+                { "key": "endDate", "value": "2024-02-18" },
+                { "key": "quantity", "value": "1" },
+                { "key": "delivery", "value": "true" }
+              ]
+            },
+            "description": "Calculate rental price for given dates"
+          }
+        },
+        {
+          "name": "Get Item Calendar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/calendar?month=2024-02",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "calendar"],
+              "query": [
+                { "key": "month", "value": "2024-02" }
+              ]
+            },
+            "description": "Get availability calendar for an item"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Owner - Manage Items",
+      "item": [
+        {
+          "name": "Create Rental Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"DeWalt 20V MAX Cordless Drill\",\n  \"title\": \"Professional Cordless Drill - DeWalt 20V MAX\",\n  \"description\": \"Powerful cordless drill perfect for home improvement projects. Includes 2 batteries and charger.\",\n  \"shortDescription\": \"20V cordless drill with batteries and charger\",\n  \"category\": \"tools\",\n  \"subcategory\": \"power-tools\",\n  \"tags\": [\"drill\", \"cordless\", \"dewalt\", \"power-tools\"],\n  \"pricing\": {\n    \"hourly\": 5,\n    \"daily\": 25,\n    \"weekly\": 100,\n    \"monthly\": 300,\n    \"currency\": \"USD\",\n    \"cleaningFee\": 10\n  },\n  \"location\": {\n    \"address\": {\n      \"street\": \"123 Main St\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"zipCode\": \"10001\",\n      \"country\": \"USA\"\n    },\n    \"pickupRequired\": true,\n    \"deliveryAvailable\": true,\n    \"deliveryFee\": 15,\n    \"deliveryRadius\": 10\n  },\n  \"specifications\": {\n    \"brand\": \"DeWalt\",\n    \"model\": \"DCD771C2\",\n    \"year\": 2023,\n    \"condition\": \"excellent\",\n    \"features\": [\"LED Light\", \"2-Speed Settings\", \"Ergonomic Grip\"]\n  },\n  \"requirements\": {\n    \"minAge\": 18,\n    \"deposit\": {\n      \"amount\": 50,\n      \"refundable\": true\n    },\n    \"idVerificationRequired\": true\n  },\n  \"inventory\": {\n    \"totalQuantity\": 3,\n    \"availableQuantity\": 3\n  },\n  \"rentalTerms\": {\n    \"cancellationPolicy\": {\n      \"type\": \"moderate\"\n    },\n    \"includedAccessories\": [\"2 Batteries\", \"Charger\", \"Carrying Case\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items"]
+            },
+            "description": "Create a new rental item listing"
+          }
+        },
+        {
+          "name": "Update Rental Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional Cordless Drill - DeWalt 20V MAX - Updated\",\n  \"pricing\": {\n    \"daily\": 30,\n    \"weekly\": 120\n  },\n  \"specifications\": {\n    \"condition\": \"good\",\n    \"conditionNotes\": \"Minor scratches on casing, fully functional\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}"]
+            },
+            "description": "Update an existing rental item"
+          }
+        },
+        {
+          "name": "Patch Rental Item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isFeatured\": true,\n  \"availability\": {\n    \"isAvailable\": true,\n    \"instantBooking\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}"]
+            },
+            "description": "Partially update a rental item"
+          }
+        },
+        {
+          "name": "Delete Rental Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}"]
+            },
+            "description": "Soft delete a rental item"
+          }
+        },
+        {
+          "name": "Upload Item Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": "/path/to/image1.jpg"
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": "/path/to/image2.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/images",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "images"]
+            },
+            "description": "Upload images for a rental item"
+          }
+        },
+        {
+          "name": "Delete Item Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/images/{{imageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "images", "{{imageId}}"]
+            },
+            "description": "Delete an image from rental item"
+          }
+        },
+        {
+          "name": "Set Primary Image",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/images/{{imageId}}/primary",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "images", "{{imageId}}", "primary"]
+            },
+            "description": "Set an image as the primary image"
+          }
+        },
+        {
+          "name": "Block Dates (Maintenance)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2024-03-01\",\n  \"endDate\": \"2024-03-03\",\n  \"reason\": \"maintenance\",\n  \"notes\": \"Annual service and inspection\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/block",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "block"]
+            },
+            "description": "Block dates for maintenance or unavailability"
+          }
+        },
+        {
+          "name": "Unblock Dates",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/block/{{scheduleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "block", "{{scheduleId}}"]
+            },
+            "description": "Remove a blocked date range"
+          }
+        },
+        {
+          "name": "Get My Listed Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/my-items?includeInactive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "my-items"],
+              "query": [
+                { "key": "includeInactive", "value": "true" }
+              ]
+            },
+            "description": "Get all items listed by the current user"
+          }
+        },
+        {
+          "name": "Get Item Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "analytics"]
+            },
+            "description": "Get analytics for a specific item"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Booking & Rentals",
+      "item": [
+        {
+          "name": "Create Rental Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": \"{{rentalItemId}}\",\n  \"startDate\": \"2024-02-15T09:00:00Z\",\n  \"endDate\": \"2024-02-18T17:00:00Z\",\n  \"quantity\": 1,\n  \"pickup\": {\n    \"method\": \"delivery\",\n    \"location\": {\n      \"address\": \"456 Oak Ave\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"zipCode\": \"10002\"\n    },\n    \"contactPerson\": \"John Doe\",\n    \"contactPhone\": \"+1234567890\"\n  },\n  \"insurance\": {\n    \"selected\": true,\n    \"type\": \"standard\"\n  },\n  \"specialRequests\": \"Please include extra drill bits if available\",\n  \"accessories\": [\n    {\n      \"name\": \"Extra Battery\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals"]
+            },
+            "description": "Create a new rental booking"
+          }
+        },
+        {
+          "name": "Get Rental by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}"]
+            },
+            "description": "Get rental details by ID"
+          }
+        },
+        {
+          "name": "Get Rental by Number",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/number/RNT-202402-00001",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "number", "RNT-202402-00001"]
+            },
+            "description": "Get rental by rental number"
+          }
+        },
+        {
+          "name": "Get My Rentals (Renter)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/my-rentals?status=active&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "my-rentals"],
+              "query": [
+                { "key": "status", "value": "active", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Get rentals where current user is the renter"
+          }
+        },
+        {
+          "name": "Get My Bookings (Owner)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/my-bookings?status=pending&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "my-bookings"],
+              "query": [
+                { "key": "status", "value": "pending", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Get rental bookings for items owned by current user"
+          }
+        },
+        {
+          "name": "Get Item Rentals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/rentals?status=completed",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "rentals"],
+              "query": [
+                { "key": "status", "value": "completed", "disabled": true }
+              ]
+            },
+            "description": "Get all rentals for a specific item"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rental Workflow",
+      "item": [
+        {
+          "name": "Confirm Rental (Owner)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "confirm"]
+            },
+            "description": "Owner confirms the rental booking"
+          }
+        },
+        {
+          "name": "Start Rental (Pickup)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"condition\": {\n    \"condition\": \"excellent\",\n    \"notes\": \"Item in perfect condition\",\n    \"fuelLevel\": \"full\",\n    \"checklist\": [\n      { \"item\": \"Drill body\", \"checked\": true },\n      { \"item\": \"Battery 1\", \"checked\": true },\n      { \"item\": \"Battery 2\", \"checked\": true },\n      { \"item\": \"Charger\", \"checked\": true },\n      { \"item\": \"Case\", \"checked\": true }\n    ]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "start"]
+            },
+            "description": "Mark rental as started (item picked up)"
+          }
+        },
+        {
+          "name": "Complete Rental (Return)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"condition\": {\n    \"condition\": \"good\",\n    \"notes\": \"Minor wear from use, no damage\",\n    \"checklist\": [\n      { \"item\": \"Drill body\", \"checked\": true },\n      { \"item\": \"Battery 1\", \"checked\": true },\n      { \"item\": \"Battery 2\", \"checked\": true },\n      { \"item\": \"Charger\", \"checked\": true },\n      { \"item\": \"Case\", \"checked\": true }\n    ]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "complete"]
+            },
+            "description": "Mark rental as completed (item returned)"
+          }
+        },
+        {
+          "name": "Cancel Rental",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Plans changed, no longer need the item\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "cancel"]
+            },
+            "description": "Cancel a rental booking"
+          }
+        },
+        {
+          "name": "Request Extension",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newEndDate\": \"2024-02-20T17:00:00Z\",\n  \"reason\": \"Project taking longer than expected\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/extend",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "extend"]
+            },
+            "description": "Request to extend the rental period"
+          }
+        },
+        {
+          "name": "Approve Extension",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/extensions/{{extensionId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "extensions", "{{extensionId}}", "approve"]
+            },
+            "description": "Owner approves an extension request"
+          }
+        },
+        {
+          "name": "Reject Extension",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Item is reserved for another customer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/extensions/{{extensionId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "extensions", "{{extensionId}}", "reject"]
+            },
+            "description": "Owner rejects an extension request"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment & Deposit",
+      "item": [
+        {
+          "name": "Process Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"stripe\",\n  \"paymentIntentId\": \"pi_1234567890\",\n  \"amount\": 115.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "payment"]
+            },
+            "description": "Process payment for a rental"
+          }
+        },
+        {
+          "name": "Get Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "payment"]
+            },
+            "description": "Get payment status and history"
+          }
+        },
+        {
+          "name": "Process Refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50.00,\n  \"reason\": \"Early return - partial refund\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/refund",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "refund"]
+            },
+            "description": "Process a refund for a rental"
+          }
+        },
+        {
+          "name": "Release Deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50.00,\n  \"notes\": \"Full deposit returned - item returned in good condition\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/deposit/release",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "deposit", "release"]
+            },
+            "description": "Release held deposit back to renter"
+          }
+        },
+        {
+          "name": "Forfeit Deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 25.00,\n  \"reason\": \"Damage to drill bit holder - partial forfeit\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/deposit/forfeit",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "deposit", "forfeit"]
+            },
+            "description": "Forfeit all or part of the deposit"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agreement & Signatures",
+      "item": [
+        {
+          "name": "Get Rental Agreement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/agreement",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "agreement"]
+            },
+            "description": "Get the rental agreement document"
+          }
+        },
+        {
+          "name": "Sign Agreement (Renter)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signatureUrl\": \"data:image/png;base64,iVBORw0KGgo...\",\n  \"agreedTerms\": [\n    \"I agree to return the item in the same condition\",\n    \"I agree to pay for any damages\",\n    \"I agree to the cancellation policy\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/agreement/sign/renter",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "agreement", "sign", "renter"]
+            },
+            "description": "Renter signs the rental agreement"
+          }
+        },
+        {
+          "name": "Sign Agreement (Owner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signatureUrl\": \"data:image/png;base64,iVBORw0KGgo...\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/agreement/sign/owner",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "agreement", "sign", "owner"]
+            },
+            "description": "Owner signs the rental agreement"
+          }
+        },
+        {
+          "name": "Download Agreement PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/agreement/download",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "agreement", "download"]
+            },
+            "description": "Download signed agreement as PDF"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Damage Reports",
+      "item": [
+        {
+          "name": "Report Damage",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"severity\": \"minor\",\n  \"description\": \"Small scratch on the drill casing\",\n  \"location\": \"Left side of main body\",\n  \"estimatedCost\": 25.00,\n  \"images\": [\n    {\n      \"url\": \"https://cloudinary.com/damage-photo-1.jpg\",\n      \"description\": \"Scratch on casing\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/damage",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "damage"]
+            },
+            "description": "Report damage to a rented item"
+          }
+        },
+        {
+          "name": "Get Damage Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/damage",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "damage"]
+            },
+            "description": "Get all damage reports for a rental"
+          }
+        },
+        {
+          "name": "Update Damage Report Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"repaired\",\n  \"actualCost\": 30.00,\n  \"resolution\": {\n    \"outcome\": \"Item repaired, cost charged to renter\",\n    \"chargedToRenter\": 30.00,\n    \"coveredByInsurance\": 0\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/damage/{{damageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "damage", "{{damageId}}"]
+            },
+            "description": "Update damage report status and resolution"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Disputes",
+      "item": [
+        {
+          "name": "File Dispute",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"condition\",\n  \"description\": \"Item was not in the condition described. Battery only lasted 30 minutes instead of advertised 2 hours.\",\n  \"evidence\": [\n    {\n      \"type\": \"image\",\n      \"url\": \"https://cloudinary.com/evidence-1.jpg\",\n      \"description\": \"Battery indicator showing low charge\"\n    },\n    {\n      \"type\": \"text\",\n      \"description\": \"Used item for basic drilling, battery died in 30 minutes\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/disputes",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "disputes"]
+            },
+            "description": "File a dispute for a rental"
+          }
+        },
+        {
+          "name": "Get Disputes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/disputes",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "disputes"]
+            },
+            "description": "Get all disputes for a rental"
+          }
+        },
+        {
+          "name": "Add Dispute Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"I have additional photos showing the issue. The battery indicator was red from the start.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/disputes/{{disputeId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "disputes", "{{disputeId}}", "messages"]
+            },
+            "description": "Add a message to an ongoing dispute"
+          }
+        },
+        {
+          "name": "Resolve Dispute (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"resolved\",\n  \"outcome\": \"Partial refund granted due to misrepresented battery life\",\n  \"compensationAmount\": 15.00,\n  \"notes\": \"Owner agreed to partial refund. Battery will be replaced.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/disputes/{{disputeId}}/resolve",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "disputes", "{{disputeId}}", "resolve"]
+            },
+            "description": "Resolve a dispute (admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Communication",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hi! I wanted to confirm the pickup time for tomorrow. Is 10 AM still okay?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "messages"]
+            },
+            "description": "Send a message in the rental communication thread"
+          }
+        },
+        {
+          "name": "Get Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "messages"]
+            },
+            "description": "Get all messages for a rental"
+          }
+        },
+        {
+          "name": "Mark Messages as Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/messages/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "messages", "read"]
+            },
+            "description": "Mark all unread messages as read"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Add Item Review (Renter)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": {\n    \"overall\": 5,\n    \"condition\": 5,\n    \"accuracy\": 5,\n    \"value\": 4,\n    \"communication\": 5\n  },\n  \"title\": \"Great drill, worked perfectly!\",\n  \"comment\": \"The drill was exactly as described. Powerful and had plenty of battery life for my weekend project.\",\n  \"pros\": [\"Powerful\", \"Good battery life\", \"Easy pickup\"],\n  \"cons\": [\"A bit heavy\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/review",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "review"]
+            },
+            "description": "Add a review for a completed rental"
+          }
+        },
+        {
+          "name": "Respond to Review (Owner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Thank you for the great review! Glad the drill worked well for your project. Looking forward to renting to you again!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/review/respond",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "review", "respond"]
+            },
+            "description": "Owner responds to a review"
+          }
+        },
+        {
+          "name": "Add Renter Review (Owner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Great renter! Returned item on time and in perfect condition.\",\n  \"recommendRenter\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/renter-review",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "renter-review"]
+            },
+            "description": "Owner reviews the renter"
+          }
+        },
+        {
+          "name": "Get Item Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/reviews?page=1&limit=20&sort=newest",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "reviews"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "sort", "value": "newest" }
+              ]
+            },
+            "description": "Get reviews for a rental item"
+          }
+        },
+        {
+          "name": "Mark Review Helpful",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/reviews/{{reviewId}}/helpful",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "reviews", "{{reviewId}}", "helpful"]
+            },
+            "description": "Mark a review as helpful"
+          }
+        },
+        {
+          "name": "Report Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"inappropriate\",\n  \"description\": \"Review contains offensive language\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/reviews/{{reviewId}}/report",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "reviews", "{{reviewId}}", "report"]
+            },
+            "description": "Report an inappropriate review"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Insurance",
+      "item": [
+        {
+          "name": "Get Insurance Options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/insurance",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "insurance"]
+            },
+            "description": "Get available insurance options for an item"
+          }
+        },
+        {
+          "name": "Select Insurance",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"standard\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/insurance",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "insurance"]
+            },
+            "description": "Select insurance for a rental"
+          }
+        },
+        {
+          "name": "File Insurance Claim",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Drill motor stopped working during normal use\",\n  \"amount\": 150.00,\n  \"damageReportId\": \"{{damageId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/{{rentalId}}/insurance/claim",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "{{rentalId}}", "insurance", "claim"]
+            },
+            "description": "File an insurance claim"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Categories",
+      "item": [
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Power Tools\",\n  \"description\": \"Electric and battery-powered tools\",\n  \"icon\": \"drill\",\n  \"subcategories\": [\n    { \"name\": \"Drills\", \"description\": \"Corded and cordless drills\" },\n    { \"name\": \"Saws\", \"description\": \"Circular, jig, and reciprocating saws\" },\n    { \"name\": \"Sanders\", \"description\": \"Belt, orbital, and detail sanders\" }\n  ],\n  \"order\": 1,\n  \"isFeatured\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "categories"]
+            },
+            "description": "Create a new rental category (admin)"
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Power Tools Updated\",\n  \"isFeatured\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "categories", "{{categoryId}}"]
+            },
+            "description": "Update a category (admin)"
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "categories", "{{categoryId}}"]
+            },
+            "description": "Delete a category (admin)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Statistics & Reports",
+      "item": [
+        {
+          "name": "Get Rental Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/statistics?startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "statistics"],
+              "query": [
+                { "key": "startDate", "value": "2024-01-01" },
+                { "key": "endDate", "value": "2024-12-31" }
+              ]
+            },
+            "description": "Get overall rental statistics (admin)"
+          }
+        },
+        {
+          "name": "Get Owner Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/statistics/owner?startDate=2024-01-01",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "statistics", "owner"],
+              "query": [
+                { "key": "startDate", "value": "2024-01-01" }
+              ]
+            },
+            "description": "Get statistics for current owner's items"
+          }
+        },
+        {
+          "name": "Get Overdue Rentals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/overdue",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "overdue"]
+            },
+            "description": "Get all overdue rentals (admin)"
+          }
+        },
+        {
+          "name": "Get Rentals Ending Soon",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/ending-soon?hours=24",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "ending-soon"],
+              "query": [
+                { "key": "hours", "value": "24" }
+              ]
+            },
+            "description": "Get rentals ending within specified hours"
+          }
+        },
+        {
+          "name": "Get Open Disputes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/disputes/open",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "disputes", "open"]
+            },
+            "description": "Get all open disputes (admin)"
+          }
+        },
+        {
+          "name": "Get Pending Approvals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/pending-approval",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "pending-approval"]
+            },
+            "description": "Get items pending approval (admin)"
+          }
+        },
+        {
+          "name": "Approve Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Listing meets all requirements\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "approve"]
+            },
+            "description": "Approve an item listing (admin)"
+          }
+        },
+        {
+          "name": "Reject Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejectionReason\": \"Images are unclear, please upload better quality photos\",\n  \"notes\": \"Internal note about the rejection\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/items/{{rentalItemId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "items", "{{rentalItemId}}", "reject"]
+            },
+            "description": "Reject an item listing (admin)"
+          }
+        },
+        {
+          "name": "Generate AI Description",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"DeWalt Cordless Drill\",\n  \"category\": \"tools\",\n  \"brand\": \"DeWalt\",\n  \"model\": \"DCD771C2\",\n  \"features\": [\"20V MAX\", \"2-speed settings\", \"LED light\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rentals/generate-description",
+              "host": ["{{baseUrl}}"],
+              "path": ["rentals", "generate-description"]
+            },
+            "description": "Generate AI-powered item description"
+          }
+        }
+      ]
+    }
+  ]
+}

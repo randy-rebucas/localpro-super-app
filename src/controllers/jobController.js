@@ -1250,20 +1250,1014 @@ const searchJobs = async (req, res) => {
   }
 };
 
+// ============================================
+// JOB WORKFLOW MANAGEMENT
+// ============================================
+
+// @desc    Publish job
+// @route   POST /api/jobs/:id/publish
+// @access  Private (Employer/Admin)
+const publishJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    await job.publish(req.user.id);
+
+    return sendSuccess(res, job, 'Job published successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to publish job', 'JOB_PUBLISH_ERROR');
+  }
+};
+
+// @desc    Pause job
+// @route   POST /api/jobs/:id/pause
+// @access  Private (Employer/Admin)
+const pauseJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const { reason } = req.body;
+    await job.pause(reason);
+
+    return sendSuccess(res, job, 'Job paused successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to pause job', 'JOB_PAUSE_ERROR');
+  }
+};
+
+// @desc    Close job
+// @route   POST /api/jobs/:id/close
+// @access  Private (Employer/Admin)
+const closeJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const { reason } = req.body;
+    await job.close(reason);
+
+    return sendSuccess(res, job, 'Job closed successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to close job', 'JOB_CLOSE_ERROR');
+  }
+};
+
+// @desc    Mark job as filled
+// @route   POST /api/jobs/:id/fill
+// @access  Private (Employer/Admin)
+const markJobFilled = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    await job.markFilled();
+
+    return sendSuccess(res, job, 'Job marked as filled successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to mark job as filled', 'JOB_FILL_ERROR');
+  }
+};
+
+// @desc    Reopen job
+// @route   POST /api/jobs/:id/reopen
+// @access  Private (Employer/Admin)
+const reopenJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    await job.reopen();
+
+    return sendSuccess(res, job, 'Job reopened successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to reopen job', 'JOB_REOPEN_ERROR');
+  }
+};
+
+// @desc    Archive job
+// @route   POST /api/jobs/:id/archive
+// @access  Private (Employer/Admin)
+const archiveJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    await job.archive(req.user.id);
+
+    return sendSuccess(res, job, 'Job archived successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to archive job', 'JOB_ARCHIVE_ERROR');
+  }
+};
+
+// ============================================
+// INTERVIEW MANAGEMENT
+// ============================================
+
+// @desc    Schedule interview
+// @route   POST /api/jobs/:id/applications/:applicationId/interviews
+// @access  Private (Employer/Admin)
+const scheduleInterview = async (req, res) => {
+  try {
+    const { id: jobId, applicationId } = req.params;
+    const { type, scheduledAt, duration, timezone, location, interviewers, round } = req.body;
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const interview = await job.scheduleInterview(applicationId, {
+      type,
+      scheduledAt: new Date(scheduledAt),
+      duration: duration || 60,
+      timezone: timezone || 'Asia/Manila',
+      location,
+      interviewers,
+      round: round || 1
+    });
+
+    // Notify applicant about interview
+    const application = job.applications.id(applicationId);
+    if (application) {
+      try {
+        await NotificationService.sendNotification({
+          userId: application.applicant,
+          type: 'interview_scheduled',
+          title: 'Interview Scheduled',
+          message: `Your interview for "${job.title}" has been scheduled for ${new Date(scheduledAt).toLocaleString()}`,
+          data: { jobId, applicationId, interviewId: interview.interviewId },
+          priority: 'high'
+        });
+      } catch (notifyError) {
+        logger.warn('Interview notification failed', { error: notifyError.message });
+      }
+    }
+
+    return sendSuccess(res, interview, 'Interview scheduled successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to schedule interview', 'INTERVIEW_SCHEDULE_ERROR');
+  }
+};
+
+// @desc    Update interview status
+// @route   PUT /api/jobs/:id/applications/:applicationId/interviews/:interviewId
+// @access  Private (Employer/Admin)
+const updateInterviewStatus = async (req, res) => {
+  try {
+    const { id: jobId, applicationId, interviewId } = req.params;
+    const { status, feedback } = req.body;
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const interview = await job.updateInterviewStatus(applicationId, interviewId, status, feedback);
+
+    return sendSuccess(res, interview, 'Interview status updated successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to update interview', 'INTERVIEW_UPDATE_ERROR');
+  }
+};
+
+// @desc    Reschedule interview
+// @route   POST /api/jobs/:id/applications/:applicationId/interviews/:interviewId/reschedule
+// @access  Private (Employer/Admin)
+const rescheduleInterview = async (req, res) => {
+  try {
+    const { id: jobId, applicationId, interviewId } = req.params;
+    const { newDate, reason } = req.body;
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const interview = await job.rescheduleInterview(applicationId, interviewId, new Date(newDate), reason, 'company');
+
+    // Notify applicant about reschedule
+    const application = job.applications.id(applicationId);
+    if (application) {
+      try {
+        await NotificationService.sendNotification({
+          userId: application.applicant,
+          type: 'interview_rescheduled',
+          title: 'Interview Rescheduled',
+          message: `Your interview for "${job.title}" has been rescheduled to ${new Date(newDate).toLocaleString()}`,
+          data: { jobId, applicationId, interviewId, reason },
+          priority: 'high'
+        });
+      } catch (notifyError) {
+        logger.warn('Interview reschedule notification failed', { error: notifyError.message });
+      }
+    }
+
+    return sendSuccess(res, interview, 'Interview rescheduled successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to reschedule interview', 'INTERVIEW_RESCHEDULE_ERROR');
+  }
+};
+
+// @desc    Submit interview feedback
+// @route   POST /api/jobs/:id/applications/:applicationId/interviews/:interviewId/feedback
+// @access  Private (Employer/Admin/Interviewer)
+const submitInterviewFeedback = async (req, res) => {
+  try {
+    const { id: jobId, applicationId, interviewId } = req.params;
+    const { rating, strengths, weaknesses, notes, recommendation } = req.body;
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const application = job.applications.id(applicationId);
+    if (!application) {
+      return sendNotFoundError(res, 'Application not found', 'APPLICATION_NOT_FOUND');
+    }
+
+    const interview = application.interviews.find(i => i.interviewId === interviewId);
+    if (!interview) {
+      return sendNotFoundError(res, 'Interview not found', 'INTERVIEW_NOT_FOUND');
+    }
+
+    interview.feedback.push({
+      interviewer: req.user.id,
+      rating,
+      strengths,
+      weaknesses,
+      notes,
+      recommendation,
+      submittedAt: new Date()
+    });
+
+    await job.save();
+
+    return sendSuccess(res, interview, 'Interview feedback submitted successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to submit feedback', 'FEEDBACK_SUBMIT_ERROR');
+  }
+};
+
+// ============================================
+// OFFER MANAGEMENT
+// ============================================
+
+// @desc    Send job offer
+// @route   POST /api/jobs/:id/applications/:applicationId/offer
+// @access  Private (Employer/Admin)
+const sendOffer = async (req, res) => {
+  try {
+    const { id: jobId, applicationId } = req.params;
+    const { salary, startDate, signingBonus, equity, benefits, terms, expiresAt } = req.body;
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const application = await job.sendOffer(applicationId, {
+      salary,
+      startDate: startDate ? new Date(startDate) : null,
+      signingBonus,
+      equity,
+      benefits,
+      terms,
+      expiresAt: expiresAt ? new Date(expiresAt) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    });
+
+    // Notify applicant about offer
+    try {
+      await NotificationService.sendNotification({
+        userId: application.applicant,
+        type: 'offer_received',
+        title: 'Job Offer Received!',
+        message: `Congratulations! You have received a job offer for "${job.title}"`,
+        data: { jobId, applicationId },
+        priority: 'high'
+      });
+
+      // Send email notification
+      const applicant = await User.findById(application.applicant);
+      if (applicant && applicant.email) {
+        await EmailService.sendJobOfferNotification(applicant.email, {
+          jobTitle: job.title,
+          companyName: job.company.name,
+          salary,
+          startDate,
+          expiresAt: application.offer.expiresAt
+        });
+      }
+    } catch (notifyError) {
+      logger.warn('Offer notification failed', { error: notifyError.message });
+    }
+
+    return sendSuccess(res, application, 'Job offer sent successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to send offer', 'OFFER_SEND_ERROR');
+  }
+};
+
+// @desc    Respond to job offer (Accept/Decline)
+// @route   POST /api/jobs/:id/applications/:applicationId/offer/respond
+// @access  Private (Applicant)
+const respondToOffer = async (req, res) => {
+  try {
+    const { id: jobId, applicationId } = req.params;
+    const { accepted, declineReason } = req.body;
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const application = job.applications.id(applicationId);
+    if (!application) {
+      return sendNotFoundError(res, 'Application not found', 'APPLICATION_NOT_FOUND');
+    }
+
+    // Verify the applicant is responding to their own offer
+    if (application.applicant.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const updatedApplication = await job.respondToOffer(applicationId, accepted, declineReason);
+
+    // Notify employer about response
+    try {
+      const applicant = await User.findById(application.applicant);
+      await NotificationService.sendNotification({
+        userId: job.employer,
+        type: 'offer_response',
+        title: accepted ? 'Offer Accepted!' : 'Offer Declined',
+        message: `${applicant.firstName} ${applicant.lastName} has ${accepted ? 'accepted' : 'declined'} your offer for "${job.title}"`,
+        data: { jobId, applicationId, accepted },
+        priority: 'high'
+      });
+    } catch (notifyError) {
+      logger.warn('Offer response notification failed', { error: notifyError.message });
+    }
+
+    return sendSuccess(res, updatedApplication, `Offer ${accepted ? 'accepted' : 'declined'} successfully`);
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to respond to offer', 'OFFER_RESPOND_ERROR');
+  }
+};
+
+// @desc    Withdraw job offer
+// @route   DELETE /api/jobs/:id/applications/:applicationId/offer
+// @access  Private (Employer/Admin)
+const withdrawOffer = async (req, res) => {
+  try {
+    const { id: jobId, applicationId } = req.params;
+    const { reason } = req.body;
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const application = job.applications.id(applicationId);
+    if (!application || !application.offer) {
+      return sendNotFoundError(res, 'Offer not found', 'OFFER_NOT_FOUND');
+    }
+
+    application.offer.status = 'withdrawn';
+    application.offer.negotiationNotes = reason;
+    application.status = 'rejected';
+
+    await job.save();
+
+    // Notify applicant
+    try {
+      await NotificationService.sendNotification({
+        userId: application.applicant,
+        type: 'offer_withdrawn',
+        title: 'Offer Withdrawn',
+        message: `The offer for "${job.title}" has been withdrawn`,
+        data: { jobId, applicationId, reason },
+        priority: 'medium'
+      });
+    } catch (notifyError) {
+      logger.warn('Offer withdrawal notification failed', { error: notifyError.message });
+    }
+
+    return sendSuccess(res, application, 'Offer withdrawn successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to withdraw offer', 'OFFER_WITHDRAW_ERROR');
+  }
+};
+
+// ============================================
+// REFERRAL MANAGEMENT
+// ============================================
+
+// @desc    Add referral
+// @route   POST /api/jobs/:id/referrals
+// @access  Private
+const addReferral = async (req, res) => {
+  try {
+    const { referredEmail, referredName, notes } = req.body;
+
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    if (!job.referralProgram.enabled) {
+      return res.status(400).json({ success: false, message: 'Referral program is not enabled for this job' });
+    }
+
+    const referral = await job.addReferral(req.user.id, referredEmail);
+
+    // Send referral invitation email
+    try {
+      await EmailService.sendReferralInvitation(referredEmail, {
+        referrerName: `${req.user.firstName} ${req.user.lastName}`,
+        jobTitle: job.title,
+        companyName: job.company.name,
+        referralBonus: job.referralProgram.bonus.amount,
+        jobUrl: `${process.env.APP_URL}/jobs/${job._id}`
+      });
+    } catch (emailError) {
+      logger.warn('Referral invitation email failed', { error: emailError.message });
+    }
+
+    return sendSuccess(res, referral, 'Referral added successfully');
+  } catch (error) {
+    if (error.message === 'This email has already been referred') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    return sendServerError(res, error, 'Failed to add referral', 'REFERRAL_ADD_ERROR');
+  }
+};
+
+// @desc    Get job referrals
+// @route   GET /api/jobs/:id/referrals
+// @access  Private (Employer/Admin)
+const getJobReferrals = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id)
+      .populate('referralProgram.referrals.referrer', 'firstName lastName email')
+      .populate('referralProgram.referrals.referredUser', 'firstName lastName email');
+
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    return sendSuccess(res, {
+      program: {
+        enabled: job.referralProgram.enabled,
+        bonus: job.referralProgram.bonus
+      },
+      referrals: job.referralProgram.referrals,
+      stats: {
+        total: job.referralProgram.referrals.length,
+        pending: job.referralProgram.referrals.filter(r => r.status === 'pending').length,
+        applied: job.referralProgram.referrals.filter(r => r.status === 'applied').length,
+        hired: job.referralProgram.referrals.filter(r => r.status === 'hired').length,
+        paid: job.referralProgram.referrals.filter(r => r.status === 'paid').length
+      }
+    }, 'Referrals retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get referrals', 'REFERRALS_GET_ERROR');
+  }
+};
+
+// @desc    Get my referrals (as referrer)
+// @route   GET /api/jobs/my-referrals
+// @access  Private
+const getMyReferrals = async (req, res) => {
+  try {
+    const jobs = await Job.find({
+      'referralProgram.referrals.referrer': req.user.id
+    }).select('title company referralProgram');
+
+    const referrals = [];
+    jobs.forEach(job => {
+      job.referralProgram.referrals
+        .filter(r => r.referrer.toString() === req.user.id)
+        .forEach(r => {
+          referrals.push({
+            job: { _id: job._id, title: job.title, company: job.company.name },
+            referral: r,
+            potentialBonus: job.referralProgram.bonus.amount
+          });
+        });
+    });
+
+    return sendSuccess(res, {
+      referrals,
+      stats: {
+        total: referrals.length,
+        pending: referrals.filter(r => r.referral.status === 'pending').length,
+        hired: referrals.filter(r => r.referral.status === 'hired').length,
+        totalEarned: referrals
+          .filter(r => r.referral.status === 'paid')
+          .reduce((sum, r) => sum + (r.referral.bonusAmount || 0), 0)
+      }
+    }, 'My referrals retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get referrals', 'MY_REFERRALS_ERROR');
+  }
+};
+
+// ============================================
+// ANALYTICS
+// ============================================
+
+// @desc    Get job analytics
+// @route   GET /api/jobs/:id/analytics
+// @access  Private (Employer/Admin)
+const getJobAnalytics = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    return sendSuccess(res, {
+      views: job.analytics.views,
+      applications: job.analytics.applications,
+      shares: job.analytics.shares,
+      saves: job.analytics.saves,
+      clicks: job.analytics.clicks,
+      conversionRate: job.analytics.conversionRate,
+      avgTimeToApply: job.analytics.avgTimeToApply,
+      sourceBreakdown: job.analytics.sourceBreakdown,
+      funnel: job.analytics.funnel,
+      timeMetrics: job.analytics.timeMetrics,
+      lastViewedAt: job.analytics.lastViewedAt,
+      lastAppliedAt: job.analytics.lastAppliedAt
+    }, 'Job analytics retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get analytics', 'ANALYTICS_GET_ERROR');
+  }
+};
+
+// @desc    Get hiring funnel
+// @route   GET /api/jobs/:id/funnel
+// @access  Private (Employer/Admin)
+const getHiringFunnel = async (req, res) => {
+  try {
+    const funnel = await Job.getHiringFunnel(req.params.id);
+    if (!funnel) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    return sendSuccess(res, funnel, 'Hiring funnel retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get funnel', 'FUNNEL_GET_ERROR');
+  }
+};
+
+// @desc    Get employer job stats
+// @route   GET /api/jobs/employer-stats
+// @access  Private (Employer/Admin)
+const getEmployerStats = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    const stats = await Job.getStats(
+      req.user.id,
+      startDate ? new Date(startDate) : null,
+      endDate ? new Date(endDate) : null
+    );
+
+    return sendSuccess(res, stats, 'Employer stats retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get stats', 'EMPLOYER_STATS_ERROR');
+  }
+};
+
+// ============================================
+// FEATURING & PROMOTION
+// ============================================
+
+// @desc    Feature job
+// @route   POST /api/jobs/:id/feature
+// @access  Private (Admin)
+const featureJob = async (req, res) => {
+  try {
+    const { until, position } = req.body;
+
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    await job.feature(new Date(until), position);
+
+    return sendSuccess(res, job, 'Job featured successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to feature job', 'JOB_FEATURE_ERROR');
+  }
+};
+
+// @desc    Unfeature job
+// @route   DELETE /api/jobs/:id/feature
+// @access  Private (Admin)
+const unfeatureJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    await job.unfeature();
+
+    return sendSuccess(res, job, 'Job unfeatured successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to unfeature job', 'JOB_UNFEATURE_ERROR');
+  }
+};
+
+// @desc    Promote job
+// @route   POST /api/jobs/:id/promote
+// @access  Private (Employer/Admin)
+const promoteJob = async (req, res) => {
+  try {
+    const { promotionType, until } = req.body;
+
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    await job.promote(promotionType, new Date(until));
+
+    return sendSuccess(res, job, 'Job promoted successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to promote job', 'JOB_PROMOTE_ERROR');
+  }
+};
+
+// ============================================
+// APPLICATION SCORING
+// ============================================
+
+// @desc    Update application score
+// @route   PUT /api/jobs/:id/applications/:applicationId/score
+// @access  Private (Employer/Admin)
+const updateApplicationScore = async (req, res) => {
+  try {
+    const { id: jobId, applicationId } = req.params;
+    const { screening, skills, experience, cultural, manual, overall } = req.body;
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const application = await job.updateScore(applicationId, {
+      screening, skills, experience, cultural, manual, overall
+    });
+
+    return sendSuccess(res, application, 'Application score updated successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to update score', 'SCORE_UPDATE_ERROR');
+  }
+};
+
+// @desc    Reject application
+// @route   POST /api/jobs/:id/applications/:applicationId/reject
+// @access  Private (Employer/Admin)
+const rejectApplication = async (req, res) => {
+  try {
+    const { id: jobId, applicationId } = req.params;
+    const { reason, customReason, feedback } = req.body;
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    const userRoles = req.user.roles || [];
+    const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    if (job.employer.toString() !== req.user.id && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const application = await job.rejectApplication(applicationId, req.user.id, reason, customReason, feedback);
+
+    // Notify applicant
+    try {
+      await NotificationService.sendNotification({
+        userId: application.applicant,
+        type: 'application_rejected',
+        title: 'Application Update',
+        message: `Your application for "${job.title}" has been reviewed`,
+        data: { jobId, applicationId },
+        priority: 'medium'
+      });
+    } catch (notifyError) {
+      logger.warn('Rejection notification failed', { error: notifyError.message });
+    }
+
+    return sendSuccess(res, application, 'Application rejected successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to reject application', 'REJECT_APPLICATION_ERROR');
+  }
+};
+
+// ============================================
+// SPECIAL QUERIES
+// ============================================
+
+// @desc    Get featured jobs
+// @route   GET /api/jobs/featured
+// @access  Public
+const getFeaturedJobs = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    const jobs = await Job.findFeatured(Number(limit))
+      .populate('employer', 'firstName lastName profile.avatar profile.businessName')
+      .populate('category', 'name');
+
+    return sendSuccess(res, jobs, 'Featured jobs retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get featured jobs', 'FEATURED_JOBS_ERROR');
+  }
+};
+
+// @desc    Get urgent jobs
+// @route   GET /api/jobs/urgent
+// @access  Public
+const getUrgentJobs = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    const jobs = await Job.findUrgent(Number(limit))
+      .populate('employer', 'firstName lastName profile.avatar profile.businessName')
+      .populate('category', 'name');
+
+    return sendSuccess(res, jobs, 'Urgent jobs retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get urgent jobs', 'URGENT_JOBS_ERROR');
+  }
+};
+
+// @desc    Get remote jobs
+// @route   GET /api/jobs/remote
+// @access  Public
+const getRemoteJobs = async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const jobs = await Job.findRemote({ page: Number(page), limit: Number(limit) })
+      .populate('employer', 'firstName lastName profile.avatar profile.businessName')
+      .populate('category', 'name');
+
+    const total = await Job.countDocuments({
+      'location.type': { $in: ['fully_remote', 'hybrid'] },
+      isActive: true,
+      status: 'active'
+    });
+
+    return sendPaginated(res, jobs, createPagination(page, limit, total), 'Remote jobs retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get remote jobs', 'REMOTE_JOBS_ERROR');
+  }
+};
+
+// @desc    Get nearby jobs
+// @route   GET /api/jobs/nearby
+// @access  Public
+const getNearbyJobs = async (req, res) => {
+  try {
+    const { lat, lng, maxDistance = 50, page = 1, limit = 20 } = req.query;
+
+    if (!lat || !lng) {
+      return sendValidationError(res, [{ field: 'coordinates', message: 'Latitude and longitude are required' }]);
+    }
+
+    const jobs = await Job.findNearby(
+      [parseFloat(lng), parseFloat(lat)],
+      Number(maxDistance),
+      { page: Number(page), limit: Number(limit) }
+    ).populate('employer', 'firstName lastName profile.avatar profile.businessName')
+      .populate('category', 'name');
+
+    return sendSuccess(res, jobs, 'Nearby jobs retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get nearby jobs', 'NEARBY_JOBS_ERROR');
+  }
+};
+
+// @desc    Get job by slug
+// @route   GET /api/jobs/slug/:slug
+// @access  Public
+const getJobBySlug = async (req, res) => {
+  try {
+    const job = await Job.findBySlug(req.params.slug)
+      .populate('employer', 'firstName lastName profile.avatar profile.businessName profile.bio profile.rating')
+      .populate('category', 'name description');
+
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    // Record view
+    await job.recordView(req.user ? true : false);
+
+    return sendSuccess(res, job, 'Job retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get job', 'JOB_GET_ERROR');
+  }
+};
+
+// @desc    Get job by job number
+// @route   GET /api/jobs/number/:jobNumber
+// @access  Public
+const getJobByNumber = async (req, res) => {
+  try {
+    const job = await Job.findByJobNumber(req.params.jobNumber)
+      .populate('employer', 'firstName lastName profile.avatar profile.businessName')
+      .populate('category', 'name description');
+
+    if (!job) {
+      return sendNotFoundError(res, 'Job not found', 'JOB_NOT_FOUND');
+    }
+
+    return sendSuccess(res, job, 'Job retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get job', 'JOB_GET_ERROR');
+  }
+};
+
+// @desc    Get expiring jobs
+// @route   GET /api/jobs/expiring
+// @access  Private (Employer/Admin)
+const getExpiringJobs = async (req, res) => {
+  try {
+    const { days = 7 } = req.query;
+    const jobs = await Job.getExpiringSoon(Number(days))
+      .populate('employer', 'firstName lastName profile.businessName');
+
+    return sendSuccess(res, jobs, 'Expiring jobs retrieved successfully');
+  } catch (error) {
+    return sendServerError(res, error, 'Failed to get expiring jobs', 'EXPIRING_JOBS_ERROR');
+  }
+};
+
 module.exports = {
+  // Basic CRUD
   getJobs,
   getJob,
   createJob,
   updateJob,
   deleteJob,
+  // Application management
   applyForJob,
   getJobApplications,
   updateApplicationStatus,
   getMyApplications,
   withdrawApplication,
+  rejectApplication,
+  updateApplicationScore,
+  // Job management
   getMyJobs,
   uploadCompanyLogo,
   getJobStats,
   searchJobs,
-  getJobCategories
+  getJobCategories,
+  // Workflow
+  publishJob,
+  pauseJob,
+  closeJob,
+  markJobFilled,
+  reopenJob,
+  archiveJob,
+  // Interviews
+  scheduleInterview,
+  updateInterviewStatus,
+  rescheduleInterview,
+  submitInterviewFeedback,
+  // Offers
+  sendOffer,
+  respondToOffer,
+  withdrawOffer,
+  // Referrals
+  addReferral,
+  getJobReferrals,
+  getMyReferrals,
+  // Analytics
+  getJobAnalytics,
+  getHiringFunnel,
+  getEmployerStats,
+  // Featuring & Promotion
+  featureJob,
+  unfeatureJob,
+  promoteJob,
+  // Special queries
+  getFeaturedJobs,
+  getUrgentJobs,
+  getRemoteJobs,
+  getNearbyJobs,
+  getJobBySlug,
+  getJobByNumber,
+  getExpiringJobs
 };

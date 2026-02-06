@@ -1,0 +1,1266 @@
+{
+  "info": {
+    "name": "LocalPro Marketplace API",
+    "description": "Complete API collection for LocalPro Marketplace - Services and Bookings",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "providerToken",
+      "value": ""
+    },
+    {
+      "key": "serviceId",
+      "value": ""
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "packageId",
+      "value": ""
+    },
+    {
+      "key": "addonId",
+      "value": ""
+    },
+    {
+      "key": "providerId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Services - Public",
+      "item": [
+        {
+          "name": "Get All Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "category", "value": "", "disabled": true },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "minPrice", "value": "", "disabled": true },
+                { "key": "maxPrice", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Featured Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "featured"]
+            }
+          }
+        },
+        {
+          "name": "Get Nearby Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/nearby?lat=14.5995&lng=120.9842&radius=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "nearby"],
+              "query": [
+                { "key": "lat", "value": "14.5995" },
+                { "key": "lng", "value": "120.9842" },
+                { "key": "radius", "value": "50" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Service by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Service by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/slug/home-cleaning-service",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "slug", "home-cleaning-service"]
+            }
+          }
+        },
+        {
+          "name": "Get Service Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Get Providers for Service",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/providers",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "providers"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories - Public",
+      "item": [
+        {
+          "name": "Get Service Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Category Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/categories/cleaning",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "categories", "cleaning"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Providers - Public",
+      "item": [
+        {
+          "name": "Get Provider Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/providers/{{providerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "providers", "{{providerId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Provider Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/providers/{{providerId}}/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "providers", "{{providerId}}", "services"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services - Provider Management",
+      "item": [
+        {
+          "name": "Get My Services",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/my-services",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "my-services"]
+            }
+          }
+        },
+        {
+          "name": "Create Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional Home Cleaning\",\n  \"description\": \"Complete home cleaning service including deep cleaning, sanitization, and organization.\",\n  \"category\": \"cleaning\",\n  \"subcategory\": \"home_cleaning\",\n  \"pricing\": {\n    \"type\": \"hourly\",\n    \"basePrice\": 500,\n    \"currency\": \"PHP\"\n  },\n  \"serviceArea\": {\n    \"coordinates\": {\n      \"lat\": 14.5995,\n      \"lng\": 120.9842\n    },\n    \"radius\": 50\n  },\n  \"estimatedDuration\": {\n    \"min\": 2,\n    \"max\": 4,\n    \"unit\": \"hours\"\n  },\n  \"features\": [\"Deep Cleaning\", \"Eco-friendly Products\", \"Uniformed Staff\"],\n  \"inclusions\": [\"All cleaning supplies\", \"Equipment\"],\n  \"exclusions\": [\"Heavy furniture moving\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services"]
+            }
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Professional Home Cleaning - Updated\",\n  \"pricing\": {\n    \"type\": \"hourly\",\n    \"basePrice\": 550\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Service",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate Service",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/deactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "deactivate"]
+            }
+          }
+        },
+        {
+          "name": "Activate Service",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "activate"]
+            }
+          }
+        },
+        {
+          "name": "Archive Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/archive",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "archive"]
+            }
+          }
+        },
+        {
+          "name": "Upload Service Images",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "images", "type": "file", "src": "" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/images",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "images"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services - Approval Workflow",
+      "item": [
+        {
+          "name": "Submit for Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "submit"]
+            }
+          }
+        },
+        {
+          "name": "Get Pending Review Services (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/pending-review",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "pending-review"]
+            }
+          }
+        },
+        {
+          "name": "Approve Service (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Service meets all quality standards\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Service (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Service description needs more detail\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "reject"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services - Featuring",
+      "item": [
+        {
+          "name": "Feature Service (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"until\": \"2025-12-31T23:59:59Z\",\n  \"position\": 1,\n  \"reason\": \"Top rated service\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/feature",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "feature"]
+            }
+          }
+        },
+        {
+          "name": "Unfeature Service (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/feature",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "feature"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services - Packages & Add-ons",
+      "item": [
+        {
+          "name": "Add Package",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Premium Package\",\n  \"description\": \"Full house deep cleaning with sanitization\",\n  \"price\": 2500,\n  \"compareAtPrice\": 3000,\n  \"features\": [\"All rooms\", \"Deep cleaning\", \"Sanitization\", \"Window cleaning\"],\n  \"duration\": 480,\n  \"isPopular\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/packages",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "packages"]
+            }
+          }
+        },
+        {
+          "name": "Update Package",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 2200,\n  \"isPopular\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/packages/{{packageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "packages", "{{packageId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Package",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/packages/{{packageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "packages", "{{packageId}}"]
+            }
+          }
+        },
+        {
+          "name": "Add Add-on",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Oven Cleaning\",\n  \"description\": \"Deep clean and degrease oven\",\n  \"price\": 300,\n  \"duration\": 30,\n  \"maxQuantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/addons",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "addons"]
+            }
+          }
+        },
+        {
+          "name": "Update Add-on",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 350,\n  \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/addons/{{addonId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "addons", "{{addonId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Add-on",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/addons/{{addonId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "addons", "{{addonId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services - SEO & Promotions",
+      "item": [
+        {
+          "name": "Update SEO",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metaTitle\": \"Professional Home Cleaning in Manila | LocalPro\",\n  \"metaDescription\": \"Book professional home cleaning services in Manila. Eco-friendly products, trained staff, affordable prices.\",\n  \"keywords\": [\"home cleaning\", \"cleaning service\", \"Manila\", \"professional cleaning\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/seo",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "seo"]
+            }
+          }
+        },
+        {
+          "name": "Create Promotion",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discountType\": \"percentage\",\n  \"discountValue\": 20,\n  \"promoCode\": \"SUMMER20\",\n  \"endDate\": \"2025-12-31T23:59:59Z\",\n  \"maxUses\": 100,\n  \"minOrderValue\": 1000,\n  \"applicableTo\": \"all\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/promotions",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "promotions"]
+            }
+          }
+        },
+        {
+          "name": "End Promotion",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/promotions",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "promotions"]
+            }
+          }
+        },
+        {
+          "name": "Update Availability",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schedule\": [\n    { \"day\": \"monday\", \"startTime\": \"08:00\", \"endTime\": \"18:00\", \"isAvailable\": true },\n    { \"day\": \"tuesday\", \"startTime\": \"08:00\", \"endTime\": \"18:00\", \"isAvailable\": true },\n    { \"day\": \"wednesday\", \"startTime\": \"08:00\", \"endTime\": \"18:00\", \"isAvailable\": true },\n    { \"day\": \"thursday\", \"startTime\": \"08:00\", \"endTime\": \"18:00\", \"isAvailable\": true },\n    { \"day\": \"friday\", \"startTime\": \"08:00\", \"endTime\": \"18:00\", \"isAvailable\": true },\n    { \"day\": \"saturday\", \"startTime\": \"09:00\", \"endTime\": \"16:00\", \"isAvailable\": true },\n    { \"day\": \"sunday\", \"isAvailable\": false }\n  ],\n  \"leadTime\": 24,\n  \"maxAdvanceBooking\": 30,\n  \"bufferTime\": 30,\n  \"instantBooking\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/availability",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "availability"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services - Analytics & External",
+      "item": [
+        {
+          "name": "Get Service Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "analytics"]
+            }
+          }
+        },
+        {
+          "name": "Link External ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"system\": \"google_business\",\n  \"externalId\": \"gbp_12345\",\n  \"metadata\": {\n    \"placeId\": \"ChIJrTLr-GyuEmsRBfy61i59si0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/external-ids",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "{{serviceId}}", "external-ids"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories - Admin",
+      "item": [
+        {
+          "name": "List Categories (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/categories/manage",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "categories", "manage"]
+            }
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"pet_care\",\n  \"name\": \"Pet Care\",\n  \"description\": \"Pet grooming, walking, and sitting services\",\n  \"icon\": \"paw\",\n  \"subcategories\": [\"grooming\", \"walking\", \"sitting\", \"training\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\",\n  \"displayOrder\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "categories", "{{categoryId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/services/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "services", "categories", "{{categoryId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings - Basic",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"bookingDate\": \"2025-02-15\",\n  \"bookingTime\": \"10:00\",\n  \"duration\": 2,\n  \"paymentMethod\": \"card\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Manila\",\n    \"barangay\": \"Makati\",\n    \"coordinates\": {\n      \"lat\": 14.5995,\n      \"lng\": 120.9842\n    }\n  },\n  \"specialInstructions\": \"Please bring eco-friendly products\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Get My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/my-bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "my-bookings"]
+            }
+          }
+        },
+        {
+          "name": "Get All Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings"],
+              "query": [
+                { "key": "status", "value": "pending" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Booking by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Booking by Number",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/number/BK20250215ABC123",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "number", "BK20250215ABC123"]
+            }
+          }
+        },
+        {
+          "name": "Get Booking Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Upload Booking Photos",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "photos", "type": "file", "src": "" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/photos",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "photos"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings - Workflow",
+      "item": [
+        {
+          "name": "Confirm Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "confirm"]
+            }
+          }
+        },
+        {
+          "name": "Start Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "start"]
+            }
+          }
+        },
+        {
+          "name": "Complete Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Service completed successfully. All areas cleaned.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "complete"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Schedule conflict\",\n  \"reasonCode\": \"schedule_conflict\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Reschedule Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newDate\": \"2025-02-20T10:00:00Z\",\n  \"reason\": \"Client requested different date\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/reschedule",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "reschedule"]
+            }
+          }
+        },
+        {
+          "name": "Sign Off Completion",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signature\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/signoff",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "signoff"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings - GPS Tracking",
+      "item": [
+        {
+          "name": "Update Provider Location",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat\": 14.6010,\n  \"lng\": 120.9850,\n  \"accuracy\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/location",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "location"]
+            }
+          }
+        },
+        {
+          "name": "Mark Arrived",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/arrived",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "arrived"]
+            }
+          }
+        },
+        {
+          "name": "Get Location History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/location-history",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "location-history"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings - Disputes",
+      "item": [
+        {
+          "name": "Open Dispute",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Service not completed as described\",\n  \"reasonCode\": \"incomplete_service\",\n  \"description\": \"The provider did not clean the kitchen as agreed in the service description.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "dispute"]
+            }
+          }
+        },
+        {
+          "name": "Add Dispute Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"photo\",\n  \"url\": \"https://res.cloudinary.com/demo/image/evidence123.jpg\",\n  \"description\": \"Photo showing uncleaned kitchen\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/evidence",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "evidence"]
+            }
+          }
+        },
+        {
+          "name": "Add Dispute Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"I have uploaded photos showing the issue.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "messages"]
+            }
+          }
+        },
+        {
+          "name": "Get Disputed Bookings (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/disputes?status=open",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "disputes"],
+              "query": [
+                { "key": "status", "value": "open" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Resolve Dispute (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"outcome\": \"resolved_client\",\n  \"refundAmount\": 500,\n  \"notes\": \"Partial refund issued due to incomplete service\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/resolve",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "resolve"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings - Reviews",
+      "item": [
+        {
+          "name": "Add Client Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent service! The team was professional and thorough.\",\n  \"categories\": {\n    \"quality\": 5,\n    \"timeliness\": 5,\n    \"communication\": 4,\n    \"value\": 5\n  },\n  \"wouldRecommend\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/reviews/client",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "reviews", "client"]
+            }
+          }
+        },
+        {
+          "name": "Add Provider Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Great client, very respectful and easy to work with.\",\n  \"wouldWorkAgain\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/reviews/provider",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "reviews", "provider"]
+            }
+          }
+        },
+        {
+          "name": "Respond to Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Thank you for your kind review! We're glad you were satisfied with our service.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/reviews/respond",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "reviews", "respond"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings - Payments",
+      "item": [
+        {
+          "name": "Approve PayPal Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderID\": \"PAYPAL_ORDER_ID\",\n  \"bookingId\": \"{{bookingId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/paypal/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "paypal", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Get PayPal Order Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/paypal/order/PAYPAL_ORDER_ID",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "paypal", "order", "PAYPAL_ORDER_ID"]
+            }
+          }
+        },
+        {
+          "name": "Add Tip",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100,\n  \"method\": \"cash\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tip",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "tip"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings - External IDs",
+      "item": [
+        {
+          "name": "Link External ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"system\": \"accounting_software\",\n  \"externalId\": \"INV-2025-0001\",\n  \"metadata\": {\n    \"invoiceNumber\": \"INV-2025-0001\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/external-ids",
+              "host": ["{{baseUrl}}"],
+              "path": ["marketplace", "bookings", "{{bookingId}}", "external-ids"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

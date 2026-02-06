@@ -1,0 +1,776 @@
+{
+  "info": {
+    "_postman_id": "academy-collection-2024",
+    "name": "LocalPro - Academy API",
+    "description": "Complete Academy/Learning Management System API collection for LocalPro Super App.\n\nIncludes:\n- Course Management (CRUD, curriculum, pricing)\n- Enrollment & Progress Tracking\n- Reviews & Ratings\n- Certifications & Exams\n- Categories Management\n- Instructor Features\n- Student Features",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "courseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoryId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "enrollmentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "certificationId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Public - Courses",
+      "description": "Public endpoints for browsing courses",
+      "item": [
+        {
+          "name": "Get All Courses",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.length > 0) {",
+                  "        pm.collectionVariables.set('courseId', jsonData.data[0]._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses?page=1&limit=10&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "sortBy", "value": "createdAt" },
+                { "key": "sortOrder", "value": "desc" },
+                { "key": "category", "value": "", "disabled": true },
+                { "key": "level", "value": "", "disabled": true },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "instructor", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Get paginated list of courses with filters"
+          }
+        },
+        {
+          "name": "Get Course by ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}?includeEnrollments=false&includeReviews=true&includeStatistics=true&includeRelated=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}"],
+              "query": [
+                { "key": "includeEnrollments", "value": "false" },
+                { "key": "includeReviews", "value": "true" },
+                { "key": "includeStatistics", "value": "true" },
+                { "key": "includeRelated", "value": "true" }
+              ]
+            },
+            "description": "Get detailed course information"
+          }
+        },
+        {
+          "name": "Get Featured Courses",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/featured?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "featured"],
+              "query": [
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Get featured courses"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Public - Categories",
+      "description": "Public endpoints for course categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.length > 0) {",
+                  "        pm.collectionVariables.set('categoryId', jsonData.data[0]._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "categories"]
+            },
+            "description": "Get all active course categories"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Public - Certifications",
+      "description": "Public endpoints for certifications",
+      "item": [
+        {
+          "name": "Get All Certifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.length > 0) {",
+                  "        pm.collectionVariables.set('certificationId', jsonData.data[0]._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/certifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "certifications"]
+            },
+            "description": "Get all active certifications"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Instructor - Course Management",
+      "description": "Course creation and management for instructors",
+      "item": [
+        {
+          "name": "Create Course",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data._id) {",
+                  "        pm.collectionVariables.set('courseId', jsonData.data._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Complete Web Development Bootcamp\",\n  \"description\": \"Learn web development from scratch with HTML, CSS, JavaScript, React, Node.js and more.\",\n  \"shortDescription\": \"Master modern web development\",\n  \"category\": \"{{categoryId}}\",\n  \"level\": \"beginner\",\n  \"language\": \"en\",\n  \"duration\": {\n    \"hours\": 40,\n    \"weeks\": 8\n  },\n  \"pricing\": {\n    \"regularPrice\": 2999,\n    \"discountedPrice\": 1999,\n    \"currency\": \"PHP\",\n    \"isFree\": false\n  },\n  \"prerequisites\": [\n    \"Basic computer skills\",\n    \"Willingness to learn\"\n  ],\n  \"learningOutcomes\": [\n    \"Build responsive websites\",\n    \"Create full-stack applications\",\n    \"Deploy to production\"\n  ],\n  \"targetAudience\": [\n    \"Beginners\",\n    \"Career changers\",\n    \"Entrepreneurs\"\n  ],\n  \"curriculum\": [\n    {\n      \"module\": \"Introduction to Web Development\",\n      \"moduleDescription\": \"Get started with the basics\",\n      \"order\": 1,\n      \"lessons\": [\n        {\n          \"title\": \"Welcome to the Course\",\n          \"description\": \"Course overview and setup\",\n          \"duration\": 15,\n          \"type\": \"video\",\n          \"isFree\": true,\n          \"isPreview\": true\n        },\n        {\n          \"title\": \"Setting Up Your Environment\",\n          \"description\": \"Install required tools\",\n          \"duration\": 30,\n          \"type\": \"video\"\n        }\n      ]\n    }\n  ],\n  \"certification\": {\n    \"isAvailable\": true,\n    \"name\": \"Web Development Professional\",\n    \"issuer\": \"LocalPro Academy\"\n  },\n  \"tags\": [\"web development\", \"html\", \"css\", \"javascript\", \"react\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses"]
+            },
+            "description": "Create a new course (Instructor/Admin)"
+          }
+        },
+        {
+          "name": "Update Course (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Complete Web Development Bootcamp 2024\",\n  \"description\": \"Updated description with more details\",\n  \"pricing\": {\n    \"regularPrice\": 3499,\n    \"discountedPrice\": 2499,\n    \"currency\": \"PHP\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}"]
+            },
+            "description": "Full update of course (Instructor/Admin)"
+          }
+        },
+        {
+          "name": "Update Course (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pricing\": {\n    \"discountedPrice\": 1499,\n    \"discountPercentage\": 50,\n    \"discountValidUntil\": \"2024-12-31T23:59:59Z\"\n  },\n  \"enrollment\": {\n    \"isOpen\": true,\n    \"maxCapacity\": 100\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}"]
+            },
+            "description": "Partial update of course (Instructor/Admin)"
+          }
+        },
+        {
+          "name": "Delete Course",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}"]
+            },
+            "description": "Soft delete a course (Instructor/Admin)"
+          }
+        },
+        {
+          "name": "Get My Created Courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/my-created-courses?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "my-created-courses"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Get courses created by current instructor"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Instructor - Content Upload",
+      "description": "Upload course content (thumbnails, videos)",
+      "item": [
+        {
+          "name": "Upload Course Thumbnail",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "thumbnail",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}/thumbnail",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}", "thumbnail"]
+            },
+            "description": "Upload course thumbnail image"
+          }
+        },
+        {
+          "name": "Upload Course Video",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "video",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "title",
+                  "value": "Introduction Video",
+                  "type": "text"
+                },
+                {
+                  "key": "duration",
+                  "value": "300",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}/videos",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}", "videos"]
+            },
+            "description": "Upload course video"
+          }
+        },
+        {
+          "name": "Delete Course Video",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}/videos/{{videoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}", "videos", "{{videoId}}"]
+            },
+            "description": "Delete a course video"
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Student - Enrollment",
+      "description": "Course enrollment and access",
+      "item": [
+        {
+          "name": "Enroll in Course",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data._id) {",
+                  "        pm.collectionVariables.set('enrollmentId', jsonData.data._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment\": {\n    \"amount\": 1999,\n    \"currency\": \"PHP\",\n    \"method\": \"gcash\",\n    \"transactionId\": \"TXN123456\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}", "enroll"]
+            },
+            "description": "Enroll in a course"
+          }
+        },
+        {
+          "name": "Get My Enrolled Courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/my-courses?page=1&limit=10&status=in_progress",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "my-courses"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "status", "value": "in_progress", "disabled": true }
+              ]
+            },
+            "description": "Get courses enrolled by current student"
+          }
+        },
+        {
+          "name": "Update Course Progress",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"progress\": 25,\n  \"completedVideos\": [\"video-id-1\", \"video-id-2\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}/progress",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}", "progress"]
+            },
+            "description": "Update course progress for enrolled student"
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. Student - Reviews",
+      "description": "Course reviews and ratings",
+      "item": [
+        {
+          "name": "Add Course Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"title\": \"Excellent Course!\",\n  \"comment\": \"This course exceeded my expectations. The instructor explains concepts clearly and the projects are practical.\",\n  \"pros\": [\"Great content\", \"Clear explanations\", \"Helpful projects\"],\n  \"cons\": [\"Could use more advanced topics\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}", "reviews"]
+            },
+            "description": "Add a review to a completed course"
+          }
+        }
+      ]
+    },
+    {
+      "name": "08. Student - Favorites",
+      "description": "Course favorites management",
+      "item": [
+        {
+          "name": "Favorite Course",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}/favorite",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}", "favorite"]
+            },
+            "description": "Add course to favorites"
+          }
+        },
+        {
+          "name": "Unfavorite Course",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/courses/{{courseId}}/favorite",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "courses", "{{courseId}}", "favorite"]
+            },
+            "description": "Remove course from favorites"
+          }
+        },
+        {
+          "name": "Get My Favorite Courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/my-favorite-courses?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "my-favorite-courses"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Get favorited courses"
+          }
+        }
+      ]
+    },
+    {
+      "name": "09. Admin - Categories",
+      "description": "Category management (Admin/Instructor)",
+      "item": [
+        {
+          "name": "Create Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data._id) {",
+                  "        pm.collectionVariables.set('categoryId', jsonData.data._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Web Development\",\n  \"description\": \"Learn to build websites and web applications\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "categories"]
+            },
+            "description": "Create a new category"
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Full-Stack Web Development\",\n  \"description\": \"Learn frontend and backend development\",\n  \"isFeatured\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "categories", "{{categoryId}}"]
+            },
+            "description": "Update a category"
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "categories", "{{categoryId}}"]
+            },
+            "description": "Delete a category"
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Admin - Certifications",
+      "description": "Certification management (Admin/Instructor)",
+      "item": [
+        {
+          "name": "Create Certification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data._id) {",
+                  "        pm.collectionVariables.set('certificationId', jsonData.data._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Certified Web Developer\",\n  \"description\": \"Professional certification for web developers\",\n  \"issuer\": \"LocalPro Academy\",\n  \"categoryName\": \"Web Development\",\n  \"level\": \"professional\",\n  \"requirements\": [\n    {\n      \"type\": \"course_completion\",\n      \"description\": \"Complete Web Development Bootcamp\",\n      \"value\": \"100%\"\n    },\n    {\n      \"type\": \"exam\",\n      \"description\": \"Pass certification exam\",\n      \"value\": \"70%\"\n    }\n  ],\n  \"validity\": {\n    \"duration\": 24,\n    \"renewable\": true\n  },\n  \"exam\": {\n    \"isRequired\": true,\n    \"title\": \"Web Development Certification Exam\",\n    \"duration\": 90,\n    \"passingScore\": 70,\n    \"maxAttempts\": 3\n  },\n  \"pricing\": {\n    \"examFee\": 500,\n    \"certificationFee\": 1000,\n    \"currency\": \"PHP\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/certifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "certifications"]
+            },
+            "description": "Create a new certification"
+          }
+        },
+        {
+          "name": "Update Certification",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Certified Full-Stack Developer\",\n  \"level\": \"expert\",\n  \"isFeatured\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/certifications/{{certificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "certifications", "{{certificationId}}"]
+            },
+            "description": "Update a certification"
+          }
+        },
+        {
+          "name": "Delete Certification",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/certifications/{{certificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "certifications", "{{certificationId}}"]
+            },
+            "description": "Delete a certification"
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Admin - Enrollments",
+      "description": "Enrollment management (Admin/Instructor)",
+      "item": [
+        {
+          "name": "List All Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/enrollments?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "enrollments"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "course", "value": "", "disabled": true },
+                { "key": "student", "value": "", "disabled": true },
+                { "key": "status", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Get all enrollments with filters"
+          }
+        },
+        {
+          "name": "Update Enrollment Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/academy/enrollments/{{enrollmentId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "enrollments", "{{enrollmentId}}", "status"]
+            },
+            "description": "Update enrollment status"
+          }
+        },
+        {
+          "name": "Delete Enrollment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/enrollments/{{enrollmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "enrollments", "{{enrollmentId}}"]
+            },
+            "description": "Delete an enrollment (Admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Admin - Statistics",
+      "description": "Academy analytics and statistics",
+      "item": [
+        {
+          "name": "Get Course Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/academy/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["academy", "statistics"]
+            },
+            "description": "Get comprehensive academy statistics (Admin only)"
+          }
+        }
+      ]
+    }
+  ]
+}

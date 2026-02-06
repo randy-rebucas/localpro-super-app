@@ -8,17 +8,17 @@ Get started with LocalPro Super App in minutes:
 
 ```bash
 # 1. Install dependencies
-npm install
+pnpm install
 
 # 2. Configure environment
 cp env.example .env
 # Edit .env with your settings
 
 # 3. Run comprehensive setup
-npm run setup
+pnpm run setup
 
 # 4. Start the application
-npm run dev
+pnpm run dev
 ```
 
 The setup script will:
@@ -31,23 +31,26 @@ The setup script will:
 - ✅ Validate the setup
 
 **Additional Setup Scripts:**
-- `node scripts/seed-service-categories-and-skills.js` - Seed service categories and provider skills
-- `node scripts/create-database-indexes.js` - Create all recommended database indexes
-- `node scripts/seed-provider-professional-info-example.js` - Example script for creating provider specialties with category and reference fields
+- `pnpm run seed:categories` - Seed service categories and provider skills
+- `pnpm run seed:categories:clear` - Clear service categories and provider skills
+- `pnpm run seed:job-categories` - Seed job categories
+- `pnpm run seed:job-categories:clear` - Clear job categories
+- `pnpm run setup:monitoring` - Configure monitoring and logging
+- `pnpm run verify` - Verify setup and environment
 
 **Admin Credentials:**
 - Super Admin: `admin@localpro.com`
 - Agency Owner: `agency@localpro.com`
 
-For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
+For detailed setup instructions, see [docs/ENVIRONMENT_SETUP.md](docs/ENVIRONMENT_SETUP.md)
 
 ## 🚀 Deploying on Render
 
 ### Render service settings (recommended)
 - **Service type**: Web Service
 - **Runtime**: Node
-- **Build command**: `npm ci`
-- **Start command**: `npm run start`
+- **Build command**: `pnpm install --frozen-lockfile`
+- **Start command**: `pnpm run start`
 - **Health check path**: `/health`
 - **Environment variables**: copy from `env.production` (and replace placeholders with real secrets)
 
@@ -142,6 +145,7 @@ After that, every push to `main` will:
 ## 📋 Prerequisites
 
 - Node.js (v14 or higher)
+- pnpm (recommended via Corepack)
 - MongoDB (v4.4 or higher)
 - Twilio account for SMS verification
 - PayPal Developer account for payment processing
@@ -160,7 +164,7 @@ cd localpro-super-app
 
 ### 2. Install dependencies
 ```bash
-npm install
+pnpm install
 ```
 
 ### 3. Environment setup
@@ -255,7 +259,7 @@ AUDIT_CLEANUP_SCHEDULE=0 2 * * *
 
 ### 4. Start the development server
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 The API will be available at `http://localhost:4000`
@@ -307,16 +311,14 @@ curl -X POST http://localhost:4000/api/maps/geocode \
 
 ## 📚 Documentation
 
-### Complete Documentation Suite
+### Documentation
 
-- **[Automations Documentation](AUTOMATIONS_DOCUMENTATION.md)** - Comprehensive guide to all 33 automated background services
-- **[Automations Quick Reference](AUTOMATIONS_QUICK_REFERENCE.md)** - Quick reference card for automation configuration
-- **[Client Mobile App Documentation](CLIENT_MOBILE_APP_DOCUMENTATION.md)** - Full API documentation for client apps
-- **[Provider Mobile App Documentation](PROVIDER_MOBILE_APP_DOCUMENTATION.md)** - Full API documentation for provider apps
-- **[Admin Dashboard Documentation](ADMIN_DASHBOARD_DOCUMENTATION.md)** - Full API documentation for admin panel
-- **[Partner Portal Documentation](PARTNER_PORTAL_DOCUMENTATION.md)** - Full API documentation for business partners
-- **[Documentation Summary](DOCUMENTATION_SUMMARY.md)** - Overview of all documentation files
-- **[Quick Start Guide](QUICK_START_GUIDE.md)** - Getting started guide
+- **[API Reference](docs/API_REFERENCE.md)** - Endpoint contracts and request/response schemas
+- **[Database Schema](docs/DATABASE_SCHEMA.md)** - Collections, indexes, and relationships
+- **[Environment Setup](docs/ENVIRONMENT_SETUP.md)** - Environment variables and configuration
+- **[Error Codes](docs/ERROR_CODES.md)** - Standard error responses and meanings
+- **[Flows](docs/FLOWS.md)** - Core user and system flows
+- **[Knowledge Base](docs/KNOWLEDGE_BASE.md)** - Operational notes and troubleshooting
 
 ### API Endpoints Overview
 
@@ -1631,10 +1633,10 @@ curl -X POST http://localhost:4000/api/communication/notifications/sms \
 
 ```bash
 # Run tests (when implemented)
-npm test
+pnpm test
 
 # Run tests with coverage
-npm run test:coverage
+pnpm run coverage
 ```
 
 ## 📦 Deployment
