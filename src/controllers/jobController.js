@@ -276,6 +276,7 @@ const getJobs = async (req, res) => {
 // @access  Public
 const getJob = async (req, res) => {
   try {
+    console.log('Get job request received for ID:', req.params.id);
     // Validate ObjectId format
     if (!validateObjectId(req.params.id)) {
       return sendValidationError(res, [{
@@ -314,7 +315,7 @@ const createJob = async (req, res) => {
       ...req.body,
       employer: req.user.id
     };
-
+    console.log('Creating job with data:', jobData);
     // Geocode company location if address is provided
     if (jobData.company?.location?.address) {
       try {

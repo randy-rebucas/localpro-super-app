@@ -15,7 +15,7 @@ const { auditGeneralOperations } = require('./middleware/auditLogger');
 const { activityTracker } = require('./middleware/activityTracker');
 const authRoutes = require('./routes/auth');
 const marketplaceRoutes = require('./routes/marketplace');
-const suppliesRoutes = require('./routes/supplies');
+const { routes: suppliesRoutes } = require('../features/supplies');
 const academyRoutes = require('./routes/academy');
 const financeRoutes = require('./routes/finance');
 const rentalsRoutes = require('./routes/rentals');
@@ -806,7 +806,7 @@ async function initializeAutomatedServices() {
 
     // Supplies fulfillment / delivery confirmation reminders
     if (process.env.ENABLE_AUTOMATED_SUPPLIES_FULFILLMENT === 'true') {
-      const automatedSuppliesFulfillmentService = require('./services/automatedSuppliesFulfillmentService');
+      const automatedSuppliesFulfillmentService = require('../features/supplies/services/automatedSuppliesFulfillmentService');
       automatedSuppliesFulfillmentService.start();
       logger.info('✅ Automated supplies fulfillment service started');
     }
@@ -862,7 +862,7 @@ async function initializeAutomatedServices() {
 
     // Supplies reorder reminders
     if (process.env.ENABLE_AUTOMATED_SUPPLIES_REORDER_REMINDERS === 'true') {
-      const automatedSuppliesReorderReminderService = require('./services/automatedSuppliesReorderReminderService');
+      const automatedSuppliesReorderReminderService = require('../features/supplies/services/automatedSuppliesReorderReminderService');
       automatedSuppliesReorderReminderService.start();
       logger.info('✅ Automated supplies reorder reminder service started');
     }

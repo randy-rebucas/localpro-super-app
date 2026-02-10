@@ -1,9 +1,9 @@
 const cron = require('node-cron');
-const logger = require('../config/logger');
-const NotificationService = require('./notificationService');
+const logger = require('../../../src/config/logger');
+const NotificationService = require('../../../src/services/notificationService');
 const { Order } = require('../models/Supplies');
-const User = require('../models/User');
-const { Notification } = require('../models/Communication');
+const User = require('../../../src/models/User');
+const { Notification } = require('../../../src/models/Communication');
 
 /**
  * Automated Supplies Fulfillment / Delivery Confirmation
@@ -232,5 +232,3 @@ class AutomatedSuppliesFulfillmentService {
 }
 
 module.exports = new AutomatedSuppliesFulfillmentService();
-
-

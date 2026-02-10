@@ -1,8 +1,8 @@
 const cron = require('node-cron');
-const logger = require('../config/logger');
+const logger = require('../../../src/config/logger');
 const { Order } = require('../models/Supplies');
-const NotificationService = require('./notificationService');
-const { Notification } = require('../models/Communication');
+const NotificationService = require('../../../src/services/notificationService');
+const { Notification } = require('../../../src/models/Communication');
 
 /**
  * Automated Supplies Reorder Reminders
@@ -86,7 +86,7 @@ class AutomatedSuppliesReorderReminderService {
         userId: customerId,
         type: 'supplies_reorder_reminder',
         title: 'Time to reorder supplies?',
-        message: 'It’s been a while since your last supplies order. Reorder now to keep your stock ready.',
+        message: 'It\u2019s been a while since your last supplies order. Reorder now to keep your stock ready.',
         data: { lastDeliveredAt: r.lastDeliveredAt },
         priority: 'low'
       });
@@ -98,5 +98,3 @@ class AutomatedSuppliesReorderReminderService {
 }
 
 module.exports = new AutomatedSuppliesReorderReminderService();
-
-

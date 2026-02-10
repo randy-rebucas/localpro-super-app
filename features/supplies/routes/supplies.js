@@ -1,5 +1,5 @@
 const express = require('express');
-const { auth, authorize } = require('../middleware/auth');
+const { auth, authorize } = require('../../../src/middleware/auth');
 const {
   getSupplies,
   getSupply,
@@ -20,7 +20,7 @@ const {
   getSupplyStatistics,
   generateSupplyDescription
 } = require('../controllers/suppliesController');
-const { uploaders } = require('../config/cloudinary');
+const { uploaders } = require('../../../src/config/cloudinary');
 
 const router = express.Router();
 

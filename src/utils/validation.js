@@ -57,48 +57,39 @@ const serviceSchema = Joi.object({
 
 const bookingSchema = Joi.object({
   serviceId: Joi.string().hex().length(24).required(),
-  bookingDate: Joi.date().greater('now').required(),
-  duration: Joi.number().positive().required(),
+  providerId: Joi.string().hex().length(24).optional(),
+  bookingDate: Joi.string().isoDate().required()
+    .messages({
+      'string.isoDate': 'Booking date must be in ISO 8601 format (YYYY-MM-DD)'
+    }),
+  bookingTime: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).optional()
+    .messages({
+      'string.pattern.base': 'Booking time must be in HH:MM format (e.g., 14:30)'
+    }),
+  duration: Joi.number().positive().required()
+    .messages({
+      'number.positive': 'Duration must be a positive number (in hours)'
+    }),
+  paymentMethod: Joi.string().valid('cash', 'card', 'bank_transfer', 'paypal', 'paymaya', 'paymongo', 'gcash', 'wallet').optional(),
   address: Joi.object({
     street: Joi.string().required(),
     city: Joi.string().required(),
     state: Joi.string().required(),
     zipCode: Joi.string().required(),
-    country: Joi.string().required()
-  }).required(),
-  specialInstructions: Joi.string().max(500).optional()
+    country: Joi.string().default('Philippines'),
+    coordinates: Joi.object({
+      lat: Joi.number().min(-90).max(90).optional(),
+      lng: Joi.number().min(-180).max(180).optional()
+    }).optional()
+  }).optional(),
+  specialInstructions: Joi.string().max(1000).optional()
+    .messages({
+      'string.max': 'Special instructions cannot exceed 1000 characters'
+    })
 });
 
-// Supplies validation schemas
-const productSchema = Joi.object({
-  name: Joi.string().min(3).max(100).required(),
-  description: Joi.string().min(10).max(500).required(),
-  category: Joi.string().valid('cleaning_supplies', 'tools', 'materials', 'equipment').required(),
-  subcategory: Joi.string().min(2).max(50).required(),
-  brand: Joi.string().min(2).max(50).required(),
-  sku: Joi.string().min(3).max(50).required(),
-  pricing: Joi.object({
-    retailPrice: Joi.number().positive().required(),
-    wholesalePrice: Joi.number().positive().optional(),
-    currency: Joi.string().default('USD')
-  }).required(),
-  inventory: Joi.object({
-    quantity: Joi.number().min(0).required(),
-    minStock: Joi.number().min(0).default(10),
-    maxStock: Joi.number().min(0).optional(),
-    location: Joi.string().optional()
-  }).required(),
-  specifications: Joi.object({
-    weight: Joi.string().optional(),
-    dimensions: Joi.string().optional(),
-    material: Joi.string().optional(),
-    color: Joi.string().optional(),
-    warranty: Joi.string().optional()
-  }).optional(),
-  images: Joi.array().items(Joi.string().uri()).optional(),
-  tags: Joi.array().items(Joi.string()).optional(),
-  isSubscriptionEligible: Joi.boolean().default(false)
-});
+// Supplies validation schemas (delegated to feature module)
+const { productSchema } = require('../../features/supplies/validators/suppliesValidator');
 
 // Finance validation schemas
 const loanApplicationSchema = Joi.object({

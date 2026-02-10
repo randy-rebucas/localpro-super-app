@@ -2,7 +2,7 @@ const PayPalService = require('../services/paypalService');
 const { Payment, UserSubscription } = require('../models/LocalProPlus');
 const { Transaction } = require('../models/Finance');
 const { Booking } = require('../models/Marketplace');
-const { Order } = require('../models/Supplies');
+const { Order } = require('../../features/supplies');
 const User = require('../models/User');
 const logger = require('../config/logger');
 

@@ -56,7 +56,7 @@ const serviceSchema = new mongoose.Schema({
   },
   provider: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Provider',
+    ref: 'User',
     required: true
   },
 
@@ -433,7 +433,7 @@ const bookingSchema = new mongoose.Schema({
   },
   provider: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Provider',
+    ref: 'User',
     required: true
   },
 

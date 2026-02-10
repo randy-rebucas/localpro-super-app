@@ -8,17 +8,18 @@ const NotificationService = require('../services/notificationService');
 const mongoose = require('mongoose');
 const { ReadPreference } = require('mongodb');
 const logger = require('../config/logger');
+const crypto = require('crypto');
 
-const { 
-  sendPaginated, 
-  sendSuccess, 
-  sendValidationError, 
-  sendNotFoundError, 
+const {
+  sendPaginated,
+  sendSuccess,
+  sendValidationError,
+  sendNotFoundError,
   sendServerError,
-  createPagination 
+  createPagination
 } = require('../utils/responseHelper');
-const { 
-  validatePagination, 
+const {
+  validatePagination,
   validateObjectId
 } = require('../utils/controllerValidation');
 const { bookingSchema } = require('../utils/validation');
@@ -46,7 +47,7 @@ const getServices = async (req, res) => {
     if (!paginationValidation.isValid) {
       return sendValidationError(res, paginationValidation.errors);
     }
-    
+
     const { page: pageNum, limit: limitNum } = paginationValidation.data;
 
     // Build filter object
@@ -69,6 +70,11 @@ const getServices = async (req, res) => {
       filter.subcategory = subcategory;
     }
 
+    // Check if location-based geospatial query is needed
+    let useGeoQuery = false;
+    let geoCoordinates = null;
+    let geoMaxDistance = 100000; // 100km default
+
     // Location filter - using geospatial query if coordinates provided
     if (location) {
       // If location is coordinates (lat,lng or lng,lat format)
@@ -77,19 +83,8 @@ const getServices = async (req, res) => {
         if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
           // Assume format is lat,lng (most common)
           const [lat, lng] = coords;
-          // Use geospatial query to find services within their service radius
-          // Note: This requires a 2dsphere index on serviceArea.coordinates
-          // We'll find services where the location is within the service's radius
-          const maxDistance = 100000; // 100km max search radius in meters
-          filter['serviceArea.coordinates'] = {
-            $near: {
-              $geometry: {
-                type: 'Point',
-                coordinates: [lng, lat] // GeoJSON format: [longitude, latitude]
-              },
-              $maxDistance: maxDistance
-            }
-          };
+          useGeoQuery = true;
+          geoCoordinates = [lng, lat]; // GeoJSON format: [longitude, latitude]
         }
       } else {
         // Text-based location search - would need geocoding
@@ -115,21 +110,91 @@ const getServices = async (req, res) => {
       filter.serviceType = serviceType;
     }
 
-    // Build sort object
-    const sort = {};
-    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
-
     const skip = (pageNum - 1) * limitNum;
 
-    const services = await Service.find(filter)
-      .populate('provider', 'firstName lastName profile.avatar profile.businessName profile.rating')
-      .select('-__v')
-      .sort(sort)
-      .skip(skip)
-      .limit(limitNum)
-      .lean();
+    let services;
+    let total;
 
-    const total = await Service.countDocuments(filter);
+    // Use aggregation pipeline for geospatial queries, regular query otherwise
+    if (useGeoQuery && geoCoordinates) {
+      // Build aggregation pipeline with $geoNear
+      const pipeline = [
+        {
+          $geoNear: {
+            near: {
+              type: 'Point',
+              coordinates: geoCoordinates
+            },
+            distanceField: 'distance',
+            maxDistance: geoMaxDistance,
+            spherical: true,
+            query: filter
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'provider',
+            foreignField: '_id',
+            as: 'providerData'
+          }
+        },
+        {
+          $unwind: {
+            path: '$providerData',
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        {
+          $addFields: {
+            provider: {
+              _id: '$providerData._id',
+              firstName: '$providerData.firstName',
+              lastName: '$providerData.lastName',
+              profile: {
+                avatar: '$providerData.profile.avatar',
+                businessName: '$providerData.profile.businessName',
+                rating: '$providerData.profile.rating'
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            __v: 0,
+            providerData: 0
+          }
+        },
+        {
+          $facet: {
+            metadata: [{ $count: 'total' }],
+            data: [
+              { $skip: skip },
+              { $limit: limitNum }
+            ]
+          }
+        }
+      ];
+
+      const result = await Service.aggregate(pipeline);
+      services = result[0]?.data || [];
+      total = result[0]?.metadata[0]?.total || 0;
+    } else {
+      // Regular query without geospatial operations
+      const sort = {};
+      sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+      services = await Service.find(filter)
+        .populate('provider', 'firstName lastName profile.avatar profile.businessName profile.rating')
+        .select('-__v')
+        .sort(sort)
+        .skip(skip)
+        .limit(limitNum)
+        .lean();
+
+      total = await Service.countDocuments(filter);
+    }
+
     const pagination = createPagination(pageNum, limitNum, total);
 
     return sendPaginated(res, services, pagination, 'Services retrieved successfully');
@@ -215,38 +280,76 @@ const getNearbyServices = async (req, res) => {
     if (!paginationValidation.isValid) {
       return sendValidationError(res, paginationValidation.errors);
     }
-    
+
     const { page: pageNum, limit: limitNum } = paginationValidation.data;
-
-    // Build filter
-    const filter = {
-      isActive: true,
-      'serviceArea.coordinates': {
-        $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [longitude, latitude] // GeoJSON format: [lng, lat]
-          },
-          $maxDistance: radiusKm * 1000 // Convert km to meters
-        }
-      }
-    };
-
-    if (category) {
-      filter.category = category;
-    }
 
     const skip = (pageNum - 1) * limitNum;
 
-    const services = await Service.find(filter)
-      .populate('provider', 'firstName lastName profile.avatar profile.businessName profile.rating')
-      .select('-__v')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limitNum)
-      .lean();
+    // Use aggregation pipeline with $geoNear to properly handle geospatial queries
+    const pipeline = [
+      {
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: [longitude, latitude] // GeoJSON format: [lng, lat]
+          },
+          distanceField: 'distance',
+          maxDistance: radiusKm * 1000, // Convert km to meters
+          spherical: true,
+          query: {
+            isActive: true,
+            ...(category && { category })
+          }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'provider',
+          foreignField: '_id',
+          as: 'providerData'
+        }
+      },
+      {
+        $unwind: {
+          path: '$providerData',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $addFields: {
+          provider: {
+            _id: '$providerData._id',
+            firstName: '$providerData.firstName',
+            lastName: '$providerData.lastName',
+            profile: {
+              avatar: '$providerData.profile.avatar',
+              businessName: '$providerData.profile.businessName',
+              rating: '$providerData.profile.rating'
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          __v: 0,
+          providerData: 0
+        }
+      },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: [
+            { $skip: skip },
+            { $limit: limitNum }
+          ]
+        }
+      }
+    ];
 
-    const total = await Service.countDocuments(filter);
+    const result = await Service.aggregate(pipeline);
+    const services = result[0]?.data || [];
+    const total = result[0]?.metadata[0]?.total || 0;
     const pagination = createPagination(pageNum, limitNum, total);
 
     logger.info('Nearby services retrieved', {
@@ -273,7 +376,7 @@ const getNearbyServices = async (req, res) => {
 const getServiceCategories = async (req, res) => {
   try {
     const categories = await ServiceCategory.getActiveCategories();
-    
+
     // Transform to include id field
     const formattedCategories = categories.map((cat) => ({
       id: cat._id.toString(),
@@ -305,10 +408,10 @@ const getServiceCategories = async (req, res) => {
 const getCategoryDetails = async (req, res) => {
   try {
     const { category } = req.params;
-    
+
     // Try to find by key first (case-insensitive)
     let categoryDoc = await ServiceCategory.getByKey(category);
-    
+
     // If not found by key, try to find by name
     if (!categoryDoc) {
       categoryDoc = await ServiceCategory.findOne({
@@ -353,7 +456,7 @@ const listServiceCategoriesAdmin = async (req, res) => {
     if (!paginationValidation.isValid) {
       return sendValidationError(res, paginationValidation.errors);
     }
-    
+
     const { page: pageNum, limit: limitNum } = paginationValidation.data;
 
     const filter = {};
@@ -570,23 +673,23 @@ const createService = async (req, res) => {
     // Handle both JSON and multipart/form-data
     const contentType = req.get('content-type') || '';
     const isMultipart = contentType.includes('multipart/form-data');
-    
+
     logger.debug('Create service - Content type detection', {
       contentType,
       isMultipart
     });
-    
+
     // Parse service data from body
     let serviceData;
     if (isMultipart) {
       // For multipart/form-data, parse JSON fields if they're strings
       serviceData = { ...req.body };
-      
+
       logger.debug('Create service - Parsing multipart data', {
         rawBody: req.body,
         parsedFields: Object.keys(serviceData)
       });
-      
+
       // Parse JSON fields that might be sent as strings in form-data
       const jsonFields = ['pricing', 'availability', 'serviceArea', 'estimatedDuration', 'warranty', 'insurance', 'emergencyService', 'servicePackages', 'addOns'];
       jsonFields.forEach(field => {
@@ -601,10 +704,10 @@ const createService = async (req, res) => {
             });
           } catch (e) {
             // If parsing fails, keep original value
-            logger.warn(`Failed to parse ${field} as JSON`, { 
+            logger.warn(`Failed to parse ${field} as JSON`, {
               field,
               value: serviceData[field],
-              error: e.message 
+              error: e.message
             });
           }
         }
@@ -662,8 +765,8 @@ const createService = async (req, res) => {
 
     // Validate category
     const validCategories = [
-      'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping', 
-      'painting', 'carpentry', 'flooring', 'roofing', 'hvac', 
+      'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping',
+      'painting', 'carpentry', 'flooring', 'roofing', 'hvac',
       'appliance_repair', 'locksmith', 'handyman', 'home_security',
       'pool_maintenance', 'pest_control', 'carpet_cleaning', 'window_cleaning',
       'gutter_cleaning', 'power_washing', 'snow_removal', 'other'
@@ -756,21 +859,21 @@ const createService = async (req, res) => {
               });
             }
           }
-        } 
+        }
         // Check if it's {lat, lng} format (will be converted to GeoJSON)
         else if (typeof serviceArea.coordinates === 'object') {
-          if (typeof serviceArea.coordinates.lat !== 'number' || 
-              serviceArea.coordinates.lat < -90 || 
-              serviceArea.coordinates.lat > 90) {
+          if (typeof serviceArea.coordinates.lat !== 'number' ||
+            serviceArea.coordinates.lat < -90 ||
+            serviceArea.coordinates.lat > 90) {
             validationErrors.push({
               field: 'serviceArea.coordinates.lat',
               message: 'Latitude must be a number between -90 and 90',
               code: 'SERVICE_AREA_LAT_INVALID'
             });
           }
-          if (typeof serviceArea.coordinates.lng !== 'number' || 
-              serviceArea.coordinates.lng < -180 || 
-              serviceArea.coordinates.lng > 180) {
+          if (typeof serviceArea.coordinates.lng !== 'number' ||
+            serviceArea.coordinates.lng < -180 ||
+            serviceArea.coordinates.lng > 180) {
             validationErrors.push({
               field: 'serviceArea.coordinates.lng',
               message: 'Longitude must be a number between -180 and 180',
@@ -785,18 +888,18 @@ const createService = async (req, res) => {
           });
         }
       }
-      
+
       // Validate radius
-      if (typeof serviceArea.radius !== 'number' || 
-          serviceArea.radius < 1 || 
-          serviceArea.radius > 1000) {
+      if (typeof serviceArea.radius !== 'number' ||
+        serviceArea.radius < 1 ||
+        serviceArea.radius > 1000) {
         validationErrors.push({
           field: 'serviceArea.radius',
           message: 'Service radius must be a number between 1 and 1000 kilometers',
           code: 'SERVICE_AREA_RADIUS_INVALID'
         });
       }
-      
+
       // If address is provided instead of coordinates, geocode it
       if (serviceArea.address && !serviceArea.coordinates) {
         try {
@@ -842,7 +945,7 @@ const createService = async (req, res) => {
           });
         }
       }
-      
+
       // Ensure radius has a default if not provided
       if (serviceArea.coordinates && !serviceArea.radius) {
         serviceArea.radius = 50; // Default 50 km radius
@@ -875,8 +978,8 @@ const createService = async (req, res) => {
     // Convert serviceArea coordinates to GeoJSON format if needed
     if (serviceData.serviceArea && serviceData.serviceArea.coordinates) {
       // If coordinates are in {lat, lng} format, convert to GeoJSON [lng, lat]
-      if (serviceData.serviceArea.coordinates.lat !== undefined && 
-          serviceData.serviceArea.coordinates.lng !== undefined) {
+      if (serviceData.serviceArea.coordinates.lat !== undefined &&
+        serviceData.serviceArea.coordinates.lng !== undefined) {
         const { lat, lng } = serviceData.serviceArea.coordinates;
         serviceData.serviceArea.coordinates = {
           type: 'Point',
@@ -925,10 +1028,10 @@ const createService = async (req, res) => {
       logger.debug('Create service - Uploading images', {
         filesCount: req.files.length
       });
-      
+
       try {
         const uploadResult = await CloudinaryService.uploadMultipleFiles(
-          req.files, 
+          req.files,
           'localpro/marketplace'
         );
 
@@ -1071,7 +1174,7 @@ const updateService = async (req, res) => {
     // Handle both JSON and multipart/form-data
     const contentType = req.get('content-type') || '';
     const isMultipart = contentType.includes('multipart/form-data');
-    
+
     let updateData;
     if (isMultipart) {
       updateData = { ...req.body };
@@ -1108,7 +1211,7 @@ const updateService = async (req, res) => {
           logger.warn('Failed to parse serviceArea as JSON', { error: parseError.message });
         }
       }
-      
+
       // If address is provided, geocode it
       if (updateData.serviceArea && updateData.serviceArea.address && !updateData.serviceArea.coordinates) {
         try {
@@ -1131,11 +1234,11 @@ const updateService = async (req, res) => {
           logger.warn('Failed to geocode service area', { error: geocodeError.message });
         }
       }
-      
+
       // Convert coordinates to GeoJSON format if in {lat, lng} format
       if (updateData.serviceArea && updateData.serviceArea.coordinates) {
-        if (updateData.serviceArea.coordinates.lat !== undefined && 
-            updateData.serviceArea.coordinates.lng !== undefined) {
+        if (updateData.serviceArea.coordinates.lat !== undefined &&
+          updateData.serviceArea.coordinates.lng !== undefined) {
           const { lat, lng } = updateData.serviceArea.coordinates;
           updateData.serviceArea.coordinates = {
             type: 'Point',
@@ -1148,7 +1251,7 @@ const updateService = async (req, res) => {
           };
         }
       }
-      
+
       if (updateData.serviceArea && updateData.serviceArea.coordinates && !updateData.serviceArea.radius) {
         updateData.serviceArea.radius = 50;
       }
@@ -1238,7 +1341,7 @@ const deleteService = async (req, res) => {
         const publicIds = service.images
           .filter(img => img.publicId)
           .map(img => img.publicId);
-        
+
         if (publicIds.length > 0) {
           await Promise.all(
             publicIds.map(publicId => CloudinaryService.deleteFile(publicId))
@@ -1318,7 +1421,7 @@ const uploadServiceImages = async (req, res) => {
 
     // Upload files to Cloudinary
     const uploadResult = await CloudinaryService.uploadMultipleFiles(
-      req.files, 
+      req.files,
       'localpro/marketplace'
     );
 
@@ -1390,7 +1493,6 @@ const createBooking = async (req, res) => {
   try {
     // Extract booking data - handle both direct body and formData structure
     const bookingData = req.body.formData || req.body;
-    console.log('Create booking request data:', bookingData);
 
     // Validate payload using Joi bookingSchema
     const { error, value: validatedBooking } = bookingSchema.validate(bookingData, { abortEarly: false });
@@ -1422,7 +1524,7 @@ const createBooking = async (req, res) => {
     await session.withTransaction(async () => {
       // Find and validate service
       const service = await Service.findById(serviceId).session(session);
-      
+
       if (!service) {
         logger.warn('Service not found for booking', {
           serviceId,
@@ -1492,7 +1594,7 @@ const createBooking = async (req, res) => {
         const now = new Date();
         const bufferMinutes = 5;
         const minBookingTime = new Date(now.getTime() + bufferMinutes * 60 * 1000);
-        
+
         if (bookingDateTime <= minBookingTime) {
           throw new Error('Booking date must be at least 5 minutes in the future');
         }
@@ -1543,6 +1645,10 @@ const createBooking = async (req, res) => {
           totalAmount = basePrice * duration;
       }
 
+      const date = new Date();
+      const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+      const random = crypto.randomBytes(3).toString('hex').toUpperCase();
+
       // Create booking
       try {
         const booking = await Booking.create([{
@@ -1550,6 +1656,7 @@ const createBooking = async (req, res) => {
           client: req.user.id,
           provider: service.provider,
           bookingDate: bookingDateTime,
+          bookingNumber: `BK${dateStr}${random}`,
           duration: duration,
           address: address || undefined,
           specialInstructions: specialInstructions || undefined,
@@ -1732,8 +1839,8 @@ const createBooking = async (req, res) => {
       });
     }
 
-    if (error.message === 'Booking date must be in the future' || 
-        error.message === 'Booking date must be at least 5 minutes in the future') {
+    if (error.message === 'Booking date must be in the future' ||
+      error.message === 'Booking date must be at least 5 minutes in the future') {
       return sendValidationError(res, [{
         field: 'bookingDate',
         message: error.message,
@@ -1881,7 +1988,7 @@ const getBookings = async (req, res) => {
     if (!paginationValidation.isValid) {
       return sendValidationError(res, paginationValidation.errors);
     }
-    
+
     const { page: pageNum, limit: limitNum } = paginationValidation.data;
 
     // Build filter
@@ -2075,7 +2182,7 @@ const updateBookingStatus = async (req, res) => {
 
     // Update status
     booking.status = status;
-    
+
     // Add to timeline
     if (!booking.timeline) {
       booking.timeline = [];
@@ -2306,7 +2413,7 @@ const addReview = async (req, res) => {
 
     const booking = await Booking.findById(req.params.id)
       .populate('service');
-    
+
     if (!booking) {
       return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
     }
@@ -2585,11 +2692,11 @@ const getMyServices = async (req, res) => {
     if (!paginationValidation.isValid) {
       return sendValidationError(res, paginationValidation.errors);
     }
-    
+
     const { page: pageNum, limit: limitNum } = paginationValidation.data;
 
     const filter = { provider: userId };
-    
+
     if (category) filter.category = category;
     if (status === 'active') filter.isActive = true;
     if (status === 'inactive') filter.isActive = false;
@@ -2643,12 +2750,12 @@ const getMyBookings = async (req, res) => {
     if (!paginationValidation.isValid) {
       return sendValidationError(res, paginationValidation.errors);
     }
-    
+
     const { page: pageNum, limit: limitNum } = paginationValidation.data;
 
     // Build filter - user can be either client or provider
     const filter = {};
-    
+
     if (type === 'client') {
       filter.client = userId;
     } else if (type === 'provider') {
@@ -2725,7 +2832,7 @@ const getMyBookings = async (req, res) => {
     // Determine user role for each booking
     const bookingsWithRole = bookings.map(booking => {
       const isClient = booking.client._id.toString() === userId;
-      
+
       return {
         ...booking,
         userRole: isClient ? 'client' : 'provider',
@@ -2782,7 +2889,7 @@ const getProvidersForService = async (req, res) => {
     if (!paginationValidation.isValid) {
       return sendValidationError(res, paginationValidation.errors);
     }
-    
+
     const { page: pageNum, limit: limitNum } = paginationValidation.data;
 
     const filter = {
@@ -2933,7 +3040,7 @@ const getProviderServices = async (req, res) => {
     if (!paginationValidation.isValid) {
       return sendValidationError(res, paginationValidation.errors);
     }
-    
+
     const { page: pageNum, limit: limitNum } = paginationValidation.data;
 
     const filter = {

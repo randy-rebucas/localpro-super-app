@@ -254,14 +254,22 @@ Features:
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/register` | Register with phone number |
+| POST | `/register-email` | Register with email/password |
+| POST | `/send-code` | Send phone verification code |
+| POST | `/verify-code` | Verify phone code (returns tokens) |
 | POST | `/verify` | Verify OTP code |
 | POST | `/login` | Login with credentials |
-| POST | `/refresh-token` | Refresh access token |
+| POST | `/login-email` | Login with email/password |
+| POST | `/refresh` | Refresh JWT token |
 | POST | `/logout` | Invalidate tokens |
-| POST | `/mpin/setup` | Setup MPIN |
+| POST | `/mpin/set` | Set MPIN |
+| POST | `/mpin/login` | Login with MPIN |
 | POST | `/mpin/verify` | Verify MPIN |
 | POST | `/email/send-otp` | Send email OTP |
 | POST | `/email/verify` | Verify email OTP |
+| GET  | `/me` | Get current user profile |
+| PUT  | `/profile` | Update user profile |
+| POST | `/avatar` | Upload user avatar |
 
 ### Marketplace (`/api/marketplace`)
 | Method | Endpoint | Description |
@@ -279,13 +287,52 @@ Features:
 ### Jobs (`/api/jobs`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/` | List jobs |
-| GET | `/:id` | Get job details |
-| POST | `/` | Create job posting |
-| PUT | `/:id` | Update job |
-| POST | `/:id/apply` | Apply for job |
-| GET | `/applications` | List my applications |
-| PUT | `/:jobId/applications/:appId` | Update application status |
+| GET    | `/` | List jobs |
+| GET    | `/categories` | List job categories |
+| GET    | `/featured` | List featured jobs |
+| GET    | `/urgent` | List urgent jobs |
+| GET    | `/remote` | List remote jobs |
+| GET    | `/nearby` | List nearby jobs |
+| GET    | `/search` | Search jobs with filters |
+| GET    | `/slug/:slug` | Get job by slug |
+| GET    | `/number/:jobNumber` | Get job by job number |
+| GET    | `/:id` | Get job details |
+| POST   | `/` | Create job posting |
+| PUT    | `/:id` | Update job |
+| DELETE | `/:id` | Delete job |
+| POST   | `/:id/publish` | Publish a draft job |
+| POST   | `/:id/pause` | Pause an active job |
+| POST   | `/:id/close` | Close a job posting |
+| POST   | `/:id/fill` | Mark job as filled |
+| POST   | `/:id/reopen` | Reopen a closed/paused job |
+| POST   | `/:id/archive` | Archive a job |
+| POST   | `/:id/logo` | Upload company logo |
+| GET    | `/:id/stats` | Get job statistics (legacy) |
+| GET    | `/:id/analytics` | Get comprehensive job analytics |
+| GET    | `/:id/funnel` | Get hiring funnel metrics |
+| POST   | `/:id/feature` | Feature a job (Admin only) |
+| DELETE | `/:id/feature` | Remove job from featured (Admin only) |
+| POST   | `/:id/promote` | Promote a job |
+| GET    | `/:id/referrals` | Get referrals for a job |
+| POST   | `/:id/referrals` | Add a referral for a job |
+| POST   | `/:id/apply` | Apply for job |
+| GET    | `/:id/applications` | Get all applications for a job |
+| DELETE | `/:id/applications/:applicationId` | Withdraw application |
+| PUT    | `/:id/applications/:applicationId/status` | Update application status |
+| PUT    | `/:id/applications/:applicationId/score` | Update application score |
+| POST   | `/:id/applications/:applicationId/reject` | Reject application with reason |
+| POST   | `/:id/applications/:applicationId/interviews` | Schedule an interview |
+| PUT    | `/:id/applications/:applicationId/interviews/:interviewId` | Update interview status |
+| POST   | `/:id/applications/:applicationId/interviews/:interviewId/reschedule` | Reschedule an interview |
+| POST   | `/:id/applications/:applicationId/interviews/:interviewId/feedback` | Submit interview feedback |
+| POST   | `/:id/applications/:applicationId/offer` | Send a job offer |
+| POST   | `/:id/applications/:applicationId/offer/respond` | Respond to a job offer |
+| DELETE | `/:id/applications/:applicationId/offer` | Withdraw a job offer |
+| GET    | `/my-applications` | List my job applications |
+| GET    | `/my-referrals` | List my referrals |
+| GET    | `/my-jobs` | List jobs posted by current employer |
+| GET    | `/employer-stats` | Get employer job statistics |
+| GET    | `/expiring` | Get jobs expiring soon |
 
 ### Providers (`/api/providers`)
 | Method | Endpoint | Description |

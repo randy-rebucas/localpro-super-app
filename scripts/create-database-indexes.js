@@ -18,7 +18,7 @@ require('../src/models/ServiceCategory');
 require('../src/models/Job');
 require('../src/models/Marketplace');
 require('../src/models/Academy');
-require('../src/models/Supplies');
+require('../features/supplies');
 require('../src/models/Rentals');
 
 const logger = {

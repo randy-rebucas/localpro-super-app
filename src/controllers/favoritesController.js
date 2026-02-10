@@ -2,7 +2,7 @@ const Favorite = require('../models/Favorite');
 const { Service } = require('../models/Marketplace');
 const Provider = require('../models/Provider');
 const { Course } = require('../models/Academy');
-const { Product } = require('../models/Supplies');
+const { Product } = require('../../features/supplies');
 const Job = require('../models/Job');
 
 // Helper function to get the model based on itemType

@@ -2,7 +2,7 @@ const PayMayaService = require('../services/paymayaService');
 const { Payment } = require('../models/LocalProPlus');
 const { Transaction } = require('../models/Finance');
 const { Booking } = require('../models/Marketplace');
-const { Order } = require('../models/Supplies');
+const { Order } = require('../../features/supplies');
 const { validationResult } = require('express-validator');
 const logger = require('../config/logger');
 

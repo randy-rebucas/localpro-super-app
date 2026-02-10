@@ -13,7 +13,7 @@ jest.mock('../../../models/Marketplace', () => ({
   }
 }));
 
-jest.mock('../../../models/Supplies', () => ({
+jest.mock('../../../../features/supplies', () => ({
   Order: {
     find: jest.fn(),
     updateMany: jest.fn()
@@ -37,7 +37,7 @@ jest.mock('../../../models/LocalProPlus', () => ({
 const PayPalService = require('../../../services/paypalService');
 const paymongoService = require('../../../services/paymongoService');
 const { Booking } = require('../../../models/Marketplace');
-const { Order } = require('../../../models/Supplies');
+const { Order } = require('../../../../features/supplies');
 const { Transaction } = require('../../../models/Finance');
 const { Payment } = require('../../../models/LocalProPlus');
 

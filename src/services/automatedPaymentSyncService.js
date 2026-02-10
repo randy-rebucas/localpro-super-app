@@ -4,7 +4,7 @@ const PayPalService = require('./paypalService');
 const paymongoService = require('./paymongoService');
 
 const { Booking } = require('../models/Marketplace');
-const { Order } = require('../models/Supplies');
+const { Order } = require('../../features/supplies');
 const { Transaction } = require('../models/Finance');
 const { Payment } = require('../models/LocalProPlus');
 

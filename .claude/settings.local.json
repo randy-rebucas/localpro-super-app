@@ -10,7 +10,8 @@
       "Bash(timeout 15 npm run dev:*)",
       "Bash(npm install:*)",
       "Bash(dir:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(find:*)"
     ]
   }
 }
