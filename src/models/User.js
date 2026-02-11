@@ -23,13 +23,13 @@ const VALID_REGISTRATION_METHODS = ['partner', 'direct', 'admin'];
 
 // Session configuration
 const MAX_SESSIONS_PER_USER = 10;
-const SESSION_EXPIRY_DAYS = 30;
-const MAX_LOGIN_HISTORY = 50;
-const MAX_TRUSTED_DEVICES = 10;
 const MAX_FAILED_LOGIN_ATTEMPTS = 5;
-const MAX_LOCK_DURATION_MINUTES = 60;
-const PASSWORD_RESET_EXPIRY_HOURS = 1;
-const ACCOUNT_DELETION_GRACE_DAYS = 30;
+// const MAX_TRUSTED_DEVICES = 10;
+// const SESSION_EXPIRY_DAYS = 30;
+// const MAX_LOGIN_HISTORY = 50;
+// const MAX_LOCK_DURATION_MINUTES = 60;
+// const PASSWORD_RESET_EXPIRY_HOURS = 1;
+// const ACCOUNT_DELETION_GRACE_DAYS = 30;
 
 const userSchema = new mongoose.Schema({
   phoneNumber: {

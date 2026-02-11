@@ -6,7 +6,7 @@ const {
   validateSearchParams,
   validateFileUpload
 } = require('../middleware/routeValidation');
-const { body, param, query } = require('express-validator');
+const { body } = require('express-validator');
 const {
   // Basic CRUD
   getJobs,

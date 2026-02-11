@@ -1,7 +1,6 @@
 const User = require('../models/User');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
-const { validationResult } = require('express-validator');
 
 // ============================================
 // TWO-FACTOR AUTHENTICATION (2FA)

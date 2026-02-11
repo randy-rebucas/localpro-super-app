@@ -23,6 +23,7 @@ const AcademyAPI = require('./lib/academy');
 const ActivitiesAPI = require('./lib/activities');
 const AdsAPI = require('./lib/ads');
 const AgenciesAPI = require('./lib/agencies');
+const FeedsAPI = require('./lib/feeds');
 const PartnersAPI = require('./lib/partners');
 const {
   LocalProError,
@@ -94,6 +95,7 @@ class LocalPro {
     this.activities = new ActivitiesAPI(this.client);
     this.ads = new AdsAPI(this.client);
     this.agencies = new AgenciesAPI(this.client);
+    this.feeds = new FeedsAPI(this.client);
     this.partners = new PartnersAPI(this.client);
   }
 
@@ -114,6 +116,7 @@ module.exports.AcademyAPI = AcademyAPI;
 module.exports.ActivitiesAPI = ActivitiesAPI;
 module.exports.AdsAPI = AdsAPI;
 module.exports.AgenciesAPI = AgenciesAPI;
+module.exports.FeedsAPI = FeedsAPI;
 module.exports.PartnersAPI = PartnersAPI;
 
 // Export error classes for error handling

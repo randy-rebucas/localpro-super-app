@@ -1,0 +1,518 @@
+{
+  "info": {
+    "name": "LocalPro Feeds Collection",
+    "_postman_id": "feeds-collection-001",
+    "description": "API endpoints for the LocalPro Feeds feature - Unified content aggregation system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Public Endpoints",
+      "item": [
+        {
+          "name": "Get Trending Content",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/trending?limit=10&timeframe=24h",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "trending"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Maximum items to return"
+                },
+                {
+                  "key": "timeframe",
+                  "value": "24h",
+                  "description": "Timeframe: 1h, 24h, 7d"
+                }
+              ]
+            },
+            "description": "Get trending feed items (no authentication required)"
+          }
+        },
+        {
+          "name": "Get Featured Content",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/featured?limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "featured"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Maximum items to return"
+                }
+              ]
+            },
+            "description": "Get featured feed items (no authentication required)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feed Management",
+      "item": [
+        {
+          "name": "Get Personalized Feed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds?page=1&limit=20&contentTypes=job,course,promo&sortBy=relevance&timeframe=7d&includeRealtime=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (max: 100)"
+                },
+                {
+                  "key": "contentTypes",
+                  "value": "job,course,promo",
+                  "description": "Comma-separated content types"
+                },
+                {
+                  "key": "categories",
+                  "value": "",
+                  "description": "Comma-separated categories",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "relevance",
+                  "description": "Sort: relevance, recent, trending, popular"
+                },
+                {
+                  "key": "timeframe",
+                  "value": "7d",
+                  "description": "Timeframe: 1h, 1d, 7d, 30d, 90d, all"
+                },
+                {
+                  "key": "includeRealtime",
+                  "value": "true",
+                  "description": "Include real-time content"
+                }
+              ]
+            },
+            "description": "Get personalized feed for the current user"
+          }
+        },
+        {
+          "name": "Get My Feed Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/my?page=1&limit=20&status=active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "my"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "Filter by status: draft, active, scheduled, expired, archived"
+                }
+              ]
+            },
+            "description": "Get feed items created by the current user"
+          }
+        },
+        {
+          "name": "Get Feed by Content Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/by-type/job?page=1&limit=20&timeframe=30d&sortBy=recent",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "by-type", "job"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "timeframe",
+                  "value": "30d"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "recent"
+                }
+              ]
+            },
+            "description": "Get feed items filtered by content type (job, course, service, promo, etc.)"
+          }
+        },
+        {
+          "name": "Get Single Feed Item",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/{{feedItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "{{feedItemId}}"]
+            },
+            "description": "Get a single feed item by ID"
+          }
+        },
+        {
+          "name": "Create Feed Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contentType\": \"job\",\n  \"contentId\": \"65abc123def456789\",\n  \"title\": \"Hiring: Senior Plumber\",\n  \"description\": \"We are looking for an experienced plumber to join our team. Competitive salary and benefits.\",\n  \"summary\": \"Join our team as a senior plumber - competitive pay\",\n  \"category\": \"jobs\",\n  \"visibility\": \"public\",\n  \"priority\": 10,\n  \"isFeatured\": true,\n  \"cta\": {\n    \"text\": \"Apply Now\",\n    \"type\": \"apply\"\n  },\n  \"metadata\": {\n    \"location\": \"Manila\",\n    \"salary\": \"50000-80000\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds"]
+            },
+            "description": "Create a new feed item"
+          }
+        },
+        {
+          "name": "Update Feed Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated: Hiring Senior Plumber\",\n  \"priority\": 15,\n  \"isFeatured\": true,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/{{feedItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "{{feedItemId}}"]
+            },
+            "description": "Update an existing feed item (author or admin only)"
+          }
+        },
+        {
+          "name": "Delete Feed Item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/{{feedItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "{{feedItemId}}"]
+            },
+            "description": "Delete a feed item (soft delete, author or admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Interactions",
+      "item": [
+        {
+          "name": "Like Feed Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"like\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/{{feedItemId}}/interactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "{{feedItemId}}", "interactions"]
+            },
+            "description": "Add a 'like' interaction to a feed item"
+          }
+        },
+        {
+          "name": "Share Feed Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"share\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/{{feedItemId}}/interactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "{{feedItemId}}", "interactions"]
+            },
+            "description": "Add a 'share' interaction to a feed item"
+          }
+        },
+        {
+          "name": "Bookmark Feed Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"bookmark\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/{{feedItemId}}/interactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "{{feedItemId}}", "interactions"]
+            },
+            "description": "Add a 'bookmark' interaction to a feed item"
+          }
+        },
+        {
+          "name": "Track Click",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"click\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/{{feedItemId}}/interactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "{{feedItemId}}", "interactions"]
+            },
+            "description": "Track a click on a feed item"
+          }
+        },
+        {
+          "name": "Remove Interaction",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"like\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/{{feedItemId}}/interactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "{{feedItemId}}", "interactions"]
+            },
+            "description": "Remove an interaction (like, bookmark) from a feed item"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Feed Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/analytics?timeframe=30d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "analytics"],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "30d",
+                  "description": "Timeframe: 7d, 30d, 90d"
+                }
+              ]
+            },
+            "description": "Get feed analytics for the current user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Promote Feed Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"budget\": 10000,\n  \"startDate\": \"2026-02-11T00:00:00Z\",\n  \"endDate\": \"2026-03-11T23:59:59Z\",\n  \"targetAudience\": {\n    \"roles\": [\"provider\", \"client\"],\n    \"locations\": [\n      {\n        \"city\": \"Manila\",\n        \"state\": \"Metro Manila\",\n        \"country\": \"Philippines\",\n        \"radius\": 50\n      }\n    ],\n    \"interests\": [\"plumbing\", \"home-services\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/feeds/{{feedItemId}}/promote",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "feeds", "{{feedItemId}}", "promote"]
+            },
+            "description": "Promote a feed item with budget and targeting (admin only)"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "feedItemId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

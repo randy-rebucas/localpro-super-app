@@ -1739,7 +1739,7 @@ const withdrawOffer = async (req, res) => {
 // @access  Private
 const addReferral = async (req, res) => {
   try {
-    const { referredEmail, referredName, notes } = req.body;
+    const { referredEmail } = req.body; // referredName, notes
 
     const job = await Job.findById(req.params.id);
     if (!job) {

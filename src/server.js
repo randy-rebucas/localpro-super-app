@@ -42,6 +42,7 @@ const walletRoutes = require('./routes/wallet');
 const searchRoutes = require('./routes/search');
 const announcementsRoutes = require('./routes/announcements');
 const activitiesRoutes = require('./routes/activities');
+const feedsRoutes = require('./routes/feeds');
 const registrationRoutes = require('./routes/registration');
 const broadcasterRoutes = require('./routes/broadcaster');
 const favoritesRoutes = require('./routes/favorites');
@@ -577,6 +578,7 @@ function startServer() {
   app.use('/api/search', searchRoutes);
   app.use('/api/announcements', announcementsRoutes);
   app.use('/api/activities', activitiesRoutes);
+  app.use('/api/feeds', feedsRoutes);
   app.use('/api/registration', registrationRoutes);
   app.use('/api/broadcaster', broadcasterRoutes);
   app.use('/api/favorites', favoritesRoutes);
