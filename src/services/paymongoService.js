@@ -1,6 +1,6 @@
 const axios = require('axios');
 const logger = require('../config/logger');
-
+require('dotenv').config();
 /**
  * PayMongo Payment Gateway Integration
  * Reference: https://developers.paymongo.com/docs
@@ -47,7 +47,6 @@ class PayMongoService {
         currency,
         description: description || `Escrow for booking ${bookingId}`,
         clientId,
-        setup_future_usage: 'on_session',
         capture: false // This creates an authorization hold instead of immediate capture
       });
 
@@ -92,8 +91,8 @@ class PayMongoService {
         currency = 'PHP',
         description,
         // clientId, // Available for client tracking
-        setup_future_usage,
-        capture = false
+        capture = false,
+        payment_method_allowed
       } = intentData;
 
       const payload = {
@@ -104,7 +103,7 @@ class PayMongoService {
             description,
             statement_descriptor: 'LocalPro Escrow',
             capture,
-            setup_future_usage: setup_future_usage || 'off_session'
+            payment_method_allowed: payment_method_allowed || ['card', 'gcash', 'paymaya']
           }
         }
       };
@@ -513,17 +512,132 @@ class PayMongoService {
   }
 
   /**
-   * Verify webhook signature
+   * Create a hosted checkout session (for subscription payments)
+   * Returns a checkoutUrl the frontend redirects the user to
    */
-  verifyWebhookSignature(payload, signature) {
+  async createCheckoutSession(sessionData) {
+    try {
+      if (!this.secretKey) {
+        throw new Error('Payment gateway not configured');
+      }
+
+      const { amount, currency = 'PHP', name, userId, planId, billingCycle } = sessionData;
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+      const payload = {
+        data: {
+          attributes: {
+            line_items: [{
+              currency,
+              amount,
+              name,
+              quantity: 1
+            }],
+            payment_method_types: ['card', 'gcash', 'paymaya', 'grab_pay'],
+            metadata: { userId: String(userId), planId: String(planId), billingCycle },
+            success_url: `${frontendUrl}/payment/success?plan=${planId}`,
+            cancel_url: `${frontendUrl}/payment/cancel`
+          }
+        }
+      };
+
+      const response = await axios.post(
+        `${this.baseUrl}/checkout_sessions`,
+        payload,
+        {
+          auth: { username: this.secretKey, password: '' },
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+
+      const session = response.data.data;
+      const checkoutUrl = session.attributes?.checkout_url;
+
+      if (!checkoutUrl) {
+        throw new Error('PayMongo returned no checkout URL');
+      }
+
+      logger.info('PayMongo checkout session created', {
+        sessionId: session.id,
+        userId,
+        planId
+      });
+
+      return {
+        success: true,
+        sessionId: session.id,
+        checkoutUrl,
+        data: session
+      };
+    } catch (error) {
+      logger.error('PayMongo checkout session error:', error.message);
+      return {
+        success: false,
+        message: error.response?.data?.errors?.[0]?.detail || error.message,
+        error: error.response?.data
+      };
+    }
+  }
+
+  /**
+   * Verify PayMongo webhook signature
+   *
+   * Header format: t=<unix_timestamp>,te=<test_hmac>,li=<live_hmac>
+   * HMAC input:    timestamp + "." + rawBody
+   * Use 'te' for sk_test_... keys, 'li' for sk_live_... keys
+   * Rejects events older than 5 minutes (replay protection)
+   *
+   * @param {string} rawBody  - The raw request body as a string
+   * @param {string} signatureHeader - The value of the Paymongo-Signature header
+   */
+  verifyWebhookSignature(rawBody, signatureHeader) {
     try {
       const crypto = require('crypto');
-      const hash = crypto
+
+      if (!this.webhookSecret) {
+        logger.error('PAYMONGO_WEBHOOK_SECRET not configured');
+        return false;
+      }
+      if (!signatureHeader) return false;
+
+      // Parse header parts: t=<ts>,te=<hmac>,li=<hmac>
+      const parts = {};
+      signatureHeader.split(',').forEach(part => {
+        const eqIdx = part.indexOf('=');
+        if (eqIdx !== -1) {
+          parts[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
+        }
+      });
+
+      const timestamp = parts['t'];
+      if (!timestamp) return false;
+
+      // Replay protection: reject events older than 5 minutes
+      const fiveMinutesAgo = Math.floor(Date.now() / 1000) - 300;
+      if (parseInt(timestamp, 10) < fiveMinutesAgo) {
+        logger.warn('PayMongo webhook rejected: timestamp too old', { timestamp });
+        return false;
+      }
+
+      // Compute expected HMAC
+      const signedPayload = `${timestamp}.${rawBody}`;
+      const expected = crypto
         .createHmac('sha256', this.webhookSecret)
-        .update(JSON.stringify(payload))
+        .update(signedPayload)
         .digest('hex');
 
-      return hash === signature;
+      // Choose te (test) or li (live) based on secret key prefix
+      const isTest = this.secretKey && this.secretKey.startsWith('sk_test_');
+      const received = isTest ? parts['te'] : parts['li'];
+
+      if (!received) return false;
+
+      // Timing-safe comparison
+      const expectedBuf = Buffer.from(expected, 'hex');
+      const receivedBuf = Buffer.from(received, 'hex');
+      if (expectedBuf.length !== receivedBuf.length) return false;
+
+      return crypto.timingSafeEqual(expectedBuf, receivedBuf);
     } catch (error) {
       logger.error('PayMongo webhook signature verification error:', error.message);
       return false;

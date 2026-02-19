@@ -1,9 +1,10 @@
 const express = require('express');
 const crypto = require('crypto');
 const escrowService = require('../services/escrowService');
-// const paymongoService = require('../services/paymongoService'); // Available for future PayMongo webhook handling
+const paymongoService = require('../services/paymongoService');
 const Payout = require('../models/Payout');
 const Escrow = require('../models/Escrow');
+const { UserSubscription } = require('../models/LocalProPlus');
 const logger = require('../config/logger');
 
 const router = express.Router();
@@ -726,5 +727,134 @@ router.post('/disbursements/xendit', verifyWebhookSignature, handleXenditPayoutE
  *         description: Invalid webhook signature
  */
 router.post('/disbursements/stripe', verifyWebhookSignature, handleStripePayoutEvent);
+
+// ==================== PayMongo Subscription Checkout Webhook ====================
+
+/**
+ * @desc    Handle PayMongo checkout_session.payment.paid for LocalPro Plus subscriptions
+ * @route   POST /webhooks/paymongo
+ * @access  Public (webhook — verified via Paymongo-Signature header)
+ *
+ * PayMongo sends this after a hosted checkout session is paid.
+ * Signature format: t=<unix_timestamp>,te=<test_hmac>,li=<live_hmac>
+ * HMAC input: timestamp + "." + rawBody
+ * Always responds 200 to prevent PayMongo from retrying.
+ */
+const handlePaymongoSubscriptionWebhook = async (req, res) => {
+  try {
+    const rawBody = req.rawBody || JSON.stringify(req.body);
+    const signatureHeader = req.headers['paymongo-signature'];
+
+    if (!signatureHeader) {
+      logger.warn('PayMongo subscription webhook: missing Paymongo-Signature header');
+      return res.status(401).json({ message: 'Invalid signature' });
+    }
+
+    const isValid = paymongoService.verifyWebhookSignature(rawBody, signatureHeader);
+    if (!isValid) {
+      logger.warn('PayMongo subscription webhook: signature verification failed');
+      return res.status(401).json({ message: 'Invalid signature' });
+    }
+
+    const eventType = req.body?.data?.attributes?.type;
+
+    logger.info(`PayMongo subscription webhook received: ${eventType}`);
+
+    if (eventType === 'checkout_session.payment.paid') {
+      const session = req.body?.data?.attributes?.data;
+      const metadata = session?.attributes?.metadata || {};
+      const { userId, planId, billingCycle } = metadata;
+
+      if (!userId || !planId) {
+        logger.error('PayMongo subscription webhook: missing metadata', {
+          sessionId: session?.id,
+          metadata
+        });
+        // Return 200 to avoid PayMongo retry — log only
+        return res.status(200).json({ received: true });
+      }
+
+      try {
+        // Match by sessionId so we activate the exact subscription created for
+        // this checkout. Fall back to userId if no session record exists yet.
+        let updatedSub = await UserSubscription.findOneAndUpdate(
+          { user: userId, 'paymentDetails.paymongoSessionId': session.id },
+          {
+            $set: {
+              plan: planId,
+              billingCycle: billingCycle || 'monthly',
+              status: 'active',
+              startDate: new Date(),
+              paymentMethod: 'paymongo',
+              'paymentDetails.paymongoSessionId': session.id,
+              'paymentDetails.lastPaymentDate': new Date()
+            }
+          },
+          { new: true }
+        );
+
+        // If no subscription matched the sessionId, fall back to the most recent
+        // pending subscription for this user (handles race: webhook arrives before
+        // the subscribe endpoint finishes saving the pending record — rare but possible)
+        if (!updatedSub) {
+          updatedSub = await UserSubscription.findOneAndUpdate(
+            { user: userId, status: 'pending', paymentMethod: 'paymongo' },
+            {
+              $set: {
+                plan: planId,
+                billingCycle: billingCycle || 'monthly',
+                status: 'active',
+                startDate: new Date(),
+                paymentMethod: 'paymongo',
+                'paymentDetails.paymongoSessionId': session.id,
+                'paymentDetails.lastPaymentDate': new Date()
+              }
+            },
+            { new: true, sort: { createdAt: -1 } }
+          );
+        }
+
+        logger.info('Subscription activated via PayMongo checkout webhook', {
+          userId,
+          planId,
+          sessionId: session.id
+        });
+      } catch (dbError) {
+        // Log the DB error but still return 200 to avoid PayMongo retrying
+        logger.error('PayMongo subscription webhook: DB update failed', {
+          error: dbError.message,
+          userId,
+          planId,
+          sessionId: session?.id
+        });
+      }
+    }
+
+    return res.status(200).json({ received: true });
+  } catch (error) {
+    logger.error('PayMongo subscription webhook unhandled error:', error.message);
+    // Always 200 to prevent infinite retries from PayMongo
+    return res.status(200).json({ received: true });
+  }
+};
+
+/**
+ * @swagger
+ * /webhooks/paymongo:
+ *   post:
+ *     summary: Handle PayMongo subscription checkout session payment webhook
+ *     tags: [Payments]
+ *     security: []
+ *     description: >
+ *       Receives checkout_session.payment.paid events from PayMongo and activates
+ *       the corresponding LocalPro Plus subscription. Verified via HMAC-SHA256
+ *       using the Paymongo-Signature header.
+ *     responses:
+ *       200:
+ *         description: Webhook received (always returned to prevent retries)
+ *       401:
+ *         description: Invalid or missing Paymongo-Signature header
+ */
+router.post('/paymongo', handlePaymongoSubscriptionWebhook);
 
 module.exports = router;

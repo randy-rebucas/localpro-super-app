@@ -663,11 +663,24 @@ class EscrowService {
    */
   async createPaymentHold({ amount, currency, holdProvider, clientId, _bookingId }) {
     try {
-      // This is a placeholder - integrate with actual payment gateway
-      // For now, return mock response
+      // Convert to PHP if not already PHP and using PayMongo
+      let convertedAmount = amount;
+      let convertedCurrency = currency;
+      if (holdProvider === 'paymongo' && currency !== 'PHP') {
+        // Simple conversion logic (replace with real FX API if needed)
+        // Example rates (should be dynamic in production):
+        const fxRates = {
+          USD: 56,
+          EUR: 60,
+          GBP: 70
+        };
+        convertedCurrency = 'PHP';
+        convertedAmount = Math.round((amount || 0) * (fxRates[currency] || 1));
+        logger.info(`Converted ${amount} ${currency} to ${convertedAmount} PHP for PayMongo hold.`);
+      }
       switch (holdProvider) {
         case 'paymongo':
-          return await this.paymongCreateHold(amount, currency, clientId);
+          return await this.paymongCreateHold(convertedAmount, convertedCurrency, clientId);
         case 'xendit':
           return await this.xenditCreateHold(amount, currency, clientId);
         case 'stripe':

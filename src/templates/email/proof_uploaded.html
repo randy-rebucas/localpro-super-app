@@ -1,0 +1,31 @@
+<h1 style="color: #667eea; margin-bottom: 20px;">Proof of Work Uploaded</h1>
+
+<p>Hi there,</p>
+
+<p>Your service provider has uploaded proof of work for your booking. Please review it and approve the release of payment.</p>
+
+<div class="content-box">
+    <h3 style="color: #667eea; margin-top: 0;">Booking Details</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold; width: 40%;">Amount:</td>
+            <td style="padding: 8px 0; font-size: 18px; font-weight: bold; color: #667eea;">{{escrow.currency}} {{escrow.amount}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Booking ID:</td>
+            <td style="padding: 8px 0;">{{escrow.bookingId}}</td>
+        </tr>
+    </table>
+</div>
+
+{{#if notes}}
+<div class="highlight info">
+    <h4 style="margin-top: 0; color: #0c5460;">Provider Notes</h4>
+    <p style="margin-bottom: 0;">{{notes}}</p>
+</div>
+{{/if}}
+
+<p>Please log in to review the proof and approve payment release. If you're not satisfied, you can raise a dispute.</p>
+
+<p>Best regards,<br>
+<strong>The LocalPro Team</strong></p>

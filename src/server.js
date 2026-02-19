@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 require('dotenv').config();
+require('dotenv').config({ path: '.env.local', override: true });
 
 const connectDB = require('./config/database');
 const logger = require('./config/logger');
@@ -229,7 +230,12 @@ function startServer() {
 
     // Only parse JSON if content-type indicates JSON
     if (contentType.includes('application/json') || contentType.includes('text/json')) {
-      express.json({ limit: '10mb' })(req, res, (err) => {
+      express.json({
+        limit: '10mb',
+        // Stash the raw body string on req.rawBody so webhook handlers can
+        // compute HMAC signatures over the original bytes (e.g. PayMongo).
+        verify: (req, _res, buf) => { req.rawBody = buf.toString('utf8'); }
+      })(req, res, (err) => {
         if (err) {
           // Handle JSON parsing errors gracefully
           logger.warn('JSON parsing error', {

@@ -1,0 +1,32 @@
+<h1 style="color: #667eea; margin-bottom: 20px;">Payment Captured</h1>
+
+<p>Hi <strong>{{client.name}}</strong>,</p>
+
+<p>Your escrow payment has been captured. The service is now in progress.</p>
+
+<div class="content-box">
+    <h3 style="color: #667eea; margin-top: 0;">Payment Details</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold; width: 40%;">Amount:</td>
+            <td style="padding: 8px 0; font-size: 18px; font-weight: bold; color: #667eea;">{{escrow.currency}} {{escrow.amount}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Booking ID:</td>
+            <td style="padding: 8px 0;">{{escrow.bookingId}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Status:</td>
+            <td style="padding: 8px 0;">
+                <span style="background: #cce5ff; color: #004085; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                    IN PROGRESS
+                </span>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<p>The provider is now working on your booking. You will be notified when proof of work is uploaded.</p>
+
+<p>Best regards,<br>
+<strong>The LocalPro Team</strong></p>

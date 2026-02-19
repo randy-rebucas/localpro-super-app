@@ -9,6 +9,55 @@ const logger = require('../config/logger');
  * Handles automated booking reminders, status transitions, and follow-ups
  */
 class AutomatedBookingService {
+    /**
+     * Make booking public if provider does not confirm in 15 minutes
+     */
+    async processPublicBookingTimeout() {
+      try {
+        const now = new Date();
+        const publicTimeout = new Date(now.getTime() - 15 * 60 * 1000);
+        // Find bookings dispatched to provider but not confirmed within 15 min
+        const bookingsToMakePublic = await Booking.find({
+          status: 'pending',
+          timeline: {
+            $elemMatch: {
+              status: 'pending',
+              timestamp: { $lte: publicTimeout },
+              note: { $regex: /dispatched to provider/i }
+            }
+          }
+        }).populate('service client provider');
+        for (const booking of bookingsToMakePublic) {
+          // Only if not already public or confirmed
+          if (booking.status === 'pending') {
+            booking.status = 'public';
+            booking.provider = null;
+            booking.timeline.push({
+              status: 'public',
+              timestamp: new Date(),
+              note: 'Booking made public after provider did not confirm in 15 minutes'
+            });
+            await booking.save();
+            // Notify all providers (could filter by service category, etc.)
+            // For demo: notify all providers
+            const User = require('../models/User');
+            const providers = await User.find({ roles: { $in: ['provider'] } }).select('_id');
+            const providerIds = providers.map(u => u._id);
+            await Promise.allSettled(providerIds.map(pid => NotificationService.sendNotification({
+              userId: pid,
+              type: 'booking_public',
+              title: 'New public booking available',
+              message: `A booking for "${booking.service?.title || 'a service'}" is now available to all providers.`,
+              data: { bookingId: booking._id, serviceId: booking.service?._id },
+              priority: 'high'
+            })));
+            logger.info('Booking made public after provider timeout', { bookingId: booking._id });
+          }
+        }
+      } catch (error) {
+        logger.error('Error in processPublicBookingTimeout', error);
+      }
+    }
   constructor() {
     this.isRunning = false;
     this.reminderSent = new Set(); // Track sent reminders to avoid duplicates
@@ -39,6 +88,7 @@ class AutomatedBookingService {
     // Check for bookings needing status transitions (every 30 minutes)
     const statusJob = cron.schedule('*/30 * * * *', async () => {
       await this.processBookingStatusTransitions();
+      await this.processPublicBookingTimeout();
     }, {
       scheduled: true,
       timezone: process.env.TZ || 'UTC'

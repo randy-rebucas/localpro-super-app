@@ -1,10 +1,12 @@
 // Email service for sending notifications
 // Supports Resend, SendGrid API, and SMTP (including Hostinger)
-
+require('dotenv').config();
+require('dotenv').config({ path: '.env.local', override: true });
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 const templateEngine = require('../utils/templateEngine');
 const logger = require('../config/logger');
+
 
 class EmailService {
   constructor() {

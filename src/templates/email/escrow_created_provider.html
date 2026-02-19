@@ -1,0 +1,42 @@
+<h1 style="color: #667eea; margin-bottom: 20px;">New Escrow Created for Your Booking</h1>
+
+<p>Hi <strong>{{provider.name}}</strong>,</p>
+
+<p>A client has created an escrow for a booking with you. The payment has been securely held and will be released to you once the client approves the completed work.</p>
+
+<div class="content-box">
+    <h3 style="color: #667eea; margin-top: 0;">Escrow Details</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold; width: 40%;">Amount:</td>
+            <td style="padding: 8px 0; font-size: 18px; font-weight: bold; color: #667eea;">{{escrow.currency}} {{escrow.amount}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Booking ID:</td>
+            <td style="padding: 8px 0;">{{escrow.bookingId}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Status:</td>
+            <td style="padding: 8px 0;">
+                <span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                    FUNDS HELD
+                </span>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="highlight info">
+    <h4 style="margin-top: 0; color: #0c5460;">Next Steps</h4>
+    <ul style="margin-bottom: 0; padding-left: 20px;">
+        <li>Complete the service as scheduled</li>
+        <li>Upload proof of work when the job is done</li>
+        <li>The client will review and approve the work</li>
+        <li>Payment will be released to your account upon approval</li>
+    </ul>
+</div>
+
+<p>If you have any questions, please don't hesitate to contact our support team.</p>
+
+<p>Best regards,<br>
+<strong>The LocalPro Team</strong></p>

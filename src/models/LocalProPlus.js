@@ -110,6 +110,7 @@ const userSubscriptionSchema = new mongoose.Schema({
     stripeSubscriptionId: String,
     paymongoCustomerId: String,
     paymongoIntentId: String,
+    paymongoSessionId: String,    // checkout session id (hosted checkout flow)
     lastPaymentId: String,
     lastPaymentDate: Date,
     nextPaymentAmount: Number

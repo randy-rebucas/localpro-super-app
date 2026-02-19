@@ -1628,7 +1628,34 @@ Authorization: Bearer <token>
 
 ## 14. LocalPro Plus (`/api/localpro-plus`)
 
-### Get Plans
+> Full documentation: [LOCALPRO_PLUS_FEATURE.md](./LOCALPRO_PLUS_FEATURE.md)
+
+### Endpoint Index
+
+| Method | Endpoint | Auth | Role | Description |
+|---|---|---|---|---|
+| `GET` | `/api/localpro-plus/plans` | No | — | List all active plans |
+| `GET` | `/api/localpro-plus/plans/:id` | No | — | Get a single plan |
+| `POST` | `/api/localpro-plus/plans` | Yes | Admin | Create a plan |
+| `PUT` | `/api/localpro-plus/plans/:id` | Yes | Admin | Update a plan |
+| `DELETE` | `/api/localpro-plus/plans/:id` | Yes | Admin | Delete a plan |
+| `POST` | `/api/localpro-plus/subscribe/:planId` | Yes | Any | Initiate a subscription |
+| `POST` | `/api/localpro-plus/confirm-payment` | Yes | Any | Confirm payment & activate subscription |
+| `POST` | `/api/localpro-plus/cancel` | Yes | Any | Cancel active subscription |
+| `POST` | `/api/localpro-plus/renew` | Yes | Any | Manually renew subscription |
+| `GET` | `/api/localpro-plus/my-subscription` | Yes | Any | Get own subscription details |
+| `PUT` | `/api/localpro-plus/settings` | Yes | Any | Update subscription settings |
+| `GET` | `/api/localpro-plus/usage` | Yes | Any | Get usage stats & feature flags |
+| `GET` | `/api/localpro-plus/analytics` | Yes | Admin | Platform-wide subscription analytics |
+| `POST` | `/api/localpro-plus/admin/subscriptions` | Yes | Admin | Create a manual subscription |
+| `GET` | `/api/localpro-plus/admin/subscriptions` | Yes | Admin | List all subscriptions |
+| `GET` | `/api/localpro-plus/admin/subscriptions/user/:userId` | Yes | Admin | Get subscription by user ID |
+| `PUT` | `/api/localpro-plus/admin/subscriptions/:subscriptionId` | Yes | Admin | Update a manual subscription |
+| `DELETE` | `/api/localpro-plus/admin/subscriptions/:subscriptionId` | Yes | Admin | Cancel a manual subscription |
+
+---
+
+### GET /api/localpro-plus/plans
 ```http
 GET /api/localpro-plus/plans
 ```
@@ -1637,29 +1664,17 @@ GET /api/localpro-plus/plans
 ```json
 {
   "success": true,
+  "count": 3,
   "data": [
     {
-      "id": "plan_basic",
+      "_id": "64a...",
       "name": "Basic",
-      "price": 9.99,
-      "billingCycle": "monthly",
-      "features": [
-        "1 featured listing/month",
-        "Basic analytics",
-        "Email support"
-      ]
-    },
-    {
-      "id": "plan_pro",
-      "name": "Professional",
-      "price": 29.99,
-      "billingCycle": "monthly",
-      "features": [
-        "5 featured listings/month",
-        "Advanced analytics",
-        "Priority support",
-        "Lower commission (12%)"
-      ]
+      "description": "Starter plan",
+      "price": { "monthly": 9.99, "yearly": 99.99, "currency": "USD" },
+      "features": [{ "name": "priority_support", "included": false }],
+      "limits": { "maxServices": 5, "maxBookings": 20, "maxStorage": 500, "maxApiCalls": 1000 },
+      "isActive": true,
+      "isPopular": false
     }
   ]
 }
@@ -1667,19 +1682,210 @@ GET /api/localpro-plus/plans
 
 ---
 
-### Subscribe
+### POST /api/localpro-plus/subscribe/:planId
 ```http
 POST /api/localpro-plus/subscribe/:planId
 Authorization: Bearer <token>
+Content-Type: application/json
 ```
 
 **Request:**
 ```json
 {
-  "paymentMethod": "paypal",
+  "paymentMethod": "paymongo",
   "billingCycle": "monthly"
 }
 ```
+
+**Payment methods:** `paymongo`, `paypal`, `paymaya`
+**Billing cycles:** `monthly` (30 days), `yearly` (365 days)
+
+**Response `201`:**
+```json
+{
+  "success": true,
+  "message": "Subscription created successfully",
+  "data": {
+    "subscription": { "status": "pending" },
+    "paymentData": { }
+  }
+}
+```
+
+---
+
+### POST /api/localpro-plus/confirm-payment
+```http
+POST /api/localpro-plus/confirm-payment
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "paymentId": "<gateway-order-or-payment-id>",
+  "paymentMethod": "paypal"
+}
+```
+
+**Supported methods:** `paypal`, `paymaya` only.
+
+---
+
+### POST /api/localpro-plus/cancel
+```http
+POST /api/localpro-plus/cancel
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{ "reason": "No longer needed" }
+```
+
+---
+
+### POST /api/localpro-plus/renew
+```http
+POST /api/localpro-plus/renew
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{ "paymentMethod": "paypal" }
+```
+
+**Supported methods:** `paypal`, `paymaya` only.
+
+---
+
+### GET /api/localpro-plus/my-subscription
+```http
+GET /api/localpro-plus/my-subscription
+Authorization: Bearer <token>
+```
+
+---
+
+### GET /api/localpro-plus/usage
+```http
+GET /api/localpro-plus/usage
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "plan": { "name": "Premium" },
+    "currentUsage": { "services": 3, "bookings": 12, "storage": 240, "apiCalls": 850 },
+    "limits": { "maxServices": 10, "maxBookings": 50, "maxStorage": "unlimited", "maxApiCalls": 5000 },
+    "features": {
+      "prioritySupport": true,
+      "advancedAnalytics": true,
+      "customBranding": false,
+      "apiAccess": true,
+      "whiteLabel": false
+    },
+    "status": "active",
+    "billingCycle": "monthly",
+    "nextBillingDate": "2025-02-15T00:00:00.000Z",
+    "daysUntilRenewal": 14
+  }
+}
+```
+
+---
+
+### GET /api/localpro-plus/analytics *(Admin)*
+```http
+GET /api/localpro-plus/analytics
+Authorization: Bearer <admin-token>
+```
+
+---
+
+### POST /api/localpro-plus/admin/subscriptions *(Admin)*
+```http
+POST /api/localpro-plus/admin/subscriptions
+Authorization: Bearer <admin-token>
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "userId": "64a...",
+  "planId": "64b...",
+  "billingCycle": "monthly",
+  "startDate": "2025-01-15",
+  "endDate": "2025-02-15",
+  "reason": "Promotional access",
+  "notes": "Granted during beta"
+}
+```
+
+---
+
+### GET /api/localpro-plus/admin/subscriptions *(Admin)*
+```http
+GET /api/localpro-plus/admin/subscriptions?status=active&page=1&limit=20
+Authorization: Bearer <admin-token>
+```
+
+**Query Params:** `status`, `planId`, `isManual` (`'true'`/`'false'`), `page`, `limit`
+
+---
+
+### GET /api/localpro-plus/admin/subscriptions/user/:userId *(Admin)*
+```http
+GET /api/localpro-plus/admin/subscriptions/user/:userId
+Authorization: Bearer <admin-token>
+```
+
+---
+
+### PUT /api/localpro-plus/admin/subscriptions/:subscriptionId *(Admin)*
+```http
+PUT /api/localpro-plus/admin/subscriptions/:subscriptionId
+Authorization: Bearer <admin-token>
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "planId": "64c...",
+  "status": "active",
+  "endDate": "2025-03-15",
+  "billingCycle": "yearly",
+  "reason": "Upgraded by support",
+  "notes": "Customer requested"
+}
+```
+
+> Only works on subscriptions where `isManual: true`.
+
+---
+
+### DELETE /api/localpro-plus/admin/subscriptions/:subscriptionId *(Admin)*
+```http
+DELETE /api/localpro-plus/admin/subscriptions/:subscriptionId
+Authorization: Bearer <admin-token>
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{ "reason": "Fraudulent account" }
+```
+
+> Only works on subscriptions where `isManual: true`.
 
 ---
 

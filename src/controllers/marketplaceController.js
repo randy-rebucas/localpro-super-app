@@ -1,3 +1,51 @@
+// @desc    Admin review and dispatch booking
+// @route   POST /api/marketplace/bookings/:id/admin-review
+// @access  Private (Admin)
+const adminReviewBooking = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+    const isAdmin = req.user.roles?.includes('admin');
+    if (!isAdmin) {
+      return res.status(403).json({ success: false, message: 'Only admin can review bookings', code: 'UNAUTHORIZED' });
+    }
+    if (booking.status !== 'pending_admin_review') {
+      return sendValidationError(res, [{ field: 'status', message: 'Booking is not pending admin review', code: 'INVALID_STATUS' }]);
+    }
+    // Approve and dispatch to provider
+    booking.status = 'pending';
+    booking.timeline.push({
+      status: 'pending',
+      timestamp: new Date(),
+      note: 'Booking approved by admin, dispatched to provider',
+      updatedBy: req.user.id
+    });
+    await booking.save();
+    // Notify provider
+    try {
+      await NotificationService.sendNotification({
+        userId: booking.provider,
+        type: 'booking_created',
+        title: 'New booking request',
+        message: `You have a new booking request for "${booking.service?.title || 'a service'}".`,
+        data: { bookingId: booking._id, serviceId: booking.service?._id },
+        priority: 'high'
+      });
+    } catch (notifyError) {
+      logger.warn('Booking dispatch notification failed', { bookingId: booking._id, error: notifyError.message });
+    }
+    logger.info('Booking reviewed and dispatched by admin', { bookingId: booking._id, adminId: req.user.id });
+    return sendSuccess(res, booking, 'Booking reviewed and dispatched to provider');
+  } catch (error) {
+    logger.error('Admin review booking error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to review booking', 'BOOKING_ADMIN_REVIEW_ERROR');
+  }
+};
 const { Service, Booking } = require('../models/Marketplace');
 const ServiceCategory = require('../models/ServiceCategory');
 const User = require('../models/User');
@@ -1509,7 +1557,8 @@ const createBooking = async (req, res) => {
     const { serviceId, providerId, bookingDate, bookingTime, duration, paymentMethod, address, specialInstructions } = validatedBooking;
 
     // Validate payment method if provided (not in Joi schema)
-    const validPaymentMethods = ['cash', 'card', 'bank_transfer', 'paypal', 'paymaya', 'paymongo'];
+    // Only allow escrow-supported payment methods
+    const validPaymentMethods = ['paypal', 'paymongo', 'bpi'];
     if (paymentMethod && !validPaymentMethods.includes(paymentMethod)) {
       return sendValidationError(res, [{
         field: 'paymentMethod',
@@ -1649,7 +1698,7 @@ const createBooking = async (req, res) => {
       const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
       const random = crypto.randomBytes(3).toString('hex').toUpperCase();
 
-      // Create booking
+      // Create booking with admin review required, escrow enforced
       try {
         const booking = await Booking.create([{
           service: serviceId,
@@ -1666,14 +1715,16 @@ const createBooking = async (req, res) => {
             currency: currency
           },
           payment: {
-            method: paymentMethod || 'cash',
-            status: 'pending'
-          },
-          status: 'pending',
-          timeline: [{
+            method: paymentMethod || 'paypal',
             status: 'pending',
+            escrow: true,
+            escrowProvider: paymentMethod || 'paypal'
+          },
+          status: 'pending_admin_review',
+          timeline: [{
+            status: 'pending_admin_review',
             timestamp: new Date(),
-            note: 'Booking created',
+            note: 'Booking created, pending admin review',
             updatedBy: req.user.id
           }]
         }], { session });
@@ -1704,6 +1755,19 @@ const createBooking = async (req, res) => {
         { session }
       );
     }, transactionOptions);
+
+    // Always set BPI banking instructions if payment method is BPI
+    if (paymentMethod === 'bpi' && createdBooking) {
+      // Provide BPI deposit instructions (replace with actual LocalPro BPI account details)
+      createdBooking.payment.bankingInstructions = {
+        bank: 'BPI',
+        accountName: 'LocalPro Escrow',
+        accountNumber: '1234-5678-90',
+        reference: createdBooking.bookingNumber,
+        note: 'Deposit the total amount to the above BPI account. Use your booking number as reference. Upload proof of payment to complete your booking.'
+      };
+      await createdBooking.save();
+    }
 
     // Handle PayPal payment if payment method is PayPal (outside transaction)
     if (paymentMethod === 'paypal' && createdBooking) {
@@ -1742,11 +1806,29 @@ const createBooking = async (req, res) => {
             bookingId: createdBooking._id,
             error: paypalOrder.error
           });
+          // Notify client that PayPal payment could not be initialized
+          await NotificationService.sendNotification({
+            userId: createdBooking.client,
+            type: 'payment_failed',
+            title: 'PayPal Payment Unavailable',
+            message: 'We could not initialize your PayPal payment. Please try again later or use another payment method.',
+            data: { bookingId: createdBooking._id },
+            priority: 'high'
+          });
         }
       } catch (paypalError) {
         logger.error('PayPal order creation error', {
           bookingId: createdBooking._id,
           error: paypalError.message
+        });
+        // Notify client that PayPal payment could not be initialized
+        await NotificationService.sendNotification({
+          userId: createdBooking.client,
+          type: 'payment_failed',
+          title: 'PayPal Payment Unavailable',
+          message: 'We could not initialize your PayPal payment. Please try again later or use another payment method.',
+          data: { bookingId: createdBooking._id },
+          priority: 'high'
         });
         // Don't fail the booking creation if PayPal fails - user can pay later
       }
@@ -1760,23 +1842,25 @@ const createBooking = async (req, res) => {
         { path: 'provider', select: 'firstName lastName email profile.businessName' }
       ]);
 
-      // Real-time notifications (mobile-first): new booking
-      // Provider gets "new booking request"; client gets confirmation that request was sent.
+      // Notify admin for review, client gets confirmation
       try {
+        // Find admin users
+        const adminUsers = await User.find({ roles: { $in: ['admin'] } }).select('_id');
+        const adminIds = adminUsers.map(u => u._id);
         await Promise.allSettled([
-          NotificationService.sendNotification({
-            userId: createdBooking.provider,
-            type: 'booking_created',
-            title: 'New booking request',
-            message: `You have a new booking request for "${createdBooking.service?.title || 'a service'}".`,
+          ...adminIds.map(adminId => NotificationService.sendNotification({
+            userId: adminId,
+            type: 'booking_admin_review',
+            title: 'New booking pending review',
+            message: `A new booking for "${createdBooking.service?.title || 'a service'}" requires your review before dispatch.`,
             data: { bookingId: createdBooking._id, serviceId: createdBooking.service?._id },
             priority: 'high'
-          }),
+          })),
           NotificationService.sendNotification({
             userId: createdBooking.client,
             type: 'booking_created',
             title: 'Booking requested',
-            message: `Your booking request for "${createdBooking.service?.title || 'a service'}" was sent to the provider.`,
+            message: `Your booking request for "${createdBooking.service?.title || 'a service'}" was submitted and is pending admin review.`,
             data: { bookingId: createdBooking._id, serviceId: createdBooking.service?._id },
             priority: 'medium'
           })
@@ -4948,6 +5032,7 @@ module.exports = {
 
   // Booking - Analytics & External
   getBookingStats,
-  linkBookingExternalId
+  linkBookingExternalId,
+  adminReviewBooking
 };
 

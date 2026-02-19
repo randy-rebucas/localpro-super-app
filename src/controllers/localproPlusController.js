@@ -1,8 +1,7 @@
 const { SubscriptionPlan, UserSubscription, Payment } = require('../models/LocalProPlus');
 const User = require('../models/User');
 const PayPalService = require('../services/paypalService');
-const PayMayaService = require('../services/paymayaService');
-const paymongoService = require('../services/paymongoService');
+const PaymongoService = require('../services/paymongoService');
 const EmailService = require('../services/emailService');
 
 // @desc    Get all LocalPro Plus plans
@@ -135,11 +134,13 @@ const deletePlan = async (req, res) => {
 };
 
 // @desc    Subscribe to LocalPro Plus plan
-// @route   POST /api/localpro-plus/subscribe
+// @route   POST /api/localpro-plus/subscribe/:planId
 // @access  Private
 const subscribeToPlan = async (req, res) => {
   try {
-    const { planId, paymentMethod, billingCycle = 'monthly' } = req.body;
+    const planId = req.params.planId;
+    console.log('Subscribe to plan request:', { userId: req.user.id, planId, body: req.body });
+    const { paymentMethod, billingCycle = 'monthly' } = req.body;
 
     if (!planId || !paymentMethod) {
       return res.status(400).json({
@@ -187,19 +188,76 @@ const subscribeToPlan = async (req, res) => {
         description: `LocalPro Plus ${plan.name} subscription (${billingCycle})`,
         referenceId: `sub_${req.user.id}_${Date.now()}`
       });
-    } else if (paymentMethod === 'paymaya') {
-      paymentResult = await PayMayaService.createPayment({
-        amount: price,
-        currency: currency === 'USD' ? 'PHP' : currency,
-        description: `LocalPro Plus ${plan.name} subscription (${billingCycle})`
-      });
     } else if (paymentMethod === 'paymongo') {
-      paymentResult = await paymongoService.createAuthorization({
-        amount: Math.round(price * 100), // Convert to cents
-        currency: currency,
-        description: `LocalPro Plus ${plan.name} subscription (${billingCycle})`,
-        clientId: req.user.id,
-        bookingId: `sub_${req.user.id}_${Date.now()}`
+      if (!process.env.PAYMONGO_SECRET_KEY) {
+        return res.status(500).json({
+          success: false,
+          message: 'Payment gateway not configured'
+        });
+      }
+
+      // PayMongo uses a hosted checkout session — redirect the user to PayMongo's page.
+      // Subscription is activated asynchronously via POST /webhooks/paymongo.
+      const amountInCentavos = Math.round((billingCycle === 'yearly' ? plan.price.yearly : plan.price.monthly) * 100);
+      const sessionResult = await PaymongoService.createCheckoutSession({
+        amount: amountInCentavos,
+        currency: 'PHP',
+        name: `LocalPro Plus ${plan.name} – ${billingCycle === 'yearly' ? 'Yearly' : 'Monthly'}`,
+        userId: req.user.id,
+        planId,
+        billingCycle
+      });
+
+      if (!sessionResult.success) {
+        return res.status(502).json({
+          success: false,
+          message: sessionResult.message || 'Failed to create checkout session'
+        });
+      }
+
+      if (!sessionResult.checkoutUrl) {
+        return res.status(502).json({
+          success: false,
+          message: 'PayMongo returned no checkout URL'
+        });
+      }
+
+      // Create a pending subscription record so the webhook can find it by userId/planId
+      const pendingSub = new UserSubscription({
+        user: req.user.id,
+        plan: planId,
+        status: 'pending',
+        billingCycle,
+        paymentMethod: 'paymongo',
+        paymentDetails: {
+          paymongoSessionId: sessionResult.sessionId,
+          nextPaymentAmount: price
+        },
+        startDate: new Date(),
+        endDate: new Date(Date.now() + (billingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000),
+        nextBillingDate: new Date(Date.now() + (billingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000),
+        usage: {
+          services: { current: 0, limit: plan.limits.maxServices },
+          bookings: { current: 0, limit: plan.limits.maxBookings },
+          storage: { current: 0, limit: plan.limits.maxStorage },
+          apiCalls: { current: 0, limit: plan.limits.maxApiCalls }
+        },
+        features: {
+          prioritySupport: plan.features.some(f => f.name === 'priority_support'),
+          advancedAnalytics: plan.features.some(f => f.name === 'advanced_analytics'),
+          customBranding: plan.features.some(f => f.name === 'custom_branding'),
+          apiAccess: plan.features.some(f => f.name === 'api_access'),
+          whiteLabel: plan.features.some(f => f.name === 'white_label')
+        }
+      });
+
+      await pendingSub.save();
+      user.localProPlusSubscription = pendingSub._id;
+      await user.save();
+
+      // Return the checkout URL — activation happens async via webhook
+      return res.status(200).json({
+        checkoutUrl: sessionResult.checkoutUrl
       });
     } else {
       return res.status(400).json({
@@ -216,7 +274,7 @@ const subscribeToPlan = async (req, res) => {
       });
     }
 
-    // Create UserSubscription record
+    // Create UserSubscription record (PayPal path)
     const subscription = new UserSubscription({
       user: req.user.id,
       plan: planId,
@@ -225,9 +283,7 @@ const subscribeToPlan = async (req, res) => {
       paymentMethod,
       paymentDetails: {
         paypalOrderId: paymentResult.data?.id,
-        paymayaCheckoutId: paymentResult.data?.checkoutId,
-        paymongoIntentId: paymentResult.holdId,
-        lastPaymentId: paymentResult.data?.id || paymentResult.holdId,
+        lastPaymentId: paymentResult.data?.id,
         nextPaymentAmount: price
       },
       startDate: new Date(),
@@ -276,12 +332,110 @@ const subscribeToPlan = async (req, res) => {
 // @access  Private
 const confirmSubscriptionPayment = async (req, res) => {
   try {
-    const { paymentId, paymentMethod } = req.body;
+    const { paymentId, paymentMethod, sessionId } = req.body;
 
-    if (!paymentId || !paymentMethod) {
+    if (!paymentMethod) {
       return res.status(400).json({
         success: false,
-        message: 'Payment ID and payment method are required'
+        message: 'paymentMethod is required'
+      });
+    }
+
+    // PayMongo: webhook activates the subscription asynchronously.
+    // The frontend polls this endpoint with { paymentMethod: 'paymongo', sessionId }.
+    // Re-fetch from DB using the sessionId so we always see the latest state.
+    if (paymentMethod === 'paymongo') {
+      if (!sessionId) {
+        return res.status(400).json({
+          success: false,
+          message: 'sessionId is required for paymongo'
+        });
+      }
+
+      // Query specifically by sessionId — avoids matching a different subscription
+      // belonging to the same user if they had multiple attempts.
+      const freshSub = await UserSubscription.findOne({
+        user: req.user.id,
+        'paymentDetails.paymongoSessionId': sessionId
+      }).populate('plan');
+
+      if (!freshSub) {
+        // Not found yet — webhook hasn't fired, keep polling
+        return res.status(200).json({ activated: false, plan: null });
+      }
+
+      if (freshSub.status !== 'active') {
+        return res.status(200).json({ activated: false, plan: null });
+      }
+
+      // Subscription is active — create Payment record exactly once (idempotent check)
+      const existingPayment = await Payment.findOne({
+        subscription: freshSub._id,
+        status: 'completed',
+        paymentMethod: 'paymongo'
+      });
+
+      if (!existingPayment) {
+        const paymentRecord = new Payment({
+          user: req.user.id,
+          subscription: freshSub._id,
+          amount: freshSub.paymentDetails.nextPaymentAmount || 0,
+          currency: freshSub.plan?.price?.currency || 'PHP',
+          status: 'completed',
+          paymentMethod: 'paymongo',
+          paymentDetails: {
+            paymongoIntentId: sessionId,
+            transactionId: sessionId
+          },
+          description: 'LocalPro Plus subscription payment via PayMongo',
+          processedAt: freshSub.paymentDetails.lastPaymentDate || new Date()
+        });
+        await paymentRecord.save();
+
+        // Ensure user.localProPlusSubscription points to this subscription
+        const userDoc = await User.findById(req.user.id);
+        if (userDoc && String(userDoc.localProPlusSubscription) !== String(freshSub._id)) {
+          userDoc.localProPlusSubscription = freshSub._id;
+          await userDoc.save();
+        }
+
+        // Send confirmation email — only once, on first Payment creation
+        try {
+          const userForEmail = userDoc || await User.findById(req.user.id);
+          if (freshSub.plan) {
+            await EmailService.sendEmail({
+              to: userForEmail.email,
+              subject: 'LocalPro Plus Subscription Confirmed',
+              template: 'subscription-confirmation',
+              data: {
+                userName: `${userForEmail.firstName} ${userForEmail.lastName}`,
+                planName: freshSub.plan.name,
+                startDate: freshSub.startDate,
+                endDate: freshSub.endDate
+              }
+            });
+          }
+        } catch (emailErr) {
+          console.error('PayMongo confirm: failed to send confirmation email:', emailErr.message);
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        activated: true,
+        message: 'Subscription payment confirmed successfully',
+        plan: freshSub.plan
+          ? { id: freshSub.plan._id, name: freshSub.plan.name }
+          : null,
+        data: freshSub
+      });
+    }
+
+    // Non-PayMongo paths require paymentId
+    if (!paymentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'paymentId is required'
       });
     }
 
@@ -307,8 +461,6 @@ const confirmSubscriptionPayment = async (req, res) => {
     // Confirm payment based on method
     if (paymentMethod === 'paypal') {
       paymentResult = await PayPalService.captureOrder(paymentId);
-    } else if (paymentMethod === 'paymaya') {
-      paymentResult = await PayMayaService.confirmPayment(paymentId);
     } else {
       return res.status(400).json({
         success: false,
@@ -340,7 +492,6 @@ const confirmSubscriptionPayment = async (req, res) => {
       paymentMethod,
       paymentDetails: {
         paypalOrderId: paymentId,
-        paymayaPaymentId: paymentId,
         transactionId: paymentResult.data?.id
       },
       description: `LocalPro Plus subscription payment`,
@@ -619,11 +770,33 @@ const renewSubscription = async (req, res) => {
         currency: currency,
         description: `LocalPro Plus ${plan.name} subscription renewal (${subscription.billingCycle})`
       });
-    } else if (paymentMethod === 'paymaya') {
-      paymentResult = await PayMayaService.createPayment({
-        amount: price,
-        currency: currency === 'USD' ? 'PHP' : currency,
-        description: `LocalPro Plus ${plan.name} subscription renewal (${subscription.billingCycle})`
+    } else if (paymentMethod === 'paymongo') {
+      if (!process.env.PAYMONGO_SECRET_KEY) {
+        return res.status(500).json({
+          success: false,
+          message: 'Payment gateway not configured'
+        });
+      }
+
+      const amountInCentavos = Math.round(price * 100);
+      const sessionResult = await PaymongoService.createCheckoutSession({
+        amount: amountInCentavos,
+        currency: 'PHP',
+        name: `LocalPro Plus ${plan.name} – ${subscription.billingCycle === 'yearly' ? 'Yearly' : 'Monthly'} Renewal`,
+        userId: req.user.id,
+        planId: subscription.plan._id || subscription.plan,
+        billingCycle: subscription.billingCycle
+      });
+
+      if (!sessionResult.success) {
+        return res.status(502).json({
+          success: false,
+          message: sessionResult.message || 'Failed to create checkout session'
+        });
+      }
+
+      return res.status(200).json({
+        checkoutUrl: sessionResult.checkoutUrl
       });
     } else {
       return res.status(400).json({
@@ -653,7 +826,6 @@ const renewSubscription = async (req, res) => {
       paymentMethod,
       paymentDetails: {
         paypalOrderId: paymentResult.data?.id,
-        paymayaCheckoutId: paymentResult.data?.checkoutId,
         transactionId: paymentResult.data?.id
       },
       description: `LocalPro Plus subscription renewal`,

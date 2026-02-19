@@ -1,0 +1,39 @@
+<h1 style="color: #667eea; margin-bottom: 20px;">Payment Refunded</h1>
+
+<p>Hi <strong>{{client.name}}</strong>,</p>
+
+<p>Your escrow payment has been refunded. The funds will be returned to your original payment method.</p>
+
+<div class="content-box">
+    <h3 style="color: #667eea; margin-top: 0;">Refund Details</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold; width: 40%;">Refund Amount:</td>
+            <td style="padding: 8px 0; font-size: 18px; font-weight: bold; color: #27ae60;">{{escrow.currency}} {{escrow.amount}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Booking ID:</td>
+            <td style="padding: 8px 0;">{{escrow.bookingId}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Status:</td>
+            <td style="padding: 8px 0;">
+                <span style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                    REFUNDED
+                </span>
+            </td>
+        </tr>
+    </table>
+</div>
+
+{{#if reason}}
+<div class="highlight warning">
+    <h4 style="margin-top: 0; color: #856404;">Reason</h4>
+    <p style="margin-bottom: 0;">{{reason}}</p>
+</div>
+{{/if}}
+
+<p>Please allow 5-10 business days for the refund to appear in your account.</p>
+
+<p>Best regards,<br>
+<strong>The LocalPro Team</strong></p>

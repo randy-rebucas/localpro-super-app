@@ -122,14 +122,39 @@ const createConversation = async (req, res) => {
       });
     }
 
-    // Add current user to participants
-    const allParticipants = [...new Set([req.user.id, ...participants])];
+    // Normalize participants to extract user IDs and roles
+    // Participants can be either strings (user IDs) or objects with {user, role}
+    const normalizedParticipants = participants.map(p => {
+      if (typeof p === 'string') {
+        return { user: p, role: 'client' };
+      } else if (typeof p === 'object' && p.user) {
+        return { 
+          user: typeof p.user === 'string' ? p.user : p.user.toString(), 
+          role: p.role || 'client' 
+        };
+      }
+      return null;
+    }).filter(p => p !== null);
+
+    // Extract just the user IDs for checking existing conversations
+    const participantUserIds = normalizedParticipants.map(p => p.user);
+
+    // Check if current user is already in participants, if not add them
+    const currentUserInParticipants = participantUserIds.includes(req.user.id);
+    
+    if (!currentUserInParticipants) {
+      normalizedParticipants.unshift({
+        user: req.user.id,
+        role: req.user.role || 'client'
+      });
+      participantUserIds.unshift(req.user.id);
+    }
 
     // Check if conversation already exists
     const existingConversation = await Conversation.findOne({
-      'participants.user': { $all: allParticipants },
+      'participants.user': { $all: participantUserIds },
       type
-    });
+    }).populate('participants.user', 'firstName lastName profile.avatar');
 
     if (existingConversation) {
       return res.status(200).json({
@@ -139,14 +164,8 @@ const createConversation = async (req, res) => {
       });
     }
 
-    // Create participants array with user and role
-    const participantsArray = allParticipants.map(userId => ({
-      user: userId,
-      role: userId === req.user.id ? 'client' : 'client' // Default role, can be customized
-    }));
-
     const conversation = await Conversation.create({
-      participants: participantsArray,
+      participants: normalizedParticipants,
       type,
       subject: req.body.subject || 'New Conversation',
       context: req.body.context || {}
@@ -163,7 +182,7 @@ const createConversation = async (req, res) => {
     console.error('Create conversation error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Database query error: ' + error.message
     });
   }
 };
