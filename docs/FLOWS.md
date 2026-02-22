@@ -27,7 +27,7 @@
 ## 1. Booking Flow
 
 ### Overview
-The marketplace booking flow handles service bookings between clients and providers, from discovery to completion and review.
+The marketplace booking flow handles service bookings between clients and providers, from discovery to completion and review. All new bookings go through an **admin review step** before being dispatched to the provider.
 
 ### Flow Diagram
 ```
@@ -35,118 +35,244 @@ The marketplace booking flow handles service bookings between clients and provid
 │                          MARKETPLACE BOOKING FLOW                            │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-CLIENT                          SYSTEM                         PROVIDER
-   │                              │                               │
-   │  1. Browse Services          │                               │
-   │─────────────────────────────>│                               │
-   │  GET /api/marketplace/services                               │
-   │                              │                               │
-   │  2. View Service Details     │                               │
-   │─────────────────────────────>│                               │
-   │  GET /api/marketplace/services/:id                           │
-   │                              │                               │
-   │  3. Check Availability       │                               │
-   │─────────────────────────────>│                               │
-   │  GET /api/availability/:providerId                           │
-   │                              │                               │
-   │  4. Create Booking           │                               │
-   │─────────────────────────────>│                               │
-   │  POST /api/marketplace/bookings                              │
-   │                              │                               │
-   │                              │  5. Validate & Create         │
-   │                              │  - Check availability         │
-   │                              │  - Calculate pricing          │
-   │                              │  - Create Escrow              │
-   │                              │  - Send notifications         │
-   │                              │                               │
-   │                              │  6. Notify Provider           │
-   │                              │──────────────────────────────>│
-   │                              │  Push + Email notification    │
-   │                              │                               │
-   │                              │  7. Provider Confirms         │
-   │                              │<──────────────────────────────│
-   │                              │  POST /bookings/:id/confirm   │
-   │                              │                               │
-   │  8. Confirmation Received    │                               │
-   │<─────────────────────────────│                               │
-   │                              │                               │
-   │  9. Make Payment             │                               │
-   │─────────────────────────────>│                               │
-   │  POST /api/paypal/create-order                               │
-   │                              │                               │
-   │                              │  10. Escrow Holds Funds       │
-   │                              │  status: FUNDS_HELD           │
-   │                              │                               │
-   │                              │  [SERVICE DAY]                │
-   │                              │                               │
-   │                              │  11. Provider Starts          │
-   │                              │<──────────────────────────────│
-   │                              │  PUT /bookings/:id/start      │
-   │                              │                               │
-   │                              │  12. Upload Before Photos     │
-   │                              │<──────────────────────────────│
-   │                              │  POST /bookings/:id/photos    │
-   │                              │                               │
-   │                              │  [SERVICE COMPLETED]          │
-   │                              │                               │
-   │                              │  13. Provider Completes       │
-   │                              │<──────────────────────────────│
-   │                              │  - Upload after photos        │
-   │                              │  - Add completion notes       │
-   │                              │  - Submit proof of work       │
-   │                              │                               │
-   │  14. Approve & Review        │                               │
-   │─────────────────────────────>│                               │
-   │  POST /bookings/:id/review   │                               │
-   │                              │                               │
-   │                              │  15. Release Escrow           │
-   │                              │  - Pay provider               │
-   │                              │  - Update ratings             │
-   │                              │──────────────────────────────>│
-   │                              │                               │
-   └──────────────────────────────┴───────────────────────────────┘
+CLIENT                    ADMIN                 SYSTEM                  PROVIDER
+   │                        │                     │                        │
+   │  1. Browse/Search       │                     │                        │
+   │────────────────────────────────────────────>│                        │
+   │  GET /marketplace/services[?location=lat,lng]│                        │
+   │  GET /marketplace/services/nearby            │                        │
+   │  GET /marketplace/services/featured          │                        │
+   │                        │                     │                        │
+   │  2. View Service        │                     │                        │
+   │────────────────────────────────────────────>│                        │
+   │  GET /marketplace/services/:id               │                        │
+   │  GET /marketplace/services/slug/:slug        │                        │
+   │                        │                     │                        │
+   │  3. Create Booking      │                     │                        │
+   │────────────────────────────────────────────>│                        │
+   │  POST /marketplace/bookings                  │                        │
+   │  { serviceId, bookingDate, bookingTime,      │                        │
+   │    duration, paymentMethod, address }        │                        │
+   │                        │                     │                        │
+   │                        │                     │  4. Validate & Create   │
+   │                        │                     │  - Joi schema validate  │
+   │                        │                     │  - Check availability   │
+   │                        │                     │  - Calculate pricing    │
+   │                        │                     │  - Create Escrow        │
+   │                        │                     │  status: pending_admin_review
+   │                        │                     │                        │
+   │                        │  5. Notify Admins   │                        │
+   │                        │<────────────────────│                        │
+   │                        │  "New booking       │                        │
+   │                        │   pending review"   │                        │
+   │                        │                     │                        │
+   │                        │  6. Review & Dispatch                        │
+   │                        │─────────────────────>                        │
+   │                        │  POST /bookings/:id/admin-review             │
+   │                        │                     │  status: pending       │
+   │                        │                     │                        │
+   │                        │                     │  7. Notify Provider    │
+   │                        │                     │───────────────────────>│
+   │                        │                     │  Push + Email          │
+   │                        │                     │                        │
+   │                        │                     │  8. Provider Confirms  │
+   │                        │                     │<───────────────────────│
+   │                        │                     │  POST /bookings/:id/confirm
+   │                        │                     │  status: confirmed     │
+   │                        │                     │                        │
+   │  9. Client Notified     │                     │                        │
+   │<────────────────────────────────────────────│                        │
+   │                        │                     │                        │
+   │  [SERVICE DAY]          │                     │                        │
+   │                        │                     │                        │
+   │                        │                     │  10. Provider Starts   │
+   │                        │                     │<───────────────────────│
+   │                        │                     │  POST /bookings/:id/start
+   │                        │                     │  status: in_progress   │
+   │                        │                     │                        │
+   │                        │                     │  11. GPS Tracking Active│
+   │                        │                     │<───────────────────────│
+   │                        │                     │  POST /bookings/:id/location
+   │                        │                     │  POST /bookings/:id/arrived
+   │                        │                     │                        │
+   │                        │                     │  12. Upload Before Photos
+   │                        │                     │<───────────────────────│
+   │                        │                     │  POST /bookings/:id/photos
+   │                        │                     │                        │
+   │                        │                     │  [SERVICE COMPLETED]   │
+   │                        │                     │                        │
+   │                        │                     │  13. Provider Completes│
+   │                        │                     │<───────────────────────│
+   │                        │                     │  POST /bookings/:id/complete
+   │                        │                     │  - Upload after photos │
+   │                        │                     │  - Add completion notes│
+   │                        │                     │  - Submit proof of work│
+   │                        │                     │  status: completed     │
+   │                        │                     │                        │
+   │  14. Client Sign-Off    │                     │                        │
+   │────────────────────────────────────────────>│                        │
+   │  POST /bookings/:id/signoff                  │                        │
+   │  { signature }         │                     │                        │
+   │                        │                     │                        │
+   │  15. Leave Reviews      │                     │                        │
+   │────────────────────────────────────────────>│                        │
+   │  POST /bookings/:id/reviews/client           │                        │
+   │  POST /bookings/:id/tip (optional)           │                        │
+   │                        │                     │                        │
+   │                        │                     │  16. Release Escrow    │
+   │                        │                     │  - Pay provider        │
+   │                        │                     │  - Update ratings      │
+   │                        │                     │───────────────────────>│
+   │                        │                     │                        │
+   └────────────────────────┴─────────────────────┴────────────────────────┘
 ```
 
 ### State Transitions
 ```
-┌─────────┐    confirm    ┌───────────┐    start    ┌─────────────┐
-│ PENDING │──────────────>│ CONFIRMED │────────────>│ IN_PROGRESS │
-└─────────┘               └───────────┘             └─────────────┘
-     │                          │                         │
-     │ cancel                   │ cancel                  │ complete
-     │                          │                         │
-     v                          v                         v
-┌───────────┐            ┌───────────┐             ┌───────────┐
-│ CANCELLED │            │ CANCELLED │             │ COMPLETED │
-└───────────┘            └───────────┘             └───────────┘
+┌─────────────────────┐   admin_review   ┌─────────┐   confirm   ┌───────────┐
+│ PENDING_ADMIN_REVIEW │─────────────────>│ PENDING │────────────>│ CONFIRMED │
+└─────────────────────┘                  └─────────┘             └───────────┘
+         │                                    │                        │
+         │ admin_reject                       │ cancel                 │ start
+         │                                    │                        │
+         v                                    v                        v
+  ┌───────────┐                        ┌───────────┐         ┌─────────────┐
+  │ CANCELLED │                        │ CANCELLED │         │ IN_PROGRESS │
+  └───────────┘                        └───────────┘         └─────────────┘
+                                                                      │
+                                                                      │ complete
+                                                                      │
+                                                                      v
+                                                              ┌───────────┐
+                                                              │ COMPLETED │
+                                                              └───────────┘
 ```
 
 ### API Endpoints
+
+#### Public Service Routes
 | Method | Endpoint | Description | Actor |
 |--------|----------|-------------|-------|
-| GET | `/api/marketplace/services` | Browse services | Public |
+| GET | `/api/marketplace/services` | Browse services (supports filters + geospatial) | Public |
+| GET | `/api/marketplace/services/categories` | List service categories | Public |
+| GET | `/api/marketplace/services/categories/:category` | Category details | Public |
+| GET | `/api/marketplace/services/featured` | Featured services | Public |
+| GET | `/api/marketplace/services/nearby` | Geospatial nearby search (`?lat=&lng=&radius=`) | Public |
+| GET | `/api/marketplace/services/slug/:slug` | Get service by URL slug | Public |
 | GET | `/api/marketplace/services/:id` | View service details | Public |
-| GET | `/api/marketplace/services/nearby` | Geospatial search | Public |
+| GET | `/api/marketplace/services/:id/reviews` | Service reviews | Public |
+| GET | `/api/marketplace/services/:id/providers` | Providers for a service | Public |
+| GET | `/api/marketplace/providers/:id` | Provider profile | Public |
+| GET | `/api/marketplace/providers/:providerId/services` | Provider's services | Public |
+
+#### Authenticated Routes
+| Method | Endpoint | Description | Actor |
+|--------|----------|-------------|-------|
+| GET | `/api/marketplace/my-services` | My listed services | Provider |
+| GET | `/api/marketplace/my-bookings` | My bookings | Auth User |
+
+#### Service Management (Provider/Admin)
+| Method | Endpoint | Description | Actor |
+|--------|----------|-------------|-------|
+| POST | `/api/marketplace/services` | Create service | Provider/Admin |
+| PUT | `/api/marketplace/services/:id` | Update service | Provider/Admin |
+| DELETE | `/api/marketplace/services/:id` | Delete service | Provider/Admin |
+| PATCH | `/api/marketplace/services/:id/deactivate` | Deactivate service | Provider/Admin |
+| PATCH | `/api/marketplace/services/:id/activate` | Activate service | Provider/Admin |
+| POST | `/api/marketplace/services/:id/images` | Upload service images | Provider/Admin |
+| POST | `/api/marketplace/services/:id/submit` | Submit for admin review | Provider |
+| POST | `/api/marketplace/services/:id/archive` | Archive service | Provider/Admin |
+| PUT | `/api/marketplace/services/:id/seo` | Update SEO metadata | Provider/Admin |
+| POST | `/api/marketplace/services/:id/promotions` | Create promotion | Provider/Admin |
+| DELETE | `/api/marketplace/services/:id/promotions` | End promotion | Provider/Admin |
+| PUT | `/api/marketplace/services/:id/availability` | Update availability | Provider/Admin |
+| GET | `/api/marketplace/services/:id/analytics` | Service analytics | Provider/Admin |
+| POST | `/api/marketplace/services/:id/packages` | Add service package | Provider/Admin |
+| PUT | `/api/marketplace/services/:id/packages/:packageId` | Update package | Provider/Admin |
+| DELETE | `/api/marketplace/services/:id/packages/:packageId` | Delete package | Provider/Admin |
+| POST | `/api/marketplace/services/:id/addons` | Add add-on | Provider/Admin |
+| PUT | `/api/marketplace/services/:id/addons/:addonId` | Update add-on | Provider/Admin |
+| DELETE | `/api/marketplace/services/:id/addons/:addonId` | Delete add-on | Provider/Admin |
+| POST | `/api/marketplace/services/:id/external-ids` | Link external system ID | Provider/Admin |
+
+#### Service Approval Workflow (Admin)
+| Method | Endpoint | Description | Actor |
+|--------|----------|-------------|-------|
+| GET | `/api/marketplace/services/pending-review` | Services pending review | Admin |
+| POST | `/api/marketplace/services/:id/approve` | Approve service listing | Admin |
+| POST | `/api/marketplace/services/:id/reject` | Reject service listing | Admin |
+| POST | `/api/marketplace/services/:id/feature` | Feature a service | Admin |
+| DELETE | `/api/marketplace/services/:id/feature` | Unfeature a service | Admin |
+
+#### Category Management (Admin)
+| Method | Endpoint | Description | Actor |
+|--------|----------|-------------|-------|
+| GET | `/api/marketplace/services/categories/manage` | Admin category list | Admin |
+| POST | `/api/marketplace/services/categories` | Create category | Admin |
+| PUT | `/api/marketplace/services/categories/:id` | Update category | Admin |
+| DELETE | `/api/marketplace/services/categories/:id` | Delete category | Admin |
+
+#### Booking - Core Workflow
+| Method | Endpoint | Description | Actor |
+|--------|----------|-------------|-------|
 | POST | `/api/marketplace/bookings` | Create booking | Client |
-| GET | `/api/marketplace/bookings` | List my bookings | Auth User |
-| GET | `/api/marketplace/bookings/:id` | View booking details | Booking Participant |
+| GET | `/api/marketplace/bookings` | List bookings | Auth User |
+| GET | `/api/marketplace/bookings/stats` | Booking statistics | Auth User |
+| GET | `/api/marketplace/bookings/number/:bookingNumber` | Get by booking number | Auth User |
+| GET | `/api/marketplace/bookings/:id` | View booking details | Participant |
+| PUT | `/api/marketplace/bookings/:id/status` | Update booking status | Auth User |
+| POST | `/api/marketplace/bookings/:id/photos` | Upload before/after photos | Provider |
+| POST | `/api/marketplace/bookings/:id/admin-review` | Review & dispatch booking | Admin |
 | POST | `/api/marketplace/bookings/:id/confirm` | Confirm booking | Provider |
 | POST | `/api/marketplace/bookings/:id/start` | Start service | Provider |
-| POST | `/api/marketplace/bookings/:id/complete` | Complete service | Provider |
+| POST | `/api/marketplace/bookings/:id/complete` | Mark service complete | Provider |
 | POST | `/api/marketplace/bookings/:id/cancel` | Cancel booking | Client/Provider |
-| POST | `/api/marketplace/bookings/:id/reschedule` | Reschedule | Client/Provider |
-| POST | `/api/marketplace/bookings/:id/review` | Leave review | Client |
-| POST | `/api/marketplace/bookings/:id/photos` | Upload photos | Provider |
+| POST | `/api/marketplace/bookings/:id/reschedule` | Reschedule booking | Client/Provider |
+| POST | `/api/marketplace/bookings/:id/signoff` | Client digital sign-off | Client |
+
+#### Booking - GPS Tracking
+| Method | Endpoint | Description | Actor |
+|--------|----------|-------------|-------|
+| POST | `/api/marketplace/bookings/:id/location` | Update provider GPS location | Provider |
+| POST | `/api/marketplace/bookings/:id/arrived` | Mark provider as arrived | Provider |
+| GET | `/api/marketplace/bookings/:id/location-history` | Get location history | Participant |
+
+#### Booking - Disputes
+| Method | Endpoint | Description | Actor |
+|--------|----------|-------------|-------|
+| POST | `/api/marketplace/bookings/:id/dispute` | Open a dispute | Client/Provider |
+| POST | `/api/marketplace/bookings/:id/dispute/evidence` | Add dispute evidence | Client/Provider |
+| POST | `/api/marketplace/bookings/:id/dispute/messages` | Add dispute message | Client/Provider |
+| GET | `/api/marketplace/bookings/disputes` | List all disputed bookings | Admin |
+| POST | `/api/marketplace/bookings/:id/dispute/resolve` | Resolve dispute | Admin |
+
+#### Booking - Reviews & Tips
+| Method | Endpoint | Description | Actor |
+|--------|----------|-------------|-------|
+| POST | `/api/marketplace/bookings/:id/review` | Leave review (with photos) | Client |
+| POST | `/api/marketplace/bookings/:id/reviews/client` | Structured client review | Client |
+| POST | `/api/marketplace/bookings/:id/reviews/provider` | Provider rates client | Provider |
+| POST | `/api/marketplace/bookings/:id/reviews/respond` | Respond to a review | Provider |
+| POST | `/api/marketplace/bookings/:id/tip` | Add tip to completed booking | Client |
+
+#### Booking - Payments
+| Method | Endpoint | Description | Actor |
+|--------|----------|-------------|-------|
+| POST | `/api/marketplace/bookings/paypal/approve` | Approve PayPal booking payment | Client |
+| GET | `/api/marketplace/bookings/paypal/order/:orderId` | Get PayPal order details | Client |
+| POST | `/api/marketplace/bookings/:id/external-ids` | Link external system ID | Admin |
 
 ### Booking Object Structure
 ```javascript
 {
   _id: ObjectId,
+  bookingNumber: String,       // Human-readable unique number
   service: ObjectId,           // Reference to Service
   client: ObjectId,            // Reference to User (client)
   provider: ObjectId,          // Reference to User (provider)
   bookingDate: Date,
-  duration: Number,            // in minutes
+  bookingTime: String,         // "HH:MM" 24-hour format
+  duration: Number,            // in hours
   address: {
     street: String,
     city: String,
@@ -155,30 +281,116 @@ CLIENT                          SYSTEM                         PROVIDER
     coordinates: { lat, lng }
   },
   specialInstructions: String,
-  status: "pending" | "confirmed" | "in_progress" | "completed" | "cancelled",
+  status: "pending_admin_review" | "pending" | "confirmed" | "in_progress" | "completed" | "cancelled",
   pricing: {
     basePrice: Number,
     additionalFees: [{ description, amount }],
     totalAmount: Number,
-    currency: "USD"
+    currency: "USD" | "PHP"
   },
   payment: {
     status: "pending" | "paid" | "refunded" | "failed",
-    method: "cash" | "card" | "paypal" | "paymaya" | "paymongo",
+    method: "paypal" | "paymongo" | "bpi" | "cash",
     transactionId: String,
+    escrowProvider: String,
     paidAt: Date
   },
+  tracking: {
+    providerLocation: { type: "Point", coordinates: [lng, lat] },
+    locationHistory: [{ coordinates, timestamp, accuracy }],
+    arrivedAt: Date
+  },
   review: {
-    rating: Number (1-5),
+    rating: Number,            // 1-5
     comment: String,
     categories: { quality, timeliness, communication, value },
     photos: []
   },
+  providerReview: {
+    rating: Number,
+    comment: String
+  },
+  dispute: {
+    isDisputed: Boolean,
+    reason: String,
+    reasonCode: String,
+    description: String,
+    raisedBy: ObjectId,
+    raisedAt: Date,
+    evidence: [{ type, url, description, uploadedBy, uploadedAt }],
+    messages: [{ sender, message, timestamp }],
+    resolution: { outcome, notes, resolvedBy, resolvedAt }
+  },
+  signoff: {
+    signed: Boolean,
+    signedAt: Date,
+    signedBy: ObjectId,
+    signature: String
+  },
   timeline: [{ status, timestamp, note, updatedBy }],
   beforePhotos: [],
   afterPhotos: [],
-  completionNotes: String
+  completionNotes: String,
+  tip: { amount: Number, currency: String, paidAt: Date }
 }
+```
+
+### Service Listing Lifecycle
+```
+┌──────────┐  submit   ┌─────────────────┐  approve  ┌────────┐
+│  DRAFT   │──────────>│ PENDING_REVIEW  │──────────>│ ACTIVE │
+└──────────┘           └─────────────────┘           └────────┘
+                              │                           │
+                              │ reject                    │ archive / deactivate
+                              │                           │
+                              v                           v
+                        ┌──────────┐               ┌──────────┐
+                        │ REJECTED │               │ ARCHIVED │
+                        └──────────┘               └──────────┘
+```
+
+### GPS Tracking Flow
+```
+Provider starts service
+   │
+   v
+POST /bookings/:id/location  (every ~30 sec from provider app)
+   { lat, lng, accuracy }
+   │
+   v
+Location stored in tracking.locationHistory
+Client can see real-time provider location
+   │
+   v
+POST /bookings/:id/arrived
+   │
+   v
+booking.tracking.arrivedAt = now
+Client notified: "Provider has arrived"
+```
+
+### Inline Booking Dispute Flow
+```
+Client or Provider opens dispute
+POST /bookings/:id/dispute
+{ reason, reasonCode, description }
+   │
+   v
+booking.dispute.isDisputed = true
+Escrow status → DISPUTE
+Admins notified
+   │
+Both parties add evidence & messages
+POST /bookings/:id/dispute/evidence
+POST /bookings/:id/dispute/messages
+   │
+   v
+Admin resolves
+POST /bookings/:id/dispute/resolve
+{ outcome: "refund_client" | "pay_provider" | "split", notes }
+   │
+   v
+Escrow released accordingly
 ```
 
 ### Automated Processes
@@ -301,111 +513,95 @@ CLIENT                          SERVER                         PAYPAL
 "BILLING.SUBSCRIPTION.PAYMENT.FAILED" -> Trigger dunning
 ```
 
-### 2.2 PayMaya Payment Flow
+### 2.2 PayMongo Payment Flow (Escrow & Subscriptions)
+
+PayMongo uses the **hosted checkout session** flow for both booking escrow payments and LocalPro Plus subscriptions.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     PAYMAYA PAYMENT FLOW                         │
-└─────────────────────────────────────────────────────────────────┘
-
-CLIENT                          SERVER                        PAYMAYA
-   │                              │                               │
-   │  1. Create Checkout          │                               │
-   │─────────────────────────────>│                               │
-   │  POST /api/paymaya/checkout  │                               │
-   │  { bookingId, amount, items }│                               │
-   │                              │                               │
-   │                              │  2. Create Checkout Session   │
-   │                              │──────────────────────────────>│
-   │                              │  POST /checkout/v1/checkouts  │
-   │                              │                               │
-   │                              │  3. Checkout Created          │
-   │                              │<──────────────────────────────│
-   │                              │  { checkoutId, redirectUrl }  │
-   │                              │                               │
-   │  4. Redirect to PayMaya      │                               │
-   │<─────────────────────────────│                               │
-   │                              │                               │
-   │  5. User Completes Payment   │                               │
-   │─────────────────────────────────────────────────────────────>│
-   │  (PayMaya checkout page)     │                               │
-   │                              │                               │
-   │                              │  6. Webhook Notification      │
-   │                              │<──────────────────────────────│
-   │                              │  POST /api/paymaya/webhook    │
-   │                              │  { event: "CHECKOUT_SUCCESS" }│
-   │                              │                               │
-   │                              │  7. Verify & Update           │
-   │                              │  - Verify signature           │
-   │                              │  - Update booking             │
-   │                              │  - Update escrow              │
-   │                              │                               │
-   │  8. Redirect to Success      │                               │
-   │<─────────────────────────────────────────────────────────────│
-   │                              │                               │
-   └──────────────────────────────┴───────────────────────────────┘
-```
-
-### PayMaya Webhook Events
-```javascript
-// Handled Events:
-"CHECKOUT_SUCCESS"    -> Payment completed
-"CHECKOUT_FAILURE"    -> Payment failed
-"CHECKOUT_DROPOUT"    -> User abandoned
-"PAYMENT_SUCCESS"     -> Vault payment success
-"PAYMENT_FAILURE"     -> Vault payment failed
-"INVOICE_PAID"        -> Invoice settled
-"INVOICE_EXPIRED"     -> Invoice expired
-```
-
-### 2.3 PayMongo Payment Flow
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     PAYMONGO PAYMENT FLOW                        │
+│                PAYMONGO CHECKOUT SESSION FLOW                    │
 └─────────────────────────────────────────────────────────────────┘
 
 CLIENT                          SERVER                       PAYMONGO
    │                              │                               │
-   │  1. Create Payment Intent    │                               │
+   │  1. Initiate Payment         │                               │
    │─────────────────────────────>│                               │
-   │  POST /api/paymongo/intent   │                               │
+   │  (e.g. create booking or     │                               │
+   │   subscribe to LP+ plan)     │                               │
    │                              │                               │
-   │                              │  2. Create Intent             │
+   │                              │  2. Create Checkout Session   │
    │                              │──────────────────────────────>│
-   │                              │  POST /payment_intents        │
+   │                              │  POST /v1/checkout_sessions   │
+   │                              │  { line_items, metadata,      │
+   │                              │    payment_method_types,      │
+   │                              │    success_url, cancel_url }  │
    │                              │                               │
-   │                              │  3. Intent Created            │
+   │                              │  3. Session Created           │
    │                              │<──────────────────────────────│
-   │                              │  { intentId, clientKey }      │
+   │                              │  { id, checkout_url }         │
    │                              │                               │
-   │  4. Get Client Key           │                               │
+   │  4. Redirect to PayMongo     │                               │
    │<─────────────────────────────│                               │
+   │  { checkoutUrl, sessionId }  │                               │
    │                              │                               │
-   │  5. Collect Payment Method   │                               │
-   │  (Client-side PayMongo.js)   │                               │
+   │  5. User Completes Payment   │                               │
+   │─────────────────────────────────────────────────────────────>│
+   │  (PayMongo hosted page)      │                               │
    │                              │                               │
-   │  6. Attach Payment Method    │                               │
+   │                              │  6. Webhook: Payment Paid     │
+   │                              │<──────────────────────────────│
+   │                              │  POST /webhooks/paymongo      │
+   │                              │  event: checkout_session      │
+   │                              │        .payment.paid          │
+   │                              │                               │
+   │                              │  7. Verify HMAC Signature     │
+   │                              │  (Paymongo-Signature header)  │
+   │                              │  reject if >5 minutes old     │
+   │                              │                               │
+   │                              │  8. Update Records            │
+   │                              │  - Subscription/Booking status│
+   │                              │  - Escrow status              │
+   │                              │  - Create Payment audit record│
+   │                              │                               │
+   │  9. Frontend Polls           │                               │
    │─────────────────────────────>│                               │
-   │  POST /api/paymongo/attach   │                               │
-   │  { intentId, paymentMethodId}│                               │
-   │                              │                               │
-   │                              │  7. Attach to Intent          │
-   │                              │──────────────────────────────>│
-   │                              │                               │
-   │                              │  8. 3DS Authentication        │
-   │                              │<──────────────────────────────│
-   │                              │  (if required)                │
-   │                              │                               │
-   │  9. Complete 3DS             │                               │
+   │  GET/POST confirm-payment    │                               │
+   │  { sessionId }               │                               │
    │<─────────────────────────────│                               │
-   │  (redirect to 3DS page)      │                               │
-   │                              │                               │
-   │                              │  10. Webhook: Payment Success │
-   │                              │<──────────────────────────────│
-   │                              │  POST /api/webhooks/paymongo  │
+   │  { activated: true, ... }    │                               │
    │                              │                               │
    └──────────────────────────────┴───────────────────────────────┘
+```
+
+### PayMongo Webhook
+| Setting | Value |
+|---------|-------|
+| Endpoint | `POST /webhooks/paymongo` |
+| Event to subscribe | `checkout_session.payment.paid` |
+| Signature header | `Paymongo-Signature` (`t=<ts>,te=<hmac>,li=<hmac>`) |
+| Algorithm | HMAC-SHA256 over `timestamp + "." + rawBody` |
+| Replay protection | Reject events older than 5 minutes |
+
+```javascript
+// Webhook payload shape
+{
+  data: {
+    attributes: {
+      type: "checkout_session.payment.paid",
+      data: {
+        attributes: {
+          id: "cs_xxx",           // checkout session id
+          status: "paid",
+          metadata: {
+            userId: "...",        // matched to subscription/booking
+            planId: "...",
+            billingCycle: "monthly"
+          }
+        }
+      }
+    }
+  }
+}
 ```
 
 ### Payment Status Tracking
@@ -567,7 +763,7 @@ CLIENT                          SYSTEM                         PROVIDER
   providerId: ObjectId,
   amount: Number,              // Amount in cents
   currency: "USD" | "PHP" | "EUR" | "GBP" | "JPY",
-  holdProvider: "paymongo" | "xendit" | "stripe" | "paypal" | "paymaya",
+  holdProvider: "paymongo" | "xendit" | "stripe" | "paypal",
   providerHoldId: String,      // Payment authorization ID
   status: "CREATED" | "FUNDS_HELD" | "IN_PROGRESS" | "COMPLETE" |
           "DISPUTE" | "REFUNDED" | "PAYOUT_INITIATED" | "PAYOUT_COMPLETED",
@@ -1116,57 +1312,64 @@ REFERRER                        SYSTEM                         NEW USER
 
 ## 9. Subscription Flow (LocalPro Plus)
 
+### Supported Payment Methods
+- **PayPal** — recurring subscription via PayPal Billing Agreements
+- **PayMongo** — hosted checkout session (one-time per cycle, async webhook activation)
+
+> PayMaya has been removed from the LocalPro Plus subscription flow.
+
+### PayPal Subscription Flow
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                      LOCALPRO PLUS SUBSCRIPTION FLOW                         │
+│                   LOCALPRO PLUS - PAYPAL SUBSCRIPTION FLOW                   │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-USER                            SYSTEM                      PAYMENT GATEWAY
+USER                            SYSTEM                         PAYPAL
    │                              │                               │
    │  1. View Plans               │                               │
    │─────────────────────────────>│                               │
    │  GET /api/localpro-plus/plans│                               │
    │                              │                               │
-   │  2. Plans Returned           │                               │
-   │<─────────────────────────────│                               │
-   │  [Basic, Professional,       │                               │
-   │   Enterprise]                │                               │
-   │                              │                               │
-   │  3. Subscribe                │                               │
+   │  2. Subscribe (PayPal)       │                               │
    │─────────────────────────────>│                               │
    │  POST /api/localpro-plus/subscribe                           │
-   │  { planId, billingCycle,     │                               │
-   │    paymentMethod }           │                               │
+   │  { planId, billingCycle: "monthly"|"yearly",                 │
+   │    paymentMethod: "paypal" } │                               │
    │                              │                               │
-   │                              │  4. Create Subscription       │
+   │                              │  3. Create PayPal Subscription│
    │                              │──────────────────────────────>│
-   │                              │  (PayPal/Stripe subscription) │
+   │                              │  POST /v1/billing/subscriptions
    │                              │                               │
-   │                              │  5. Subscription Active       │
+   │                              │  4. Approval URL              │
    │                              │<──────────────────────────────│
+   │                              │  { subscriptionId, approveUrl}│
    │                              │                               │
-   │                              │  6. Update User               │
-   │                              │  - localProPlusSubscription   │
-   │                              │  - Premium features enabled   │
-   │                              │                               │
-   │  7. Confirmation             │                               │
+   │  5. Redirect to PayPal       │                               │
    │<─────────────────────────────│                               │
-   │  "Welcome to LocalPro Plus!" │                               │
+   │                              │                               │
+   │  6. User Approves            │                               │
+   │─────────────────────────────────────────────────────────────>│
+   │                              │                               │
+   │                              │  7. Webhook: Activated        │
+   │                              │<──────────────────────────────│
+   │                              │  BILLING.SUBSCRIPTION.ACTIVATED│
+   │                              │                               │
+   │                              │  8. Activate Subscription     │
+   │                              │  - status → active            │
+   │                              │  - user.localProPlusSubscription linked
+   │                              │  - Send welcome email         │
    │                              │                               │
    │  ════════════════════════════════════════════════════════════│
    │                    MONTHLY RENEWAL                           │
    │  ════════════════════════════════════════════════════════════│
    │                              │                               │
-   │                              │  8. Webhook: Renewal          │
+   │                              │  9. Webhook: Renewal          │
    │                              │<──────────────────────────────│
    │                              │  BILLING.SUBSCRIPTION.PAYMENT │
    │                              │  .COMPLETED                   │
    │                              │                               │
-   │                              │  9. Extend Subscription       │
+   │                              │  10. Extend Subscription      │
    │                              │  endDate += 30 days           │
-   │                              │                               │
-   │  10. Renewal Notice          │                               │
-   │<─────────────────────────────│                               │
    │                              │                               │
    │  ════════════════════════════════════════════════════════════│
    │                    PAYMENT FAILURE                           │
@@ -1182,37 +1385,109 @@ USER                            SYSTEM                      PAYMENT GATEWAY
    │                              │  - Send reminder emails       │
    │                              │  - Grace period (7 days)      │
    │                              │                               │
-   │  13. Payment Reminder        │                               │
-   │<─────────────────────────────│                               │
-   │  "Update your payment method"│                               │
+   └──────────────────────────────┴───────────────────────────────┘
+```
+
+### PayMongo Subscription Flow (Hosted Checkout)
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                  LOCALPRO PLUS - PAYMONGO SUBSCRIPTION FLOW                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+USER                            SYSTEM                       PAYMONGO
    │                              │                               │
-   │  14. Update Payment          │                               │
+   │  1. Subscribe (PayMongo)     │                               │
    │─────────────────────────────>│                               │
-   │  PUT /api/localpro-plus/payment-method                       │
+   │  POST /api/localpro-plus/subscribe                           │
+   │  { planId, billingCycle,     │                               │
+   │    paymentMethod: "paymongo"}│                               │
    │                              │                               │
-   │                              │  15. Retry Successful         │
-   │                              │  Subscription continues       │
-   │                              │                               │
-   │  ════════════════════════════════════════════════════════════│
-   │                    CANCELLATION                              │
-   │  ════════════════════════════════════════════════════════════│
-   │                              │                               │
-   │  16. Cancel Subscription     │                               │
-   │─────────────────────────────>│                               │
-   │  POST /api/localpro-plus/cancel                              │
-   │                              │                               │
-   │                              │  17. Cancel at Gateway        │
+   │                              │  2. Create Checkout Session   │
    │                              │──────────────────────────────>│
+   │                              │  POST /v1/checkout_sessions   │
+   │                              │  metadata: { userId, planId,  │
+   │                              │    billingCycle }             │
    │                              │                               │
-   │                              │  18. Mark for Expiration      │
-   │                              │  - Active until period ends   │
-   │                              │  - No renewal                 │
+   │                              │  3. Session Created           │
+   │                              │<──────────────────────────────│
+   │                              │  { id: "cs_xxx", checkout_url}│
    │                              │                               │
-   │  19. Cancellation Confirmed  │                               │
+   │                              │  4. Save Pending Subscription  │
+   │                              │  status: "pending"            │
+   │                              │  paymentDetails.paymongoSessionId: "cs_xxx"
+   │                              │                               │
+   │  5. Redirect to PayMongo     │                               │
    │<─────────────────────────────│                               │
-   │  "Access until MM/DD/YYYY"   │                               │
+   │  { checkoutUrl, sessionId }  │                               │
+   │                              │                               │
+   │  6. User Pays on PayMongo    │                               │
+   │─────────────────────────────────────────────────────────────>│
+   │  (Hosted checkout page)      │                               │
+   │                              │                               │
+   │                              │  7. Webhook: Payment Paid     │
+   │                              │<──────────────────────────────│
+   │                              │  POST /webhooks/paymongo      │
+   │                              │  event: checkout_session      │
+   │                              │        .payment.paid          │
+   │                              │                               │
+   │                              │  8. Verify HMAC signature     │
+   │                              │  9. Match subscription by     │
+   │                              │     paymongoSessionId         │
+   │                              │  10. Activate subscription    │
+   │                              │   - status → active           │
+   │                              │   - startDate, endDate set    │
+   │                              │   - nextBillingDate set       │
+   │                              │                               │
+   │  11. Frontend Polls          │                               │
+   │─────────────────────────────>│                               │
+   │  POST /api/localpro-plus/confirm-payment                     │
+   │  { sessionId, paymentMethod: "paymongo" }                    │
+   │                              │                               │
+   │                              │  12. Fresh DB fetch by sessionId
+   │                              │  If active: create Payment    │
+   │                              │  record, update user link,    │
+   │                              │  send welcome email (once)    │
+   │                              │                               │
+   │  13. Activation Confirmed    │                               │
+   │<─────────────────────────────│                               │
+   │  { activated: true, plan }   │                               │
    │                              │                               │
    └──────────────────────────────┴───────────────────────────────┘
+```
+
+### Webhook Configuration
+| Gateway | Endpoint | Event | Notes |
+|---------|----------|-------|-------|
+| PayPal | `POST /webhooks/paypal` | `BILLING.SUBSCRIPTION.ACTIVATED`, `BILLING.SUBSCRIPTION.PAYMENT.COMPLETED`, `BILLING.SUBSCRIPTION.PAYMENT.FAILED`, `BILLING.SUBSCRIPTION.CANCELLED` | Verified via PayPal cert |
+| PayMongo | `POST /webhooks/paymongo` | `checkout_session.payment.paid` | HMAC-SHA256, replay protection |
+
+### Confirm-Payment Polling (PayMongo)
+The frontend polls after redirecting back from PayMongo's hosted page:
+```
+POST /api/localpro-plus/confirm-payment
+Body: { sessionId: "cs_xxx", paymentMethod: "paymongo" }
+
+Response (pending):  { activated: false, plan: null }
+Response (active):   { success: true, activated: true, plan: {...}, data: {...} }
+```
+The endpoint is **idempotent** — calling it multiple times will not create duplicate Payment records or send duplicate emails.
+
+### Cancellation Flow
+```
+USER                            SYSTEM
+   │                              │
+   │  Cancel Subscription         │
+   │─────────────────────────────>│
+   │  POST /api/localpro-plus/cancel                              │
+   │                              │
+   │                              │  - Cancel at gateway (PayPal)
+   │                              │  - status → cancelled
+   │                              │  - cancelledAt, cancellationReason saved
+   │                              │  - Access remains until endDate
+   │                              │
+   │  Cancellation Confirmed      │
+   │<─────────────────────────────│
+   │  "Access until MM/DD/YYYY"   │
 ```
 
 ### Subscription States
@@ -1223,7 +1498,7 @@ USER                            SYSTEM                      PAYMENT GATEWAY
                             │                   │
               ┌─────────────┼─────────────┐     │
               │             │             │     │
-          cancel      payment_fail    renew    │
+          cancel      payment_fail    renew     │
               │             │             │     │
               v             v             └─────┘
         ┌───────────┐ ┌──────────────┐
