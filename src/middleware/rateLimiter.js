@@ -96,6 +96,17 @@ const aiLimiter = make({
   message: { success: false, message: 'Too many AI requests – please wait before retrying.', code: 'AI_RATE_LIMIT' }
 });
 
+/**
+ * User management endpoints – 60 req / min per IP.
+ * Admin-panel write operations (ban, delete, bulk update, password reset) are
+ * protected to prevent automated abuse of privileged actions.
+ */
+const userManagementLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many user management requests – please slow down.', code: 'USER_MGMT_RATE_LIMIT' }
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
@@ -104,6 +115,7 @@ module.exports = {
   uploadLimiter,
   paymentLimiter,
   marketplaceLimiter,
-  aiLimiter
+  aiLimiter,
+  userManagementLimiter
 };
 

@@ -117,8 +117,9 @@ Import from `./errors` in `lib/client.js`; module files do not import errors dir
 1. Create `lib/<domain>.js` following the class pattern above.
 2. Add the `require` + `this.<namespace>` lines in `index.js`.
 3. Add a section to `MODULES.md` with the key methods listed.
-4. If there are notable security or behavioral details, create `docs/<DOMAIN>_FEATURE.md`.
-5. Bump the patch version: `npm run publish:patch`.
+4. **Always** create `docs/<DOMAIN>_FEATURE.md` — no exceptions. Include: architecture overview, all endpoints with request/response shapes, rate limiting table, and SDK method reference table.
+5. Link the new doc from `README.md` `## <Domain> API` with a `> Further reading:` callout.
+6. Bump the patch version: `npm run publish:patch`.
 
 ---
 
@@ -130,7 +131,7 @@ When the backend changes an endpoint (method, path, payload shape):
 2. Update the path string, params, and JSDoc.
 3. If a field is **removed or renamed**, note it as a breaking change in `CHANGELOG.md`.
 4. Regenerate / update `MODULES.md` key-methods list if the public surface changed.
-5. If the change warrants docs, update `docs/<DOMAIN>_FEATURE.md`.
+5. **Always** create or update `docs/<DOMAIN>_FEATURE.md`. After any audit or hardening session this is mandatory — append a **v-fix log table** listing every issue fixed with before/after details.
 
 ---
 
@@ -151,6 +152,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 |---|---|---|---|
 | `marketplaceLimiter` | 1 min | 120 req | `createBooking`, `openDispute`, `addClientReview` |
 | `aiLimiter` | 10 min | 20 req | All `client.ai.*` methods |
+| `userManagementLimiter` | 1 min | 60 req | All `client.userManagement.*` methods |
 | (auth limiter) | — | — | login, register, OTP endpoints |
 
 ---
@@ -162,13 +164,18 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | `AUTH_SECURITY.md` | Auth hardening — JWT rotation, device tracking, audit events |
 | `MARKETPLACE_FEATURE.md` | Marketplace — lifecycle diagrams, v2 fixes, full SDK method table |
 | `AI_FEATURE.md` | AI feature — endpoint reference, AI Bot events, rate limiting, v2 fix log, SDK method table |
+| `USER_MANAGEMENT_FEATURE.md` | User management — endpoint reference, 20 SDK methods, v2 fix log (17 issues), rate limiting |
 
-> **Rule — Always create documentation.**  
-> After completing every feature audit or hardening session, **always** create (or update)
-> `docs/<DOMAIN>_FEATURE.md` before committing. This is not optional.
-> At a minimum the file must contain: architecture overview, all endpoints with request/response
-> shapes, a v-fix log table listing every issue fixed, a rate limiting table if applicable,
-> and a full SDK method reference table.
+> **Rule — Documentation is mandatory, not optional.**  
+> After completing **any** feature work, audit, or hardening session, you **must** create or
+> update `docs/<DOMAIN>_FEATURE.md` **before** committing. Do not commit code changes without
+> an accompanying doc update.  
+> Minimum required sections:
+> 1. Architecture overview (directory tree + data-flow summary)
+> 2. All endpoints — method, path, auth, request body, success response, error codes
+> 3. v-fix log table — issue, root cause, fix applied (before → after)
+> 4. Rate limiting table (window, max, applied routes)
+> 5. Full SDK method reference table (method name, params, returns)
 
 When creating a new docs file:
 - Follow the heading structure of existing docs.
@@ -184,4 +191,6 @@ When creating a new docs file:
 - [ ] `CHANGELOG.md` has an entry for this version.
 - [ ] `MODULES.md` reflects any new/removed public methods.
 - [ ] Breaking changes are called out with a `**BREAKING:**` prefix in `CHANGELOG.md`.
+- [ ] `docs/<DOMAIN>_FEATURE.md` created or updated — **block commit if missing**.
+- [ ] `README.md` `## <Domain> API` section has a `> Further reading:` link to the doc.
 - [ ] Version bumped via `npm run publish:patch / minor / major` (not manual edit).

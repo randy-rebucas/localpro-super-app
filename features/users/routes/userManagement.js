@@ -1,6 +1,7 @@
 const express = require('express');
 const { auth } = require('../../../src/middleware/auth');
 const { authorize } = require('../../../src/middleware/authorize');
+const { userManagementLimiter } = require('../../../src/middleware/rateLimiter');
 const {
   getAllUsers,
   getUserById,
@@ -26,8 +27,9 @@ const {
 
 const router = express.Router();
 
-// Apply authentication to all routes
+// Apply authentication and rate limiting to all routes
 router.use(auth);
+router.use(userManagementLimiter);
 
 /**
  * @swagger

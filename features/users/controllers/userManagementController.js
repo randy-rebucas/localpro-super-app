@@ -1,9 +1,20 @@
+const crypto = require('crypto');
 const User = require('../../../src/models/User');
 const Provider = require('../../provider/models/Provider');
 const EmailService = require('../../../src/services/emailService');
 const { auditLogger } = require('../../../src/utils/auditLogger');
-
 const { isValidObjectId } = require('../../../src/utils/objectIdUtils');
+const logger = require('../../../src/config/logger');
+const { sendServerError } = require('../../../src/utils/responseHelper');
+const UserManagement = require('../models/UserManagement');
+const UserActivity = require('../models/UserActivity');
+const UserWallet = require('../../finance/models/UserWallet');
+const ApiKey = require('../../../src/models/ApiKey');
+const AccessToken = require('../../../src/models/AccessToken');
+const UserAgency = require('../../agencies/models/UserAgency');
+
+// No-op in production — gates all debug serialization from reaching logs.
+const debugLog = process.env.NODE_ENV !== 'production' ? logger.debug.bind(logger) : () => {};
 
 // @desc    Get all users with filtering and pagination
 // @route   GET /api/users
@@ -24,8 +35,7 @@ const getAllUsers = async (req, res) => {
       partnerId
     } = req.query;
 
-    console
-      .log('Get all users query params:', req.query);
+    debugLog('Get all users query params:', req.query);
     // Build filter object
     const baseFilters = {};
 
@@ -41,7 +51,6 @@ const getAllUsers = async (req, res) => {
 
     // Exclude soft-deleted users unless explicitly requested
     if (includeDeleted !== 'true') {
-      const UserManagement = require('../models/UserManagement');
       const deletedUserManagements = await UserManagement.find({ deletedAt: { $ne: null } }).select('user');
       const deletedUserIds = deletedUserManagements.map(um => um.user);
       if (deletedUserIds.length > 0) {
@@ -203,7 +212,7 @@ const getAllUsers = async (req, res) => {
           });
         } catch (providerError) {
           // If provider fetch fails, continue without provider data
-          console.error('Error fetching provider data:', providerError);
+          logger.error('Error fetching provider data:', providerError);
         }
       }
     }
@@ -212,7 +221,6 @@ const getAllUsers = async (req, res) => {
     await auditLogger.logUser('user_list', req, { type: 'user', id: null, name: 'Users' }, {}, { filter, pagination: { page, limit } });
 
     // Attach lastLoginAt from UserManagement for each user
-    const UserManagement = require('../models/UserManagement');
     const userIds = users.map(u => u._id);
     const managements = await UserManagement.find({ user: { $in: userIds } }).lean();
     const managementMap = new Map(managements.map(m => [m.user.toString(), m]));
@@ -339,27 +347,25 @@ const getUserById = async (req, res) => {
         }
       } catch (providerError) {
         // If provider fetch fails, continue without provider data
-        console.error('Error fetching provider data:', providerError);
+        logger.error('Error fetching provider data:', providerError);
         userObj.provider = null;
       }
     }
 
     // Fetch API keys (if user has any)
     try {
-      const ApiKey = require('../models/ApiKey');
       const apiKeys = await ApiKey.find({ userId: id })
         .select('-secretKey -secretKeyHash')
         .sort({ createdAt: -1 })
         .lean();
       userObj.apiKeys = apiKeys || [];
     } catch (apiKeyError) {
-      console.error('Error fetching API keys:', apiKeyError);
+      logger.error('Error fetching API keys:', apiKeyError);
       userObj.apiKeys = [];
     }
 
     // Fetch access tokens (if user has any)
     try {
-      const AccessToken = require('../models/AccessToken');
       const accessTokens = await AccessToken.find({ userId: id })
         .populate('apiKeyId', 'name description scopes')
         .select('-token -tokenHash -refreshToken -refreshTokenHash')
@@ -368,13 +374,12 @@ const getUserById = async (req, res) => {
         .lean();
       userObj.accessTokens = accessTokens || [];
     } catch (accessTokenError) {
-      console.error('Error fetching access tokens:', accessTokenError);
+      logger.error('Error fetching access tokens:', accessTokenError);
       userObj.accessTokens = [];
     }
 
     // Attach management fields if not already populated
     if (!userObj.management) {
-      const UserManagement = require('../models/UserManagement');
       const mgmt = await UserManagement.findOne({ user: userObj._id }).lean();
       if (mgmt) {
         userObj.management = mgmt;
@@ -411,7 +416,7 @@ const getUserById = async (req, res) => {
       data: userObj
     });
   } catch (error) {
-    console.error('Get user by ID error:', error);
+    logger.error('Get user by ID error:', error);
     res.status(200).json({
       success: true,
       data: {}
@@ -424,7 +429,7 @@ const getUserById = async (req, res) => {
 // @access  Admin
 const createUser = async (req, res) => {
   try {
-    console.log(req.body);
+    debugLog('createUser body received');
     const { phoneNumber, firstName, lastName, email, gender, birthdate, registrationMethod, partnerId } = req.body;
 
     if (!phoneNumber || !firstName || !lastName) {
@@ -508,6 +513,7 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
     const updateData = req.body || {};
 
     const user = await User.findById(id);
@@ -708,12 +714,7 @@ const updateUser = async (req, res) => {
 
     res.status(200).json({ success: true, message: 'User updated successfully', data: user });
   } catch (_error) {
-    console.error('Update user error:', _error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? _error.message : undefined
-    });
+    return sendServerError(res, _error, 'Server error', 'UPDATE_USER_ERROR');
   }
 };
 
@@ -723,6 +724,7 @@ const updateUser = async (req, res) => {
 const updateUserStatus = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
     const { isActive, reason } = req.body;
 
     const user = await User.findById(id);
@@ -777,7 +779,7 @@ const updateUserStatus = async (req, res) => {
           await EmailService.sendAccountDeactivatedEmail(user.email, user.firstName, reason);
         }
       } catch (emailError) {
-        console.error('Failed to send status notification email:', emailError);
+        logger.error('Failed to send status notification email:', emailError);
       }
     }
 
@@ -790,11 +792,7 @@ const updateUserStatus = async (req, res) => {
       data: { isActive }
     });
   } catch (error) {
-    console.error('Update user status error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    return sendServerError(res, error, 'Server error', 'UPDATE_USER_STATUS_ERROR');
   }
 };
 
@@ -804,6 +802,7 @@ const updateUserStatus = async (req, res) => {
 const updateUserVerification = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
     const { verification } = req.body;
 
     const user = await User.findById(id);
@@ -868,11 +867,7 @@ const updateUserVerification = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update user verification error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    return sendServerError(res, error, 'Server error', 'UPDATE_USER_VERIFICATION_ERROR');
   }
 };
 
@@ -882,6 +877,7 @@ const updateUserVerification = async (req, res) => {
 const addUserBadge = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
     const { type, description } = req.body;
 
     // Validate badge type
@@ -940,11 +936,7 @@ const addUserBadge = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Add user badge error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    return sendServerError(res, error, 'Server error', 'ADD_BADGE_ERROR');
   }
 };
 
@@ -961,14 +953,12 @@ const getUserStats = async (req, res) => {
     const isAdmin = req.user.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
     if (agencyId && !isAdmin) {
       // Filter by agency - need to find users with matching agencyId in UserAgency
-      const UserAgency = require('../../features/agencies/models/UserAgency');
       const matchingAgencies = await UserAgency.find({ agencyId: agencyId });
       const userIds = matchingAgencies.map(ua => ua.user);
       filter._id = { $in: userIds };
     }
 
     // Exclude soft-deleted users
-    const UserManagement = require('../models/UserManagement');
     const deletedUserManagements = await UserManagement.find({ deletedAt: { $ne: null } }).select('user');
     const deletedUserIds = deletedUserManagements.map(um => um.user);
     if (deletedUserIds.length > 0) {
@@ -1023,11 +1013,7 @@ const getUserStats = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get user stats error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    return sendServerError(res, error, 'Server error', 'GET_USER_STATS_ERROR');
   }
 };
 
@@ -1075,11 +1061,7 @@ const bulkUpdateUsers = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Bulk update users error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    return sendServerError(res, error, 'Server error', 'BULK_UPDATE_USERS_ERROR');
   }
 };
 
@@ -1089,6 +1071,7 @@ const bulkUpdateUsers = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
 
     const user = await User.findById(id);
     if (!user) {
@@ -1124,12 +1107,7 @@ const deleteUser = async (req, res) => {
       message: 'User deleted successfully'
     });
   } catch (error) {
-    console.error('Delete user error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return sendServerError(res, error, 'Server error', 'DELETE_USER_ERROR');
   }
 };
 
@@ -1139,6 +1117,7 @@ const deleteUser = async (req, res) => {
 const restoreUser = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
 
     const user = await User.findById(id);
     if (!user) {
@@ -1170,12 +1149,7 @@ const restoreUser = async (req, res) => {
       data: user
     });
   } catch (error) {
-    console.error('Restore user error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return sendServerError(res, error, 'Server error', 'RESTORE_USER_ERROR');
   }
 };
 
@@ -1185,6 +1159,7 @@ const restoreUser = async (req, res) => {
 const banUser = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
     const { reason } = req.body;
 
     const user = await User.findById(id);
@@ -1207,7 +1182,7 @@ const banUser = async (req, res) => {
       try {
         await EmailService.sendAccountBannedEmail(user.email, user.firstName, reason);
       } catch (emailError) {
-        console.error('Failed to send ban notification email:', emailError);
+        logger.error('Failed to send ban notification email:', emailError);
       }
     }
 
@@ -1220,12 +1195,7 @@ const banUser = async (req, res) => {
       data: { isActive: false, status: 'banned' }
     });
   } catch (error) {
-    console.error('Ban user error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return sendServerError(res, error, 'Server error', 'BAN_USER_ERROR');
   }
 };
 
@@ -1235,6 +1205,7 @@ const banUser = async (req, res) => {
 const getUserRoles = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
 
     const user = await User.findById(id).select('roles');
     if (!user) {
@@ -1252,12 +1223,7 @@ const getUserRoles = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get user roles error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return sendServerError(res, error, 'Server error', 'GET_USER_ROLES_ERROR');
   }
 };
 
@@ -1267,6 +1233,7 @@ const getUserRoles = async (req, res) => {
 const updateUserRoles = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
     const { roles } = req.body;
 
     if (!Array.isArray(roles)) {
@@ -1311,12 +1278,7 @@ const updateUserRoles = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update user roles error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return sendServerError(res, error, 'Server error', 'UPDATE_USER_ROLES_ERROR');
   }
 };
 
@@ -1326,6 +1288,7 @@ const updateUserRoles = async (req, res) => {
 const getUserBadges = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
 
     const user = await User.findById(id).select('badges');
     if (!user) {
@@ -1343,12 +1306,7 @@ const getUserBadges = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get user badges error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return sendServerError(res, error, 'Server error', 'GET_USER_BADGES_ERROR');
   }
 };
 
@@ -1358,6 +1316,8 @@ const getUserBadges = async (req, res) => {
 const deleteUserBadge = async (req, res) => {
   try {
     const { id, badgeId } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
+    if (!isValidObjectId(badgeId)) return res.status(400).json({ success: false, message: 'Invalid badge id format.' });
 
     const user = await User.findById(id);
     if (!user) {
@@ -1398,12 +1358,7 @@ const deleteUserBadge = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Delete user badge error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return sendServerError(res, error, 'Server error', 'DELETE_BADGE_ERROR');
   }
 };
 
@@ -1413,6 +1368,7 @@ const deleteUserBadge = async (req, res) => {
 const resetUserPassword = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
     const { sendEmail = true } = req.body;
 
     const user = await User.findById(id).select('+password');
@@ -1424,7 +1380,6 @@ const resetUserPassword = async (req, res) => {
     }
 
     // Generate temporary password
-    const crypto = require('crypto');
     const tempPassword = crypto.randomBytes(12).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
 
     // Set password (will be hashed by pre-save hook)
@@ -1436,7 +1391,7 @@ const resetUserPassword = async (req, res) => {
       try {
         await EmailService.sendPasswordResetEmail(user.email, user.firstName || 'User', tempPassword);
       } catch (emailError) {
-        console.error('Failed to send password reset email:', emailError);
+        logger.error('Failed to send password reset email:', emailError);
         // Still return success, but include warning
         return res.status(200).json({
           success: true,
@@ -1465,12 +1420,7 @@ const resetUserPassword = async (req, res) => {
       })
     });
   } catch (error) {
-    console.error('Reset user password error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return sendServerError(res, error, 'Server error', 'RESET_PASSWORD_ERROR');
   }
 };
 
@@ -1480,6 +1430,7 @@ const resetUserPassword = async (req, res) => {
 const sendEmailToUser = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
     const { subject, message, template, templateData } = req.body;
 
     if (!subject || !message) {
@@ -1514,12 +1465,7 @@ const sendEmailToUser = async (req, res) => {
         await EmailService.sendEmail(user.email, subject, message);
       }
     } catch (emailError) {
-      console.error('Failed to send email:', emailError);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to send email',
-        error: process.env.NODE_ENV === 'development' ? emailError.message : undefined
-      });
+      return sendServerError(res, emailError, 'Failed to send email', 'EMAIL_SEND_FAILED');
     }
 
     // Audit log
@@ -1534,12 +1480,7 @@ const sendEmailToUser = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Send email to user error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return sendServerError(res, error, 'Server error', 'SEND_EMAIL_ERROR');
   }
 };
 
@@ -1549,6 +1490,7 @@ const sendEmailToUser = async (req, res) => {
 const exportUserData = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
     const { format = 'json' } = req.query;
 
     const user = await User.findById(id)
@@ -1563,11 +1505,6 @@ const exportUserData = async (req, res) => {
     }
 
     // Get related data
-    const UserManagement = require('../models/UserManagement');
-    const UserActivity = require('../models/UserActivity');
-    const UserWallet = require('../models/UserWallet');
-    const Provider = require('../../features/provider/models/Provider');
-
     const userObj = user.toObject ? user.toObject() : user;
 
     // Fetch provider data if user has provider role
@@ -1594,7 +1531,7 @@ const exportUserData = async (req, res) => {
         }
       } catch (providerError) {
         // If provider fetch fails, continue without provider data
-        console.error('Error fetching provider data:', providerError);
+        logger.error('Error fetching provider data:', providerError);
       }
     }
 
@@ -1628,20 +1565,15 @@ const exportUserData = async (req, res) => {
       res.status(200).send(JSON.stringify(exportData, null, 2));
     }
   } catch (error) {
-    console.error('Export user data error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return sendServerError(res, error, 'Server error', 'EXPORT_USER_DATA_ERROR');
   }
 };
 
 const getUserNotes = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) return res.status(400).json({ success: false, message: 'Invalid user id format.' });
     const { limit, skip, sortBy, sortOrder } = req.query;
-    const UserManagement = require('../models/UserManagement');
     // Find the user management document for this user
     const userManagement = await UserManagement.findOne({ user: id });
     if (!userManagement) {
@@ -1656,7 +1588,7 @@ const getUserNotes = async (req, res) => {
     };
     // Use the instance method to get notes
     let notes = userManagement.getNotes(options);
-    console.log('Fetched notes:', notes);
+    debugLog('Fetched notes count:', notes.length);
     // Filter notes where addedBy is not null
     notes = notes.filter(note => note.addedBy != null);
     res.status(200).json({
@@ -1664,12 +1596,7 @@ const getUserNotes = async (req, res) => {
       data: notes
     });
   } catch (error) {
-    console.error('Get user notes error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return sendServerError(res, error, 'Server error', 'GET_USER_NOTES_ERROR');
   }
 };
 

@@ -1452,6 +1452,46 @@ const client = new LocalPro({
 });
 ```
 
+## User Management API
+
+Admin and agency-level operations on user accounts — listing, CRUD, status, roles, badges, ban/restore lifecycle, password reset, email dispatch, and GDPR data export.
+
+```javascript
+// List active providers
+const { data } = await client.userManagement.list({
+  role: 'provider',
+  isActive: true,
+  page: 1,
+  limit: 20
+});
+
+// Get full user profile (all satellite models joined)
+const user = await client.userManagement.getById('user-id');
+
+// Ban a user
+await client.userManagement.ban('user-id', { reason: 'Violated terms of service' });
+
+// Reset password without emailing (returns temporaryPassword)
+const result = await client.userManagement.resetPassword('user-id', { sendEmail: false });
+console.log(result.data.temporaryPassword);
+
+// Assign roles
+await client.userManagement.updateRoles('user-id', { roles: ['client', 'provider'] });
+
+// Add a badge
+await client.userManagement.addBadge('user-id', { type: 'top_rated' });
+
+// Export user data (GDPR)
+const export_ = await client.userManagement.exportData('user-id', { format: 'json' });
+
+// Get admin notes
+const notes = await client.userManagement.getNotes('user-id', { limit: 10 });
+```
+
+> **Further reading:** [docs/USER_MANAGEMENT_FEATURE.md](./docs/USER_MANAGEMENT_FEATURE.md)
+
+---
+
 ## API Authentication
 
 The SDK uses API key authentication. You need to:
