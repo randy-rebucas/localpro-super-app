@@ -1,4 +1,5 @@
 const Agency = require('../models/Agency');
+const { logger } = require('../../../src/utils/logger');
 const User = require('../../../src/models/User');
 const CloudinaryService = require('../../../src/services/cloudinaryService');
 const GoogleMapsService = require('../../../src/services/googleMapsService');
@@ -63,7 +64,7 @@ const getAgencies = async (req, res) => {
       data: agencies
     });
   } catch (error) {
-    console.error('Get agencies error:', error);
+    logger.error('Get agencies error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -102,7 +103,7 @@ const getAgency = async (req, res) => {
       data: agency
     });
   } catch (error) {
-    console.error('Get agency error:', error);
+    logger.error('Get agency error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -134,7 +135,7 @@ const createAgency = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', { details: geocodeError });
         // Continue without geocoding if it fails
       }
     }
@@ -150,7 +151,7 @@ const createAgency = async (req, res) => {
       data: agency
     });
   } catch (error) {
-    console.error('Create agency error:', error);
+    logger.error('Create agency error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -195,7 +196,7 @@ const updateAgency = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', { details: geocodeError });
         // Continue without geocoding if it fails
       }
     }
@@ -211,7 +212,7 @@ const updateAgency = async (req, res) => {
       data: agency
     });
   } catch (error) {
-    console.error('Update agency error:', error);
+    logger.error('Update agency error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -296,7 +297,7 @@ const patchAgency = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', { details: geocodeError });
         // Continue without geocoding if it fails
       }
     }
@@ -322,7 +323,7 @@ const patchAgency = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Patch agency error:', error);
+    logger.error('Patch agency error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to update agency',
@@ -362,7 +363,7 @@ const deleteAgency = async (req, res) => {
       message: 'Agency deleted successfully'
     });
   } catch (error) {
-    console.error('Delete agency error:', error);
+    logger.error('Delete agency error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -432,7 +433,7 @@ const uploadAgencyLogo = async (req, res) => {
       data: agency.logo
     });
   } catch (error) {
-    console.error('Upload agency logo error:', error);
+    logger.error('Upload agency logo error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -487,10 +488,10 @@ const addProvider = async (req, res) => {
       message: 'Provider added successfully'
     });
   } catch (error) {
-    console.error('Add provider error:', error);
+    logger.error('Add provider error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: error.message || 'Server error'
+      message: 'Server error'
     });
   }
 };
@@ -527,7 +528,7 @@ const removeProvider = async (req, res) => {
       message: 'Provider removed successfully'
     });
   } catch (error) {
-    console.error('Remove provider error:', error);
+    logger.error('Remove provider error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -574,10 +575,10 @@ const updateProviderStatus = async (req, res) => {
       message: 'Provider status updated successfully'
     });
   } catch (error) {
-    console.error('Update provider status error:', error);
+    logger.error('Update provider status error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: error.message || 'Server error'
+      message: 'Server error'
     });
   }
 };
@@ -629,10 +630,10 @@ const addAdmin = async (req, res) => {
       message: 'Admin added successfully'
     });
   } catch (error) {
-    console.error('Add admin error:', error);
+    logger.error('Add admin error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: error.message || 'Server error'
+      message: 'Server error'
     });
   }
 };
@@ -668,7 +669,7 @@ const removeAdmin = async (req, res) => {
       message: 'Admin removed successfully'
     });
   } catch (error) {
-    console.error('Remove admin error:', error);
+    logger.error('Remove admin error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -724,7 +725,7 @@ const getAgencyAnalytics = async (req, res) => {
       data: analytics
     });
   } catch (error) {
-    console.error('Get agency analytics error:', error);
+    logger.error('Get agency analytics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -757,7 +758,7 @@ const getMyAgencies = async (req, res) => {
       data: agencies
     });
   } catch (error) {
-    console.error('Get my agencies error:', error);
+    logger.error('Get my agencies error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -803,10 +804,10 @@ const joinAgency = async (req, res) => {
       message: 'Successfully requested to join agency'
     });
   } catch (error) {
-    console.error('Join agency error:', error);
+    logger.error('Join agency error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: error.message || 'Server error'
+      message: 'Server error'
     });
   }
 };
@@ -850,7 +851,7 @@ const leaveAgency = async (req, res) => {
       message: 'Successfully left agency'
     });
   } catch (error) {
-    console.error('Leave agency error:', error);
+    logger.error('Leave agency error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -902,7 +903,7 @@ const updateAgencyVerification = async (req, res) => {
       data: agency.verification
     });
   } catch (error) {
-    console.error('Update agency verification error:', error);
+    logger.error('Update agency verification error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

@@ -32,14 +32,11 @@ const getWebhookEvents = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get webhook events error', {
-      error: error.message,
       userId: req.user._id
     });
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve webhook events',
-      error: error.message
-    });
+      message: 'Failed to retrieve webhook events'});
   }
 };
 
@@ -61,14 +58,11 @@ const getUnreadCount = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get unread count error', {
-      error: error.message,
       userId: req.user._id
     });
     res.status(500).json({
       success: false,
-      message: 'Failed to get unread count',
-      error: error.message
-    });
+      message: 'Failed to get unread count'});
   }
 };
 
@@ -97,14 +91,11 @@ const markEventsAsRead = async (req, res) => {
     });
   } catch (error) {
     logger.error('Mark events as read error', {
-      error: error.message,
       userId: req.user._id
     });
     res.status(500).json({
       success: false,
-      message: 'Failed to mark events as read',
-      error: error.message
-    });
+      message: 'Failed to mark events as read'});
   }
 };
 
@@ -127,14 +118,11 @@ const getWebhookSubscriptions = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get webhook subscriptions error', {
-      error: error.message,
       userId: req.user._id
     });
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve webhook subscriptions',
-      error: error.message
-    });
+      message: 'Failed to retrieve webhook subscriptions'});
   }
 };
 
@@ -211,14 +199,11 @@ const createWebhookSubscription = async (req, res) => {
     });
   } catch (error) {
     logger.error('Create webhook subscription error', {
-      error: error.message,
       userId: req.user._id
     });
     res.status(500).json({
       success: false,
-      message: 'Failed to create webhook subscription',
-      error: error.message
-    });
+      message: 'Failed to create webhook subscription'});
   }
 };
 
@@ -272,14 +257,11 @@ const updateWebhookSubscription = async (req, res) => {
     });
   } catch (error) {
     logger.error('Update webhook subscription error', {
-      error: error.message,
       userId: req.user._id
     });
     res.status(500).json({
       success: false,
-      message: 'Failed to update webhook subscription',
-      error: error.message
-    });
+      message: 'Failed to update webhook subscription'});
   }
 };
 
@@ -316,14 +298,11 @@ const deleteWebhookSubscription = async (req, res) => {
     });
   } catch (error) {
     logger.error('Delete webhook subscription error', {
-      error: error.message,
       userId: req.user._id
     });
     res.status(500).json({
       success: false,
-      message: 'Failed to delete webhook subscription',
-      error: error.message
-    });
+      message: 'Failed to delete webhook subscription'});
   }
 };
 
@@ -365,14 +344,11 @@ const regenerateWebhookSecret = async (req, res) => {
     });
   } catch (error) {
     logger.error('Regenerate webhook secret error', {
-      error: error.message,
       userId: req.user._id
     });
     res.status(500).json({
       success: false,
-      message: 'Failed to regenerate webhook secret',
-      error: error.message
-    });
+      message: 'Failed to regenerate webhook secret'});
   }
 };
 
@@ -422,14 +398,11 @@ const testWebhookSubscription = async (req, res) => {
     });
   } catch (error) {
     logger.error('Test webhook error', {
-      error: error.message,
       userId: req.user._id
     });
     res.status(500).json({
       success: false,
-      message: 'Failed to send test webhook',
-      error: error.message
-    });
+      message: 'Failed to send test webhook'});
   }
 };
 

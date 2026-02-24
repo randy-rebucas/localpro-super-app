@@ -1,4 +1,5 @@
 const Broadcaster = require('../models/Broadcaster');
+const { logger } = require('../../../src/utils/logger');
 
 // @desc    Get all broadcasters
 // @route   GET /api/broadcaster
@@ -77,7 +78,7 @@ const getBroadcasters = async (req, res) => {
       data: broadcasters
     });
   } catch (error) {
-    console.error('Get broadcasters error:', error);
+    logger.error('Get broadcasters error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -113,7 +114,7 @@ const getBroadcasterById = async (req, res) => {
       data: broadcaster
     });
   } catch (error) {
-    console.error('Get broadcaster by ID error:', error);
+    logger.error('Get broadcaster by ID error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -185,7 +186,7 @@ const getActiveBroadcasters = async (req, res) => {
       data: broadcasters
     });
   } catch (error) {
-    console.error('Get active broadcasters error:', error);
+    logger.error('Get active broadcasters error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -348,7 +349,7 @@ const getBroadcasterStats = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get broadcaster stats error:', error);
+    logger.error('Get broadcaster stats error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -402,7 +403,7 @@ const trackBroadcasterView = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Track broadcaster view error:', error);
+    logger.error('Track broadcaster view error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -457,7 +458,7 @@ const trackBroadcasterClick = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Track broadcaster click error:', error);
+    logger.error('Track broadcaster click error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -660,7 +661,7 @@ const createBroadcaster = async (req, res) => {
       data: broadcaster
     });
   } catch (error) {
-    console.error('Create broadcaster error:', error);
+    logger.error('Create broadcaster error:', { error: error.message, stack: error.stack });
     
     // Handle validation errors
     if (error.name === 'ValidationError') {
@@ -865,7 +866,7 @@ const updateBroadcaster = async (req, res) => {
       data: broadcaster
     });
   } catch (error) {
-    console.error('Update broadcaster error:', error);
+    logger.error('Update broadcaster error:', { error: error.message, stack: error.stack });
     
     // Handle validation errors
     if (error.name === 'ValidationError') {
@@ -925,7 +926,7 @@ const deleteBroadcaster = async (req, res) => {
       message: 'Broadcaster deleted successfully'
     });
   } catch (error) {
-    console.error('Delete broadcaster error:', error);
+    logger.error('Delete broadcaster error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

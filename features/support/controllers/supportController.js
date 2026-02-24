@@ -15,7 +15,7 @@ exports.addSupportTicketReply = async (req, res) => {
     await ticket.save();
     res.status(201).json({ success: true, data: ticket.responses[ticket.responses.length - 1] });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -30,7 +30,7 @@ exports.listSupportTicketReplies = async (req, res) => {
     }
     res.status(200).json({ success: true, data: ticket.responses });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 const SupportTicket = require('../models/SupportTicket');
@@ -51,7 +51,7 @@ exports.createSupportTicket = async (req, res) => {
     });
     res.status(201).json({ success: true, data: ticket });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -63,7 +63,7 @@ exports.listSupportTickets = async (req, res) => {
     const tickets = await SupportTicket.find({ user: req.user._id }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: tickets });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -78,6 +78,6 @@ exports.getSupportTicket = async (req, res) => {
     }
     res.status(200).json({ success: true, data: ticket });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };

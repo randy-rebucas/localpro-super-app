@@ -17,7 +17,10 @@ const {
   promoteFeedItem
 } = require('../controllers/feedController');
 
+const { feedsLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(feedsLimiter);
 
 // Validation middleware
 const createFeedValidation = [

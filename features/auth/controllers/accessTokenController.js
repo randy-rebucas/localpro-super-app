@@ -258,9 +258,7 @@ const exchangeToken = async (req, res) => {
     logger.error('Error exchanging token:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to exchange token',
-      error: error.message
-    });
+      message: 'Failed to exchange token'});
   }
 };
 
@@ -395,9 +393,7 @@ const refreshToken = async (req, res) => {
     logger.error('Error refreshing token:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to refresh token',
-      error: error.message
-    });
+      message: 'Failed to refresh token'});
   }
 };
 
@@ -439,9 +435,7 @@ const revokeToken = async (req, res) => {
     logger.error('Error revoking token:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to revoke token',
-      error: error.message
-    });
+      message: 'Failed to revoke token'});
   }
 };
 
@@ -485,9 +479,7 @@ const getTokenInfo = async (req, res) => {
     logger.error('Error getting token info:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get token info',
-      error: error.message
-    });
+      message: 'Failed to get token info'});
   }
 };
 
@@ -526,9 +518,7 @@ const listTokens = async (req, res) => {
     logger.error('Error listing tokens:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to list tokens',
-      error: error.message
-    });
+      message: 'Failed to list tokens'});
   }
 };
 
@@ -598,7 +588,7 @@ const authorize = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error creating authorization code:', error);
-    res.status(500).json({ success: false, message: 'Failed to create authorization code', error: error.message });
+    res.status(500).json({ success: false, message: 'Failed to create authorization code'});
   }
 };
 

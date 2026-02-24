@@ -18,7 +18,10 @@ const {
   markInvoicePaid
 } = require('../controllers/quoteInvoiceController');
 
+const { financeLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(financeLimiter);
 
 /**
  * @swagger

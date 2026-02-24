@@ -1,5 +1,8 @@
 const express = require('express');
+const { adminLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(adminLimiter);
 const { 
   getMetrics, 
   getMetricsAsJSON, 

@@ -1,4 +1,5 @@
 const Permission = require('../models/Permission');
+const { logger } = require('../../../src/utils/logger');
 const { auditLogger } = require('../../../src/utils/auditLogger');
 
 // @desc    Get all permissions
@@ -70,7 +71,7 @@ const getAllPermissions = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get all permissions error:', error);
+    logger.error('Get all permissions error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching permissions'
@@ -99,7 +100,7 @@ const getPermissionById = async (req, res) => {
       data: permission
     });
   } catch (error) {
-    console.error('Get permission by ID error:', error);
+    logger.error('Get permission by ID error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching permission'
@@ -121,7 +122,7 @@ const getPermissionsByModule = async (req, res) => {
       data: permissions
     });
   } catch (error) {
-    console.error('Get permissions by module error:', error);
+    logger.error('Get permissions by module error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching permissions by module'
@@ -194,12 +195,10 @@ const createPermission = async (req, res) => {
       data: permission
     });
   } catch (error) {
-    console.error('Create permission error:', error);
+    logger.error('Create permission error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: 'Error creating permission',
-      error: error.message
-    });
+      message: 'Error creating permission'});
   }
 };
 
@@ -253,12 +252,10 @@ const updatePermission = async (req, res) => {
       data: permission
     });
   } catch (error) {
-    console.error('Update permission error:', error);
+    logger.error('Update permission error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: 'Error updating permission',
-      error: error.message
-    });
+      message: 'Error updating permission'});
   }
 };
 
@@ -304,12 +301,10 @@ const deletePermission = async (req, res) => {
       message: 'Permission deleted successfully'
     });
   } catch (error) {
-    console.error('Delete permission error:', error);
+    logger.error('Delete permission error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: 'Error deleting permission',
-      error: error.message
-    });
+      message: 'Error deleting permission'});
   }
 };
 
@@ -340,12 +335,10 @@ const initializePermissions = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Initialize permissions error:', error);
+    logger.error('Initialize permissions error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: 'Error initializing permissions',
-      error: error.message
-    });
+      message: 'Error initializing permissions'});
   }
 };
 
@@ -361,7 +354,7 @@ const getModules = async (req, res) => {
       data: modules.sort()
     });
   } catch (error) {
-    console.error('Get modules error:', error);
+    logger.error('Get modules error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching modules'
@@ -477,7 +470,7 @@ const getPermissionStats = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get permission stats error:', error);
+    logger.error('Get permission stats error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching permission statistics',
@@ -542,9 +535,7 @@ const bulkCreatePermissions = async (req, res) => {
         results.push(created);
       } catch (error) {
         errors.push({
-          permission: perm,
-          error: error.message
-        });
+          permission: perm});
       }
     }
 
@@ -572,7 +563,7 @@ const bulkCreatePermissions = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Bulk create permissions error:', error);
+    logger.error('Bulk create permissions error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error creating permissions',
@@ -593,7 +584,7 @@ const getActions = async (req, res) => {
       data: actions.sort()
     });
   } catch (error) {
-    console.error('Get actions error:', error);
+    logger.error('Get actions error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching actions'

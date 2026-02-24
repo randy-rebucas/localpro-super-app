@@ -8,108 +8,108 @@ class AcademyAPI {
 
   // Courses
   getCourses(params) {
-    return this.client.get('/academy/courses', { params });
+    return this.client.get('/api/academy/courses', { params });
   }
   getCourse(id) {
-    return this.client.get(`/academy/courses/${id}`);
+    return this.client.get(`/api/academy/courses/${id}`);
   }
   createCourse(data) {
-    return this.client.post('/academy/courses', data);
+    return this.client.post('/api/academy/courses', data);
   }
   updateCourse(id, data) {
-    return this.client.put(`/academy/courses/${id}`, data);
+    return this.client.put(`/api/academy/courses/${id}`, data);
   }
   patchCourse(id, data) {
-    return this.client.patch(`/academy/courses/${id}`, data);
+    return this.client.patch(`/api/academy/courses/${id}`, data);
   }
   deleteCourse(id) {
-    return this.client.delete(`/academy/courses/${id}`);
+    return this.client.delete(`/api/academy/courses/${id}`);
   }
   uploadCourseThumbnail(id, formData) {
-    return this.client.post(`/academy/courses/${id}/thumbnail`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return this.client.post(`/api/academy/courses/${id}/thumbnail`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
   }
   uploadCourseVideo(id, formData) {
-    return this.client.post(`/academy/courses/${id}/videos`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return this.client.post(`/api/academy/courses/${id}/videos`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
   }
   deleteCourseVideo(id, videoId) {
-    return this.client.delete(`/academy/courses/${id}/videos/${videoId}`);
+    return this.client.delete(`/api/academy/courses/${id}/videos/${videoId}`);
   }
 
   // Categories
   listCategories() {
-    return this.client.get('/academy/categories');
+    return this.client.get('/api/academy/categories');
   }
   createCategory(data) {
-    return this.client.post('/academy/categories', data);
+    return this.client.post('/api/academy/categories', data);
   }
   updateCategory(id, data) {
-    return this.client.put(`/academy/categories/${id}`, data);
+    return this.client.put(`/api/academy/categories/${id}`, data);
   }
   deleteCategory(id) {
-    return this.client.delete(`/academy/categories/${id}`);
+    return this.client.delete(`/api/academy/categories/${id}`);
   }
 
   // Certifications
   listCertifications() {
-    return this.client.get('/academy/certifications');
+    return this.client.get('/api/academy/certifications');
   }
   createCertification(data) {
-    return this.client.post('/academy/certifications', data);
+    return this.client.post('/api/academy/certifications', data);
   }
   updateCertification(id, data) {
-    return this.client.put(`/academy/certifications/${id}`, data);
+    return this.client.put(`/api/academy/certifications/${id}`, data);
   }
   deleteCertification(id) {
-    return this.client.delete(`/academy/certifications/${id}`);
+    return this.client.delete(`/api/academy/certifications/${id}`);
   }
 
   // Enrollments
   enrollInCourse(id) {
-    return this.client.post(`/academy/courses/${id}/enroll`);
+    return this.client.post(`/api/academy/courses/${id}/enroll`);
   }
   listEnrollments() {
-    return this.client.get('/academy/enrollments');
+    return this.client.get('/api/academy/enrollments');
   }
   updateEnrollmentStatus(id, data) {
-    return this.client.put(`/academy/enrollments/${id}/status`, data);
+    return this.client.put(`/api/academy/enrollments/${id}/status`, data);
   }
   deleteEnrollment(id) {
-    return this.client.delete(`/academy/enrollments/${id}`);
+    return this.client.delete(`/api/academy/enrollments/${id}`);
   }
 
   // Progress
   updateCourseProgress(id, data) {
-    return this.client.put(`/academy/courses/${id}/progress`, data);
+    return this.client.put(`/api/academy/courses/${id}/progress`, data);
   }
 
   // Reviews
   addCourseReview(id, data) {
-    return this.client.post(`/academy/courses/${id}/reviews`, data);
+    return this.client.post(`/api/academy/courses/${id}/reviews`, data);
   }
 
   // Favorites
   favoriteCourse(id) {
-    return this.client.post(`/academy/courses/${id}/favorite`);
+    return this.client.post(`/api/academy/courses/${id}/favorite`);
   }
   unfavoriteCourse(id) {
-    return this.client.delete(`/academy/courses/${id}/favorite`);
+    return this.client.delete(`/api/academy/courses/${id}/favorite`);
   }
   getMyCourses() {
-    return this.client.get('/academy/my-courses');
+    return this.client.get('/api/academy/my-courses');
   }
   getMyCreatedCourses() {
-    return this.client.get('/academy/my-created-courses');
+    return this.client.get('/api/academy/my-created-courses');
   }
   getMyFavoriteCourses() {
-    return this.client.get('/academy/my-favorite-courses');
+    return this.client.get('/api/academy/my-favorite-courses');
   }
 
   // Featured & Statistics
   getFeaturedCourses() {
-    return this.client.get('/academy/featured');
+    return this.client.get('/api/academy/featured');
   }
   getCourseStatistics() {
-    return this.client.get('/academy/statistics');
+    return this.client.get('/api/academy/statistics');
   }
 }
 

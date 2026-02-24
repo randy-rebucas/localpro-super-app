@@ -1,4 +1,5 @@
 const { FacilityCareService: FacilityCare } = require('../models/FacilityCare');
+const { logger } = require('../../../src/utils/logger');
 const CloudinaryService = require('../../../src/services/cloudinaryService');
 const GoogleMapsService = require('../../../src/services/googleMapsService');
 const EmailService = require('../../../src/services/emailService');
@@ -70,7 +71,7 @@ const getFacilityCareServices = async (req, res) => {
       data: services
     });
   } catch (error) {
-    console.error('Get facility care services error:', error);
+    logger.error('Get facility care services error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -113,7 +114,7 @@ const getFacilityCareService = async (req, res) => {
       data: service
     });
   } catch (error) {
-    console.error('Get facility care service error:', error);
+    logger.error('Get facility care service error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -145,7 +146,7 @@ const createFacilityCareService = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', { details: geocodeError });
         // Continue without geocoding if it fails
       }
     }
@@ -161,7 +162,7 @@ const createFacilityCareService = async (req, res) => {
       data: service
     });
   } catch (error) {
-    console.error('Create facility care service error:', error);
+    logger.error('Create facility care service error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -206,7 +207,7 @@ const updateFacilityCareService = async (req, res) => {
           };
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', { details: geocodeError });
         // Continue without geocoding if it fails
       }
     }
@@ -222,7 +223,7 @@ const updateFacilityCareService = async (req, res) => {
       data: service
     });
   } catch (error) {
-    console.error('Update facility care service error:', error);
+    logger.error('Update facility care service error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -261,7 +262,7 @@ const deleteFacilityCareService = async (req, res) => {
       message: 'Facility care service deleted successfully'
     });
   } catch (error) {
-    console.error('Delete facility care service error:', error);
+    logger.error('Delete facility care service error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -328,7 +329,7 @@ const uploadFacilityCareImages = async (req, res) => {
       data: successfulUploads
     });
   } catch (error) {
-    console.error('Upload facility care images error:', error);
+    logger.error('Upload facility care images error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -381,7 +382,7 @@ const deleteFacilityCareImage = async (req, res) => {
       message: 'Image deleted successfully'
     });
   } catch (error) {
-    console.error('Delete facility care image error:', error);
+    logger.error('Delete facility care image error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -472,7 +473,7 @@ const bookFacilityCareService = async (req, res) => {
       data: booking
     });
   } catch (error) {
-    console.error('Book facility care service error:', error);
+    logger.error('Book facility care service error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -545,7 +546,7 @@ const updateBookingStatus = async (req, res) => {
       data: booking
     });
   } catch (error) {
-    console.error('Update booking status error:', error);
+    logger.error('Update booking status error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -622,7 +623,7 @@ const addFacilityCareReview = async (req, res) => {
       data: review
     });
   } catch (error) {
-    console.error('Add facility care review error:', error);
+    logger.error('Add facility care review error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -655,7 +656,7 @@ const getMyFacilityCareServices = async (req, res) => {
       data: services
     });
   } catch (error) {
-    console.error('Get my facility care services error:', error);
+    logger.error('Get my facility care services error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -703,7 +704,7 @@ const getMyFacilityCareBookings = async (req, res) => {
       data: userBookings
     });
   } catch (error) {
-    console.error('Get my facility care bookings error:', error);
+    logger.error('Get my facility care bookings error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -767,7 +768,7 @@ const getNearbyFacilityCareServices = async (req, res) => {
       data: services
     });
   } catch (error) {
-    console.error('Get nearby facility care services error:', error);
+    logger.error('Get nearby facility care services error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

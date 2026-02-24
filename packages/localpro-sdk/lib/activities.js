@@ -7,49 +7,49 @@ class ActivitiesAPI {
   }
 
   getFeed(params) {
-    return this.client.get('/activities/feed', { params });
+    return this.client.get('/api/activities/feed', { params });
   }
   getMyActivities(params) {
-    return this.client.get('/activities/my', { params });
+    return this.client.get('/api/activities/my', { params });
   }
   getUserActivities(userId, params) {
-    return this.client.get(`/activities/user/${userId}`, { params });
+    return this.client.get(`/api/activities/user/${userId}`, { params });
   }
   getActivity(id) {
-    return this.client.get(`/activities/${id}`);
+    return this.client.get(`/api/activities/${id}`);
   }
   createActivity(data) {
-    return this.client.post('/activities', data);
+    return this.client.post('/api/activities', data);
   }
   updateActivity(id, data) {
-    return this.client.put(`/activities/${id}`, data);
+    return this.client.put(`/api/activities/${id}`, data);
   }
   deleteActivity(id) {
-    return this.client.delete(`/activities/${id}`);
+    return this.client.delete(`/api/activities/${id}`);
   }
   addInteraction(id, data) {
-    return this.client.post(`/activities/${id}/interactions`, data);
+    return this.client.post(`/api/activities/${id}/interactions`, data);
   }
   removeInteraction(id, data) {
-    return this.client.delete(`/activities/${id}/interactions`, { data });
+    return this.client.delete(`/api/activities/${id}/interactions`, { data });
   }
   getStatsMy(params) {
-    return this.client.get('/activities/stats/my', { params });
+    return this.client.get('/api/activities/stats/my', { params });
   }
   getStatsGlobal(params) {
-    return this.client.get('/activities/stats/global', { params });
+    return this.client.get('/api/activities/stats/global', { params });
   }
   getMetadata() {
-    return this.client.get('/activities/metadata');
+    return this.client.get('/api/activities/metadata');
   }
   getTimeline(params) {
-    return this.client.get('/activities/timeline', { params });
+    return this.client.get('/api/activities/timeline', { params });
   }
   getTotalPoints() {
-    return this.client.get('/activities/points');
+    return this.client.get('/api/activities/points');
   }
   getLeaderboard(params) {
-    return this.client.get('/activities/leaderboard', { params });
+    return this.client.get('/api/activities/leaderboard', { params });
   }
 }
 

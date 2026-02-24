@@ -4,7 +4,10 @@ const paymongoService = require('../../../src/services/paymongoService');
 const logger = require('../../../src/config/logger');
 // const Escrow = require('../models/Escrow'); // Available for future escrow integration
 
+const { financeLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(financeLimiter);
 
 /**
  * @desc    Create payment intent for client-side payment processing

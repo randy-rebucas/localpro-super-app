@@ -194,6 +194,239 @@ const partnersLimiter = make({
   message: { success: false, message: 'Too many partner requests – please slow down.', code: 'PARTNERS_RATE_LIMIT' }
 });
 
+/**
+ * Academy endpoints – 60 req / min per IP.
+ * Covers course browsing, enrollment, progress tracking, and reviews.
+ */
+const academyLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many academy requests – please slow down.', code: 'ACADEMY_RATE_LIMIT' }
+});
+
+/**
+ * Ads & Broadcaster endpoints – 60 req / min per IP.
+ * Covers ad browsing, analytics, click tracking, and broadcaster views.
+ */
+const adsLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many ad requests – please slow down.', code: 'ADS_RATE_LIMIT' }
+});
+
+/**
+ * Agencies endpoints – 60 req / min per IP.
+ * Covers agency browse, member management, and analytics.
+ */
+const agenciesLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many agency requests – please slow down.', code: 'AGENCIES_RATE_LIMIT' }
+});
+
+/**
+ * Feeds endpoints – 120 req / min per IP.
+ * Personalized feed polling is high-frequency; generous window avoids throttling
+ * normal app usage while still blocking bots.
+ */
+const feedsLimiter = make({
+  windowMs: 60 * 1000,
+  max: 120,
+  message: { success: false, message: 'Too many feed requests – please slow down.', code: 'FEEDS_RATE_LIMIT' }
+});
+
+/**
+ * Finance endpoints – 30 req / min per IP.
+ * Covers transactions, withdrawals, top-ups, escrows, wallet, paymongo, paymaya,
+ * quotes/invoices.  Tight window protects financial operations from abuse.
+ */
+const financeLimiter = make({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { success: false, message: 'Too many finance requests – please slow down.', code: 'FINANCE_RATE_LIMIT' }
+});
+
+/**
+ * Jobs endpoints – 60 req / min per IP.
+ * Covers job browse, apply, workflow management, and categories.
+ */
+const jobsLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many job requests – please slow down.', code: 'JOBS_RATE_LIMIT' }
+});
+
+/**
+ * Activities endpoints – 120 req / min per IP.
+ * Activity feed, timeline, and leaderboard are polled frequently.
+ */
+const activitiesLimiter = make({
+  windowMs: 60 * 1000,
+  max: 120,
+  message: { success: false, message: 'Too many activity requests – please slow down.', code: 'ACTIVITIES_RATE_LIMIT' }
+});
+
+/**
+ * Communication & Notifications endpoints – 120 req / min per IP.
+ * Messaging and notification polling are high-frequency in-app actions.
+ */
+const communicationLimiter = make({
+  windowMs: 60 * 1000,
+  max: 120,
+  message: { success: false, message: 'Too many communication requests – please slow down.', code: 'COMMUNICATION_RATE_LIMIT' }
+});
+
+/**
+ * Analytics endpoints – 30 req / min per IP.
+ * Analytics queries are expensive aggregations; tight window protects DB load.
+ */
+const analyticsLimiter = make({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { success: false, message: 'Too many analytics requests – please slow down.', code: 'ANALYTICS_RATE_LIMIT' }
+});
+
+/**
+ * Maps endpoints – 30 req / min per IP.
+ * Each Maps API call invokes a paid external Google Maps API; strict throttling
+ * protects cost and prevents abuse.
+ */
+const mapsLimiter = make({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { success: false, message: 'Too many maps requests – please slow down.', code: 'MAPS_RATE_LIMIT' }
+});
+
+/**
+ * Support endpoints – 60 req / min per IP.
+ * Covers support tickets and live chat sessions.
+ */
+const supportLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many support requests – please slow down.', code: 'SUPPORT_RATE_LIMIT' }
+});
+
+/**
+ * LocalPro Plus / Subscription endpoints – 30 req / min per IP.
+ * Subscription management, plan changes, and payment confirmations are
+ * sensitive write operations; tighter window prevents automated abuse.
+ */
+const localproPlusLimiter = make({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { success: false, message: 'Too many subscription requests – please slow down.', code: 'LOCALPRO_PLUS_RATE_LIMIT' }
+});
+
+/**
+ * Favorites endpoints – 120 req / min per IP.
+ * Adding/removing favorites is a frequent lightweight action.
+ */
+const favoritesLimiter = make({
+  windowMs: 60 * 1000,
+  max: 120,
+  message: { success: false, message: 'Too many favorites requests – please slow down.', code: 'FAVORITES_RATE_LIMIT' }
+});
+
+/**
+ * Staff management endpoints – 60 req / min per IP.
+ */
+const staffLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many staff requests – please slow down.', code: 'STAFF_RATE_LIMIT' }
+});
+
+/**
+ * Permissions endpoints – 60 req / min per IP.
+ */
+const permissionsLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many permission requests – please slow down.', code: 'PERMISSIONS_RATE_LIMIT' }
+});
+
+/**
+ * Webhooks endpoints – 60 req / min per IP.
+ */
+const webhooksLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many webhook requests – please slow down.', code: 'WEBHOOKS_RATE_LIMIT' }
+});
+
+/**
+ * Announcements endpoints – 60 req / min per IP.
+ */
+const announcementsLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many announcement requests – please slow down.', code: 'ANNOUNCEMENTS_RATE_LIMIT' }
+});
+
+/**
+ * API Keys management – 30 req / min per IP.
+ * Key generation, rotation, and revocation are sensitive privileged operations.
+ */
+const apiKeysLimiter = make({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { success: false, message: 'Too many API key requests – please slow down.', code: 'API_KEYS_RATE_LIMIT' }
+});
+
+/**
+ * Masked Calls endpoints – 20 req / min per IP.
+ * Each call invokes the Twilio API which has a per-call cost; very tight
+ * window prevents cost abuse.
+ */
+const maskedCallsLimiter = make({
+  windowMs: 60 * 1000,
+  max: 20,
+  message: { success: false, message: 'Too many call requests – please slow down.', code: 'MASKED_CALLS_RATE_LIMIT' }
+});
+
+/**
+ * Geofence events – 120 req / min per IP.
+ * GPS-triggered geofence events can be high-frequency from mobile clients.
+ */
+const geofenceLimiter = make({
+  windowMs: 60 * 1000,
+  max: 120,
+  message: { success: false, message: 'Too many geofence requests – please slow down.', code: 'GEOFENCE_RATE_LIMIT' }
+});
+
+/**
+ * GPS Logs – 120 req / min per IP.
+ * Location tracking from mobile clients is high-frequency.
+ */
+const gpsLogsLimiter = make({
+  windowMs: 60 * 1000,
+  max: 120,
+  message: { success: false, message: 'Too many GPS log requests – please slow down.', code: 'GPS_LOGS_RATE_LIMIT' }
+});
+
+/**
+ * Time Entries – 120 req / min per IP.
+ * Clock-in/out and batch GPS+time submissions can be frequent.
+ */
+const timeEntriesLimiter = make({
+  windowMs: 60 * 1000,
+  max: 120,
+  message: { success: false, message: 'Too many time entry requests – please slow down.', code: 'TIME_ENTRIES_RATE_LIMIT' }
+});
+
+/**
+ * Admin / internal endpoints – 60 req / min per IP.
+ * Covers audit logs, CORS origins, system logs, monitoring, metrics, database
+ * monitoring/optimization, email marketing, error monitoring, and alerts.
+ * All routes behind this limiter require admin role.
+ */
+const adminLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many admin requests – please slow down.', code: 'ADMIN_RATE_LIMIT' }
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
@@ -211,6 +444,29 @@ module.exports = {
   rentalsLimiter,
   referralsLimiter,
   providersLimiter,
-  partnersLimiter
+  partnersLimiter,
+  academyLimiter,
+  adsLimiter,
+  agenciesLimiter,
+  feedsLimiter,
+  financeLimiter,
+  jobsLimiter,
+  activitiesLimiter,
+  communicationLimiter,
+  analyticsLimiter,
+  mapsLimiter,
+  supportLimiter,
+  localproPlusLimiter,
+  favoritesLimiter,
+  staffLimiter,
+  permissionsLimiter,
+  webhooksLimiter,
+  announcementsLimiter,
+  apiKeysLimiter,
+  maskedCallsLimiter,
+  geofenceLimiter,
+  gpsLogsLimiter,
+  timeEntriesLimiter,
+  adminLimiter
 };
 

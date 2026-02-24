@@ -64,11 +64,11 @@ const getActivityFeed = async (req, res) => {
     });
     
     // Log full error details to console for debugging
-    console.error('Activity feed error details:', {
+    logger.error('Activity feed error details:', { details: {
       name: error.name,
-      message: error.message,
+      message: 'Server error',
       stack: error.stack
-    });
+    } });
     
     res.status(500).json({
       success: false,

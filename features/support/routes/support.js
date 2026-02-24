@@ -2,7 +2,10 @@ const express = require('express');
 const { auth } = require('../../../src/middleware/auth');
 const { createSupportTicket, listSupportTickets, getSupportTicket, addSupportTicketReply, listSupportTicketReplies } = require('../controllers/supportController');
 
+const { supportLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(supportLimiter);
 
 // All routes require authentication
 router.use(auth);

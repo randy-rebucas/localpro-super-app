@@ -1,6 +1,9 @@
 const express = require('express');
 const { body, param, query } = require('express-validator');
+const { communicationLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(communicationLimiter);
 const { auth, authorize } = require('../../../src/middleware/auth');
 const NotificationService = require('../services/notificationService');
 const User = require('../../../src/models/User');

@@ -7,58 +7,58 @@ class AdsAPI {
   }
 
   list(params) {
-    return this.client.get('/ads', { params });
+    return this.client.get('/api/ads', { params });
   }
   getById(id) {
-    return this.client.get(`/ads/${id}`);
+    return this.client.get(`/api/ads/${id}`);
   }
   getCategories() {
-    return this.client.get('/ads/categories');
+    return this.client.get('/api/ads/categories');
   }
   getEnumValues() {
-    return this.client.get('/ads/enum-values');
+    return this.client.get('/api/ads/enum-values');
   }
   getFeatured() {
-    return this.client.get('/ads/featured');
+    return this.client.get('/api/ads/featured');
   }
   getStatistics() {
-    return this.client.get('/ads/statistics');
+    return this.client.get('/api/ads/statistics');
   }
   create(data) {
-    return this.client.post('/ads', data);
+    return this.client.post('/api/ads', data);
   }
   update(id, data) {
-    return this.client.put(`/ads/${id}`, data);
+    return this.client.put(`/api/ads/${id}`, data);
   }
   delete(id) {
-    return this.client.delete(`/ads/${id}`);
+    return this.client.delete(`/api/ads/${id}`);
   }
   uploadImages(id, formData) {
-    return this.client.post(`/ads/${id}/images`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return this.client.post(`/api/ads/${id}/images`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
   }
   deleteImage(id, imageId) {
-    return this.client.delete(`/ads/${id}/images/${imageId}`);
+    return this.client.delete(`/api/ads/${id}/images/${imageId}`);
   }
   promote(id) {
-    return this.client.post(`/ads/${id}/promote`);
+    return this.client.post(`/api/ads/${id}/promote`);
   }
   trackClick(id) {
-    return this.client.post(`/ads/${id}/click`);
+    return this.client.post(`/api/ads/${id}/click`);
   }
   getAnalytics(id) {
-    return this.client.get(`/ads/${id}/analytics`);
+    return this.client.get(`/api/ads/${id}/analytics`);
   }
   getPending() {
-    return this.client.get('/ads/pending');
+    return this.client.get('/api/ads/pending');
   }
   approve(id) {
-    return this.client.put(`/ads/${id}/approve`);
+    return this.client.put(`/api/ads/${id}/approve`);
   }
   reject(id) {
-    return this.client.put(`/ads/${id}/reject`);
+    return this.client.put(`/api/ads/${id}/reject`);
   }
   getMyAds() {
-    return this.client.get('/ads/my-ads');
+    return this.client.get('/api/ads/my-ads');
   }
 }
 

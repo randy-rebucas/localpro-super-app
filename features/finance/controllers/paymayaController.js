@@ -74,7 +74,7 @@ const createCheckout = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Create PayMaya checkout error:', error);
+    logger.error('Create PayMaya checkout error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -111,7 +111,7 @@ const getCheckout = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Get PayMaya checkout error:', error);
+    logger.error('Get PayMaya checkout error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -179,7 +179,7 @@ const createPayment = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Create PayMaya payment error:', error);
+    logger.error('Create PayMaya payment error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -216,7 +216,7 @@ const getPayment = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Get PayMaya payment error:', error);
+    logger.error('Get PayMaya payment error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -284,7 +284,7 @@ const createInvoice = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Create PayMaya invoice error:', error);
+    logger.error('Create PayMaya invoice error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -321,7 +321,7 @@ const getInvoice = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Get PayMaya invoice error:', error);
+    logger.error('Get PayMaya invoice error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -344,7 +344,7 @@ const handlePayMayaWebhook = async (req, res) => {
     );
     
     if (!isValidSignature) {
-      console.error('Invalid PayMaya webhook signature');
+      logger.error('Invalid PayMaya webhook signature');
       return res.status(400).json({
         success: false,
         message: 'Invalid webhook signature'
@@ -355,7 +355,7 @@ const handlePayMayaWebhook = async (req, res) => {
     const result = await PayMayaService.processWebhookEvent(body);
     
     if (!result.success) {
-      console.error('PayMaya webhook processing failed:', result.error);
+      logger.error('PayMaya webhook processing failed:', { details: result.error });
       return res.status(500).json({
         success: false,
         message: 'Webhook processing failed'
@@ -370,7 +370,7 @@ const handlePayMayaWebhook = async (req, res) => {
       message: 'Webhook processed successfully'
     });
   } catch (error) {
-    console.error('PayMaya webhook error:', error);
+    logger.error('PayMaya webhook error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -407,7 +407,7 @@ const handleSpecificWebhookEvent = async (event) => {
         logger.info(`Unhandled PayMaya webhook event: ${eventType}`);
     }
   } catch (error) {
-    console.error(`Error handling PayMaya webhook event ${eventType}:`, error);
+    logger.error(`Error handling PayMaya webhook event ${eventType}:`, { error: error.message, stack: error.stack });
   }
 };
 
@@ -418,7 +418,7 @@ const handleCheckoutSuccess = async (data) => {
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in checkout success');
+      logger.error('No reference number found in checkout success');
       return;
     }
 
@@ -427,7 +427,7 @@ const handleCheckoutSuccess = async (data) => {
     
     logger.info(`Checkout success for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling checkout success:', error);
+    logger.error('Error handling checkout success:', { error: error.message, stack: error.stack });
   }
 };
 
@@ -437,7 +437,7 @@ const handleCheckoutFailure = async (data) => {
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in checkout failure');
+      logger.error('No reference number found in checkout failure');
       return;
     }
 
@@ -446,7 +446,7 @@ const handleCheckoutFailure = async (data) => {
     
     logger.info(`Checkout failure for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling checkout failure:', error);
+    logger.error('Error handling checkout failure:', { error: error.message, stack: error.stack });
   }
 };
 
@@ -457,7 +457,7 @@ const handlePaymentSuccess = async (data) => {
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in payment success');
+      logger.error('No reference number found in payment success');
       return;
     }
 
@@ -466,7 +466,7 @@ const handlePaymentSuccess = async (data) => {
     
     logger.info(`Payment success for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling payment success:', error);
+    logger.error('Error handling payment success:', { error: error.message, stack: error.stack });
   }
 };
 
@@ -476,7 +476,7 @@ const handlePaymentFailure = async (data) => {
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in payment failure');
+      logger.error('No reference number found in payment failure');
       return;
     }
 
@@ -485,7 +485,7 @@ const handlePaymentFailure = async (data) => {
     
     logger.info(`Payment failure for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling payment failure:', error);
+    logger.error('Error handling payment failure:', { error: error.message, stack: error.stack });
   }
 };
 
@@ -496,7 +496,7 @@ const handleInvoicePaid = async (data) => {
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in invoice paid');
+      logger.error('No reference number found in invoice paid');
       return;
     }
 
@@ -505,7 +505,7 @@ const handleInvoicePaid = async (data) => {
     
     logger.info(`Invoice paid for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling invoice paid:', error);
+    logger.error('Error handling invoice paid:', { error: error.message, stack: error.stack });
   }
 };
 
@@ -515,7 +515,7 @@ const handleInvoiceExpired = async (data) => {
     const requestReferenceNumber = data.requestReferenceNumber;
 
     if (!requestReferenceNumber) {
-      console.error('No reference number found in invoice expired');
+      logger.error('No reference number found in invoice expired');
       return;
     }
 
@@ -524,7 +524,7 @@ const handleInvoiceExpired = async (data) => {
     
     logger.info(`Invoice expired for reference: ${requestReferenceNumber}`);
   } catch (error) {
-    console.error('Error handling invoice expired:', error);
+    logger.error('Error handling invoice expired:', { error: error.message, stack: error.stack });
   }
 };
 
@@ -614,7 +614,7 @@ const updatePaymentStatus = async (referenceNumber, status, transactionId = null
 
     logger.info(`No record found for PayMaya reference: ${referenceNumber}`);
   } catch (error) {
-    console.error('Error updating payment status:', error);
+    logger.error('Error updating payment status:', { error: error.message, stack: error.stack });
   }
 };
 
@@ -631,7 +631,7 @@ const getWebhookEvents = async (req, res) => {
       data: []
     });
   } catch (error) {
-    console.error('Get webhook events error:', error);
+    logger.error('Get webhook events error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -657,7 +657,7 @@ const validateConfig = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Validate PayMaya config error:', error);
+    logger.error('Validate PayMaya config error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

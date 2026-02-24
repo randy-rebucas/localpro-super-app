@@ -19,7 +19,10 @@ const {
   processTopUp
 } = require('../controllers/financeController');
 
+const { financeLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(financeLimiter);
 
 // Configure multer for receipt image uploads
 const upload = multer({

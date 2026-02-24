@@ -63,9 +63,7 @@ const createApiKey = async (req, res) => {
     logger.error('Error creating API key:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create API key',
-      error: error.message
-    });
+      message: 'Failed to create API key'});
   }
 };
 
@@ -109,9 +107,7 @@ const getApiKeys = async (req, res) => {
     logger.error('Error getting API keys:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get API keys',
-      error: error.message
-    });
+      message: 'Failed to get API keys'});
   }
 };
 
@@ -142,9 +138,7 @@ const getApiKeyById = async (req, res) => {
     logger.error('Error getting API key:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get API key',
-      error: error.message
-    });
+      message: 'Failed to get API key'});
   }
 };
 
@@ -198,9 +192,7 @@ const updateApiKey = async (req, res) => {
     logger.error('Error updating API key:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update API key',
-      error: error.message
-    });
+      message: 'Failed to update API key'});
   }
 };
 
@@ -233,9 +225,7 @@ const deleteApiKey = async (req, res) => {
     logger.error('Error deleting API key:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to revoke API key',
-      error: error.message
-    });
+      message: 'Failed to revoke API key'});
   }
 };
 
@@ -277,9 +267,7 @@ const regenerateSecret = async (req, res) => {
     logger.error('Error regenerating secret:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to regenerate secret key',
-      error: error.message
-    });
+      message: 'Failed to regenerate secret key'});
   }
 };
 
@@ -318,9 +306,7 @@ const getApiKeyStats = async (req, res) => {
     logger.error('Error getting API key stats:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get API key statistics',
-      error: error.message
-    });
+      message: 'Failed to get API key statistics'});
   }
 };
 

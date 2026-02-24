@@ -1,4 +1,5 @@
 const { SubscriptionPlan, UserSubscription, Payment } = require('../models/LocalProPlus');
+const { logger } = require('../../../src/utils/logger');
 const User = require('../../../src/models/User');
 const PayPalService = require('../../../src/services/paypalService');
 const PaymongoService = require('../../../src/services/paymongoService');
@@ -18,7 +19,7 @@ const getPlans = async (req, res) => {
       data: plans
     });
   } catch (error) {
-    console.error('Get plans error:', error);
+    logger.error('Get plans error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -45,7 +46,7 @@ const getPlan = async (req, res) => {
       data: plan
     });
   } catch (error) {
-    console.error('Get plan error:', error);
+    logger.error('Get plan error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -66,7 +67,7 @@ const createPlan = async (req, res) => {
       data: plan
     });
   } catch (error) {
-    console.error('Create plan error:', error);
+    logger.error('Create plan error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -98,7 +99,7 @@ const updatePlan = async (req, res) => {
       data: plan
     });
   } catch (error) {
-    console.error('Update plan error:', error);
+    logger.error('Update plan error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -125,7 +126,7 @@ const deletePlan = async (req, res) => {
       message: 'Plan deleted successfully'
     });
   } catch (error) {
-    console.error('Delete plan error:', error);
+    logger.error('Delete plan error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -139,7 +140,6 @@ const deletePlan = async (req, res) => {
 const subscribeToPlan = async (req, res) => {
   try {
     const planId = req.params.planId;
-    console.log('Subscribe to plan request:', { userId: req.user.id, planId, body: req.body });
     const { paymentMethod, billingCycle = 'monthly' } = req.body;
 
     if (!planId || !paymentMethod) {
@@ -319,7 +319,7 @@ const subscribeToPlan = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Subscribe to plan error:', error);
+    logger.error('Subscribe to plan error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -416,7 +416,7 @@ const confirmSubscriptionPayment = async (req, res) => {
             });
           }
         } catch (emailErr) {
-          console.error('PayMongo confirm: failed to send confirmation email:', emailErr.message);
+          logger.error('PayMongo confirm: failed to send confirmation email:', { details: emailErr.message });
         }
       }
 
@@ -522,7 +522,7 @@ const confirmSubscriptionPayment = async (req, res) => {
       data: populatedSubscription
     });
   } catch (error) {
-    console.error('Confirm subscription payment error:', error);
+    logger.error('Confirm subscription payment error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -575,7 +575,7 @@ const cancelSubscription = async (req, res) => {
       data: subscription
     });
   } catch (error) {
-    console.error('Cancel subscription error:', error);
+    logger.error('Cancel subscription error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -605,7 +605,7 @@ const getMySubscription = async (req, res) => {
       data: populatedSubscription
     });
   } catch (error) {
-    console.error('Get my subscription error:', error);
+    logger.error('Get my subscription error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -646,7 +646,7 @@ const updateSubscriptionSettings = async (req, res) => {
       data: subscription
     });
   } catch (error) {
-    console.error('Update subscription settings error:', error);
+    logger.error('Update subscription settings error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -708,7 +708,7 @@ const getSubscriptionUsage = async (req, res) => {
       data: usage
     });
   } catch (error) {
-    console.error('Get subscription usage error:', error);
+    logger.error('Get subscription usage error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -843,7 +843,7 @@ const renewSubscription = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Renew subscription error:', error);
+    logger.error('Renew subscription error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -973,7 +973,7 @@ const getSubscriptionAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get subscription analytics error:', error);
+    logger.error('Get subscription analytics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1101,7 +1101,7 @@ const createManualSubscription = async (req, res) => {
       data: populatedSubscription
     });
   } catch (error) {
-    console.error('Create manual subscription error:', error);
+    logger.error('Create manual subscription error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1142,7 +1142,7 @@ const getAllSubscriptions = async (req, res) => {
       data: subscriptions
     });
   } catch (error) {
-    console.error('Get all subscriptions error:', error);
+    logger.error('Get all subscriptions error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1175,7 +1175,7 @@ const getSubscriptionByUserId = async (req, res) => {
       data: subscription
     });
   } catch (error) {
-    console.error('Get subscription by user ID error:', error);
+    logger.error('Get subscription by user ID error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1319,7 +1319,7 @@ const updateManualSubscription = async (req, res) => {
       data: populatedSubscription
     });
   } catch (error) {
-    console.error('Update manual subscription error:', error);
+    logger.error('Update manual subscription error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1391,7 +1391,7 @@ const deleteManualSubscription = async (req, res) => {
       data: subscription
     });
   } catch (error) {
-    console.error('Delete manual subscription error:', error);
+    logger.error('Delete manual subscription error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

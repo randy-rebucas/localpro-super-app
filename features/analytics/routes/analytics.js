@@ -21,7 +21,10 @@ const {
   getAnalyticsMetadata
 } = require('../controllers/analyticsController');
 
+const { analyticsLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(analyticsLimiter);
 
 // Validation middleware
 const timeframeValidation = [

@@ -19,7 +19,10 @@ const {
   getTotalPoints
 } = require('../controllers/activityController');
 
+const { activitiesLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(activitiesLimiter);
 
 // Validation middleware
 const createActivityValidation = [

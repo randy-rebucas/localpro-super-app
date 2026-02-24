@@ -1,5 +1,8 @@
 const express = require('express');
+const { webhooksLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(webhooksLimiter);
 const {
   getWebhookEvents,
   getUnreadCount,

@@ -1,4 +1,5 @@
 const User = require('../../../src/models/User');
+const logger = require('../../../src/config/logger');
 
 // ============================================
 // OAUTH PROVIDER MANAGEMENT
@@ -24,8 +25,8 @@ const getConnectedProviders = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get connected providers error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get connected providers', error: error.message });
+    logger.error('Get connected providers error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to get connected providers'});
   }
 };
 
@@ -79,8 +80,8 @@ const connectProvider = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Connect provider error:', error);
-    res.status(500).json({ success: false, message: 'Failed to connect provider', error: error.message });
+    logger.error('Connect provider error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to connect provider'});
   }
 };
 
@@ -107,7 +108,7 @@ const disconnectProvider = async (req, res) => {
       message: `${provider} account disconnected successfully`
     });
   } catch (error) {
-    console.error('Disconnect provider error:', error);
+    logger.error('Disconnect provider error:', { error: error.message, stack: error.stack });
 
     if (error.message === 'Cannot disconnect last authentication method') {
       return res.status(400).json({
@@ -116,7 +117,7 @@ const disconnectProvider = async (req, res) => {
       });
     }
 
-    res.status(500).json({ success: false, message: 'Failed to disconnect provider', error: error.message });
+    res.status(500).json({ success: false, message: 'Failed to disconnect provider'});
   }
 };
 
@@ -236,8 +237,8 @@ const loginWithOAuth = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('OAuth login error:', error);
-    res.status(500).json({ success: false, message: 'OAuth login failed', error: error.message });
+    logger.error('OAuth login error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'OAuth login failed'});
   }
 };
 
@@ -265,8 +266,8 @@ const getExternalIds = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get external IDs error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get external IDs', error: error.message });
+    logger.error('Get external IDs error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to get external IDs'});
   }
 };
 
@@ -298,8 +299,8 @@ const linkExternalId = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Link external ID error:', error);
-    res.status(500).json({ success: false, message: 'Failed to link external ID', error: error.message });
+    logger.error('Link external ID error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to link external ID'});
   }
 };
 
@@ -322,8 +323,8 @@ const unlinkExternalId = async (req, res) => {
       message: `External ID unlinked for ${system}`
     });
   } catch (error) {
-    console.error('Unlink external ID error:', error);
-    res.status(500).json({ success: false, message: 'Failed to unlink external ID', error: error.message });
+    logger.error('Unlink external ID error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to unlink external ID'});
   }
 };
 

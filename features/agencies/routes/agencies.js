@@ -1,5 +1,8 @@
 const express = require('express');
+const { agenciesLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(agenciesLimiter);
 const { body } = require('express-validator');
 const { auth, authorize } = require('../../../src/middleware/auth');
 const { uploaders } = require('../../../src/config/cloudinary');

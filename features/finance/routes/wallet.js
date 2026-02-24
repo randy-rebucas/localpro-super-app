@@ -1,5 +1,8 @@
 const express = require('express');
+const { financeLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(financeLimiter);
 const { auth } = require('../../../src/middleware/auth');
 const { Finance } = require('../models/Finance');
 

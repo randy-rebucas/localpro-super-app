@@ -99,7 +99,7 @@ const getFinancialOverview = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get financial overview error:', error);
+    logger.error('Get financial overview error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -153,7 +153,7 @@ const getTransactions = async (req, res) => {
       data: transactions
     });
   } catch (error) {
-    console.error('Get transactions error:', error);
+    logger.error('Get transactions error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -294,7 +294,7 @@ const getEarnings = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get earnings error:', error);
+    logger.error('Get earnings error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -377,7 +377,7 @@ const getExpenses = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get expenses error:', error);
+    logger.error('Get expenses error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -437,7 +437,7 @@ const addExpense = async (req, res) => {
       data: expense
     });
   } catch (error) {
-    console.error('Add expense error:', error);
+    logger.error('Add expense error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -532,7 +532,7 @@ const requestWithdrawal = async (req, res) => {
       data: withdrawal
     });
   } catch (error) {
-    console.error('Request withdrawal error:', error);
+    logger.error('Request withdrawal error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -604,7 +604,6 @@ const getWithdrawals = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get withdrawals error:', {
-      error: error.message,
       stack: error.stack,
       userId: req.user?.id
     });
@@ -708,7 +707,7 @@ const processWithdrawal = async (req, res) => {
       data: withdrawal
     });
   } catch (error) {
-    console.error('Process withdrawal error:', error);
+    logger.error('Process withdrawal error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -804,7 +803,7 @@ const getTaxDocuments = async (req, res) => {
       data: taxDocument
     });
   } catch (error) {
-    console.error('Get tax documents error:', error);
+    logger.error('Get tax documents error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -947,7 +946,7 @@ const getFinancialReports = async (req, res) => {
       data: report
     });
   } catch (error) {
-    console.error('Get financial reports error:', error);
+    logger.error('Get financial reports error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -982,7 +981,7 @@ const updateWalletSettings = async (req, res) => {
       data: finance.wallet
     });
   } catch (error) {
-    console.error('Update wallet settings error:', error);
+    logger.error('Update wallet settings error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1082,7 +1081,7 @@ const requestTopUp = async (req, res) => {
           topUpRequest.status = 'authorized'; // Mark as authorized pending capture
         }
       } catch (paymongoError) {
-        console.error('PayMongo top-up authorization error:', paymongoError);
+        logger.error('PayMongo top-up authorization error:', { details: paymongoError });
         // Fall back to manual approval
       }
     }
@@ -1127,7 +1126,7 @@ const requestTopUp = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Request top-up error:', error);
+    logger.error('Request top-up error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1188,7 +1187,7 @@ const getTopUpRequests = async (req, res) => {
       data: paginatedRequests
     });
   } catch (error) {
-    console.error('Get top-up requests error:', error);
+    logger.error('Get top-up requests error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1235,7 +1234,7 @@ const getMyTopUpRequests = async (req, res) => {
       data: paginatedRequests
     });
   } catch (error) {
-    console.error('Get my top-up requests error:', error);
+    logger.error('Get my top-up requests error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1309,10 +1308,10 @@ const processTopUp = async (req, res) => {
           if (captureResult.success) {
             topUpRequest.paymongoChargeId = captureResult.captureId;
           } else {
-            console.error('PayMongo capture failed:', captureResult.message);
+            logger.error('PayMongo capture failed:', { details: captureResult.message });
           }
         } catch (captureError) {
-          console.error('PayMongo capture error:', captureError);
+          logger.error('PayMongo capture error:', { details: captureError });
         }
       }
 
@@ -1370,7 +1369,7 @@ const processTopUp = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Process top-up error:', error);
+    logger.error('Process top-up error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

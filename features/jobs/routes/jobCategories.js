@@ -14,7 +14,10 @@ const {
   getJobCategoryStats
 } = require('../controllers/jobCategoryController');
 
+const { jobsLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(jobsLimiter);
 
 /**
  * @swagger

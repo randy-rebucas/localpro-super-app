@@ -15,7 +15,10 @@ const {
   removeStaffRole
 } = require('../controllers/staffController');
 
+const { staffLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(staffLimiter);
 
 // Apply authentication to all routes
 router.use(auth);

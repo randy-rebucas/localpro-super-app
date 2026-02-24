@@ -27,7 +27,7 @@ const createCampaign = async (req, res) => {
     res.status(201).json(result);
   } catch (error) {
     logger.error('Create campaign error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -53,7 +53,7 @@ const getCampaigns = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Get campaigns error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -73,7 +73,7 @@ const getCampaign = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Get campaign error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -93,7 +93,7 @@ const updateCampaign = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Update campaign error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -113,7 +113,7 @@ const deleteCampaign = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Delete campaign error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -134,7 +134,7 @@ const duplicateCampaign = async (req, res) => {
     res.status(201).json(result);
   } catch (error) {
     logger.error('Duplicate campaign error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -154,7 +154,7 @@ const sendCampaign = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Send campaign error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -176,7 +176,7 @@ const pauseCampaign = async (req, res) => {
     res.status(200).json({ success: true, message: 'Campaign paused', data: campaign });
   } catch (error) {
     logger.error('Pause campaign error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -198,7 +198,7 @@ const resumeCampaign = async (req, res) => {
     res.status(200).json({ success: true, message: 'Campaign resumed', data: campaign });
   } catch (error) {
     logger.error('Resume campaign error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -220,7 +220,7 @@ const cancelCampaign = async (req, res) => {
     res.status(200).json({ success: true, message: 'Campaign cancelled', data: campaign });
   } catch (error) {
     logger.error('Cancel campaign error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -235,7 +235,7 @@ const estimateAudience = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Estimate audience error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -272,7 +272,7 @@ const sendTestEmail = async (req, res) => {
     });
   } catch (error) {
     logger.error('Send test email error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -311,7 +311,7 @@ const subscribe = async (req, res) => {
     res.status(201).json(result);
   } catch (error) {
     logger.error('Subscribe error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -336,7 +336,7 @@ const confirmSubscription = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Confirm subscription error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -362,7 +362,7 @@ const unsubscribe = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Unsubscribe error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -389,7 +389,7 @@ const getSubscribers = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Get subscribers error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -409,7 +409,7 @@ const getSubscriber = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Get subscriber error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -441,7 +441,7 @@ const updateSubscriber = async (req, res) => {
     res.status(200).json({ success: true, data: subscriber });
   } catch (error) {
     logger.error('Update subscriber error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -465,7 +465,7 @@ const deleteSubscriber = async (req, res) => {
     res.status(200).json({ success: true, message: 'Subscriber deleted' });
   } catch (error) {
     logger.error('Delete subscriber error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -490,7 +490,7 @@ const importSubscribers = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Import subscribers error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -532,7 +532,7 @@ const exportSubscribers = async (req, res) => {
     res.status(200).json({ success: true, data: subscribers });
   } catch (error) {
     logger.error('Export subscribers error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -574,7 +574,7 @@ const getSubscriberStats = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get subscriber stats error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -606,7 +606,7 @@ const updatePreferences = async (req, res) => {
     res.status(200).json({ success: true, message: 'Preferences updated', data: subscriber.preferences });
   } catch (error) {
     logger.error('Update preferences error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -698,7 +698,7 @@ const getCampaignAnalytics = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Get campaign analytics error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -719,7 +719,7 @@ const getOverallAnalytics = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Get overall analytics error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -740,7 +740,7 @@ const getTopCampaigns = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     logger.error('Get top campaigns error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 
@@ -761,7 +761,7 @@ const getDailyStats = async (req, res) => {
     res.status(200).json({ success: true, data: stats });
   } catch (error) {
     logger.error('Get daily stats error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error'});
   }
 };
 

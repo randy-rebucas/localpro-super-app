@@ -4,7 +4,10 @@
  */
 
 const express = require('express');
+const { adminLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(adminLimiter);
 const { auth, authorize } = require('../../../src/middleware/auth');
 const emailMarketingController = require('../controllers/emailMarketingController');
 

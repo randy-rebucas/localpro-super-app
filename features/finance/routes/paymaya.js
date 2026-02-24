@@ -13,7 +13,10 @@ const {
   validateConfig
 } = require('../controllers/paymayaController');
 
+const { financeLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(financeLimiter);
 
 // Validation middleware
 const checkoutValidation = [

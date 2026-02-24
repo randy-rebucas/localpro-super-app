@@ -19,7 +19,7 @@ class FeedsAPI {
    * @returns {Promise} Feed items with pagination
    */
   getFeed(params) {
-    return this.client.get('/feeds', { params });
+    return this.client.get('/api/feeds', { params });
   }
 
   /**
@@ -30,7 +30,7 @@ class FeedsAPI {
    * @returns {Promise} Trending items
    */
   getTrending(params) {
-    return this.client.get('/feeds/trending', { params });
+    return this.client.get('/api/feeds/trending', { params });
   }
 
   /**
@@ -40,7 +40,7 @@ class FeedsAPI {
    * @returns {Promise} Featured items
    */
   getFeatured(params) {
-    return this.client.get('/feeds/featured', { params });
+    return this.client.get('/api/feeds/featured', { params });
   }
 
   /**
@@ -52,7 +52,7 @@ class FeedsAPI {
    * @returns {Promise} User's feed items
    */
   getMyFeed(params) {
-    return this.client.get('/feeds/my', { params });
+    return this.client.get('/api/feeds/my', { params });
   }
 
   /**
@@ -62,7 +62,7 @@ class FeedsAPI {
    * @returns {Promise} Feed analytics
    */
   getAnalytics(params) {
-    return this.client.get('/feeds/analytics', { params });
+    return this.client.get('/api/feeds/analytics', { params });
   }
 
   /**
@@ -76,7 +76,7 @@ class FeedsAPI {
    * @returns {Promise} Feed items of specified type
    */
   getByType(contentType, params) {
-    return this.client.get(`/feeds/by-type/${contentType}`, { params });
+    return this.client.get(`/api/feeds/by-type/${contentType}`, { params });
   }
 
   /**
@@ -85,7 +85,7 @@ class FeedsAPI {
    * @returns {Promise} Feed item details
    */
   getFeedItem(id) {
-    return this.client.get(`/feeds/${id}`);
+    return this.client.get(`/api/feeds/${id}`);
   }
 
   /**
@@ -108,7 +108,7 @@ class FeedsAPI {
    * @returns {Promise} Created feed item
    */
   create(data) {
-    return this.client.post('/feeds', data);
+    return this.client.post('/api/feeds', data);
   }
 
   /**
@@ -118,7 +118,7 @@ class FeedsAPI {
    * @returns {Promise} Updated feed item
    */
   update(id, data) {
-    return this.client.put(`/feeds/${id}`, data);
+    return this.client.put(`/api/feeds/${id}`, data);
   }
 
   /**
@@ -127,7 +127,7 @@ class FeedsAPI {
    * @returns {Promise} Deletion confirmation
    */
   delete(id) {
-    return this.client.delete(`/feeds/${id}`);
+    return this.client.delete(`/api/feeds/${id}`);
   }
 
   /**
@@ -138,7 +138,7 @@ class FeedsAPI {
    * @returns {Promise} Interaction result
    */
   addInteraction(id, data) {
-    return this.client.post(`/feeds/${id}/interactions`, data);
+    return this.client.post(`/api/feeds/${id}/interactions`, data);
   }
 
   /**
@@ -149,7 +149,7 @@ class FeedsAPI {
    * @returns {Promise} Interaction removal result
    */
   removeInteraction(id, data) {
-    return this.client.delete(`/feeds/${id}/interactions`, { data });
+    return this.client.delete(`/api/feeds/${id}/interactions`, { data });
   }
 
   /**
@@ -163,7 +163,7 @@ class FeedsAPI {
    * @returns {Promise} Promoted feed item
    */
   promote(id, data) {
-    return this.client.post(`/feeds/${id}/promote`, data);
+    return this.client.post(`/api/feeds/${id}/promote`, data);
   }
 
   // Convenience methods

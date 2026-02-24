@@ -12,7 +12,10 @@ const {
   deleteBroadcaster
 } = require('../controllers/broadcasterController');
 
+const { adsLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(adsLimiter);
 
 /**
  * @swagger

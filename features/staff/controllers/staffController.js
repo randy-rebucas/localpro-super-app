@@ -1,4 +1,5 @@
 const User = require('../../../src/models/User');
+const { logger } = require('../../../src/utils/logger');
 const StaffPermission = require('../models/StaffPermission');
 const Permission = require('../../permissions/models/Permission');
 const mongoose = require('mongoose');
@@ -84,7 +85,7 @@ const getAllStaff = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get all staff error:', error);
+    logger.error('Get all staff error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching staff members'
@@ -139,7 +140,7 @@ const getStaffById = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get staff by ID error:', error);
+    logger.error('Get staff by ID error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching staff member'
@@ -285,7 +286,7 @@ const createStaff = async (req, res) => {
       data: staff
     });
   } catch (error) {
-    console.error('Create staff error:', error);
+    logger.error('Create staff error:', { error: error.message, stack: error.stack });
     
     // Handle Mongoose validation errors
     if (error.name === 'ValidationError') {
@@ -450,7 +451,7 @@ const updateStaff = async (req, res) => {
       data: staff
     });
   } catch (error) {
-    console.error('Update staff error:', error);
+    logger.error('Update staff error:', { error: error.message, stack: error.stack });
     
     // Handle Mongoose validation errors
     if (error.name === 'ValidationError') {
@@ -527,12 +528,10 @@ const deleteStaff = async (req, res) => {
       message: 'Staff member deleted successfully'
     });
   } catch (error) {
-    console.error('Delete staff error:', error);
+    logger.error('Delete staff error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: 'Error deleting staff member',
-      error: error.message
-    });
+      message: 'Error deleting staff member'});
   }
 };
 
@@ -611,12 +610,10 @@ const assignPermissions = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Assign permissions error:', error);
+    logger.error('Assign permissions error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: 'Error assigning permissions',
-      error: error.message
-    });
+      message: 'Error assigning permissions'});
   }
 };
 
@@ -682,12 +679,10 @@ const revokePermissions = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Revoke permissions error:', error);
+    logger.error('Revoke permissions error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: 'Error revoking permissions',
-      error: error.message
-    });
+      message: 'Error revoking permissions'});
   }
 };
 
@@ -748,12 +743,10 @@ const getStaffPermissions = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get staff permissions error:', error);
+    logger.error('Get staff permissions error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: 'Error fetching staff permissions',
-      error: error.message
-    });
+      message: 'Error fetching staff permissions'});
   }
 };
 
@@ -825,7 +818,7 @@ const getStaffStats = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get staff stats error:', error);
+    logger.error('Get staff stats error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching staff statistics',
@@ -900,7 +893,7 @@ const bulkUpdateStaffStatus = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Bulk update staff status error:', error);
+    logger.error('Bulk update staff status error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating staff status',
@@ -966,7 +959,7 @@ const removeStaffRole = async (req, res) => {
       data: staff
     });
   } catch (error) {
-    console.error('Remove staff role error:', error);
+    logger.error('Remove staff role error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error removing staff role',

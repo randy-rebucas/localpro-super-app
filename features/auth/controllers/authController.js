@@ -236,7 +236,6 @@ const sendVerificationCode = async (req, res) => {
     });
   } catch (error) {
     logger.error('Send verification code error', {
-      error: error.message,
       stack: error.stack,
       phoneNumber: req.body?.phoneNumber ? req.body.phoneNumber.substring(0, 5) + '***' : 'unknown',
       clientInfo,
@@ -300,7 +299,6 @@ const verifyCode = async (req, res) => {
       verificationResult = await TwilioService.verifyCode(phoneNumber, code);
     } catch (error) {
       logger.error('Twilio verification error', {
-        error: error.message,
         phoneNumber: phoneNumber.substring(0, 5) + '***',
         clientInfo,
         duration: Date.now() - startTime
@@ -344,7 +342,6 @@ const verifyCode = async (req, res) => {
       }
     } catch (error) {
       logger.error('Database connection check failed', {
-        error: error.message,
         phoneNumber: phoneNumber.substring(0, 5) + '***',
         clientInfo,
         duration: Date.now() - startTime
@@ -475,7 +472,6 @@ const verifyCode = async (req, res) => {
     }
   } catch (error) {
     logger.error('Verify code error', {
-      error: error.message,
       stack: error.stack,
       phoneNumber: req.body?.phoneNumber ? req.body.phoneNumber.substring(0, 5) + '***' : 'unknown',
       clientInfo,
@@ -792,7 +788,6 @@ const completeOnboarding = async (req, res) => {
   } catch (error) {
     logger.error('Complete onboarding error', {
       userId: req.user?.id,
-      error: error.message,
       stack: error.stack,
       errorName: error.name,
       body: {
@@ -863,7 +858,6 @@ const getProfileCompletionStatus = async (req, res) => {
   } catch (error) {
     logger.error('Profile completion status check error', {
       userId: req.user?.id,
-      error: error.message,
       stack: error.stack,
       clientInfo,
       duration: Date.now() - startTime
@@ -1046,7 +1040,6 @@ const getProfileCompleteness = async (req, res) => {
   } catch (error) {
     logger.error('Profile completeness check error', {
       userId: req.user?.id,
-      error: error.message,
       stack: error.stack,
       clientInfo,
       duration: Date.now() - startTime
@@ -1182,7 +1175,7 @@ const updateProfile = async (req, res) => {
         }
         // If format is invalid, remove coordinates to prevent errors
         else {
-          console.warn('Invalid coordinates format received, removing coordinates');
+          logger.warn('Invalid coordinates format received, removing coordinates');
           updatedProfile.address = {
             ...updatedProfile.address,
             ...cleanedProfile.address
@@ -1229,10 +1222,10 @@ const updateProfile = async (req, res) => {
       user
     });
   } catch (error) {
-    console.error('Update profile error:', error);
+    logger.error('Update profile error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: error.message || 'Server error',
+      message: 'Server error',
       error: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
@@ -1243,24 +1236,6 @@ const updateProfile = async (req, res) => {
 // @access  Private
 const uploadAvatar = async (req, res) => {
   try {
-    // Debug: Log file information
-    console.log('=== Avatar Upload Debug ===');
-    console.log('File object:', {
-      hasFile: !!req.file,
-      fieldname: req.file?.fieldname,
-      originalname: req.file?.originalname,
-      encoding: req.file?.encoding,
-      mimetype: req.file?.mimetype,
-      size: req.file?.size,
-      hasBuffer: !!req.file?.buffer,
-      hasPath: !!req.file?.path,
-      path: req.file?.path,
-      destination: req.file?.destination,
-      filename: req.file?.filename
-    });
-    console.log('Request body:', req.body);
-    console.log('==========================');
-
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -1286,8 +1261,6 @@ const uploadAvatar = async (req, res) => {
 
     if (isCloudinaryUploaded) {
       // File already uploaded via CloudinaryStorage - extract info directly
-      console.log('File already uploaded to Cloudinary via CloudinaryStorage');
-
       const secureUrl = req.file.secure_url || req.file.url || req.file.path;
       let publicId = req.file.public_id;
 
@@ -1301,7 +1274,7 @@ const uploadAvatar = async (req, res) => {
             publicId = pathParts.slice(uploadIndex + 2).join('/').replace(/\.[^/.]+$/, '');
           }
         } catch (parseError) {
-          console.error('Error parsing public_id from path:', parseError);
+          logger.error('Error parsing public_id from path:', { details: parseError });
         }
       }
 
@@ -1324,30 +1297,18 @@ const uploadAvatar = async (req, res) => {
         thumbnail: CloudinaryService.getOptimizedUrl(publicId, 'thumbnail')
       };
 
-      console.log('Extracted Cloudinary data:', {
-        url: avatarData.url,
-        publicId: avatarData.publicId
-      });
     } else {
       // File needs to be uploaded manually (shouldn't happen with cloudinaryStorage, but handle it)
-      console.log('Uploading file to Cloudinary manually...');
       const uploadResult = await CloudinaryService.uploadFile(
         req.file,
         'localpro/users/profiles'
       );
 
-      console.log('Upload result:', {
-        success: uploadResult.success,
-        error: uploadResult.error,
-        hasData: !!uploadResult.data
-      });
-
       if (!uploadResult.success) {
-        console.error('Cloudinary upload failed:', uploadResult.error);
+        logger.error('Cloudinary upload failed:', { details: uploadResult.error });
         return res.status(500).json({
           success: false,
           message: 'Failed to upload avatar',
-          error: uploadResult.error,
           code: 'CLOUDINARY_UPLOAD_ERROR'
         });
       }
@@ -1377,14 +1338,14 @@ const uploadAvatar = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('=== Avatar Upload Exception ===');
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    console.error('Error name:', error.name);
+    logger.error('=== Avatar Upload Exception ===');
+    logger.error('Error message:', { details: error.message });
+    logger.error('Error stack:', { details: error.stack });
+    logger.error('Error name:', { details: error.name });
     if (error.http_code) {
-      console.error('HTTP Code:', error.http_code);
+      logger.error('HTTP Code:', { details: error.http_code });
     }
-    console.error('================================');
+    logger.error('================================');
     res.status(500).json({
       success: false,
       message: 'Server error',
@@ -1434,8 +1395,7 @@ const uploadPortfolioImages = async (req, res) => {
     if (!uploadResult.success) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to upload portfolio images',
-        error: uploadResult.error
+        message: 'Failed to upload portfolio images'
       });
     }
 
@@ -1461,7 +1421,7 @@ const uploadPortfolioImages = async (req, res) => {
       data: portfolioEntry
     });
   } catch (error) {
-    console.error('Upload portfolio images error:', error);
+    logger.error('Upload portfolio images error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1550,7 +1510,6 @@ const refreshToken = async (req, res) => {
     });
   } catch (error) {
     logger.error('Refresh token error', {
-      error: error.message,
       stack: error.stack,
       clientInfo,
       duration: Date.now() - startTime
@@ -1613,7 +1572,6 @@ const logout = async (req, res) => {
     });
   } catch (error) {
     logger.error('Logout error', {
-      error: error.message,
       stack: error.stack,
       userId: req.user?.id,
       clientInfo,
@@ -1819,7 +1777,6 @@ const registerWithEmail = async (req, res) => {
     });
   } catch (error) {
     logger.error('Register with email error', {
-      error: error.message,
       stack: error.stack,
       email: req.body?.email ? req.body.email.substring(0, 3) + '***@' + req.body.email.split('@')[1] : 'unknown',
       clientInfo,
@@ -2068,7 +2025,6 @@ const loginWithEmail = async (req, res) => {
     }
   } catch (error) {
     logger.error('Login with email error', {
-      error: error.message,
       stack: error.stack,
       email: req.body?.email ? req.body.email.substring(0, 3) + '***@' + req.body.email.split('@')[1] : 'unknown',
       clientInfo,
@@ -2221,7 +2177,6 @@ const verifyEmailOTP = async (req, res) => {
     });
   } catch (error) {
     logger.error('Verify email OTP error', {
-      error: error.message,
       stack: error.stack,
       email: req.body?.email ? req.body.email.substring(0, 3) + '***@' + req.body.email.split('@')[1] : 'unknown',
       clientInfo,
@@ -2312,7 +2267,6 @@ const checkEmail = async (req, res) => {
     });
   } catch (error) {
     logger.error('Check email error', {
-      error: error.message,
       stack: error.stack,
       email: req.body?.email ? req.body.email.substring(0, 3) + '***@' + req.body.email.split('@')[1] : 'unknown',
       clientInfo,
@@ -2474,7 +2428,6 @@ const setPassword = async (req, res) => {
     });
   } catch (error) {
     logger.error('Set password error', {
-      error: error.message,
       stack: error.stack,
       email: req.body?.email ? req.body.email.substring(0, 3) + '***@' + req.body.email.split('@')[1] : 'unknown',
       clientInfo,
@@ -2549,7 +2502,6 @@ const setMpin = async (req, res) => {
     });
   } catch (error) {
     logger.error('Set MPIN error', {
-      error: error.message,
       stack: error.stack,
       userId: req.user?.id,
       clientInfo,
@@ -2558,7 +2510,7 @@ const setMpin = async (req, res) => {
 
     res.status(400).json({
       success: false,
-      message: error.message || 'Failed to set MPIN'
+      message: 'Failed to set MPIN'
     });
   }
 };
@@ -2621,7 +2573,6 @@ const verifyMpin = async (req, res) => {
     });
   } catch (error) {
     logger.error('Verify MPIN error', {
-      error: error.message,
       stack: error.stack,
       userId: req.user?.id,
       clientInfo,
@@ -2630,7 +2581,7 @@ const verifyMpin = async (req, res) => {
 
     res.status(400).json({
       success: false,
-      message: error.message || 'Failed to verify MPIN'
+      message: 'Failed to verify MPIN'
     });
   }
 };
@@ -2733,7 +2684,6 @@ const loginWithMpin = async (req, res) => {
 
   } catch (error) {
     logger.error('MPIN login error', {
-      error: error.message,
       stack: error.stack,
       phoneNumber: req.body?.phoneNumber ? req.body.phoneNumber.substring(0, 6) + '****' : 'unknown',
       clientInfo,
@@ -2742,7 +2692,7 @@ const loginWithMpin = async (req, res) => {
 
     res.status(401).json({
       success: false,
-      message: error.message || 'Login failed'
+      message: 'Login failed'
     });
   }
 };
@@ -2795,7 +2745,6 @@ const disableMpin = async (req, res) => {
     });
   } catch (error) {
     logger.error('Disable MPIN error', {
-      error: error.message,
       stack: error.stack,
       userId: req.user?.id,
       clientInfo,
@@ -2804,9 +2753,7 @@ const disableMpin = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: 'Failed to disable MPIN',
-      error: error.message
-    });
+      message: 'Failed to disable MPIN'});
   }
 };
 
@@ -2843,7 +2790,6 @@ const getMpinStatus = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get MPIN status error', {
-      error: error.message,
       stack: error.stack,
       userId: req.user?.id,
       duration: Date.now() - startTime
@@ -2851,9 +2797,7 @@ const getMpinStatus = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: 'Failed to get MPIN status',
-      error: error.message
-    });
+      message: 'Failed to get MPIN status'});
   }
 };
 

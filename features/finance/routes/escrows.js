@@ -16,7 +16,10 @@ const {
   getEscrowStats
 } = require('../controllers/escrowController');
 
+const { financeLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(financeLimiter);
 
 // All routes require authentication
 router.use(auth);

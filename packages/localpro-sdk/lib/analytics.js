@@ -6,75 +6,77 @@ class AnalyticsAPI {
   }
 
   async getMetadata(params = {}) {
-    return this.client.client.get('/api/analytics/metadata', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/metadata', params);
   }
 
   async getDashboard(params = {}) {
-    return this.client.client.get('/api/analytics/dashboard', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/dashboard', params);
   }
 
   async getRealTime(params = {}) {
-    return this.client.client.get('/api/analytics/realtime', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/realtime', params);
   }
 
   async getTimeSeries(params = {}) {
-    return this.client.client.get('/api/analytics/time-series', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/time-series', params);
   }
 
   async getComparison(params = {}) {
-    return this.client.client.get('/api/analytics/comparison', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/comparison', params);
   }
 
   async export(params = {}) {
-    return this.client.client.get('/api/analytics/export', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/export', params);
   }
 
   async getOverview(params = {}) {
-    return this.client.client.get('/api/analytics/overview', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/overview', params);
   }
 
   async getCurrentUserAnalytics(params = {}) {
-    return this.client.client.get('/api/analytics/user', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/user', params);
   }
 
   async getAllUserAnalytics(params = {}) {
-    return this.client.client.get('/api/analytics/users', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/users', params);
   }
 
   async getFinancial(params = {}) {
-    return this.client.client.get('/api/analytics/financial', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/financial', params);
   }
 
   async getMarketplace(params = {}) {
-    return this.client.client.get('/api/analytics/marketplace', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/marketplace', params);
   }
 
   async getJobs(params = {}) {
-    return this.client.client.get('/api/analytics/jobs', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/jobs', params);
   }
 
   async getReferrals(params = {}) {
-    return this.client.client.get('/api/analytics/referrals', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/referrals', params);
   }
 
   async getAgencies(params = {}) {
-    return this.client.client.get('/api/analytics/agencies', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/agencies', params);
   }
 
   async getProvider(params = {}) {
-    return this.client.client.get('/api/analytics/provider', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/provider', params);
   }
 
   async getProviderById(providerId, params = {}) {
-    return this.client.client.get(`/api/analytics/provider/${providerId}`, { params }).then(r => r.data);
+    if (!providerId) throw new Error('providerId is required');
+    return this.client.get(`/api/analytics/provider/${providerId}`, params);
   }
 
   async getCustom(params = {}) {
-    return this.client.client.get('/api/analytics/custom', { params }).then(r => r.data);
+    return this.client.get('/api/analytics/custom', params);
   }
 
   async trackEvent(data) {
-    return this.client.client.post('/api/analytics/track', data).then(r => r.data);
+    if (!data) throw new Error('data is required');
+    return this.client.post('/api/analytics/track', data);
   }
 }
 

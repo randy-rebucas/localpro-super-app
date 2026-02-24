@@ -1,5 +1,8 @@
 const express = require('express');
+const { supportLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(supportLimiter);
 const multer = require('multer');
 const cloudinaryStorage = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary');

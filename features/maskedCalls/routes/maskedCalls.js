@@ -7,7 +7,10 @@ const {
   getMaskedCall
 } = require('../controllers/maskedCallController');
 
+const { maskedCallsLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(maskedCallsLimiter);
 
 /**
  * @swagger

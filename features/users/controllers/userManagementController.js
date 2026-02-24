@@ -607,7 +607,7 @@ const updateUser = async (req, res) => {
         }
         // Remove invalid coordinates format
         else {
-          console.warn('Invalid coordinates format received, removing coordinates');
+          logger.warn('Invalid coordinates format received, removing coordinates');
           delete cleanedProfile.address.coordinates;
         }
       }

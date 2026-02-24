@@ -1,5 +1,8 @@
 const express = require('express');
+const { adminLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(adminLimiter);
 const { body, param, query, validationResult } = require('express-validator');
 const { auth } = require('../../../src/middleware/auth');
 const logManagementService = require('../../../src/services/logManagementService');

@@ -1,4 +1,5 @@
 const GoogleMapsService = require('../../../src/services/googleMapsService');
+const { logger } = require('../../../src/utils/logger');
 
 // @desc    Get maps service information
 // @route   GET /api/maps
@@ -22,7 +23,7 @@ const getMapsInfo = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get maps info error:', error);
+    logger.error('Get maps info error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -65,7 +66,7 @@ const geocodeAddress = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Geocode address error:', error);
+    logger.error('Geocode address error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -144,7 +145,7 @@ const getAddressFromCoordinates = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Convert coordinates to address error:', error);
+    logger.error('Convert coordinates to address error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to convert coordinates to address',
@@ -236,7 +237,7 @@ const reverseGeocode = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Reverse geocode error:', error);
+    logger.error('Reverse geocode error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to reverse geocode coordinates',
@@ -281,7 +282,7 @@ const searchPlaces = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Search places error:', error);
+    logger.error('Search places error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -318,7 +319,7 @@ const getPlaceDetails = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Get place details error:', error);
+    logger.error('Get place details error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -355,7 +356,7 @@ const calculateDistance = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Calculate distance error:', error);
+    logger.error('Calculate distance error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -399,7 +400,7 @@ const findNearbyPlaces = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Find nearby places error:', error);
+    logger.error('Find nearby places error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -436,7 +437,7 @@ const validateServiceArea = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Validate service area error:', error);
+    logger.error('Validate service area error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -473,7 +474,7 @@ const analyzeServiceCoverage = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Analyze service coverage error:', error);
+    logger.error('Analyze service coverage error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -502,7 +503,7 @@ const testConnection = async (req, res) => {
       data: result.data
     });
   } catch (error) {
-    console.error('Test Google Maps connection error:', error);
+    logger.error('Test Google Maps connection error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

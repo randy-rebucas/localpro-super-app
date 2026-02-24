@@ -1,7 +1,10 @@
 const express = require('express');
 const { earlyRegistrationValidation, createEarlyRegistration } = require('../controllers/registrationController');
 
+const { authLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(authLimiter);
 
 /**
  * @swagger

@@ -937,7 +937,6 @@ const generateDescriptionFromTitle = async (req, res) => {
     });
   } catch (error) {
     logger.error('Description from title generator error', {
-      error: error.message,
       stack: error.stack,
       title: req.body.title
     });

@@ -12,7 +12,10 @@ const {
   getFavoritesStats
 } = require('../controllers/favoritesController');
 
+const { favoritesLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(favoritesLimiter);
 
 // All routes require authentication
 router.use(auth);

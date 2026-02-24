@@ -1,6 +1,9 @@
 const express = require('express');
 const { body, param, query } = require('express-validator');
+const { timeEntriesLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(timeEntriesLimiter);
 
 const { auth } = require('../../../src/middleware/auth');
 const {

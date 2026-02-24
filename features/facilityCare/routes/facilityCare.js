@@ -16,7 +16,10 @@ const {
   getNearbyFacilityCareServices
 } = require('../controllers/facilityCareController');
 
+const { generalLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(generalLimiter);
 
 /**
  * @swagger

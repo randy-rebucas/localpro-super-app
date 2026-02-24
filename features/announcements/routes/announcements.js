@@ -13,7 +13,10 @@ const {
   getAnnouncementStats
 } = require('../controllers/announcementController');
 
+const { announcementsLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(announcementsLimiter);
 
 // Validation middleware
 const createAnnouncementValidation = [

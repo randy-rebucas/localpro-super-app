@@ -7,7 +7,10 @@ const Escrow = require('../models/Escrow');
 const { UserSubscription } = require('../../localproPlus/models/LocalProPlus');
 const logger = require('../../../src/config/logger');
 
+const { financeLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(financeLimiter);
 
 /**
  * Webhook middleware to verify gateway signatures

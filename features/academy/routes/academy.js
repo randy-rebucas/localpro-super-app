@@ -35,7 +35,10 @@ const {
 } = require('../controllers/academyController');
 const { uploaders } = require('../../../src/config/cloudinary');
 
+const { academyLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(academyLimiter);
 
 /**
  * @swagger

@@ -23,7 +23,10 @@ const {
   getNotificationCount
 } = require('../controllers/communicationController');
 
+const { communicationLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(communicationLimiter);
 
 // All routes require authentication
 router.use(auth);

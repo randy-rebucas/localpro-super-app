@@ -109,7 +109,6 @@ const generateUserBio = async (req, res) => {
     }, 'Bio generated successfully');
   } catch (error) {
     logger.error('Bio generator error', {
-      error: error.message,
       stack: error.stack,
       userId: req.body.userId || req.user.id
     });

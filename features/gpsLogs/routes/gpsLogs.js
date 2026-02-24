@@ -1,6 +1,9 @@
 const express = require('express');
 const { body, param, query } = require('express-validator');
+const { gpsLogsLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(gpsLogsLimiter);
 
 const { auth } = require('../../../src/middleware/auth');
 const {

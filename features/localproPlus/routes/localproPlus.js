@@ -21,7 +21,10 @@ const {
   deleteManualSubscription
 } = require('../controllers/localproPlusController');
 
+const { localproPlusLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(localproPlusLimiter);
 
 /**
  * @swagger

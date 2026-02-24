@@ -156,7 +156,7 @@ const getCourses = async (req, res) => {
       data: courses
     });
   } catch (error) {
-    console.error('Get courses error:', error);
+    logger.error('Get courses error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -422,7 +422,7 @@ const createCourse = async (req, res) => {
       data: course
     });
   } catch (error) {
-    console.error('Create course error:', error);
+    logger.error('Create course error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -476,7 +476,7 @@ const updateCourse = async (req, res) => {
       data: course
     });
   } catch (error) {
-    console.error('Update course error:', error);
+    logger.error('Update course error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -586,7 +586,7 @@ const patchCourse = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Patch course error:', error);
+    logger.error('Patch course error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to update course',
@@ -630,7 +630,7 @@ const deleteCourse = async (req, res) => {
       message: 'Course deleted successfully'
     });
   } catch (error) {
-    console.error('Delete course error:', error);
+    logger.error('Delete course error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -714,7 +714,7 @@ const uploadCourseThumbnail = async (req, res) => {
       data: course.thumbnail
     });
   } catch (error) {
-    console.error('Upload course thumbnail error:', error);
+    logger.error('Upload course thumbnail error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -787,7 +787,7 @@ const uploadCourseVideo = async (req, res) => {
             publicId = req.file.originalname?.replace(/\.[^/.]+$/, '') || `video-${Date.now()}`;
           }
         } catch (parseError) {
-          console.error('Error parsing public_id from path:', parseError);
+          logger.error('Error parsing public_id from path:', { details: parseError });
           publicId = req.file.originalname?.replace(/\.[^/.]+$/, '') || `video-${Date.now()}`;
         }
       } else {
@@ -844,11 +844,10 @@ const uploadCourseVideo = async (req, res) => {
       data: video
     });
   } catch (error) {
-    console.error('Upload course video error:', error);
+    logger.error('Upload course video error:', { error: error.message, stack: error.stack });
     logger.error('Upload course video failed', {
       courseId: req.params.id,
       userId: req.user?.id,
-      error: error.message,
       stack: error.stack,
       fileInfo: req.file ? {
         originalname: req.file.originalname,
@@ -917,7 +916,7 @@ const deleteCourseVideo = async (req, res) => {
       message: 'Video deleted successfully'
     });
   } catch (error) {
-    console.error('Delete course video error:', error);
+    logger.error('Delete course video error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -987,7 +986,7 @@ const enrollInCourse = async (req, res) => {
       data: enrollment
     });
   } catch (error) {
-    console.error('Enroll in course error:', error);
+    logger.error('Enroll in course error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1049,7 +1048,7 @@ const updateCourseProgress = async (req, res) => {
       data: enrollment
     });
   } catch (error) {
-    console.error('Update course progress error:', error);
+    logger.error('Update course progress error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1132,7 +1131,7 @@ const addCourseReview = async (req, res) => {
       data: review
     });
   } catch (error) {
-    console.error('Add course review error:', error);
+    logger.error('Add course review error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1181,7 +1180,7 @@ const getMyCourses = async (req, res) => {
       data: userCourses
     });
   } catch (error) {
-    console.error('Get my courses error:', error);
+    logger.error('Get my courses error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1214,7 +1213,7 @@ const getMyCreatedCourses = async (req, res) => {
       data: courses
     });
   } catch (error) {
-    console.error('Get my created courses error:', error);
+    logger.error('Get my created courses error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1364,7 +1363,7 @@ const getCourseCategories = async (req, res) => {
       data: categories
     });
   } catch (error) {
-    console.error('Get course categories error:', error);
+    logger.error('Get course categories error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1393,7 +1392,7 @@ const getFeaturedCourses = async (req, res) => {
       data: courses
     });
   } catch (error) {
-    console.error('Get featured courses error:', error);
+    logger.error('Get featured courses error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1451,7 +1450,7 @@ const getCourseStatistics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get course statistics error:', error);
+    logger.error('Get course statistics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1483,7 +1482,7 @@ const createCertification = async (req, res) => {
     res.status(201).json({ success: true, data: cert, message: 'Certification created' });
   } catch (error) {
     logger.error('Create certification error:', error);
-    res.status(500).json({ success: false, message: 'Failed to create certification', error: error.message });
+    res.status(500).json({ success: false, message: 'Failed to create certification'});
   }
 };
 
@@ -1498,7 +1497,7 @@ const updateCertification = async (req, res) => {
     res.json({ success: true, data: cert, message: 'Certification updated' });
   } catch (error) {
     logger.error('Update certification error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update certification', error: error.message });
+    res.status(500).json({ success: false, message: 'Failed to update certification'});
   }
 };
 
@@ -1513,7 +1512,7 @@ const deleteCertification = async (req, res) => {
     res.json({ success: true, message: 'Certification deleted' });
   } catch (error) {
     logger.error('Delete certification error:', error);
-    res.status(500).json({ success: false, message: 'Failed to delete certification', error: error.message });
+    res.status(500).json({ success: false, message: 'Failed to delete certification'});
   }
 };
 
@@ -1566,7 +1565,7 @@ const updateEnrollmentStatus = async (req, res) => {
     res.json({ success: true, data: enrollment, message: 'Enrollment status updated' });
   } catch (error) {
     logger.error('Update enrollment status error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update enrollment status', error: error.message });
+    res.status(500).json({ success: false, message: 'Failed to update enrollment status'});
   }
 };
 
@@ -1581,7 +1580,7 @@ const deleteEnrollment = async (req, res) => {
     res.json({ success: true, message: 'Enrollment deleted' });
   } catch (error) {
     logger.error('Delete enrollment error:', error);
-    res.status(500).json({ success: false, message: 'Failed to delete enrollment', error: error.message });
+    res.status(500).json({ success: false, message: 'Failed to delete enrollment'});
   }
 };
 

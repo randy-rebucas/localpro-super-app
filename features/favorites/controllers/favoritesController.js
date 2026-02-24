@@ -1,4 +1,5 @@
 const Favorite = require('../models/Favorite');
+const { logger } = require('../../../src/utils/logger');
 const { Service } = require('../../marketplace/models/Marketplace');
 const Provider = require('../../provider/models/Provider');
 const { Course } = require('../../academy/models/Academy');
@@ -139,7 +140,7 @@ const addFavorite = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Add favorite error:', error);
+    logger.error('Add favorite error:', { error: error.message, stack: error.stack });
     
     // Handle duplicate key error (unique constraint)
     if (error.code === 11000) {
@@ -195,7 +196,7 @@ const removeFavorite = async (req, res) => {
       message: 'Item removed from favorites'
     });
   } catch (error) {
-    console.error('Remove favorite error:', error);
+    logger.error('Remove favorite error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -247,7 +248,7 @@ const removeFavoriteByItem = async (req, res) => {
       message: 'Item removed from favorites'
     });
   } catch (error) {
-    console.error('Remove favorite by item error:', error);
+    logger.error('Remove favorite by item error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -325,7 +326,7 @@ const getFavorites = async (req, res) => {
       data: populatedFavorites
     });
   } catch (error) {
-    console.error('Get favorites error:', error);
+    logger.error('Get favorites error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -379,7 +380,7 @@ const getFavoriteById = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get favorite by ID error:', error);
+    logger.error('Get favorite by ID error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -419,7 +420,7 @@ const checkFavorite = async (req, res) => {
       data: favorite || null
     });
   } catch (error) {
-    console.error('Check favorite error:', error);
+    logger.error('Check favorite error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -482,7 +483,7 @@ const updateFavorite = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update favorite error:', error);
+    logger.error('Update favorite error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -551,7 +552,7 @@ const getFavoritesByType = async (req, res) => {
       data: populatedFavorites
     });
   } catch (error) {
-    console.error('Get favorites by type error:', error);
+    logger.error('Get favorites by type error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -598,7 +599,7 @@ const getFavoritesStats = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get favorites stats error:', error);
+    logger.error('Get favorites stats error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

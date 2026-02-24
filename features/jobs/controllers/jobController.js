@@ -276,7 +276,6 @@ const getJobs = async (req, res) => {
 // @access  Public
 const getJob = async (req, res) => {
   try {
-    console.log('Get job request received for ID:', req.params.id);
     // Validate ObjectId format
     if (!validateObjectId(req.params.id)) {
       return sendValidationError(res, [{
@@ -315,7 +314,6 @@ const createJob = async (req, res) => {
       ...req.body,
       employer: req.user.id
     };
-    console.log('Creating job with data:', jobData);
     // Geocode company location if address is provided
     if (jobData.company?.location?.address) {
       try {
@@ -343,7 +341,7 @@ const createJob = async (req, res) => {
           }
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', { details: geocodeError });
         // Continue without geocoding if it fails
       }
     }
@@ -370,7 +368,7 @@ const createJob = async (req, res) => {
       data: job
     });
   } catch (error) {
-    console.error('Create job error:', error);
+    logger.error('Create job error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -430,7 +428,7 @@ const updateJob = async (req, res) => {
           }
         }
       } catch (geocodeError) {
-        console.error('Geocoding error:', geocodeError);
+        logger.error('Geocoding error:', { details: geocodeError });
         // Continue without geocoding if it fails
       }
     }
@@ -446,7 +444,7 @@ const updateJob = async (req, res) => {
       data: job
     });
   } catch (error) {
-    console.error('Update job error:', error);
+    logger.error('Update job error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -485,7 +483,7 @@ const deleteJob = async (req, res) => {
       message: 'Job deleted successfully'
     });
   } catch (error) {
-    console.error('Delete job error:', error);
+    logger.error('Delete job error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -597,7 +595,7 @@ const applyForJob = async (req, res) => {
         );
       }
     } catch (emailError) {
-      console.error('Failed to send application notification email:', emailError);
+      logger.error('Failed to send application notification email:', { details: emailError });
       // Don't fail the application if email fails
     }
 
@@ -607,7 +605,7 @@ const applyForJob = async (req, res) => {
       ...(warningMessage && { warning: warningMessage })
     });
   } catch (error) {
-    console.error('Apply for job error:', error);
+    logger.error('Apply for job error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -662,7 +660,7 @@ const getJobApplications = async (req, res) => {
       data: paginatedApplications
     });
   } catch (error) {
-    console.error('Get job applications error:', error);
+    logger.error('Get job applications error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -732,7 +730,7 @@ const updateApplicationStatus = async (req, res) => {
           } : null
         );
       } catch (blockError) {
-        console.warn('Failed to auto-block time for hired job:', blockError);
+        logger.warn('Failed to auto-block time for hired job:', { details: blockError });
         // Don't fail the status update if blocking fails
       }
     }
@@ -788,7 +786,7 @@ const updateApplicationStatus = async (req, res) => {
         );
       }
     } catch (emailError) {
-      console.error('Failed to send status update email:', emailError);
+      logger.error('Failed to send status update email:', { details: emailError });
     }
 
     res.status(200).json({
@@ -797,7 +795,7 @@ const updateApplicationStatus = async (req, res) => {
       data: application
     });
   } catch (error) {
-    console.error('Update application status error:', error);
+    logger.error('Update application status error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -866,7 +864,7 @@ const getMyApplications = async (req, res) => {
       data: paginatedApplications
     });
   } catch (error) {
-    console.error('Get my applications error:', error);
+    logger.error('Get my applications error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -924,7 +922,7 @@ const withdrawApplication = async (req, res) => {
           );
         }
       } catch (emailError) {
-        console.error('Failed to send withdrawal notification email:', emailError);
+        logger.error('Failed to send withdrawal notification email:', { details: emailError });
         // Don't fail the withdrawal if email fails
       }
 
@@ -950,7 +948,7 @@ const withdrawApplication = async (req, res) => {
       throw applicationError;
     }
   } catch (error) {
-    console.error('Withdraw application error:', error);
+    logger.error('Withdraw application error:', { error: error.message, stack: error.stack });
     return sendServerError(res, error, 'Failed to withdraw application', 'WITHDRAW_APPLICATION_ERROR');
   }
 };
@@ -986,7 +984,7 @@ const getMyJobs = async (req, res) => {
       data: jobs
     });
   } catch (error) {
-    console.error('Get my jobs error:', error);
+    logger.error('Get my jobs error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1081,7 +1079,7 @@ const uploadCompanyLogo = async (req, res) => {
       data: job.company.logo
     });
   } catch (error) {
-    console.error('Upload company logo error:', error);
+    logger.error('Upload company logo error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1138,7 +1136,7 @@ const getJobStats = async (req, res) => {
       data: stats
     });
   } catch (error) {
-    console.error('Get job stats error:', error);
+    logger.error('Get job stats error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1167,7 +1165,7 @@ const getJobCategories = async (req, res) => {
       count: formattedCategories.length
     });
   } catch (error) {
-    console.error('Get job categories error:', error);
+    logger.error('Get job categories error:', { error: error.message, stack: error.stack });
     return sendServerError(res, 'Failed to retrieve job categories');
   }
 };
@@ -1243,7 +1241,7 @@ const searchJobs = async (req, res) => {
       data: jobs
     });
   } catch (error) {
-    console.error('Search jobs error:', error);
+    logger.error('Search jobs error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

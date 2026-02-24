@@ -8,10 +8,11 @@
  *   - Sending the appropriate HTTP response
  */
 const privacyService = require('../services/privacyService');
+const logger = require('../../../src/config/logger');
 
 // ─── Generic error handler ───────────────────────────────────────────────────
 const handleError = (res, error, defaultMessage) => {
-  console.error(`[privacyController] ${defaultMessage}:`, error.message);
+  logger.error(`[privacyController] ${defaultMessage}:`);
   const status = error.status || 500;
   res.status(status).json({ success: false, message: error.message || defaultMessage, ...(error.data && { data: error.data }) });
 };
@@ -200,8 +201,8 @@ const getConsentStatus = async (req, res) => {
       data: consentStatus
     });
   } catch (error) {
-    console.error('Get consent status error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get consent status', error: error.message });
+    logger.error('Get consent status error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to get consent status'});
   }
 };
 
@@ -234,8 +235,8 @@ const giveGdprConsent = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Give GDPR consent error:', error);
-    res.status(500).json({ success: false, message: 'Failed to record consent', error: error.message });
+    logger.error('Give GDPR consent error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to record consent'});
   }
 };
 
@@ -260,8 +261,8 @@ const withdrawGdprConsent = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Withdraw GDPR consent error:', error);
-    res.status(500).json({ success: false, message: 'Failed to withdraw consent', error: error.message });
+    logger.error('Withdraw GDPR consent error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to withdraw consent'});
   }
 };
 
@@ -290,8 +291,8 @@ const updateMarketingConsent = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update marketing consent error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update marketing preferences', error: error.message });
+    logger.error('Update marketing consent error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to update marketing preferences'});
   }
 };
 
@@ -319,8 +320,8 @@ const setDoNotSell = async (req, res) => {
       data: { doNotSell }
     });
   } catch (error) {
-    console.error('Set Do Not Sell error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update preference', error: error.message });
+    logger.error('Set Do Not Sell error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to update preference'});
   }
 };
 
@@ -348,8 +349,8 @@ const setDoNotTrack = async (req, res) => {
       data: { doNotTrack }
     });
   } catch (error) {
-    console.error('Set Do Not Track error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update preference', error: error.message });
+    logger.error('Set Do Not Track error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to update preference'});
   }
 };
 
@@ -401,8 +402,8 @@ const requestAccountDeletion = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Request account deletion error:', error);
-    res.status(500).json({ success: false, message: 'Failed to request account deletion', error: error.message });
+    logger.error('Request account deletion error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to request account deletion'});
   }
 };
 
@@ -423,7 +424,7 @@ const cancelAccountDeletion = async (req, res) => {
       message: 'Account deletion cancelled'
     });
   } catch (error) {
-    console.error('Cancel account deletion error:', error);
+    logger.error('Cancel account deletion error:', { error: error.message, stack: error.stack });
 
     if (error.message === 'No deletion request found') {
       return res.status(400).json({ success: false, message: error.message });
@@ -432,7 +433,7 @@ const cancelAccountDeletion = async (req, res) => {
       return res.status(400).json({ success: false, message: error.message });
     }
 
-    res.status(500).json({ success: false, message: 'Failed to cancel account deletion', error: error.message });
+    res.status(500).json({ success: false, message: 'Failed to cancel account deletion'});
   }
 };
 
@@ -453,8 +454,8 @@ const getDeletionStatus = async (req, res) => {
       data: status
     });
   } catch (error) {
-    console.error('Get deletion status error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get deletion status', error: error.message });
+    logger.error('Get deletion status error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to get deletion status'});
   }
 };
 
@@ -480,8 +481,8 @@ const exportUserData = async (req, res) => {
       data: exportData
     });
   } catch (error) {
-    console.error('Export user data error:', error);
-    res.status(500).json({ success: false, message: 'Failed to export user data', error: error.message });
+    logger.error('Export user data error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to export user data'});
   }
 };
 
@@ -504,8 +505,8 @@ const downloadUserData = async (req, res) => {
 
     res.send(JSON.stringify(exportData, null, 2));
   } catch (error) {
-    console.error('Download user data error:', error);
-    res.status(500).json({ success: false, message: 'Failed to download user data', error: error.message });
+    logger.error('Download user data error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to download user data'});
   }
 };
 
@@ -544,8 +545,8 @@ const acceptAgreement = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Accept agreement error:', error);
-    res.status(500).json({ success: false, message: 'Failed to accept agreement', error: error.message });
+    logger.error('Accept agreement error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to accept agreement'});
   }
 };
 
@@ -569,8 +570,8 @@ const getAcceptedAgreements = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get accepted agreements error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get agreements', error: error.message });
+    logger.error('Get accepted agreements error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to get agreements'});
   }
 };
 
@@ -603,8 +604,8 @@ const checkAgreement = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Check agreement error:', error);
-    res.status(500).json({ success: false, message: 'Failed to check agreement', error: error.message });
+    logger.error('Check agreement error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to check agreement'});
   }
 };
 
@@ -639,8 +640,8 @@ const getPrivacySettings = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get privacy settings error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get privacy settings', error: error.message });
+    logger.error('Get privacy settings error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to get privacy settings'});
   }
 };
 

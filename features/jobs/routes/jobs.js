@@ -67,7 +67,10 @@ const {
 } = require('../controllers/jobController');
 const { uploaders } = require('../../../src/config/cloudinary');
 
+const { jobsLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(jobsLimiter);
 
 // ============================================
 // PUBLIC ROUTES (No Auth Required)

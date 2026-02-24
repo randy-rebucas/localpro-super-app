@@ -1,4 +1,5 @@
 const { Conversation, Message, Notification } = require('../models/Communication');
+const { logger } = require('../../../src/utils/logger');
 const EmailService = require('../../../src/services/emailService');
 const TwilioService = require('../../../src/services/twilioService');
 const CloudinaryService = require('../../../src/services/cloudinaryService');
@@ -38,7 +39,7 @@ const getConversations = async (req, res) => {
       data: conversations
     });
   } catch (error) {
-    console.error('Get conversations error:', error);
+    logger.error('Get conversations error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -100,7 +101,7 @@ const getConversation = async (req, res) => {
       data: conversation
     });
   } catch (error) {
-    console.error('Get conversation error:', error);
+    logger.error('Get conversation error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -179,7 +180,7 @@ const createConversation = async (req, res) => {
       data: conversation
     });
   } catch (error) {
-    console.error('Create conversation error:', error);
+    logger.error('Create conversation error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Database query error: ' + error.message
@@ -245,7 +246,7 @@ const getMessages = async (req, res) => {
       data: messages
     });
   } catch (error) {
-    console.error('Get messages error:', error);
+    logger.error('Get messages error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -261,11 +262,8 @@ const sendMessage = async (req, res) => {
     const { content = '', type } = req.body;
     
     // Debug: Check what multer provides
-    console.log('req.files:', req.files ? req.files.length : 'undefined');
-    console.log('req.file:', req.file ? 'exists' : 'undefined');
     
     const files = req.files || (req.file ? [req.file] : []);
-    console.log('Files array length:', files.length);
     
     // Parse metadata if it's a string (from form-data)
     let metadata = {};
@@ -360,7 +358,7 @@ const sendMessage = async (req, res) => {
         );
 
         if (!uploadResult.success) {
-          console.error('Upload failed:', uploadResult.errors);
+          logger.error('Upload failed:', { details: uploadResult.errors });
           return res.status(500).json({
             success: false,
             message: 'Failed to upload files',
@@ -369,7 +367,7 @@ const sendMessage = async (req, res) => {
         }
 
         if (uploadResult.failed > 0) {
-          console.warn('Some files failed to upload:', uploadResult.errors);
+          logger.warn('Some files failed to upload:', { details: uploadResult.errors });
           return res.status(500).json({
             success: false,
             message: 'Failed to upload some files',
@@ -438,7 +436,7 @@ const sendMessage = async (req, res) => {
             messagePreview: content
           })
         )
-      ).catch(err => console.error('Error sending message notifications:', err));
+      ).catch(err => logger.error('Error sending message notifications:', { error: err.message }));
 
       // Trigger webhook for message received (async, don't block response)
       const webhookService = require('../services/webhookService');
@@ -454,7 +452,7 @@ const sendMessage = async (req, res) => {
         otherParticipants.map(recipientId =>
           webhookService.triggerMessageReceived(messageData, recipientId)
         )
-      ).catch(err => console.error('Error triggering message webhooks:', err));
+      ).catch(err => logger.error('Error triggering message webhooks:', { error: err.message }));
     }
 
     res.status(201).json({
@@ -463,7 +461,7 @@ const sendMessage = async (req, res) => {
       data: message
     });
   } catch (error) {
-    console.error('Send message error:', error);
+    logger.error('Send message error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -514,7 +512,7 @@ const markAsRead = async (req, res) => {
       message: 'Messages marked as read'
     });
   } catch (error) {
-    console.error('Mark as read error:', error);
+    logger.error('Mark as read error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -555,7 +553,7 @@ const deleteConversation = async (req, res) => {
       message: 'Conversation deleted successfully'
     });
   } catch (error) {
-    console.error('Delete conversation error:', error);
+    logger.error('Delete conversation error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -597,7 +595,7 @@ const sendEmailNotification = async (req, res) => {
       message: 'Email sent successfully'
     });
   } catch (error) {
-    console.error('Send email notification error:', error);
+    logger.error('Send email notification error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -634,7 +632,7 @@ const sendSMSNotification = async (req, res) => {
       message: 'SMS sent successfully'
     });
   } catch (error) {
-    console.error('Send SMS notification error:', error);
+    logger.error('Send SMS notification error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -665,7 +663,7 @@ const getUnreadCount = async (req, res) => {
       data: { unreadCount }
     });
   } catch (error) {
-    console.error('Get unread count error:', error);
+    logger.error('Get unread count error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -719,7 +717,7 @@ const searchConversations = async (req, res) => {
       data: conversations
     });
   } catch (error) {
-    console.error('Search conversations error:', error);
+    logger.error('Search conversations error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -765,7 +763,7 @@ const getConversationWithUser = async (req, res) => {
       data: conversation
     });
   } catch (error) {
-    console.error('Get conversation with user error:', error);
+    logger.error('Get conversation with user error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -833,7 +831,7 @@ const updateMessage = async (req, res) => {
       data: message
     });
   } catch (error) {
-    console.error('Update message error:', error);
+    logger.error('Update message error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -890,7 +888,7 @@ const deleteMessage = async (req, res) => {
       message: 'Message deleted successfully'
     });
   } catch (error) {
-    console.error('Delete message error:', error);
+    logger.error('Delete message error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -940,7 +938,7 @@ const getUserNotifications = async (req, res) => {
       data: notifications
     });
   } catch (error) {
-    console.error('Get user notifications error:', error);
+    logger.error('Get user notifications error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -984,7 +982,7 @@ const markNotificationAsRead = async (req, res) => {
       data: notification
     });
   } catch (error) {
-    console.error('Mark notification as read error:', error);
+    logger.error('Mark notification as read error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1016,7 +1014,7 @@ const markAllNotificationsAsRead = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Mark all notifications as read error:', error);
+    logger.error('Mark all notifications as read error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1055,7 +1053,7 @@ const deleteNotification = async (req, res) => {
       message: 'Notification deleted successfully'
     });
   } catch (error) {
-    console.error('Delete notification error:', error);
+    logger.error('Delete notification error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -1089,7 +1087,7 @@ const getNotificationCount = async (req, res) => {
       data: { count }
     });
   } catch (error) {
-    console.error('Get notification count error:', error);
+    logger.error('Get notification count error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

@@ -47,7 +47,7 @@ const createEscrow = async (req, res) => {
     logger.error('Create escrow error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error creating escrow'
+      message: 'Error creating escrow'
     });
   }
 };
@@ -80,7 +80,7 @@ const capturePayment = async (req, res) => {
     logger.error('Capture payment error:', error);
     res.status(400).json({
       success: false,
-      message: error.message || 'Error capturing payment'
+      message: 'Error capturing payment'
     });
   }
 };
@@ -114,7 +114,7 @@ const refundPayment = async (req, res) => {
     logger.error('Refund payment error:', error);
     res.status(400).json({
       success: false,
-      message: error.message || 'Error refunding payment'
+      message: 'Error refunding payment'
     });
   }
 };
@@ -150,7 +150,7 @@ const processPayout = async (req, res) => {
     logger.error('Process payout error:', error);
     res.status(400).json({
       success: false,
-      message: error.message || 'Error processing payout'
+      message: 'Error processing payout'
     });
   }
 };
@@ -184,7 +184,7 @@ const uploadProofOfWork = async (req, res) => {
     logger.error('Upload proof error:', error);
     res.status(400).json({
       success: false,
-      message: error.message || 'Error uploading proof'
+      message: 'Error uploading proof'
     });
   }
 };
@@ -218,7 +218,7 @@ const initiateDispute = async (req, res) => {
     logger.error('Initiate dispute error:', error);
     res.status(400).json({
       success: false,
-      message: error.message || 'Error initiating dispute'
+      message: 'Error initiating dispute'
     });
   }
 };
@@ -252,7 +252,7 @@ const resolveDispute = async (req, res) => {
     logger.error('Resolve dispute error:', error);
     res.status(400).json({
       success: false,
-      message: error.message || 'Error resolving dispute'
+      message: 'Error resolving dispute'
     });
   }
 };
@@ -283,7 +283,7 @@ const getEscrowDetails = async (req, res) => {
     logger.error('Get escrow details error:', error);
     res.status(404).json({
       success: false,
-      message: error.message || 'Escrow not found'
+      message: 'Escrow not found'
     });
   }
 };
@@ -326,7 +326,7 @@ const getEscrows = async (req, res) => {
     logger.error('Get escrows error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error fetching escrows'
+      message: 'Error fetching escrows'
     });
   }
 };
@@ -360,7 +360,7 @@ const getAllEscrows = async (req, res) => {
     logger.error('Get all escrows error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error fetching escrows'
+      message: 'Error fetching escrows'
     });
   }
 };
@@ -407,7 +407,7 @@ const getEscrowTransactions = async (req, res) => {
     logger.error('Get escrow transactions error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error fetching transactions'
+      message: 'Error fetching transactions'
     });
   }
 };
@@ -447,7 +447,7 @@ const getPayoutDetails = async (req, res) => {
     logger.error('Get payout details error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error fetching payout'
+      message: 'Error fetching payout'
     });
   }
 };
@@ -495,7 +495,7 @@ const getEscrowStats = async (req, res) => {
     logger.error('Get escrow stats error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error fetching statistics'
+      message: 'Error fetching statistics'
     });
   }
 };

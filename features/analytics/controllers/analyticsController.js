@@ -177,7 +177,7 @@ const getAnalyticsOverview = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get analytics overview error:', error);
+    logger.error('Get analytics overview error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -285,7 +285,7 @@ const getUserAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get user analytics error:', error);
+    logger.error('Get user analytics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -549,7 +549,7 @@ const getMarketplaceAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get marketplace analytics error:', error);
+    logger.error('Get marketplace analytics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
         success: false,
       message: 'Server error'
@@ -672,7 +672,7 @@ const getJobAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get job analytics error:', error);
+    logger.error('Get job analytics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -801,7 +801,7 @@ const getReferralAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get referral analytics error:', error);
+    logger.error('Get referral analytics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -880,7 +880,7 @@ const getAgencyAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get agency analytics error:', error);
+    logger.error('Get agency analytics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -915,7 +915,7 @@ const trackEvent = async (req, res) => {
       data: analytics
     });
   } catch (error) {
-    console.error('Track event error:', error);
+    logger.error('Track event error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -951,7 +951,7 @@ const getCustomAnalytics = async (req, res) => {
       data: analytics
     });
   } catch (error) {
-    console.error('Get custom analytics error:', error);
+    logger.error('Get custom analytics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

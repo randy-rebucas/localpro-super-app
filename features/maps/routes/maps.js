@@ -1,6 +1,9 @@
 // Google Maps routes
 const express = require('express');
+const { mapsLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(mapsLimiter);
 const {
   geocodeAddress,
   reverseGeocode,

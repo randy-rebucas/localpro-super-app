@@ -1,4 +1,5 @@
 const { AdCampaign: Ads } = require('../models/Ads');
+const { logger } = require('../../../src/utils/logger');
 const CloudinaryService = require('../../../src/services/cloudinaryService');
 
 // @desc    Get all ads
@@ -63,7 +64,7 @@ const getAds = async (req, res) => {
       data: ads
     });
   } catch (error) {
-    console.error('Get ads error:', error);
+    logger.error('Get ads error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -103,7 +104,7 @@ const getAd = async (req, res) => {
       data: ad
     });
   } catch (error) {
-    console.error('Get ad error:', error);
+    logger.error('Get ad error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -230,7 +231,7 @@ const createAd = async (req, res) => {
       data: ad
     });
   } catch (error) {
-    console.error('Create ad error:', error);
+    logger.error('Create ad error:', { error: error.message, stack: error.stack });
     
     // Handle validation errors
     if (error.name === 'ValidationError') {
@@ -298,7 +299,7 @@ const updateAd = async (req, res) => {
       data: ad
     });
   } catch (error) {
-    console.error('Update ad error:', error);
+    logger.error('Update ad error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -337,7 +338,7 @@ const deleteAd = async (req, res) => {
       message: 'Ad deleted successfully'
     });
   } catch (error) {
-    console.error('Delete ad error:', error);
+    logger.error('Delete ad error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -404,7 +405,7 @@ const uploadAdImages = async (req, res) => {
       data: successfulUploads
     });
   } catch (error) {
-    console.error('Upload ad images error:', error);
+    logger.error('Upload ad images error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -457,7 +458,7 @@ const deleteAdImage = async (req, res) => {
       message: 'Image deleted successfully'
     });
   } catch (error) {
-    console.error('Delete ad image error:', error);
+    logger.error('Delete ad image error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -489,7 +490,7 @@ const getMyAds = async (req, res) => {
       data: ads
     });
   } catch (error) {
-    console.error('Get my ads error:', error);
+    logger.error('Get my ads error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -533,7 +534,7 @@ const getAdAnalytics = async (req, res) => {
       data: analytics
     });
   } catch (error) {
-    console.error('Get ad analytics error:', error);
+    logger.error('Get ad analytics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -564,7 +565,7 @@ const trackAdClick = async (req, res) => {
       message: 'Click tracked successfully'
     });
   } catch (error) {
-    console.error('Track ad click error:', error);
+    logger.error('Track ad click error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -614,7 +615,7 @@ const getAdCategories = async (req, res) => {
       data: allCategories
     });
   } catch (error) {
-    console.error('Get ad categories error:', error);
+    logger.error('Get ad categories error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -644,7 +645,7 @@ const getFeaturedAds = async (req, res) => {
       data: ads
     });
   } catch (error) {
-    console.error('Get featured ads error:', error);
+    logger.error('Get featured ads error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -702,7 +703,7 @@ const promoteAd = async (req, res) => {
       data: ad.promotion
     });
   } catch (error) {
-    console.error('Promote ad error:', error);
+    logger.error('Promote ad error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -727,7 +728,7 @@ const getAdEnumValues = async (req, res) => {
       data: enumValues
     });
   } catch (error) {
-    console.error('Get ad enum values error:', error);
+    logger.error('Get ad enum values error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -804,7 +805,7 @@ const getAdStatistics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get ad statistics error:', error);
+    logger.error('Get ad statistics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -859,7 +860,7 @@ const approveAd = async (req, res) => {
       data: ad
     });
   } catch (error) {
-    console.error('Approve ad error:', error);
+    logger.error('Approve ad error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -917,7 +918,7 @@ const rejectAd = async (req, res) => {
       data: ad
     });
   } catch (error) {
-    console.error('Reject ad error:', error);
+    logger.error('Reject ad error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -950,7 +951,7 @@ const getPendingAds = async (req, res) => {
       data: ads
     });
   } catch (error) {
-    console.error('Get pending ads error:', error);
+    logger.error('Get pending ads error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

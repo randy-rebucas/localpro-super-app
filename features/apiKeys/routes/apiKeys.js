@@ -1,6 +1,9 @@
 const express = require('express');
 const { body, param, query } = require('express-validator');
+const { apiKeysLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(apiKeysLimiter);
 
 const { auth, authorize } = require('../../../src/middleware/auth');
 const {

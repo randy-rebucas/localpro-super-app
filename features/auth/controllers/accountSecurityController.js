@@ -1,4 +1,5 @@
 const User = require('../../../src/models/User');
+const logger = require('../../../src/config/logger');
 const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
 const SecurityAuditLog = require('../../../src/models/SecurityAuditLog');
@@ -66,8 +67,8 @@ const setup2FA = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid 2FA method' });
     }
   } catch (error) {
-    console.error('Setup 2FA error:', error);
-    res.status(500).json({ success: false, message: 'Failed to setup 2FA', error: error.message });
+    logger.error('Setup 2FA error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to setup 2FA'});
   }
 };
 
@@ -120,8 +121,8 @@ const verify2FA = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Verify 2FA error:', error);
-    res.status(500).json({ success: false, message: 'Failed to verify 2FA', error: error.message });
+    logger.error('Verify 2FA error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to verify 2FA'});
   }
 };
 
@@ -176,8 +177,8 @@ const disable2FA = async (req, res) => {
       message: '2FA has been disabled successfully'
     });
   } catch (error) {
-    console.error('Disable 2FA error:', error);
-    res.status(500).json({ success: false, message: 'Failed to disable 2FA', error: error.message });
+    logger.error('Disable 2FA error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to disable 2FA'});
   }
 };
 
@@ -198,8 +199,8 @@ const get2FAStatus = async (req, res) => {
       data: status
     });
   } catch (error) {
-    console.error('Get 2FA status error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get 2FA status', error: error.message });
+    logger.error('Get 2FA status error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to get 2FA status'});
   }
 };
 
@@ -240,8 +241,8 @@ const regenerateBackupCodes = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Regenerate backup codes error:', error);
-    res.status(500).json({ success: false, message: 'Failed to regenerate backup codes', error: error.message });
+    logger.error('Regenerate backup codes error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to regenerate backup codes'});
   }
 };
 
@@ -269,8 +270,8 @@ const getActiveSessions = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get sessions error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get sessions', error: error.message });
+    logger.error('Get sessions error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to get sessions'});
   }
 };
 
@@ -293,8 +294,8 @@ const revokeSession = async (req, res) => {
       message: 'Session revoked successfully'
     });
   } catch (error) {
-    console.error('Revoke session error:', error);
-    res.status(500).json({ success: false, message: 'Failed to revoke session', error: error.message });
+    logger.error('Revoke session error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to revoke session'});
   }
 };
 
@@ -318,8 +319,8 @@ const revokeAllSessions = async (req, res) => {
       message: exceptCurrent ? 'All other sessions revoked' : 'All sessions revoked'
     });
   } catch (error) {
-    console.error('Revoke all sessions error:', error);
-    res.status(500).json({ success: false, message: 'Failed to revoke sessions', error: error.message });
+    logger.error('Revoke all sessions error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to revoke sessions'});
   }
 };
 
@@ -365,8 +366,8 @@ const requestPasswordReset = async (req, res) => {
 
     res.json(responseData);
   } catch (error) {
-    console.error('Request password reset error:', error);
-    res.status(500).json({ success: false, message: 'Failed to request password reset', error: error.message });
+    logger.error('Request password reset error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to request password reset'});
   }
 };
 
@@ -396,8 +397,8 @@ const validateResetToken = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Validate reset token error:', error);
-    res.status(500).json({ success: false, message: 'Failed to validate token', error: error.message });
+    logger.error('Validate reset token error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to validate token'});
   }
 };
 
@@ -440,8 +441,8 @@ const resetPassword = async (req, res) => {
       message: 'Password has been reset successfully. Please log in with your new password.'
     });
   } catch (error) {
-    console.error('Reset password error:', error);
-    res.status(500).json({ success: false, message: 'Failed to reset password', error: error.message });
+    logger.error('Reset password error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to reset password'});
   }
 };
 
@@ -490,8 +491,8 @@ const changePassword = async (req, res) => {
       message: 'Password changed successfully'
     });
   } catch (error) {
-    console.error('Change password error:', error);
-    res.status(500).json({ success: false, message: 'Failed to change password', error: error.message });
+    logger.error('Change password error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to change password'});
   }
 };
 
@@ -519,8 +520,8 @@ const getTrustedDevices = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get trusted devices error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get trusted devices', error: error.message });
+    logger.error('Get trusted devices error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to get trusted devices'});
   }
 };
 
@@ -553,8 +554,8 @@ const addTrustedDevice = async (req, res) => {
       message: 'Device added to trusted devices'
     });
   } catch (error) {
-    console.error('Add trusted device error:', error);
-    res.status(500).json({ success: false, message: 'Failed to add trusted device', error: error.message });
+    logger.error('Add trusted device error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to add trusted device'});
   }
 };
 
@@ -577,8 +578,8 @@ const removeTrustedDevice = async (req, res) => {
       message: 'Device removed from trusted devices'
     });
   } catch (error) {
-    console.error('Remove trusted device error:', error);
-    res.status(500).json({ success: false, message: 'Failed to remove trusted device', error: error.message });
+    logger.error('Remove trusted device error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to remove trusted device'});
   }
 };
 
@@ -608,8 +609,8 @@ const getLoginHistory = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get login history error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get login history', error: error.message });
+    logger.error('Get login history error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to get login history'});
   }
 };
 
@@ -652,8 +653,8 @@ const getSecurityOverview = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get security overview error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get security overview', error: error.message });
+    logger.error('Get security overview error:', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Failed to get security overview'});
   }
 };
 

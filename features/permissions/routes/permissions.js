@@ -16,7 +16,10 @@ const {
   getActions
 } = require('../controllers/permissionController');
 
+const { permissionsLimiter } = require('../../../src/middleware/rateLimiter');
+
 const router = express.Router();
+router.use(permissionsLimiter);
 
 // Apply authentication to all routes
 router.use(auth);
