@@ -1603,6 +1603,45 @@ const pub = await client.settings.getPublicAppSettings();
 
 ---
 
+## Search API
+
+Cross-entity full-text search across users, jobs, marketplace services, supplies, academy courses, rental items, and agencies. Results are aggregated in parallel and ranked by relevance. All routes are rate-limited (`searchLimiter`: 60 req/min).
+
+```javascript
+// Search across all entity types
+const results = await client.search.search({
+  q: 'plumbing',
+  location: 'Manila',
+  sortBy: 'rating',
+  page: 1
+});
+
+// Autocomplete suggestions
+const suggestions = await client.search.getSuggestions({ q: 'clean' });
+
+// Search providers only
+const providers = await client.search.searchByType('users', { q: 'electrician', rating: 4 });
+
+// Advanced search with extra filters
+const advanced = await client.search.advancedSearch({
+  q: 'carpenter',
+  verified: true,
+  availability: 'available'
+});
+
+// Public — no auth required
+const popular  = await client.search.getPopular();
+const cats     = await client.search.getCategories();
+const trending = await client.search.getTrending({ period: 'week' });
+
+// Track analytics (auth required)
+await client.search.trackAnalytics({ query: 'plumbing', results: 12 });
+```
+
+> **Further reading:** [docs/SEARCH_FEATURE.md](./docs/SEARCH_FEATURE.md)
+
+---
+
 ## API Authentication
 
 The SDK uses API key authentication. You need to:

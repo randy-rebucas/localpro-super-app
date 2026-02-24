@@ -9,14 +9,15 @@ const { auth: authenticate } = require('../../../src/middleware/auth');
 const { searchLimiter } = require('../../../src/middleware/rateLimiter');
 const { auditGeneralOperations } = require('../../../src/middleware/auditLogger');
 const logger = require('../../../src/config/logger');
+const { sendServerError } = require('../../../src/utils/responseHelper');
 
 router.get('/', searchLimiter, globalSearch);
 router.get('/suggestions', searchLimiter, getSearchSuggestions);
-router.get('/popular', getPopularSearches);
+router.get('/popular', searchLimiter, getPopularSearches);
 router.get('/advanced', searchLimiter, globalSearch);
-router.get('/entities/:type', globalSearch);
+router.get('/entities/:type', searchLimiter, globalSearch);
 
-router.get('/categories', (req, res) => {
+router.get('/categories', searchLimiter, (req, res) => {
   try {
     const categories = {
       services: [
@@ -66,15 +67,12 @@ router.get('/categories', (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get categories',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    logger.error('Failed to get search categories', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to get categories', 'GET_SEARCH_CATEGORIES_ERROR');
   }
 });
 
-router.get('/locations', (req, res) => {
+router.get('/locations', searchLimiter, (req, res) => {
   try {
     const { q: query } = req.query;
     const popularLocations = [];
@@ -95,15 +93,12 @@ router.get('/locations', (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get locations',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    logger.error('Failed to get search locations', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to get locations', 'GET_SEARCH_LOCATIONS_ERROR');
   }
 });
 
-router.get('/trending', (req, res) => {
+router.get('/trending', searchLimiter, (req, res) => {
   try {
     const { period = 'week' } = req.query;
     const trendingSearches = [
@@ -125,15 +120,12 @@ router.get('/trending', (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get trending searches',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    logger.error('Failed to get trending searches', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to get trending searches', 'GET_TRENDING_SEARCHES_ERROR');
   }
 });
 
-router.post('/analytics', authenticate, auditGeneralOperations, (req, res) => {
+router.post('/analytics', searchLimiter, authenticate, auditGeneralOperations, (req, res) => {
   try {
     const { query, results, filters, userId, timestamp } = req.body;
 
@@ -150,11 +142,8 @@ router.post('/analytics', authenticate, auditGeneralOperations, (req, res) => {
       message: 'Search analytics tracked successfully'
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to track search analytics',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    logger.error('Failed to track search analytics', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to track search analytics', 'TRACK_SEARCH_ANALYTICS_ERROR');
   }
 });
 

@@ -7,6 +7,7 @@ const { RentalItem } = require('../../rentals/models/Rentals');
 const Agency = require('../../agencies/models/Agency');
 const logger = require('../../../src/config/logger');
 const queryOptimizationService = require('../../../src/services/queryOptimizationService');
+const { sendServerError } = require('../../../src/utils/responseHelper');
 
 /**
  * Global Search Controller
@@ -145,12 +146,7 @@ const globalSearch = async (req, res) => {
       query: req.query,
       userId: req.user?.id
     });
-
-    res.status(500).json({
-      success: false,
-      message: 'Search failed. Please try again.',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    sendServerError(res, error, 'Search failed. Please try again.', 'GLOBAL_SEARCH_ERROR');
   }
 };
 
@@ -710,12 +706,7 @@ const getSearchSuggestions = async (req, res) => {
       query: req.query,
       userId: req.user?.id
     });
-
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get search suggestions',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    sendServerError(res, error, 'Failed to get search suggestions', 'GET_SEARCH_SUGGESTIONS_ERROR');
   }
 };
 
@@ -753,12 +744,7 @@ const getPopularSearches = async (req, res) => {
       error: error.message,
       userId: req.user?.id
     });
-
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get popular searches',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    sendServerError(res, error, 'Failed to get popular searches', 'GET_POPULAR_SEARCHES_ERROR');
   }
 };
 
