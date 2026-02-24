@@ -150,6 +150,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | Limiter | Window | Limit | Applied to |
 |---|---|---|---|
 | `marketplaceLimiter` | 1 min | 120 req | `createBooking`, `openDispute`, `addClientReview` |
+| `aiLimiter` | 10 min | 20 req | All `client.ai.*` methods |
 | (auth limiter) | — | — | login, register, OTP endpoints |
 
 ---
@@ -160,6 +161,14 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 |---|---|
 | `AUTH_SECURITY.md` | Auth hardening — JWT rotation, device tracking, audit events |
 | `MARKETPLACE_FEATURE.md` | Marketplace — lifecycle diagrams, v2 fixes, full SDK method table |
+| `AI_FEATURE.md` | AI feature — endpoint reference, AI Bot events, rate limiting, v2 fix log, SDK method table |
+
+> **Rule — Always create documentation.**  
+> After completing every feature audit or hardening session, **always** create (or update)
+> `docs/<DOMAIN>_FEATURE.md` before committing. This is not optional.
+> At a minimum the file must contain: architecture overview, all endpoints with request/response
+> shapes, a v-fix log table listing every issue fixed, a rate limiting table if applicable,
+> and a full SDK method reference table.
 
 When creating a new docs file:
 - Follow the heading structure of existing docs.

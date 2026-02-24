@@ -62,8 +62,8 @@ async function example() {
     // Broadcaster: List broadcasts
     const broadcasts = await client.broadcaster.list();
 
-    // AI: Get bot response
-    const aiResponse = await client.ai.getBotResponse({ message: 'Hello' });
+    // AI: Natural-language service search
+    const aiResponse = await client.ai.naturalLanguageSearch({ query: 'plumber in Manila' });
 
     // Marketplace: Get services
     const services = await client.marketplace.getServices({
@@ -1321,6 +1321,71 @@ await client.notifications.sendTest({
   type: 'all' // push, email, sms, all
 });
 ```
+
+## AI API
+
+The SDK provides AI-powered tools for marketplace search, service matching, pricing, review insights, form pre-filling, and an AI bot with event processing and escalation management.
+
+### AI Marketplace
+
+```javascript
+// Natural-language service search
+const results = await client.ai.naturalLanguageSearch({
+  query: 'affordable plumber in Manila',
+  location: 'Manila',
+  limit: 10
+});
+
+// Smart price estimation
+const estimate = await client.ai.estimatePrice({
+  serviceType: 'plumbing',
+  location: 'Quezon City',
+  complexity: 'medium'
+});
+
+// Match best service to a booking request
+const match = await client.ai.matchService({
+  description: 'Need an electrician for panel upgrade',
+  location: 'Makati',
+  budget: 3000
+});
+
+// Analyze review sentiment for a service
+const sentiment = await client.ai.analyzeReviewSentiment('service-id');
+
+// Get review insights with limit cap
+const insights = await client.ai.getReviewInsights('service-id', { limit: 20 });
+
+// Pre-fill a booking form from a natural-language description
+const prefilled = await client.ai.prefillForm({
+  description: 'Fix leaking kitchen sink tomorrow morning'
+});
+```
+
+### AI Bot
+
+```javascript
+// Emit a booking event to the AI bot
+const botResult = await client.ai.emitAppEvent({
+  event: 'booking_created',
+  bookingId: 'booking-id',
+  userId: 'user-id'
+});
+
+// Get all AI bot interactions (admin)
+const interactions = await client.ai.getInteractions({ page: 1, limit: 20 });
+
+// Get escalated interactions (admin)
+const escalated = await client.ai.getEscalatedInteractions();
+
+// Assign an escalation to a support agent (admin)
+await client.ai.assignEscalation('interaction-id', { agentId: 'agent-id' });
+
+// Resolve an escalation (admin)
+await client.ai.resolveEscalation('interaction-id', { resolution: 'Issue resolved.' });
+```
+
+> **Further reading:** See [docs/AI_FEATURE.md](docs/AI_FEATURE.md) for the full endpoint reference, AI Bot events, rate limiting details, v2 fix log, and complete SDK method table.
 
 ## Error Handling
 
