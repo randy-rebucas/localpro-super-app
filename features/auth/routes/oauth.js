@@ -4,17 +4,20 @@ const router = express.Router();
 
 const { accessTokenAuth } = require('../../../src/middleware/accessTokenAuth');
 const { apiKeyAuth } = require('../../../src/middleware/apiKeyAuth');
+const { auth } = require('../../../src/middleware/auth');
+const { authLimiter } = require('../../../src/middleware/rateLimiter');
 const {
   exchangeToken,
   refreshToken,
   revokeToken,
   getTokenInfo,
-  listTokens
+  listTokens,
+  authorize
 } = require('../controllers/accessTokenController');
 
 // Validation middleware
 const validateTokenExchange = [
-  body('grant_type').equals('client_credentials').withMessage('grant_type must be client_credentials'),
+  body('grant_type').isIn(['client_credentials', 'authorization_code']).withMessage('grant_type must be client_credentials or authorization_code'),
   body('scope').optional().isString().withMessage('scope must be a string'),
   body('expires_in').optional().isInt({ min: 300, max: 86400 }).withMessage('expires_in must be between 300 and 86400 seconds')
 ];
@@ -162,6 +165,58 @@ router.get('/token-info', accessTokenAuth, getTokenInfo);
  *         description: List of tokens
  */
 router.get('/tokens', apiKeyAuth, validateQueryParams, listTokens);
+
+/**
+ * @swagger
+ * /api/oauth/authorize:
+ *   post:
+ *     summary: Create an authorization code (PKCE flow, S256 only)
+ *     tags: [OAuth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - client_id
+ *               - redirect_uri
+ *               - code_challenge
+ *               - code_challenge_method
+ *             properties:
+ *               client_id:
+ *                 type: string
+ *               redirect_uri:
+ *                 type: string
+ *               scope:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               code_challenge:
+ *                 type: string
+ *               code_challenge_method:
+ *                 type: string
+ *                 enum: [S256]
+ *     responses:
+ *       200:
+ *         description: Authorization code issued
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.post(
+  '/authorize',
+  auth,
+  authLimiter,
+  [
+    body('client_id').notEmpty().withMessage('client_id is required'),
+    body('redirect_uri').isURL().withMessage('redirect_uri must be a valid URL'),
+    body('code_challenge').notEmpty().withMessage('code_challenge is required'),
+    body('code_challenge_method').equals('S256').withMessage('Only S256 code_challenge_method is supported')
+  ],
+  authorize
+);
 
 module.exports = router;
 

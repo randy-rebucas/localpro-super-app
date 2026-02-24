@@ -336,6 +336,8 @@ await client.marketplace.approvePayPalBooking({
 const order = await client.marketplace.getPayPalOrderDetails('order-id');
 ```
 
+> **Further reading:** See [docs/MARKETPLACE_FEATURE.md](docs/MARKETPLACE_FEATURE.md) for the full endpoint reference, lifecycle diagrams, v2 bug-fix log, rate limiting details, and SDK method table.
+
 ## Jobs API
 
 The SDK provides comprehensive job board functionality:

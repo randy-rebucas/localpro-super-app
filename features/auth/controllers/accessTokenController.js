@@ -1,6 +1,7 @@
 const AccessToken = require('../../accessTokens/models/AccessToken');
 const ApiKey = require('../../apiKeys/models/ApiKey');
 const User = require('../../../src/models/User');
+const AuthorizationCode = require('../../../src/models/AuthorizationCode');
 const { validationResult } = require('express-validator');
 const logger = require('../../../src/config/logger');
 
@@ -22,15 +23,100 @@ const exchangeToken = async (req, res) => {
 
     const { grant_type, scope, expires_in } = req.body;
 
-    // Only support client_credentials grant type
-    if (grant_type !== 'client_credentials') {
+    // Supported grant types
+    const SUPPORTED_GRANTS = ['client_credentials', 'authorization_code'];
+    if (!SUPPORTED_GRANTS.includes(grant_type)) {
       return res.status(400).json({
         success: false,
         message: 'Unsupported grant type',
         code: 'UNSUPPORTED_GRANT_TYPE',
-        supported: ['client_credentials']
+        supported: SUPPORTED_GRANTS
       });
     }
+
+    // ── authorization_code + PKCE (RFC 7636) ─────────────────────────────────
+    if (grant_type === 'authorization_code') {
+      const { code, redirect_uri, code_verifier, client_id } = req.body;
+
+      if (!code || !code_verifier || !client_id || !redirect_uri) {
+        return res.status(400).json({
+          success: false,
+          message: 'code, code_verifier, client_id, and redirect_uri are required for authorization_code grant',
+          code: 'MISSING_PARAMS'
+        });
+      }
+
+      // Find the authorization code
+      const authCode = await AuthorizationCode.findValid(code, client_id);
+      if (!authCode) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid, expired, or already used authorization code',
+          code: 'INVALID_GRANT'
+        });
+      }
+
+      // Verify redirect_uri matches
+      if (authCode.redirectUri !== redirect_uri) {
+        return res.status(400).json({
+          success: false,
+          message: 'redirect_uri does not match',
+          code: 'REDIRECT_URI_MISMATCH'
+        });
+      }
+
+      // PKCE verification: BASE64URL(SHA256(code_verifier)) must equal stored code_challenge
+      const pkceValid = AuthorizationCode.verifyPKCE(code_verifier, authCode.codeChallenge);
+      if (!pkceValid) {
+        // Mark code as used to prevent timing-based bruteforce
+        authCode.used = true;
+        await authCode.save();
+        return res.status(401).json({
+          success: false,
+          message: 'PKCE verification failed: code_verifier does not match code_challenge',
+          code: 'PKCE_VERIFICATION_FAILED'
+        });
+      }
+
+      // Mark code as consumed (single-use)
+      authCode.used = true;
+      await authCode.save();
+
+      // Fetch user and issue tokens
+      const user = await User.findById(authCode.userId).select('-password');
+      if (!user || !user.isActive) {
+        return res.status(403).json({ success: false, message: 'User account is inactive', code: 'USER_INACTIVE' });
+      }
+
+      const tokenScopes = authCode.scope ? authCode.scope.split(' ') : ['read'];
+      const expiresInSeconds = 3600;
+      const expiresAt = new Date(Date.now() + expiresInSeconds * 1000);
+      const clientIp = req.ip || req.connection?.remoteAddress;
+
+      const { token, tokenHash } = AccessToken.generateAccessToken(
+        { id: user._id, scopes: tokenScopes, type: 'access' },
+        `${expiresInSeconds}s`
+      );
+      const { refreshToken: rt, refreshTokenHash: rth } = AccessToken.generateRefreshToken();
+      const refreshTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+      await new AccessToken({
+        token, tokenHash, userId: user._id, scopes: tokenScopes, expiresAt,
+        refreshToken: rt, refreshTokenHash: rth, refreshTokenExpiresAt, lastUsedIp: clientIp
+      }).save();
+
+      return res.status(200).json({
+        success: true,
+        access_token: token,
+        token_type: 'Bearer',
+        expires_in: expiresInSeconds,
+        expires_at: expiresAt.toISOString(),
+        refresh_token: rt,
+        scope: tokenScopes.join(' '),
+        ...(authCode.state && { state: authCode.state })
+      });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     // Get API key and secret from headers or body
     const accessKey = req.headers['x-api-key'] || req.headers['api-key'] || req.body.client_id;
@@ -446,7 +532,78 @@ const listTokens = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Create an authorization code (PKCE flow – RFC 7636)
+ * @route   POST /api/oauth/authorize
+ * @access  Private (authenticated user)
+ *
+ * The client must supply:
+ *   client_id, redirect_uri, code_challenge (BASE64URL(SHA256(code_verifier))),
+ *   code_challenge_method = "S256", scope (optional), state (optional)
+ */
+const authorize = async (req, res) => {
+  try {
+    const {
+      client_id,
+      redirect_uri,
+      code_challenge,
+      code_challenge_method = 'S256',
+      scope,
+      state
+    } = req.body;
+
+    if (!client_id || !redirect_uri || !code_challenge) {
+      return res.status(400).json({
+        success: false,
+        message: 'client_id, redirect_uri, and code_challenge are required',
+        code: 'MISSING_PARAMS'
+      });
+    }
+
+    if (code_challenge_method !== 'S256') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only code_challenge_method=S256 is supported (plain is not allowed)',
+        code: 'UNSUPPORTED_CHALLENGE_METHOD'
+      });
+    }
+
+    // Validate client_id (must be a valid API key access key)
+    const apiKey = await ApiKey.findOne({ accessKey: client_id, isActive: true });
+    if (!apiKey) {
+      return res.status(401).json({ success: false, message: 'Invalid client_id', code: 'INVALID_CLIENT' });
+    }
+
+    if (!apiKey.allowedRedirectUris?.includes(redirect_uri) && !['localhost', '127.0.0.1'].some(h => redirect_uri.includes(h))) {
+      return res.status(400).json({ success: false, message: 'redirect_uri not allowed for this client', code: 'REDIRECT_URI_NOT_ALLOWED' });
+    }
+
+    const authCode = await AuthorizationCode.issue({
+      userId: req.user.id,
+      clientId: client_id,
+      redirectUri: redirect_uri,
+      scope: scope || 'read',
+      state,
+      codeChallenge: code_challenge,
+      codeChallengeMethod: code_challenge_method
+    });
+
+    logger.info('Authorization code issued', { userId: req.user.id, clientId: client_id });
+
+    res.status(200).json({
+      success: true,
+      code: authCode.code,
+      state: state || null,
+      expires_in: 600 // 10 minutes
+    });
+  } catch (error) {
+    logger.error('Error creating authorization code:', error);
+    res.status(500).json({ success: false, message: 'Failed to create authorization code', error: error.message });
+  }
+};
+
 module.exports = {
+  authorize,
   exchangeToken,
   refreshToken,
   revokeToken,

@@ -1,6 +1,10 @@
 const User = require('../../../src/models/User');
-const speakeasy = require('speakeasy');
+const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
+const SecurityAuditLog = require('../../../src/models/SecurityAuditLog');
+
+// Configure TOTP window to allow ±1 interval (tolerates ~30 s clock drift)
+authenticator.options = { window: 1 };
 
 // ============================================
 // TWO-FACTOR AUTHENTICATION (2FA)
@@ -23,23 +27,29 @@ const setup2FA = async (req, res) => {
     const { method = 'authenticator' } = req.body;
 
     if (method === 'authenticator') {
-      // Generate secret for authenticator app
-      const secret = speakeasy.generateSecret({
-        name: `LocalPro:${user.email || user.phoneNumber}`,
-        length: 32
-      });
+      // Generate secret for authenticator app (otplib – replaces unmaintained speakeasy)
+      const secretVal = authenticator.generateSecret(20); // 20-byte (160-bit) base32 secret
+      const otpauthUrl = authenticator.keyuri(
+        user.email || user.phoneNumber || String(user._id),
+        'LocalPro',
+        secretVal
+      );
 
       // Store secret temporarily (not enabled yet)
-      await user.enableTwoFactor('authenticator', secret.base32);
+      await user.enableTwoFactor('authenticator', secretVal);
 
       // Generate QR code
-      const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
+      const qrCodeUrl = await QRCode.toDataURL(otpauthUrl);
+
+      SecurityAuditLog.log(user._id, '2fa_enabled', {
+        metadata: { method: 'authenticator', phase: 'setup_initiated' }
+      }).catch(() => {});
 
       return res.json({
         success: true,
         message: '2FA setup initiated. Scan the QR code and verify with a code.',
         data: {
-          secret: secret.base32,
+          secret: secretVal,
           qrCode: qrCodeUrl,
           method: 'authenticator'
         }
@@ -82,13 +92,8 @@ const verify2FA = async (req, res) => {
     }
 
     if (user.twoFactor.method === 'authenticator') {
-      // Verify TOTP code
-      const verified = speakeasy.totp.verify({
-        secret: user.twoFactor.secret,
-        encoding: 'base32',
-        token: code,
-        window: 2
-      });
+      // Verify TOTP code (otplib)
+      const verified = authenticator.verify({ token: code, secret: user.twoFactor.secret });
 
       if (!verified) {
         return res.status(400).json({ success: false, message: 'Invalid verification code' });
@@ -100,6 +105,10 @@ const verify2FA = async (req, res) => {
 
     // Generate backup codes
     const backupCodes = await user.generateBackupCodes();
+
+    SecurityAuditLog.log(user._id, '2fa_enabled', {
+      metadata: { method: user.twoFactor.method, phase: 'activated' }
+    }).catch(() => {});
 
     res.json({
       success: true,
@@ -145,12 +154,7 @@ const disable2FA = async (req, res) => {
 
     // Verify 2FA code or backup code
     if (code && user.twoFactor.method === 'authenticator') {
-      const verified = speakeasy.totp.verify({
-        secret: user.twoFactor.secret,
-        encoding: 'base32',
-        token: code,
-        window: 2
-      });
+      const verified = authenticator.verify({ token: code, secret: user.twoFactor.secret });
 
       if (!verified) {
         // Try backup code
@@ -162,6 +166,10 @@ const disable2FA = async (req, res) => {
     }
 
     await user.disableTwoFactor();
+
+    SecurityAuditLog.log(user._id, '2fa_disabled', {
+      metadata: { method: user.twoFactor?.method }
+    }).catch(() => {});
 
     res.json({
       success: true,
@@ -213,12 +221,7 @@ const regenerateBackupCodes = async (req, res) => {
 
     // Verify current 2FA code
     if (user.twoFactor.method === 'authenticator' && code) {
-      const verified = speakeasy.totp.verify({
-        secret: user.twoFactor.secret,
-        encoding: 'base32',
-        token: code,
-        window: 2
-      });
+      const verified = authenticator.verify({ token: code, secret: user.twoFactor.secret });
 
       if (!verified) {
         return res.status(400).json({ success: false, message: 'Invalid verification code' });
@@ -226,6 +229,8 @@ const regenerateBackupCodes = async (req, res) => {
     }
 
     const backupCodes = await user.generateBackupCodes();
+
+    SecurityAuditLog.log(user._id, '2fa_backup_codes_regenerated', {}).catch(() => {});
 
     res.json({
       success: true,
@@ -474,6 +479,11 @@ const changePassword = async (req, res) => {
     user.security.passwordChangedAt = new Date();
     user.security.lastPasswordChangeIp = req.ip || req.connection.remoteAddress;
     await user.save();
+
+    SecurityAuditLog.log(req.user.id, 'password_changed', {
+      ipAddress: req.ip || req.connection?.remoteAddress,
+      userAgent: req.headers?.['user-agent']
+    }).catch(() => {});
 
     res.json({
       success: true,

@@ -1,5 +1,6 @@
 const AccessToken = require('../models/AccessToken');
 const User = require('../models/User');
+const TokenBlocklist = require('../models/TokenBlocklist');
 const jwt = require('jsonwebtoken');
 
 /**
@@ -80,7 +81,7 @@ const accessTokenAuth = async (req, res, next) => {
     // Fallback: Try JWT verification (for direct JWT tokens)
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
+
       // Check if token is an access token
       if (decoded.type && decoded.type !== 'access') {
         return res.status(401).json({
@@ -88,6 +89,18 @@ const accessTokenAuth = async (req, res, next) => {
           message: 'Invalid token type. Access token required.',
           code: 'INVALID_TOKEN_TYPE'
         });
+      }
+
+      // Check JWT blocklist (covers logout + magic-link one-time use)
+      if (decoded.jti) {
+        const blocked = await TokenBlocklist.isBlocked(decoded.jti);
+        if (blocked) {
+          return res.status(401).json({
+            success: false,
+            message: 'Token has been revoked',
+            code: 'TOKEN_REVOKED'
+          });
+        }
       }
 
       const user = await User.findById(decoded.id).select('-password');
@@ -111,6 +124,7 @@ const accessTokenAuth = async (req, res, next) => {
       // Extract scopes from JWT if present
       req.user = user;
       req.authType = 'jwt';
+      req.jwtPayload = decoded; // Exposes jti for logout blocklisting
       req.tokenScopes = decoded.scopes || user.roles || [];
 
       return next();

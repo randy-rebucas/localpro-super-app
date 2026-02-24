@@ -4,6 +4,8 @@ const ProvidersAPI = require('./lib/providers');
 const MarketplaceAPI = require('./lib/marketplace');
 const JobsAPI = require('./lib/jobs');
 const AuthAPI = require('./lib/auth');
+const AccountAPI = require('./lib/account');
+const OAuthTokensAPI = require('./lib/oauthTokens');
 const FinanceAPI = require('./lib/finance');
 const MapsAPI = require('./lib/maps');
 const SuppliesAPI = require('./lib/supplies');
@@ -76,6 +78,8 @@ class LocalPro {
     this.marketplace = new MarketplaceAPI(this.client);
     this.jobs = new JobsAPI(this.client);
     this.auth = new AuthAPI(this.client);
+    this.account = new AccountAPI(this.client);
+    this.oauthTokens = new OAuthTokensAPI(this.client);
     this.finance = new FinanceAPI(this.client);
     this.maps = new MapsAPI(this.client);
     this.supplies = new SuppliesAPI(this.client);
@@ -112,6 +116,9 @@ class LocalPro {
 module.exports = LocalPro;
 
 // Export Academy API for advanced usage
+module.exports.AuthAPI = AuthAPI;
+module.exports.AccountAPI = AccountAPI;
+module.exports.OAuthTokensAPI = OAuthTokensAPI;
 module.exports.AcademyAPI = AcademyAPI;
 module.exports.ActivitiesAPI = ActivitiesAPI;
 module.exports.AdsAPI = AdsAPI;

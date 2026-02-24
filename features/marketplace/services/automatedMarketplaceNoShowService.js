@@ -61,7 +61,7 @@ class AutomatedMarketplaceNoShowService {
       status: { $in: ['confirmed', 'in_progress'] },
       bookingDate: { $gte: lookback, $lte: now }
     })
-      .select('_id bookingDate duration status client provider')
+      .select('_id bookingDate duration durationUnit status client provider')
       .limit(limit)
       .lean();
 
@@ -76,7 +76,12 @@ class AutomatedMarketplaceNoShowService {
     let skipped = 0;
 
     for (const b of candidates) {
-      const durationHours = Number(b.duration || 1);
+      // Normalise duration to hours regardless of the stored durationUnit
+      const rawDuration = Number(b.duration || 1);
+      const unit = b.durationUnit || 'minutes';
+      const durationHours = unit === 'hours' ? rawDuration
+        : unit === 'days' ? rawDuration * 24
+        : rawDuration / 60; // minutes (default)
       const endAt = new Date(new Date(b.bookingDate).getTime() + durationHours * 60 * 60 * 1000);
       const overdueAt = new Date(endAt.getTime() + graceMinutes * 60 * 1000);
       if (now < overdueAt) continue;

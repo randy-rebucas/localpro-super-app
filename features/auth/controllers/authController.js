@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../../../src/models/User');
 const TwilioService = require('../../../src/services/twilioService');
 const CloudinaryService = require('../../../src/services/cloudinaryService');
@@ -6,10 +7,19 @@ const EmailService = require('../../../src/services/emailService');
 const logger = require('../../../src/config/logger');
 const activityService = require('../../activities/services/activityService');
 const { validationResult } = require('express-validator');
+const SecurityAuditLog = require('../../../src/models/SecurityAuditLog');
+const TokenBlocklist = require('../../../src/models/TokenBlocklist');
+const tokenService = require('../services/tokenService');
 
 // Generate JWT Access Token with expiration
 const generateToken = (user) => {
+  const jti = crypto.randomUUID();
+
   const payload = {
+    // RFC 7519 standard claims
+    sub: user._id.toString(),
+    jti,
+    // App-specific claims
     id: user._id,
     phoneNumber: user.phoneNumber,
     roles: user.roles || ['client'],
@@ -27,11 +37,8 @@ const generateToken = (user) => {
   });
 };
 
-// Generate Refresh Token
+// Generate Refresh Token (opaque 64-byte hex string)
 const generateRefreshToken = () => {
-  // Refresh token is a random string, not a JWT
-  // It expires in 7 days by default
-  const crypto = require('crypto');
   return crypto.randomBytes(64).toString('hex');
 };
 
@@ -78,15 +85,22 @@ const validateEmail = (email) => {
 };
 
 // Helper function to validate password strength
+// Requirements: ≥ 8 chars, at least 1 uppercase, 1 lowercase, 1 digit, 1 special char
 const validatePassword = (password) => {
-  // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
-  return passwordRegex.test(password);
+  if (!password || password.length < 8) return false;
+  const hasUppercase  = /[A-Z]/.test(password);
+  const hasLowercase  = /[a-z]/.test(password);
+  const hasDigit      = /\d/.test(password);
+  const hasSpecial    = /[@$!%*?&^#\-_+=]/.test(password);
+  // Reject passwords that consist only of repeated characters (e.g. "Aaaaaaa1!")
+  const notAllRepeat  = !/^(.)\1+$/.test(password);
+  return hasUppercase && hasLowercase && hasDigit && hasSpecial && notAllRepeat;
 };
 
-// Helper function to generate 6-digit OTP
+// Helper function to generate a cryptographically secure 6-digit OTP
 const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // crypto.randomInt(low, high) returns a value in [low, high) – CSPRNG
+  return crypto.randomInt(100000, 1000000).toString();
 };
 
 // Helper function to get client IP and user agent
@@ -1559,11 +1573,32 @@ const logout = async (req, res) => {
 
   try {
     const userId = req.user.id;
+
+    // Blocklist the current JWT so it cannot be reused even before it expires.
+    // req.jwtPayload is attached by accessTokenAuth when it's a JWT (not a DB token).
+    if (req.jwtPayload && req.jwtPayload.jti) {
+      const expiresAt = req.jwtPayload.exp
+        ? new Date(req.jwtPayload.exp * 1000)
+        : new Date(Date.now() + 15 * 60 * 1000); // fallback: 15 min
+      await TokenBlocklist.block(req.jwtPayload.jti, userId, expiresAt);
+    }
+
     const user = await User.findById(userId);
 
     if (user) {
-      // Clear refresh token
-      await clearRefreshToken(user);
+      // Revoke the refresh token passed in the request body (if any)
+      const { refreshToken: providedRefreshToken } = req.body;
+      if (providedRefreshToken) {
+        await tokenService.revokeRefreshToken(providedRefreshToken);
+      } else {
+        // Legacy: clear the single token still stored on the user document
+        await clearRefreshToken(user);
+      }
+
+      SecurityAuditLog.log(userId, 'logout', {
+        ipAddress: clientInfo.ip,
+        userAgent: clientInfo.userAgent
+      }).catch(() => {});
 
       logger.info('User logged out successfully', {
         userId,
@@ -1858,20 +1893,55 @@ const loginWithEmail = async (req, res) => {
       });
     }
 
+    // Account lockout check (brute-force protection)
+    if (user.isAccountLocked()) {
+      const lockStatus = user.getLockStatus();
+      logger.warn('Login with email failed: Account locked', {
+        userId: user._id,
+        email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        lockedUntil: lockStatus.lockedUntil,
+        clientInfo,
+        duration: Date.now() - startTime
+      });
+      SecurityAuditLog.log(user._id, 'login_locked', {
+        ipAddress: clientInfo.ip,
+        userAgent: clientInfo.userAgent,
+        metadata: { method: 'email', lockedUntil: lockStatus.lockedUntil }
+      }).catch(() => {});
+      return res.status(423).json({
+        success: false,
+        message: `Account is temporarily locked. Try again in ${lockStatus.remainingMinutes} minute(s).`,
+        code: 'ACCOUNT_LOCKED',
+        lockedUntil: lockStatus.lockedUntil,
+        remainingMinutes: lockStatus.remainingMinutes
+      });
+    }
+
     // Verify password
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
+      // Track failed attempt – User model auto-locks after 5 failures
+      await user.recordLoginAttempt(false, clientInfo.ip, clientInfo.userAgent, 'password', null, 'wrong_password');
+
+      const lockStatus = user.getLockStatus();
       logger.warn('Login with email failed: Invalid password', {
         userId: user._id,
         email: email.substring(0, 3) + '***@' + email.split('@')[1],
+        failedAttempts: user.security?.failedLoginAttempts,
         clientInfo,
         duration: Date.now() - startTime
       });
+      SecurityAuditLog.log(user._id, 'login_failed', {
+        ipAddress: clientInfo.ip,
+        userAgent: clientInfo.userAgent,
+        metadata: { method: 'email', reason: 'wrong_password', attempts: user.security?.failedLoginAttempts }
+      }).catch(() => {});
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password',
-        code: 'INVALID_CREDENTIALS'
+        code: 'INVALID_CREDENTIALS',
+        ...(lockStatus.locked && { lockedUntil: lockStatus.lockedUntil, remainingMinutes: lockStatus.remainingMinutes })
       });
     }
 
@@ -1953,6 +2023,10 @@ const loginWithEmail = async (req, res) => {
         email: email.substring(0, 3) + '***@' + email.split('@')[1] // Partially masked email
       });
     } else {
+      // Reset failed attempts and record successful login
+      await user.recordLoginAttempt(true, clientInfo.ip, clientInfo.userAgent, 'password');
+      await user.updateLoginInfo(clientInfo.ip, clientInfo.userAgent);
+
       // Generate tokens
       const token = generateToken(user);
       const refreshToken = generateRefreshToken();
@@ -2783,6 +2857,134 @@ const getMpinStatus = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MAGIC LINK (Passwordless email login)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// @desc    Send a magic-link email
+// @route   POST /api/auth/magic-link
+// @access  Public
+const sendMagicLink = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ success: false, message: 'Validation failed', errors: errors.array() });
+    }
+
+    const { email } = req.body;
+
+    if (!email || !validateEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Valid email is required', code: 'INVALID_EMAIL' });
+    }
+
+    // Intentionally return the same response regardless of whether the account exists
+    // (prevents user enumeration)
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    if (user && user.isActive) {
+      const { token, expiresAt } = tokenService.generateMagicLinkToken(user._id);
+      const magicLink = `${process.env.APP_URL || 'https://app.localpro.com'}/auth/magic-link?token=${token}`;
+
+      await EmailService.sendEmail(
+        email.toLowerCase().trim(),
+        'Your LocalPro Sign-In Link',
+        `
+          <p>Hello ${user.firstName || 'there'},</p>
+          <p>Click the link below to sign in to your LocalPro account. The link expires in 15 minutes and can only be used once.</p>
+          <p><a href="${magicLink}" style="display:inline-block;padding:12px 24px;background:#1a73e8;color:#fff;text-decoration:none;border-radius:4px;">Sign In</a></p>
+          <p>If you did not request this link, you can safely ignore this email.</p>
+          <p>Expires: ${expiresAt.toUTCString()}</p>
+        `
+      );
+
+      SecurityAuditLog.log(user._id, 'magic_link_sent', {
+        ipAddress: clientInfo.ip,
+        userAgent: clientInfo.userAgent
+      }).catch(() => {});
+
+      logger.info('Magic link sent', { userId: user._id, duration: Date.now() - startTime });
+    }
+
+    // Always return 200 to prevent email enumeration
+    return res.status(200).json({
+      success: true,
+      message: 'If an account with that email exists, a sign-in link has been sent.'
+    });
+  } catch (error) {
+    logger.error('Send magic link error', { error: error.message, duration: Date.now() - startTime });
+    return res.status(500).json({ success: false, message: 'Server error', code: 'INTERNAL_SERVER_ERROR' });
+  }
+};
+
+// @desc    Verify magic-link token and issue JWT
+// @route   GET /api/auth/magic-link/verify?token=...
+// @access  Public
+const verifyMagicLink = async (req, res) => {
+  const startTime = Date.now();
+  const clientInfo = getClientInfo(req);
+
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'Token is required', code: 'MISSING_TOKEN' });
+    }
+
+    let decoded;
+    try {
+      decoded = await tokenService.verifyMagicLinkToken(token);
+    } catch (err) {
+      const code = err.code || (err.name === 'TokenExpiredError' ? 'TOKEN_EXPIRED' : 'INVALID_TOKEN');
+      return res.status(401).json({ success: false, message: err.message, code });
+    }
+
+    const user = await User.findById(decoded.sub);
+    if (!user || !user.isActive) {
+      return res.status(401).json({ success: false, message: 'User not found or inactive', code: 'USER_NOT_FOUND' });
+    }
+
+    // One-time use: block the magic-link token immediately
+    const expiresAt = new Date(decoded.exp * 1000);
+    await TokenBlocklist.block(decoded.jti, user._id, expiresAt);
+
+    // Issue real session tokens
+    const accessToken = generateToken(user);
+    const refreshTokenValue = generateRefreshToken();
+    await saveRefreshToken(user, refreshTokenValue);
+
+    await user.updateLoginInfo(clientInfo.ip, clientInfo.userAgent);
+
+    SecurityAuditLog.log(user._id, 'magic_link_used', {
+      ipAddress: clientInfo.ip,
+      userAgent: clientInfo.userAgent
+    }).catch(() => {});
+
+    logger.info('Magic link verified – user logged in', { userId: user._id, duration: Date.now() - startTime });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Sign-in successful',
+      token: accessToken,
+      refreshToken: refreshTokenValue,
+      user: {
+        id: user._id,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        roles: user.roles || ['client'],
+        isVerified: user.isVerified
+      }
+    });
+  } catch (error) {
+    logger.error('Verify magic link error', { error: error.message, duration: Date.now() - startTime });
+    return res.status(500).json({ success: false, message: 'Server error', code: 'INTERNAL_SERVER_ERROR' });
+  }
+};
+
 module.exports = {
   sendVerificationCode,
   verifyCode,
@@ -2805,5 +3007,8 @@ module.exports = {
   verifyMpin,
   loginWithMpin,
   disableMpin,
-  getMpinStatus
+  getMpinStatus,
+  // Magic link (passwordless)
+  sendMagicLink,
+  verifyMagicLink
 };

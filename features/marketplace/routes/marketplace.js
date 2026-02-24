@@ -7,6 +7,9 @@ const {
   validateSearchParams
 } = require('../../../src/middleware/routeValidation');
 const {
+  marketplaceLimiter
+} = require('../../../src/middleware/rateLimiter');
+const {
   // Service - Basic
   getServices,
   getService,
@@ -106,7 +109,8 @@ const {
 
   // Booking - Analytics & External
   getBookingStats,
-  linkBookingExternalId
+  linkBookingExternalId,
+  adminReviewBooking
 } = require('../controllers/marketplaceController');
 const { uploaders } = require('../../../src/config/cloudinary');
 
@@ -542,7 +546,7 @@ router.post('/services/:id/external-ids',
 // BOOKING - Basic Operations
 // ============================================
 
-router.post('/bookings', createBooking);
+router.post('/bookings', marketplaceLimiter, createBooking);
 
 router.get('/bookings', getBookings);
 
@@ -628,6 +632,7 @@ router.get('/bookings/:id/location-history',
 // ============================================
 
 router.post('/bookings/:id/dispute',
+  marketplaceLimiter,
   validateObjectIdParam('id'),
   body('reason').notEmpty().withMessage('Dispute reason is required'),
   body('description').notEmpty().withMessage('Dispute description is required'),
@@ -652,6 +657,7 @@ router.post('/bookings/:id/dispute/messages',
 // ============================================
 
 router.post('/bookings/:id/review',
+  marketplaceLimiter,
   validateObjectIdParam('id'),
   uploaders.marketplace.array('photos', 3),
   addReview
@@ -699,6 +705,23 @@ router.post('/bookings/:id/external-ids',
   body('system').notEmpty().withMessage('System is required'),
   body('externalId').notEmpty().withMessage('External ID is required'),
   linkBookingExternalId
+);
+
+// ============================================
+// ADMIN - Booking Review & Dispatch
+// ============================================
+
+/**
+ * @swagger
+ * /api/marketplace/bookings/:id/admin-review:
+ *   post:
+ *     summary: Admin reviews a pending booking and dispatches to provider
+ *     tags: [Marketplace - Admin]
+ */
+router.post('/bookings/:id/admin-review',
+  authorize('admin'),
+  validateObjectIdParam('id'),
+  adminReviewBooking
 );
 
 module.exports = router;

@@ -22,7 +22,9 @@ const {
   verifyMpin,
   loginWithMpin,
   disableMpin,
-  getMpinStatus
+  getMpinStatus,
+  sendMagicLink,
+  verifyMagicLink
 } = require('../controllers/authController');
 const { uploaders } = require('../../../src/config/cloudinary');
 
@@ -575,5 +577,54 @@ router.post('/upload-portfolio',
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.post('/logout', auth, logout);
+
+/**
+ * @swagger
+ * /api/auth/magic-link:
+ *   post:
+ *     summary: Send a magic link to the user's email for passwordless login
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Magic link sent (always 200 to prevent email enumeration)
+ */
+router.post(
+  '/magic-link',
+  authLimiter,
+  [body('email').isEmail().normalizeEmail().withMessage('Valid email is required')],
+  sendMagicLink
+);
+
+/**
+ * @swagger
+ * /api/auth/magic-link/verify:
+ *   get:
+ *     summary: Verify a magic link token and return auth tokens
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       400:
+ *         description: Invalid or expired magic link
+ */
+router.get('/magic-link/verify', verifyMagicLink);
 
 module.exports = router;

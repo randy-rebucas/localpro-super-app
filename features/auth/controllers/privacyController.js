@@ -1,8 +1,187 @@
-const User = require('../../../src/models/User');
+/**
+ * privacyController – thin HTTP layer that delegates to privacyService.
+ *
+ * Business logic (User model calls, audit logging) lives in privacyService.js.
+ * Controllers are only responsible for:
+ *   - Extracting request data (body, params, query)
+ *   - Calling the service
+ *   - Sending the appropriate HTTP response
+ */
+const privacyService = require('../services/privacyService');
 
-// ============================================
-// GDPR CONSENT MANAGEMENT
-// ============================================
+// ─── Generic error handler ───────────────────────────────────────────────────
+const handleError = (res, error, defaultMessage) => {
+  console.error(`[privacyController] ${defaultMessage}:`, error.message);
+  const status = error.status || 500;
+  res.status(status).json({ success: false, message: error.message || defaultMessage, ...(error.data && { data: error.data }) });
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONSENT
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getConsentStatus = async (req, res) => {
+  try {
+    const data = await privacyService.getConsentStatus(req.user.id);
+    res.json({ success: true, data });
+  } catch (error) { handleError(res, error, 'Failed to get consent status'); }
+};
+
+const giveGdprConsent = async (req, res) => {
+  try {
+    const { version } = req.body;
+    if (!version) return res.status(400).json({ success: false, message: 'Consent version is required' });
+    const data = await privacyService.giveGdprConsent(req.user.id, version, req.ip || req.connection?.remoteAddress);
+    res.json({ success: true, message: 'GDPR consent recorded', data });
+  } catch (error) { handleError(res, error, 'Failed to record consent'); }
+};
+
+const withdrawGdprConsent = async (req, res) => {
+  try {
+    const data = await privacyService.withdrawGdprConsent(req.user.id);
+    res.json({ success: true, message: 'GDPR consent withdrawn', data });
+  } catch (error) { handleError(res, error, 'Failed to withdraw consent'); }
+};
+
+const updateMarketingConsent = async (req, res) => {
+  try {
+    const { email, sms, push } = req.body;
+    const data = await privacyService.updateMarketingConsent(req.user.id, { email, sms, push });
+    res.json({ success: true, message: 'Marketing preferences updated', data });
+  } catch (error) { handleError(res, error, 'Failed to update marketing preferences'); }
+};
+
+const setDoNotSell = async (req, res) => {
+  try {
+    const { doNotSell } = req.body;
+    if (typeof doNotSell !== 'boolean') return res.status(400).json({ success: false, message: 'doNotSell must be a boolean' });
+    const data = await privacyService.setDoNotSell(req.user.id, doNotSell);
+    res.json({ success: true, message: `Do Not Sell preference ${doNotSell ? 'enabled' : 'disabled'}`, data });
+  } catch (error) { handleError(res, error, 'Failed to update preference'); }
+};
+
+const setDoNotTrack = async (req, res) => {
+  try {
+    const { doNotTrack } = req.body;
+    if (typeof doNotTrack !== 'boolean') return res.status(400).json({ success: false, message: 'doNotTrack must be a boolean' });
+    const data = await privacyService.setDoNotTrack(req.user.id, doNotTrack);
+    res.json({ success: true, message: `Do Not Track preference ${doNotTrack ? 'enabled' : 'disabled'}`, data });
+  } catch (error) { handleError(res, error, 'Failed to update preference'); }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACCOUNT DELETION
+// ─────────────────────────────────────────────────────────────────────────────
+
+const requestAccountDeletion = async (req, res) => {
+  try {
+    const { reason, password } = req.body;
+    const data = await privacyService.requestAccountDeletion(req.user.id, reason, password);
+    res.json({ success: true, message: 'Account deletion requested', data });
+  } catch (error) { handleError(res, error, 'Failed to request account deletion'); }
+};
+
+const cancelAccountDeletion = async (req, res) => {
+  try {
+    await privacyService.cancelAccountDeletion(req.user.id);
+    res.json({ success: true, message: 'Account deletion cancelled' });
+  } catch (error) { handleError(res, error, 'Failed to cancel account deletion'); }
+};
+
+const getDeletionStatus = async (req, res) => {
+  try {
+    const data = await privacyService.getDeletionStatus(req.user.id);
+    res.json({ success: true, data });
+  } catch (error) { handleError(res, error, 'Failed to get deletion status'); }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DATA EXPORT
+// ─────────────────────────────────────────────────────────────────────────────
+
+const exportUserData = async (req, res) => {
+  try {
+    const data = await privacyService.exportUserData(req.user.id);
+    res.json({ success: true, message: 'User data exported successfully', data });
+  } catch (error) { handleError(res, error, 'Failed to export user data'); }
+};
+
+const downloadUserData = async (req, res) => {
+  try {
+    const data = await privacyService.exportUserData(req.user.id);
+    const filename = `user-data-${req.user.id}-${Date.now()}.json`;
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(JSON.stringify(data, null, 2));
+  } catch (error) { handleError(res, error, 'Failed to download user data'); }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AGREEMENTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const acceptAgreement = async (req, res) => {
+  try {
+    const { type, version } = req.body;
+    if (!type || !version) return res.status(400).json({ success: false, message: 'Agreement type and version are required' });
+    const data = await privacyService.acceptAgreement(
+      req.user.id, type, version,
+      req.ip || req.connection?.remoteAddress,
+      req.headers?.['user-agent']
+    );
+    res.json({ success: true, message: `${type} accepted`, data });
+  } catch (error) { handleError(res, error, 'Failed to accept agreement'); }
+};
+
+const getAcceptedAgreements = async (req, res) => {
+  try {
+    const agreements = await privacyService.getAcceptedAgreements(req.user.id);
+    res.json({ success: true, data: { agreements, count: agreements.length } });
+  } catch (error) { handleError(res, error, 'Failed to get agreements'); }
+};
+
+const checkAgreement = async (req, res) => {
+  try {
+    const { type, version } = req.query;
+    if (!type) return res.status(400).json({ success: false, message: 'Agreement type is required' });
+    const result = await privacyService.checkAgreement(req.user.id, type, version);
+    res.json({ success: true, data: { type, requestedVersion: version || 'any', ...result } });
+  } catch (error) { handleError(res, error, 'Failed to check agreement'); }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OVERVIEW
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getPrivacySettings = async (req, res) => {
+  try {
+    const data = await privacyService.getPrivacySettings(req.user.id);
+    res.json({ success: true, data });
+  } catch (error) { handleError(res, error, 'Failed to get privacy settings'); }
+};
+
+module.exports = {
+  // Consent
+  getConsentStatus,
+  giveGdprConsent,
+  withdrawGdprConsent,
+  updateMarketingConsent,
+  setDoNotSell,
+  setDoNotTrack,
+  // Account deletion
+  requestAccountDeletion,
+  cancelAccountDeletion,
+  getDeletionStatus,
+  // Data export
+  exportUserData,
+  downloadUserData,
+  // Agreements
+  acceptAgreement,
+  getAcceptedAgreements,
+  checkAgreement,
+  // Overview
+  getPrivacySettings
+};
 
 /**
  * Get consent status

@@ -1,54 +1,8 @@
-// @desc    Admin review and dispatch booking
-// @route   POST /api/marketplace/bookings/:id/admin-review
-// @access  Private (Admin)
-const adminReviewBooking = async (req, res) => {
-  try {
-    if (!validateObjectId(req.params.id)) {
-      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
-    }
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) {
-      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
-    }
-    const isAdmin = req.user.roles?.includes('admin');
-    if (!isAdmin) {
-      return res.status(403).json({ success: false, message: 'Only admin can review bookings', code: 'UNAUTHORIZED' });
-    }
-    if (booking.status !== 'pending_admin_review') {
-      return sendValidationError(res, [{ field: 'status', message: 'Booking is not pending admin review', code: 'INVALID_STATUS' }]);
-    }
-    // Approve and dispatch to provider
-    booking.status = 'pending';
-    booking.timeline.push({
-      status: 'pending',
-      timestamp: new Date(),
-      note: 'Booking approved by admin, dispatched to provider',
-      updatedBy: req.user.id
-    });
-    await booking.save();
-    // Notify provider
-    try {
-      await NotificationService.sendNotification({
-        userId: booking.provider,
-        type: 'booking_created',
-        title: 'New booking request',
-        message: `You have a new booking request for "${booking.service?.title || 'a service'}".`,
-        data: { bookingId: booking._id, serviceId: booking.service?._id },
-        priority: 'high'
-      });
-    } catch (notifyError) {
-      logger.warn('Booking dispatch notification failed', { bookingId: booking._id, error: notifyError.message });
-    }
-    logger.info('Booking reviewed and dispatched by admin', { bookingId: booking._id, adminId: req.user.id });
-    return sendSuccess(res, booking, 'Booking reviewed and dispatched to provider');
-  } catch (error) {
-    logger.error('Admin review booking error', { error: error.message, bookingId: req.params.id });
-    return sendServerError(res, error, error.message || 'Failed to review booking', 'BOOKING_ADMIN_REVIEW_ERROR');
-  }
-};
+// ─── Requires ─────────────────────────────────────────────────────────────────
 const { Service, Booking } = require('../models/Marketplace');
 const ServiceCategory = require('../models/ServiceCategory');
 const User = require('../../../src/models/User');
+const SecurityAuditLog = require('../../../src/models/SecurityAuditLog');
 const CloudinaryService = require('../../../src/services/cloudinaryService');
 const GoogleMapsService = require('../../../src/services/googleMapsService');
 const PayPalService = require('../../../src/services/paypalService');
@@ -71,6 +25,88 @@ const {
   validateObjectId
 } = require('../../../src/utils/controllerValidation');
 const { bookingSchema } = require('../../../src/utils/validation');
+
+// Dev-only debug logger — no-op in production to avoid logging sensitive payloads
+const debugLog = process.env.NODE_ENV !== 'production' ? logger.debug.bind(logger) : () => {};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Convert various coordinate input formats to a GeoJSON Point object.
+ * Accepts:
+ *  - { lat, lng }         → { type: 'Point', coordinates: [lng, lat] }
+ *  - [lng, lat]           → { type: 'Point', coordinates: [lng, lat] }
+ *  - { type:'Point', coordinates:[…] } (pass-through)
+ *
+ * @param {Object|Array} coords
+ * @returns {{ type: 'Point', coordinates: number[] }}
+ */
+const toGeoPoint = (coords) => {
+  if (!coords) return coords;
+  if (Array.isArray(coords)) {
+    return { type: 'Point', coordinates: coords };
+  }
+  if (coords.lat !== undefined && coords.lng !== undefined) {
+    return { type: 'Point', coordinates: [coords.lng, coords.lat] };
+  }
+  return coords; // already GeoJSON
+};
+
+// ─── Controller functions ──────────────────────────────────────────────────────
+
+// @desc    Admin review and dispatch booking
+// @route   POST /api/marketplace/bookings/:id/admin-review
+// @access  Private (Admin)
+const adminReviewBooking = async (req, res) => {
+  try {
+    if (!validateObjectId(req.params.id)) {
+      return sendValidationError(res, [{ field: 'id', message: 'Invalid booking ID format', code: 'INVALID_BOOKING_ID' }]);
+    }
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return sendNotFoundError(res, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+    const isAdmin = req.user.roles?.includes('admin');
+    if (!isAdmin) {
+      return res.status(403).json({ success: false, message: 'Only admin can review bookings', code: 'UNAUTHORIZED' });
+    }
+    if (booking.status !== 'pending_admin_review') {
+      return sendValidationError(res, [{ field: 'status', message: 'Booking is not pending admin review', code: 'INVALID_STATUS' }]);
+    }
+    // Approve and dispatch to provider
+    booking.status = 'pending';
+    booking.statusHistory.push({
+      status: 'pending',
+      timestamp: new Date(),
+      note: 'Booking approved by admin, dispatched to provider',
+      updatedBy: req.user.id
+    });
+    await booking.save();
+    SecurityAuditLog.log(req.user.id, 'booking_admin_reviewed', {
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      metadata: { bookingId: booking._id }
+    });
+    // Notify provider
+    try {
+      await NotificationService.sendNotification({
+        userId: booking.provider,
+        type: 'booking_created',
+        title: 'New booking request',
+        message: `You have a new booking request for "${booking.service?.title || 'a service'}".`,
+        data: { bookingId: booking._id, serviceId: booking.service?._id },
+        priority: 'high'
+      });
+    } catch (notifyError) {
+      logger.warn('Booking dispatch notification failed', { bookingId: booking._id, error: notifyError.message });
+    }
+    logger.info('Booking reviewed and dispatched by admin', { bookingId: booking._id, adminId: req.user.id });
+    return sendSuccess(res, booking, 'Booking reviewed and dispatched to provider');
+  } catch (error) {
+    logger.error('Admin review booking error', { error: error.message, bookingId: req.params.id });
+    return sendServerError(res, error, error.message || 'Failed to review booking', 'BOOKING_ADMIN_REVIEW_ERROR');
+  }
+};
 
 // @desc    Get all services
 // @route   GET /api/marketplace/services
@@ -101,13 +137,9 @@ const getServices = async (req, res) => {
     // Build filter object
     const filter = { isActive: true };
 
-    // Text search (only on string fields, not ObjectId references like category)
+    // Full-text search via MongoDB text index (avoids ReDoS from user-supplied $regex)
     if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { features: { $in: [new RegExp(search, 'i')] } }
-      ];
+      filter.$text = { $search: search };
     }
 
     // Category filter
@@ -662,8 +694,8 @@ const deleteServiceCategory = async (req, res) => {
       return sendNotFoundError(res, 'Service category not found', 'CATEGORY_NOT_FOUND');
     }
 
-    // Check if category is used by any services
-    const servicesCount = await Service.countDocuments({ category: category.key });
+    // Check if category is used by any services (category field is an ObjectId ref)
+    const servicesCount = await Service.countDocuments({ category: category._id });
     if (servicesCount > 0) {
       return res.status(400).json({
         success: false,
@@ -705,7 +737,7 @@ const createService = async (req, res) => {
       filesCount: req.files?.length || 0
     });
 
-    logger.debug('Create service - Raw request data', {
+    debugLog('Create service - Raw request data', {
       userId: req.user.id,
       body: req.body,
       bodyType: typeof req.body,
@@ -722,7 +754,7 @@ const createService = async (req, res) => {
     const contentType = req.get('content-type') || '';
     const isMultipart = contentType.includes('multipart/form-data');
 
-    logger.debug('Create service - Content type detection', {
+    debugLog('Create service - Content type detection', {
       contentType,
       isMultipart
     });
@@ -733,7 +765,7 @@ const createService = async (req, res) => {
       // For multipart/form-data, parse JSON fields if they're strings
       serviceData = { ...req.body };
 
-      logger.debug('Create service - Parsing multipart data', {
+      debugLog('Create service - Parsing multipart data', {
         rawBody: req.body,
         parsedFields: Object.keys(serviceData)
       });
@@ -763,12 +795,12 @@ const createService = async (req, res) => {
     } else {
       // For JSON requests, use body directly
       serviceData = { ...req.body };
-      logger.debug('Create service - Using JSON body directly', {
+      debugLog('Create service - Using JSON body directly', {
         serviceDataKeys: Object.keys(serviceData)
       });
     }
 
-    logger.debug('Create service - Parsed service data', {
+    debugLog('Create service - Parsed service data', {
       serviceData: JSON.stringify(serviceData, null, 2),
       serviceAreaType: typeof serviceData.serviceArea,
       serviceAreaValue: serviceData.serviceArea
@@ -778,7 +810,7 @@ const createService = async (req, res) => {
     const { title, description, category, subcategory, pricing, serviceArea } = serviceData;
     const validationErrors = [];
 
-    logger.debug('Create service - Validating required fields', {
+    debugLog('Create service - Validating required fields', {
       title: title ? `${title.substring(0, 50)}...` : null,
       titleType: typeof title,
       hasDescription: !!description,
@@ -811,20 +843,25 @@ const createService = async (req, res) => {
       });
     }
 
-    // Validate category
-    const validCategories = [
-      'cleaning', 'plumbing', 'electrical', 'moving', 'landscaping',
-      'painting', 'carpentry', 'flooring', 'roofing', 'hvac',
-      'appliance_repair', 'locksmith', 'handyman', 'home_security',
-      'pool_maintenance', 'pest_control', 'carpet_cleaning', 'window_cleaning',
-      'gutter_cleaning', 'power_washing', 'snow_removal', 'other'
-    ];
-    if (!category || typeof category !== 'string' || !validCategories.includes(category)) {
+    // Validate category against the ServiceCategory collection (not a hardcoded list)
+    if (!category || typeof category !== 'string') {
       validationErrors.push({
         field: 'category',
-        message: `Service category is required and must be one of: ${validCategories.join(', ')}`,
+        message: 'Service category is required',
         code: 'CATEGORY_REQUIRED'
       });
+    } else {
+      const categoryExists = await ServiceCategory.findOne({
+        $or: [{ key: category }, { _id: mongoose.Types.ObjectId.isValid(category) ? category : null }],
+        isActive: true
+      });
+      if (!categoryExists) {
+        validationErrors.push({
+          field: 'category',
+          message: 'Service category is invalid or inactive. Retrieve valid categories from GET /api/marketplace/services/categories',
+          code: 'CATEGORY_INVALID'
+        });
+      }
     }
 
     // Validate subcategory
@@ -951,7 +988,7 @@ const createService = async (req, res) => {
       // If address is provided instead of coordinates, geocode it
       if (serviceArea.address && !serviceArea.coordinates) {
         try {
-          logger.debug('Create service - Geocoding service area address', {
+          debugLog('Create service - Geocoding service area address', {
             address: serviceArea.address
           });
           const geocodeResult = await GoogleMapsService.geocodeAddress(serviceArea.address);
@@ -970,7 +1007,7 @@ const createService = async (req, res) => {
             }
             // Remove address field as it's not part of the schema
             delete serviceArea.address;
-            logger.debug('Create service - Geocoded successfully', {
+            debugLog('Create service - Geocoded successfully', {
               coordinates: serviceArea.coordinates,
               radius: serviceArea.radius
             });
@@ -997,7 +1034,7 @@ const createService = async (req, res) => {
       // Ensure radius has a default if not provided
       if (serviceArea.coordinates && !serviceArea.radius) {
         serviceArea.radius = 50; // Default 50 km radius
-        logger.debug('Create service - Set default radius', {
+        debugLog('Create service - Set default radius', {
           radius: serviceArea.radius
         });
       }
@@ -1019,52 +1056,33 @@ const createService = async (req, res) => {
 
     // Set provider
     serviceData.provider = req.user.id;
-    logger.debug('Create service - Set provider', {
+    debugLog('Create service - Set provider', {
       provider: serviceData.provider
     });
 
-    // Convert serviceArea coordinates to GeoJSON format if needed
+    // Convert serviceArea coordinates to GeoJSON format using shared helper
     if (serviceData.serviceArea && serviceData.serviceArea.coordinates) {
-      // If coordinates are in {lat, lng} format, convert to GeoJSON [lng, lat]
-      if (serviceData.serviceArea.coordinates.lat !== undefined &&
-        serviceData.serviceArea.coordinates.lng !== undefined) {
-        const { lat, lng } = serviceData.serviceArea.coordinates;
-        serviceData.serviceArea.coordinates = {
-          type: 'Point',
-          coordinates: [lng, lat] // GeoJSON format: [longitude, latitude]
-        };
-        logger.debug('Create service - Converted coordinates to GeoJSON', {
-          original: { lat, lng },
-          geojson: serviceData.serviceArea.coordinates
-        });
-      }
-      // If coordinates are already an array, ensure they're in GeoJSON format
-      else if (Array.isArray(serviceData.serviceArea.coordinates)) {
-        serviceData.serviceArea.coordinates = {
-          type: 'Point',
-          coordinates: serviceData.serviceArea.coordinates
-        };
-      }
+      serviceData.serviceArea.coordinates = toGeoPoint(serviceData.serviceArea.coordinates);
     }
 
     // Remove any file-related fields that shouldn't be in the service document
     delete serviceData.images;
     delete serviceData.files;
     delete serviceData.file;
-    logger.debug('Create service - Cleaned service data', {
+    debugLog('Create service - Cleaned service data', {
       serviceDataKeys: Object.keys(serviceData),
       hasServiceArea: !!serviceData.serviceArea
     });
 
-    logger.debug('Create service - Final service data before save', {
+    debugLog('Create service - Final service data before save', {
       serviceData: JSON.stringify(serviceData, null, 2),
       serviceAreaFinal: serviceData.serviceArea
     });
 
     // Create the service
-    logger.debug('Create service - Creating service in database');
+    debugLog('Create service - Creating service in database');
     const service = await Service.create(serviceData);
-    logger.debug('Create service - Service created', {
+    debugLog('Create service - Service created', {
       serviceId: service._id,
       serviceTitle: service.title,
       serviceCategory: service.category,
@@ -1073,7 +1091,7 @@ const createService = async (req, res) => {
 
     // Upload images if provided
     if (req.files && req.files.length > 0) {
-      logger.debug('Create service - Uploading images', {
+      debugLog('Create service - Uploading images', {
         filesCount: req.files.length
       });
 
@@ -1283,21 +1301,9 @@ const updateService = async (req, res) => {
         }
       }
 
-      // Convert coordinates to GeoJSON format if in {lat, lng} format
+      // Convert coordinates to GeoJSON format using shared helper
       if (updateData.serviceArea && updateData.serviceArea.coordinates) {
-        if (updateData.serviceArea.coordinates.lat !== undefined &&
-          updateData.serviceArea.coordinates.lng !== undefined) {
-          const { lat, lng } = updateData.serviceArea.coordinates;
-          updateData.serviceArea.coordinates = {
-            type: 'Point',
-            coordinates: [lng, lat]
-          };
-        } else if (Array.isArray(updateData.serviceArea.coordinates)) {
-          updateData.serviceArea.coordinates = {
-            type: 'Point',
-            coordinates: updateData.serviceArea.coordinates
-          };
-        }
+        updateData.serviceArea.coordinates = toGeoPoint(updateData.serviceArea.coordinates);
       }
 
       if (updateData.serviceArea && updateData.serviceArea.coordinates && !updateData.serviceArea.radius) {
@@ -1404,9 +1410,14 @@ const deleteService = async (req, res) => {
       }
     }
 
-    await Service.findByIdAndDelete(req.params.id);
+    // Soft-delete: mark inactive + record deletion metadata instead of hard-deleting
+    // This preserves booking history that references this service.
+    service.isActive = false;
+    service.deletedAt = new Date();
+    service.deletedBy = req.user.id;
+    await service.save();
 
-    logger.info('Service deleted successfully', {
+    logger.info('Service soft-deleted successfully', {
       serviceId: req.params.id,
       userId: req.user.id
     });
@@ -1721,7 +1732,10 @@ const createBooking = async (req, res) => {
             escrowProvider: paymentMethod || 'paypal'
           },
           status: 'pending_admin_review',
-          timeline: [{
+          source: req.headers['x-source'] || 'web',
+          userAgent: req.headers['user-agent'],
+          ipAddress: req.ip,
+          statusHistory: [{
             status: 'pending_admin_review',
             timestamp: new Date(),
             note: 'Booking created, pending admin review',
@@ -1748,10 +1762,15 @@ const createBooking = async (req, res) => {
         throw createError;
       }
 
-      // Update service booking count
+      // Update service analytics and daily capacity counter
       await Service.findByIdAndUpdate(
         serviceId,
-        { $inc: { 'rating.count': 1 } },
+        {
+          $inc: {
+            'analytics.bookings': 1,
+            'capacity.currentDailyBookings': 1
+          }
+        },
         { session }
       );
     }, transactionOptions);
@@ -3350,6 +3369,11 @@ const approveService = async (req, res) => {
     const { notes } = req.body;
     await service.approve(req.user.id, notes);
 
+    SecurityAuditLog.log(req.user.id, 'service_approved', {
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      metadata: { serviceId: service._id, title: service.title }
+    });
     logger.info('Service approved', { serviceId: service._id, adminId: req.user.id });
     return sendSuccess(res, service, 'Service approved successfully');
   } catch (error) {
@@ -3379,6 +3403,11 @@ const rejectService = async (req, res) => {
 
     await service.reject(req.user.id, reason);
 
+    SecurityAuditLog.log(req.user.id, 'service_rejected', {
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      metadata: { serviceId: service._id, title: service.title, reason }
+    });
     logger.info('Service rejected', { serviceId: service._id, adminId: req.user.id, reason });
     return sendSuccess(res, service, 'Service rejected');
   } catch (error) {
@@ -3406,6 +3435,11 @@ const featureService = async (req, res) => {
 
     await service.feature(featuredUntil, position, reason);
 
+    SecurityAuditLog.log(req.user.id, 'service_featured', {
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      metadata: { serviceId: service._id, until: featuredUntil }
+    });
     logger.info('Service featured', { serviceId: service._id, adminId: req.user.id, until: featuredUntil });
     return sendSuccess(res, service, 'Service featured successfully');
   } catch (error) {
@@ -4207,6 +4241,15 @@ const cancelBooking = async (req, res) => {
 
     await booking.cancel(userId, reason, reasonCode || 'other');
 
+    // Decrement daily capacity counter for the service
+    try {
+      await Service.findByIdAndUpdate(booking.service, {
+        $inc: { 'capacity.currentDailyBookings': -1 }
+      });
+    } catch (capErr) {
+      logger.warn('Failed to decrement capacity on cancel', { bookingId: booking._id, error: capErr.message });
+    }
+
     // Notify the other party
     const notifyUserId = isClient ? booking.provider : booking.client;
     try {
@@ -4550,6 +4593,11 @@ const resolveDispute = async (req, res) => {
 
     await booking.resolveDispute(req.user.id, outcome, refundAmount || 0, notes);
 
+    SecurityAuditLog.log(req.user.id, 'dispute_resolved', {
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      metadata: { bookingId: booking._id, outcome, refundAmount }
+    });
     // Notify both parties
     try {
       await Promise.all([

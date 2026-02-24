@@ -199,23 +199,48 @@ Manages job postings, applications, and job board functionality.
 
 Handles authentication, user registration, profile management, and verification.
 
+> **v2 security hardening** — see [docs/AUTH_SECURITY.md](docs/AUTH_SECURITY.md) for full details on password rules, JWT blocklist, multi-device sessions, TOTP migration, rate limiting, and brute-force lockout.
+
 **Key Methods:**
-- `register()` - Register new user
-- `login()` - Login with email/password
-- `logout()` - Logout user
-- `refreshToken()` - Refresh access token
-- `sendVerificationCode()` - Send SMS verification code
-- `verifyCode()` - Verify SMS code
-- `verifyEmailOTP()` - Verify email with OTP
-- `checkEmail()` - Check if email exists
-- `setPassword()` - Set/reset password
+- `registerWithEmail(data)` - Register new user with email + password
+- `loginWithEmail(data)` - Login with email/password (brute-force lockout enforced)
+- `logout(refreshToken?)` - Logout; blocklists JWT `jti` + optionally revokes refresh token
+- `refreshToken(token)` - Refresh access token
+- `sendVerificationCode(data)` - Send SMS verification code
+- `verifyCode(data)` - Verify SMS code
+- `verifyEmailOTP(data)` - Verify email with OTP
+- `checkEmail(email)` - Check if email exists
+- `setPassword(data)` - Set/reset password
+- `sendMagicLink(data)` - Send passwordless magic link to email (15-min, single-use)
+- `verifyMagicLink(token)` - Verify magic link token and obtain auth tokens
 - `getMe()` - Get current user profile
-- `updateProfile()` - Update user profile
-- `completeOnboarding()` - Complete onboarding
+- `getProfile()` - Alias for `getMe()`
+- `updateProfile(data)` - Update user profile
+- `completeOnboarding(data)` - Complete onboarding
 - `getProfileCompletionStatus()` - Get completion status
 - `getProfileCompleteness()` - Get completeness percentage
-- `uploadAvatar()` - Upload avatar image
-- `uploadPortfolio()` - Upload portfolio images
+- `uploadAvatar(formData)` - Upload avatar image (≤ 2 MB, JPEG/PNG)
+- `uploadPortfolio(formData)` - Upload portfolio images (up to 5, ≤ 5 MB each)
+- `setMpin(data)` - Set 4–6-digit MPIN
+- `verifyMpin(data)` - Verify MPIN during active session
+- `loginWithMpin(data)` - Login with phone number + MPIN
+- `getMpinStatus()` - Get MPIN status
+- `disableMpin()` - Disable MPIN
+- `earlyRegistration(data)` - Submit early-access / waitlist registration
+
+### OAuth Tokens API (`client.oauth`)
+
+Manages OAuth2 tokens, PKCE authorization codes, and token introspection.
+
+> Supports both `client_credentials` (machine-to-machine) and `authorization_code` with mandatory PKCE S256 (browser/mobile). See [docs/AUTH_SECURITY.md](docs/AUTH_SECURITY.md#10-pkce-oauth2-authorization-code-flow).
+
+**Key Methods:**
+- `authorize(data)` - Create PKCE authorization code (S256 only; requires user auth)
+- `exchangeToken(data)` - Exchange credentials or auth code for access + refresh tokens
+- `refreshToken(data)` - Get a new access token using a refresh token
+- `revokeToken(data)` - Revoke an access or refresh token (RFC 7009)
+- `getTokenInfo()` - Introspect the current access token (RFC 7662)
+- `listTokens(params)` - List all active tokens for the authenticated user
 
 ### 6. Finance API (`client.finance`)
 

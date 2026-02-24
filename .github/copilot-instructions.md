@@ -23,6 +23,7 @@
 - Twilio dev mode: if credentials are missing, SMS verification accepts any 6-digit code (per README).
 - Postman collections live in postman/; use LocalPro-Environment and role-based collections for API testing.
 - SDK is in packages/localpro-sdk; keep API changes in sync with SDK docs when relevant.
+- SDK-specific Copilot instructions live in packages/localpro-sdk/copilot-instructions.md — follow those when editing anything under that package.
 
 ## Key Locations
 - src/controllers, src/models, src/routes, src/services, src/middleware

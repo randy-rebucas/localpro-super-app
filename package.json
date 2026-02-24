@@ -53,6 +53,7 @@
     "multer-storage-cloudinary": "^2.2.1",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.9",
+    "otplib": "^13.3.0",
     "prom-client": "^13.2.0",
     "qrcode": "^1.5.4",
     "resend": "^6.1.2",
