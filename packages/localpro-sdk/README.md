@@ -1492,6 +1492,41 @@ const notes = await client.userManagement.getNotes('user-id', { limit: 10 });
 
 ---
 
+## Trust Verification API
+
+Identity, business, professional, and bank-account verification flows. Users submit document-backed requests; admins review them and trust scores are updated automatically.
+
+```javascript
+// Submit an identity verification request
+const req = await client.trustVerification.createRequest({
+  type: 'identity',
+  documents: [
+    { type: 'government_id', url: 'https://res.cloudinary.com/...', publicId: 'localpro/...' }
+  ],
+  personalInfo: { firstName: 'Jane', lastName: 'Doe', phoneNumber: '+639171234567' }
+});
+
+// Check your own requests
+const mine = await client.trustVerification.getMyRequests({ status: 'pending' });
+
+// Admin: approve with a trust-score override
+await client.trustVerification.reviewRequest(req.data._id, {
+  status: 'approved',
+  adminNotes: 'Passport verified.',
+  trustScore: 90
+});
+
+// Browse publicly verified users
+const verified = await client.trustVerification.getVerifiedUsers({ minTrustScore: 70 });
+
+// Admin: view aggregated statistics
+const stats = await client.trustVerification.getStatistics();
+```
+
+> **Further reading:** [docs/TRUST_VERIFICATION_FEATURE.md](./docs/TRUST_VERIFICATION_FEATURE.md)
+
+---
+
 ## API Authentication
 
 The SDK uses API key authentication. You need to:

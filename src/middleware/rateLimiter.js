@@ -107,6 +107,17 @@ const userManagementLimiter = make({
   message: { success: false, message: 'Too many user management requests – please slow down.', code: 'USER_MGMT_RATE_LIMIT' }
 });
 
+/**
+ * Trust verification endpoints – 30 req / min per IP.
+ * Verification submissions and admin reviews are sensitive write operations;
+ * a tighter window reduces automated abuse and document-upload floods.
+ */
+const trustVerificationLimiter = make({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { success: false, message: 'Too many trust verification requests – please slow down.', code: 'TRUST_VERIFICATION_RATE_LIMIT' }
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
@@ -116,6 +127,7 @@ module.exports = {
   paymentLimiter,
   marketplaceLimiter,
   aiLimiter,
-  userManagementLimiter
+  userManagementLimiter,
+  trustVerificationLimiter
 };
 

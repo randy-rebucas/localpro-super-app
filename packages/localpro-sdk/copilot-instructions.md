@@ -153,6 +153,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | `marketplaceLimiter` | 1 min | 120 req | `createBooking`, `openDispute`, `addClientReview` |
 | `aiLimiter` | 10 min | 20 req | All `client.ai.*` methods |
 | `userManagementLimiter` | 1 min | 60 req | All `client.userManagement.*` methods |
+| `trustVerificationLimiter` | 1 min | 30 req | All `client.trustVerification.*` methods (except `getVerifiedUsers`) |
 | (auth limiter) | — | — | login, register, OTP endpoints |
 
 ---
@@ -165,6 +166,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | `MARKETPLACE_FEATURE.md` | Marketplace — lifecycle diagrams, v2 fixes, full SDK method table |
 | `AI_FEATURE.md` | AI feature — endpoint reference, AI Bot events, rate limiting, v2 fix log, SDK method table |
 | `USER_MANAGEMENT_FEATURE.md` | User management — endpoint reference, 20 SDK methods, v2 fix log (17 issues), rate limiting |
+| `TRUST_VERIFICATION_FEATURE.md` | Trust verification — endpoint reference, 11 SDK methods, v2 fix log (16 issues), schema bug fixes, rate limiting |
 
 > **Rule — Documentation is mandatory, not optional.**  
 > After completing **any** feature work, audit, or hardening session, you **must** create or

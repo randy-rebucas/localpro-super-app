@@ -2,6 +2,10 @@ const { VerificationRequest } = require('../models/TrustVerification');
 const User = require('../../../src/models/User');
 const CloudinaryService = require('../../../src/services/cloudinaryService');
 const EmailService = require('../../../src/services/emailService');
+const logger = require('../../../src/config/logger');
+const { sendServerError } = require('../../../src/utils/responseHelper');
+const { isValidObjectId } = require('../../../src/utils/objectIdUtils');
+const debugLog = process.env.NODE_ENV !== 'production' ? logger.debug.bind(logger) : () => {};
 
 // @desc    Get all trust verification requests
 // @route   GET /api/trust-verification
@@ -34,11 +38,8 @@ const getVerificationRequestRequests = async (req, res) => {
       data: requests
     });
   } catch (error) {
-    console.error('Get trust verification requests error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    logger.error('Get trust verification requests error:', error);
+    return sendServerError(res, error, 'Failed to fetch verification requests', 'GET_REQUESTS_ERROR');
   }
 };
 
@@ -47,6 +48,9 @@ const getVerificationRequestRequests = async (req, res) => {
 // @access  Private
 const getVerificationRequestRequest = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid verification request id format.' });
+    }
     const request = await VerificationRequest.findById(req.params.id)
       .populate('user', 'firstName lastName profile.avatar profile.rating profile.bio')
       .populate('review.reviewedBy', 'firstName lastName profile.avatar');
@@ -73,11 +77,8 @@ const getVerificationRequestRequest = async (req, res) => {
       data: request
     });
   } catch (error) {
-    console.error('Get trust verification request error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    logger.error('Get trust verification request error:', error);
+    return sendServerError(res, error, 'Failed to fetch verification request', 'GET_REQUEST_ERROR');
   }
 };
 
@@ -172,11 +173,8 @@ const createVerificationRequestRequest = async (req, res) => {
       data: request
     });
   } catch (error) {
-    console.error('Create trust verification request error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    logger.error('Create trust verification request error:', error);
+    return sendServerError(res, error, 'Failed to create verification request', 'CREATE_REQUEST_ERROR');
   }
 };
 
@@ -186,6 +184,10 @@ const createVerificationRequestRequest = async (req, res) => {
 const updateVerificationRequestRequest = async (req, res) => {
   try {
     const { documents, additionalInfo, personalInfo } = req.body;
+
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid verification request id format.' });
+    }
 
     const request = await VerificationRequest.findById(req.params.id);
 
@@ -254,11 +256,8 @@ const updateVerificationRequestRequest = async (req, res) => {
       data: request
     });
   } catch (error) {
-    console.error('Update trust verification request error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    logger.error('Update trust verification request error:', error);
+    return sendServerError(res, error, 'Failed to update verification request', 'UPDATE_REQUEST_ERROR');
   }
 };
 
@@ -268,6 +267,10 @@ const updateVerificationRequestRequest = async (req, res) => {
 const reviewVerificationRequestRequest = async (req, res) => {
   try {
     const { status, adminNotes, trustScore } = req.body;
+
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid verification request id format.' });
+    }
 
     if (!status) {
       return res.status(400).json({
@@ -299,12 +302,12 @@ const reviewVerificationRequestRequest = async (req, res) => {
       });
     }
 
-    // Update request
+    // Update request — store review details in the nested review subdocument
     request.status = status;
-    request.adminNotes = adminNotes;
-    request.trustScore = trustScore;
-    request.reviewedBy = req.user.id;
-    request.reviewedAt = new Date();
+    request.review.reviewedBy = req.user.id;
+    request.review.reviewedAt = new Date();
+    request.review.notes = adminNotes;
+    if (trustScore) request.review.score = trustScore;
     await request.save();
 
     // Update user's trust score if approved
@@ -313,31 +316,31 @@ const reviewVerificationRequestRequest = async (req, res) => {
       if (user) {
         const currentTrust = await user.ensureTrust();
         if (trustScore) {
-          // If specific trust score provided, set it directly (admin override)
-          currentTrust.trustScore = trustScore;
+          // Admin override — set the overall score directly
+          currentTrust.overallScore = trustScore;
         } else {
-          // Otherwise recalculate
-          currentTrust.calculateTrustScore();
+          // Recalculate from weighted components
+          currentTrust.calculateScore();
         }
         await currentTrust.save();
-        // Note: verificationStatus field doesn't exist in User model, may need to be added if required
-        await user.save();
       }
     }
 
-    // Send notification email to user
+    // Send notification email to user (only if user has an email address)
     const user = await User.findById(request.user);
-    await EmailService.sendEmail({
-      to: user.email,
-      subject: 'Trust Verification Request Update',
-      template: 'verification-status-update',
-      data: {
-        userName: `${user.firstName} ${user.lastName}`,
-        status,
-        adminNotes,
-        trustScore
-      }
-    });
+    if (user && user.email) {
+      await EmailService.sendEmail({
+        to: user.email,
+        subject: 'Trust Verification Request Update',
+        template: 'verification-status-update',
+        data: {
+          userName: `${user.firstName} ${user.lastName}`,
+          status,
+          adminNotes,
+          trustScore
+        }
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -345,11 +348,8 @@ const reviewVerificationRequestRequest = async (req, res) => {
       data: request
     });
   } catch (error) {
-    console.error('Review trust verification request error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    logger.error('Review trust verification request error:', error);
+    return sendServerError(res, error, 'Failed to review verification request', 'REVIEW_REQUEST_ERROR');
   }
 };
 
@@ -358,6 +358,9 @@ const reviewVerificationRequestRequest = async (req, res) => {
 // @access  Private
 const deleteVerificationRequestRequest = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid verification request id format.' });
+    }
     const request = await VerificationRequest.findById(req.params.id);
 
     if (!request) {
@@ -393,11 +396,8 @@ const deleteVerificationRequestRequest = async (req, res) => {
       message: 'Trust verification request deleted successfully'
     });
   } catch (error) {
-    console.error('Delete trust verification request error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    logger.error('Delete trust verification request error:', error);
+    return sendServerError(res, error, 'Failed to delete verification request', 'DELETE_REQUEST_ERROR');
   }
 };
 
@@ -406,6 +406,10 @@ const deleteVerificationRequestRequest = async (req, res) => {
 // @access  Private
 const uploadVerificationDocuments = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid verification request id format.' });
+    }
+
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
@@ -453,10 +457,7 @@ const uploadVerificationDocuments = async (req, res) => {
       }));
 
     if (successfulUploads.length === 0) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to upload any documents'
-      });
+      return sendServerError(res, new Error('All Cloudinary uploads failed'), 'Failed to upload any documents', 'UPLOAD_ALL_FAILED');
     }
 
     // Add new documents to request
@@ -469,11 +470,8 @@ const uploadVerificationDocuments = async (req, res) => {
       data: successfulUploads
     });
   } catch (error) {
-    console.error('Upload verification documents error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    logger.error('Upload verification documents error:', error);
+    return sendServerError(res, error, 'Failed to upload documents', 'UPLOAD_DOCUMENTS_ERROR');
   }
 };
 
@@ -483,6 +481,13 @@ const uploadVerificationDocuments = async (req, res) => {
 const deleteVerificationDocument = async (req, res) => {
   try {
     const { documentId } = req.params;
+
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid verification request id format.' });
+    }
+    if (!isValidObjectId(documentId)) {
+      return res.status(400).json({ success: false, message: 'Invalid document id format.' });
+    }
 
     const request = await VerificationRequest.findById(req.params.id);
 
@@ -521,8 +526,8 @@ const deleteVerificationDocument = async (req, res) => {
     // Delete from Cloudinary
     await CloudinaryService.deleteFile(document.publicId);
 
-    // Remove from request
-    document.remove();
+    // Remove from request (Mongoose 7+ compatible)
+    request.documents.pull(documentId);
     await request.save();
 
     res.status(200).json({
@@ -530,11 +535,8 @@ const deleteVerificationDocument = async (req, res) => {
       message: 'Document deleted successfully'
     });
   } catch (error) {
-    console.error('Delete verification document error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    logger.error('Delete verification document error:', error);
+    return sendServerError(res, error, 'Failed to delete document', 'DELETE_DOCUMENT_ERROR');
   }
 };
 
@@ -568,11 +570,8 @@ const getMyVerificationRequestRequests = async (req, res) => {
       data: requests
     });
   } catch (error) {
-    console.error('Get my trust verification requests error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    logger.error('Get my trust verification requests error:', error);
+    return sendServerError(res, error, 'Failed to fetch your verification requests', 'GET_MY_REQUESTS_ERROR');
   }
 };
 
@@ -654,11 +653,8 @@ const getVerificationRequestStatistics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get trust verification statistics error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    logger.error('Get trust verification statistics error:', error);
+    return sendServerError(res, error, 'Failed to fetch statistics', 'GET_STATISTICS_ERROR');
   }
 };
 
@@ -691,11 +687,8 @@ const getVerifiedUsers = async (req, res) => {
       data: users
     });
   } catch (error) {
-    console.error('Get verified users error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    logger.error('Get verified users error:', error);
+    return sendServerError(res, error, 'Failed to fetch verified users', 'GET_VERIFIED_USERS_ERROR');
   }
 };
 

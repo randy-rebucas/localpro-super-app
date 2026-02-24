@@ -1,5 +1,6 @@
 const express = require('express');
 const { auth, authorize } = require('../../../src/middleware/auth');
+const { trustVerificationLimiter } = require('../../../src/middleware/rateLimiter');
 const {
   getVerificationRequestRequests,
   getVerificationRequestRequest,
@@ -41,6 +42,7 @@ router.get('/verified-users', getVerifiedUsers);
 
 // Protected routes
 router.use(auth);
+router.use(trustVerificationLimiter);
 
 /**
  * @swagger
