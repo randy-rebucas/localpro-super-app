@@ -1567,6 +1567,42 @@ const stats = await client.supplies.getStatistics();
 
 ---
 
+## Settings API
+
+Manages user preferences and global app configuration. User settings cover privacy, notifications, communication, service, payment, security, and analytics. App settings (admin-only) govern feature flags, upload limits, payment defaults, and maintenance mode. Public routes (`getPublicAppSettings`, `getAppHealth`) require no auth token.
+
+```javascript
+// Read current user settings
+const { data } = await client.settings.getUserSettings();
+
+// Silence all push notifications for the user
+await client.settings.updateUserSettingsCategory('notifications', {
+  push: { enabled: false }
+});
+
+// Reset user settings to platform defaults
+await client.settings.resetUserSettings();
+
+// Admin: fetch full app config
+const appConfig = await client.settings.getAppSettings();
+
+// Admin: update default payment currency
+await client.settings.updateAppSettingsCategory('payments', { defaultCurrency: 'PHP' });
+
+// Admin: toggle a feature flag
+await client.settings.toggleFeatureFlag({ feature: 'referrals', enabled: false });
+
+// Public (no auth): app health + active feature summary
+const health = await client.settings.getAppHealth();
+
+// Public (no auth): cached public settings snapshot
+const pub = await client.settings.getPublicAppSettings();
+```
+
+> **Further reading:** [docs/SETTINGS_FEATURE.md](./docs/SETTINGS_FEATURE.md)
+
+---
+
 ## API Authentication
 
 The SDK uses API key authentication. You need to:

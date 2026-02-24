@@ -3,6 +3,7 @@ const { body, param } = require('express-validator');
 const router = express.Router();
 
 const { auth } = require('../../../src/middleware/auth');
+const { settingsLimiter } = require('../../../src/middleware/rateLimiter');
 const {
   // User Settings
   getUserSettings,
@@ -191,6 +192,9 @@ const validateCategory = [
 // Public App Settings Routes (No auth required) - Must be defined first
 router.get('/app/public', getPublicAppSettings);
 router.get('/app/health', getAppHealth);
+
+// Rate-limit all subsequent (authenticated) routes
+router.use(settingsLimiter);
 
 // User Settings Routes
 router.get('/user', auth, getUserSettings);

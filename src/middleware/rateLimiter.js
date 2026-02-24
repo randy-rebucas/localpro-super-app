@@ -128,6 +128,17 @@ const suppliesLimiter = make({
   message: { success: false, message: 'Too many supply requests – please slow down.', code: 'SUPPLIES_RATE_LIMIT' }
 });
 
+/**
+ * Settings endpoints – 60 req / min per IP.
+ * Covers user settings reads/writes and admin app-settings mutations.
+ * Public routes (app/public, app/health) are exempt and do not use this limiter.
+ */
+const settingsLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many settings requests – please slow down.', code: 'SETTINGS_RATE_LIMIT' }
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
@@ -139,6 +150,7 @@ module.exports = {
   aiLimiter,
   userManagementLimiter,
   trustVerificationLimiter,
-  suppliesLimiter
+  suppliesLimiter,
+  settingsLimiter
 };
 

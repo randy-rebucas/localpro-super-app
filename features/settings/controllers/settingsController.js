@@ -2,6 +2,7 @@ const UserSettings = require('../../users/models/UserSettings');
 const AppSettings = require('../models/AppSettings');
 const { validationResult } = require('express-validator');
 const logger = require('../../../src/config/logger');
+const { sendServerError } = require('../../../src/utils/responseHelper');
 
 // Simple in-memory cache for public app settings
 const publicSettingsCache = {
@@ -48,12 +49,8 @@ const getUserSettings = async (req, res) => {
       data: userSettings
     });
   } catch (error) {
-    console.error('Error getting user settings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get user settings',
-      error: error.message
-    });
+    logger.error('Error getting user settings', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to get user settings', 'GET_USER_SETTINGS_ERROR');
   }
 };
 
@@ -115,12 +112,8 @@ const updateUserSettings = async (req, res) => {
       data: userSettings
     });
   } catch (error) {
-    console.error('Error updating user settings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update user settings',
-      error: error.message
-    });
+    logger.error('Error updating user settings', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to update user settings', 'UPDATE_USER_SETTINGS_ERROR');
   }
 };
 
@@ -165,12 +158,8 @@ const updateUserSettingsCategory = async (req, res) => {
       data: userSettings[category]
     });
   } catch (error) {
-    console.error('Error updating user settings category:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update user settings category',
-      error: error.message
-    });
+    logger.error('Error updating user settings category', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to update user settings category', 'UPDATE_USER_SETTINGS_CATEGORY_ERROR');
   }
 };
 
@@ -198,12 +187,8 @@ const resetUserSettings = async (req, res) => {
       data: userSettings
     });
   } catch (error) {
-    console.error('Error resetting user settings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to reset user settings',
-      error: error.message
-    });
+    logger.error('Error resetting user settings', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to reset user settings', 'RESET_USER_SETTINGS_ERROR');
   }
 };
 
@@ -226,12 +211,8 @@ const deleteUserSettings = async (req, res) => {
       message: 'User settings deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting user settings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete user settings',
-      error: error.message
-    });
+    logger.error('Error deleting user settings', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to delete user settings', 'DELETE_USER_SETTINGS_ERROR');
   }
 };
 
@@ -257,12 +238,8 @@ const getAppSettings = async (req, res) => {
       data: appSettings
     });
   } catch (error) {
-    console.error('Error getting app settings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get app settings',
-      error: error.message
-    });
+    logger.error('Error getting app settings', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to get app settings', 'GET_APP_SETTINGS_ERROR');
   }
 };
 
@@ -300,12 +277,8 @@ const updateAppSettings = async (req, res) => {
       data: appSettings
     });
   } catch (error) {
-    console.error('Error updating app settings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update app settings',
-      error: error.message
-    });
+    logger.error('Error updating app settings', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to update app settings', 'UPDATE_APP_SETTINGS_ERROR');
   }
 };
 
@@ -355,12 +328,8 @@ const updateAppSettingsCategory = async (req, res) => {
       data: appSettings[category]
     });
   } catch (error) {
-    console.error('Error updating app settings category:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update app settings category',
-      error: error.message
-    });
+    logger.error('Error updating app settings category', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to update app settings category', 'UPDATE_APP_SETTINGS_CATEGORY_ERROR');
   }
 };
 
@@ -611,12 +580,8 @@ const toggleFeatureFlag = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error toggling feature flag:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to toggle feature flag',
-      error: error.message
-    });
+    logger.error('Error toggling feature flag', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to toggle feature flag', 'TOGGLE_FEATURE_FLAG_ERROR');
   }
 };
 
@@ -642,12 +607,8 @@ const getAppHealth = async (req, res) => {
       data: health
     });
   } catch (error) {
-    console.error('Error getting app health:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get app health',
-      error: error.message
-    });
+    logger.error('Error getting app health', { error: error.message, stack: error.stack });
+    sendServerError(res, error, 'Failed to get app health', 'GET_APP_HEALTH_ERROR');
   }
 };
 

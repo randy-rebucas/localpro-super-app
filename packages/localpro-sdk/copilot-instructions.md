@@ -155,6 +155,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | `userManagementLimiter` | 1 min | 60 req | All `client.userManagement.*` methods |
 | `trustVerificationLimiter` | 1 min | 30 req | All `client.trustVerification.*` methods (except `getVerifiedUsers`) |
 | `suppliesLimiter` | 1 min | 60 req | All protected `client.supplies.*` write methods |
+| `settingsLimiter` | 1 min | 60 req | All protected `client.settings.*` routes (public routes exempt) |
 | (auth limiter) | — | — | login, register, OTP endpoints |
 
 ---
@@ -169,6 +170,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | `USER_MANAGEMENT_FEATURE.md` | User management — endpoint reference, 20 SDK methods, v2 fix log (17 issues), rate limiting |
 | `TRUST_VERIFICATION_FEATURE.md` | Trust verification — endpoint reference, 11 SDK methods, v2 fix log (16 issues), schema bug fixes, rate limiting |
 | `SUPPLIES_FEATURE.md` | Supplies — endpoint reference, 16 SDK methods, v2 fix log, rate limiting, service-layer architecture |
+| `SETTINGS_FEATURE.md` | Settings — user preferences + app config endpoints, public-cache design, 11 SDK methods, v2 fix log, rate limiting |
 
 > **Rule — Documentation is mandatory, not optional.**  
 > After completing **any** feature work, audit, or hardening session, you **must** create or
