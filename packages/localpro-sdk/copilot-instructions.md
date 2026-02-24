@@ -157,6 +157,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | `suppliesLimiter` | 1 min | 60 req | All protected `client.supplies.*` write methods |
 | `settingsLimiter` | 1 min | 60 req | All protected `client.settings.*` routes (public routes exempt) |
 | `searchLimiter` | 1 min | 60 req | All `client.search.*` routes including `/popular`, `/categories`, `/locations`, `/trending`, `/entities/:type`, `/analytics` |
+| `schedulingLimiter` | 1 min | 60 req | All `client.scheduling.*` routes — both `/api/scheduling` and `/api/availability` routers |
 | (auth limiter) | — | — | login, register, OTP endpoints |
 
 ---
@@ -173,6 +174,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | `SUPPLIES_FEATURE.md` | Supplies — endpoint reference, 16 SDK methods, v2 fix log, rate limiting, service-layer architecture |
 | `SETTINGS_FEATURE.md` | Settings — user preferences + app config endpoints, public-cache design, 11 SDK methods, v2 fix log, rate limiting |
 | `SEARCH_FEATURE.md` | Search — cross-entity full-text search, 9 SDK methods, relevance scoring, v2 fix log (missing limiters + error leaks), rate limiting |
+| `SCHEDULING_FEATURE.md` | Scheduling & Availability — AI job ranking + suggestions, calendar management, reschedule workflow; 20 SDK methods; v2 fix log (double-client bug, 0→60 rate limit, 11 new availability methods) |
 
 > **Rule — Documentation is mandatory, not optional.**  
 > After completing **any** feature work, audit, or hardening session, you **must** create or

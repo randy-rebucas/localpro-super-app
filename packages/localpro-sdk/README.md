@@ -1642,6 +1642,55 @@ await client.search.trackAnalytics({ query: 'plumbing', results: 12 });
 
 ---
 
+## Scheduling & Availability API
+
+Provider scheduling with AI-driven job ranking and suggestions, combined with full calendar availability management, reschedule-request workflows, and time-off support.
+
+```javascript
+// AI: rank a job for the authenticated provider
+await client.scheduling.calculateJobRanking('job-id');
+
+// AI: generate a daily and weekly schedule
+const daily  = await client.scheduling.generateDailySuggestion();
+const weekly = await client.scheduling.generateWeeklySuggestion({ weekStartDate: '2026-03-02' });
+
+// AI: accept a job from a suggestion
+await client.scheduling.acceptSuggestedJob('suggestion-id', 'job-id');
+
+// AI: feed outcome back for continuous learning
+await client.scheduling.learnFromOutcome({ jobId: 'job-id', outcome: 'completed' });
+
+// Calendar: create an availability block
+await client.scheduling.createAvailability({
+  startTime: '2026-03-01T09:00:00Z',
+  endTime:   '2026-03-01T17:00:00Z',
+  type: 'available'
+});
+
+// Calendar: week view
+const cal = await client.scheduling.getCalendarView({ viewType: 'week' });
+
+// Calendar: add time off
+await client.scheduling.addTimeOff({
+  startDate: '2026-03-10T00:00:00Z',
+  endDate:   '2026-03-12T23:59:59Z',
+  reason: 'Holiday'
+});
+
+// Reschedule workflow
+await client.scheduling.createRescheduleRequest({
+  jobSchedule: 'schedule-id',
+  requestedStartTime: '2026-03-05T08:00:00Z',
+  requestedEndTime:   '2026-03-05T10:00:00Z',
+  reason: 'Equipment delay'
+});
+await client.scheduling.approveRescheduleRequest('request-id');
+```
+
+> **Further reading:** [docs/SCHEDULING_FEATURE.md](./docs/SCHEDULING_FEATURE.md)
+
+---
+
 ## API Authentication
 
 The SDK uses API key authentication. You need to:

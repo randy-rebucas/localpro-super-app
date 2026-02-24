@@ -1,5 +1,6 @@
 const express = require('express');
 const { auth } = require('../../../src/middleware/auth');
+const { schedulingLimiter } = require('../../../src/middleware/rateLimiter');
 const {
   createAvailability,
   getAvailability,
@@ -15,6 +16,7 @@ const {
 } = require('../controllers/availabilityController');
 
 const router = express.Router();
+router.use(schedulingLimiter);
 
 /**
  * @swagger

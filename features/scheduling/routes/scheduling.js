@@ -1,5 +1,6 @@
 const express = require('express');
 const { auth } = require('../../../src/middleware/auth');
+const { schedulingLimiter } = require('../../../src/middleware/rateLimiter');
 const {
   calculateJobRanking,
   getRankedJobs,
@@ -13,6 +14,7 @@ const {
 } = require('../controllers/schedulingController');
 
 const router = express.Router();
+router.use(schedulingLimiter);
 
 /**
  * @swagger

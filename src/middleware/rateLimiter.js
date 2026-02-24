@@ -139,6 +139,17 @@ const settingsLimiter = make({
   message: { success: false, message: 'Too many settings requests – please slow down.', code: 'SETTINGS_RATE_LIMIT' }
 });
 
+/**
+ * Scheduling & availability endpoints – 60 req / min per IP.
+ * Covers provider calendar management, reschedule requests, AI-driven
+ * schedule suggestions, and job ranking operations.
+ */
+const schedulingLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many scheduling requests – please slow down.', code: 'SCHEDULING_RATE_LIMIT' }
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
@@ -151,6 +162,7 @@ module.exports = {
   userManagementLimiter,
   trustVerificationLimiter,
   suppliesLimiter,
-  settingsLimiter
+  settingsLimiter,
+  schedulingLimiter
 };
 
