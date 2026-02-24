@@ -1691,6 +1691,47 @@ await client.scheduling.approveRescheduleRequest('request-id');
 
 ---
 
+## Rentals
+
+```js
+// Browse
+const { data } = await client.rentals.list({ category: 'tools', page: 1 });
+const rental    = await client.rentals.getById('<rentalId>');
+const cats      = await client.rentals.getCategories();
+const featured  = await client.rentals.getFeatured(6);
+const nearby    = await client.rentals.getNearby({ lat: 14.5, lng: 121.0 });
+
+// Owner operations (provider/admin)
+const created = await client.rentals.create({ name: 'Power Drill', price: 500, category: 'tools' });
+await client.rentals.update(created.data._id, { price: 450 });
+await client.rentals.uploadImages(created.data._id, formData);
+await client.rentals.delete(created.data._id);
+
+// Booking
+const booking = await client.rentals.book(created.data._id, {
+  startDate: '2025-08-01T00:00:00Z',
+  endDate:   '2025-08-03T00:00:00Z'
+});
+await client.rentals.updateBookingStatus(
+  created.data._id, booking.data._id, { status: 'confirmed' }
+);
+
+// Reviews & user queries
+await client.rentals.addReview(created.data._id, { rating: 5, comment: 'Great!' });
+const myRentals  = await client.rentals.getMyRentals();
+const myBookings = await client.rentals.getMyBookings({ status: 'confirmed' });
+
+// AI description (provider/admin)
+const desc = await client.rentals.generateDescription({ name: 'Power Drill' });
+
+// Admin statistics
+const stats = await client.rentals.getStatistics();
+```
+
+> **Further reading:** [docs/RENTALS_FEATURE.md](./docs/RENTALS_FEATURE.md)
+
+---
+
 ## API Authentication
 
 The SDK uses API key authentication. You need to:

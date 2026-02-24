@@ -158,6 +158,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | `settingsLimiter` | 1 min | 60 req | All protected `client.settings.*` routes (public routes exempt) |
 | `searchLimiter` | 1 min | 60 req | All `client.search.*` routes including `/popular`, `/categories`, `/locations`, `/trending`, `/entities/:type`, `/analytics` |
 | `schedulingLimiter` | 1 min | 60 req | All `client.scheduling.*` routes — both `/api/scheduling` and `/api/availability` routers |
+| `rentalsLimiter` | 1 min | 60 req | All `client.rentals.*` routes — public browse + auth-gated write/booking routes |
 | (auth limiter) | — | — | login, register, OTP endpoints |
 
 ---
@@ -175,6 +176,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | `SETTINGS_FEATURE.md` | Settings — user preferences + app config endpoints, public-cache design, 11 SDK methods, v2 fix log, rate limiting |
 | `SEARCH_FEATURE.md` | Search — cross-entity full-text search, 9 SDK methods, relevance scoring, v2 fix log (missing limiters + error leaks), rate limiting |
 | `SCHEDULING_FEATURE.md` | Scheduling & Availability — AI job ranking + suggestions, calendar management, reschedule workflow; 20 SDK methods; v2 fix log (double-client bug, 0→60 rate limit, 11 new availability methods) |
+| `RENTALS_FEATURE.md` | Rentals — public browse + owner CRUD + booking lifecycle + reviews + AI descriptions + admin stats; 16 SDK methods; v2 fix log (missing rate limiter, wildcard route shadowing /my-rentals /my-bookings /statistics, missing getStatistics SDK method) |
 
 > **Rule — Documentation is mandatory, not optional.**  
 > After completing **any** feature work, audit, or hardening session, you **must** create or

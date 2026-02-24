@@ -1,5 +1,6 @@
 const express = require('express');
 const { auth, authorize } = require('../../../src/middleware/auth');
+const { rentalsLimiter } = require('../../../src/middleware/rateLimiter');
 const {
   getRentalItem,
   getRental,
@@ -22,6 +23,9 @@ const {
 const { uploaders } = require('../../../src/config/cloudinary');
 
 const router = express.Router();
+
+// Apply rate limit to all rentals routes
+router.use(rentalsLimiter);
 
 /**
  * @swagger
@@ -124,6 +128,13 @@ router.get('/featured', getFeaturedRentalItem);
  *         description: Nearby rentals
  */
 router.get('/nearby', getNearbyRentalItem);
+
+// User-specific routes – must be registered before /:id to avoid wildcard shadowing
+router.get('/my-rentals', auth, getMyRentalItem);
+router.get('/my-bookings', auth, getMyRentalBookings);
+
+// Statistics route (Admin only) – must be before /:id
+router.get('/statistics', auth, authorize('admin'), getRentalStatistics);
 
 /**
  * @swagger
@@ -313,12 +324,5 @@ router.put('/:id/bookings/:bookingId/status', updateBookingStatus);
 
 // Review routes
 router.post('/:id/reviews', addRentalReview);
-
-// User-specific routes
-router.get('/my-rentals', getMyRentalItem);
-router.get('/my-bookings', getMyRentalBookings);
-
-// Statistics route (Admin only) - [ADMIN ONLY]
-router.get('/statistics', authorize('admin'), getRentalStatistics);
 
 module.exports = router;

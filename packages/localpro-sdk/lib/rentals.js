@@ -1,5 +1,26 @@
 /**
- * Rentals API methods for LocalPro SDK
+ * @classdesc Provides access to LocalPro Rentals API endpoints.
+ * Covers public browse (list, categories, featured, nearby), authenticated
+ * owner operations (create, update, delete, image upload), booking lifecycle
+ * (book, update status), reviews, and admin statistics.
+ *
+ * @example
+ * const sdk = new LocalProSDK({ baseURL: 'https://api.localpro.ph', token });
+ *
+ * // Browse rentals
+ * const { data } = await sdk.rentals.list({ category: 'tools', page: 1 });
+ *
+ * // Create a rental (provider/admin)
+ * const rental = await sdk.rentals.create({ name: 'Power Drill', price: 500, category: 'tools' });
+ *
+ * // Book a rental
+ * const booking = await sdk.rentals.book(rental.data._id, {
+ *   startDate: '2025-08-01T00:00:00Z',
+ *   endDate:   '2025-08-03T00:00:00Z'
+ * });
+ *
+ * // Add a review
+ * await sdk.rentals.addReview(rental.data._id, { rating: 5, comment: 'Great condition!' });
  */
 class RentalsAPI {
   constructor(client) {
@@ -242,6 +263,14 @@ class RentalsAPI {
     }
 
     return await this.client.post('/api/rentals/generate-description', descriptionData);
+  }
+
+  /**
+   * Get rental statistics (Admin only)
+   * @returns {Promise<Object>} Rental statistics
+   */
+  async getStatistics() {
+    return await this.client.get('/api/rentals/statistics');
   }
 }
 
