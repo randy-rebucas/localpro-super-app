@@ -51,8 +51,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
             },
             "description": "Register a new client account"
           }
@@ -95,8 +100,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             },
             "description": "Login with email and password"
           }
@@ -117,8 +127,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login-email",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login-email"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login-email"
+              ]
             },
             "description": "Request OTP code for email login"
           }
@@ -156,8 +171,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/verify-email-otp",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "verify-email-otp"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-email-otp"
+              ]
             },
             "description": "Verify email OTP and get authentication token"
           }
@@ -192,8 +212,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/mpin/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "mpin", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "mpin",
+                "login"
+              ]
             },
             "description": "Login using MPIN"
           }
@@ -228,8 +254,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/refresh",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "refresh"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
             },
             "description": "Refresh access token"
           }
@@ -241,8 +272,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
             },
             "description": "Get current authenticated user's profile"
           }
@@ -263,8 +299,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "profile"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "profile"
+              ]
             },
             "description": "Update user profile information"
           }
@@ -286,8 +327,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/avatar",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "avatar"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "avatar"
+              ]
             },
             "description": "Upload profile avatar image"
           }
@@ -308,8 +354,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/mpin/set",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "mpin", "set"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "mpin",
+                "set"
+              ]
             },
             "description": "Set MPIN for quick login"
           }
@@ -321,8 +373,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/mpin/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "mpin", "status"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "mpin",
+                "status"
+              ]
             },
             "description": "Check if MPIN is enabled"
           }
@@ -334,8 +392,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/mpin",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "mpin"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "mpin"
+              ]
             },
             "description": "Disable MPIN authentication"
           }
@@ -347,8 +410,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "logout"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
             },
             "description": "Logout and invalidate token"
           }
@@ -369,13 +437,30 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services?page=1&limit=20&category=&search=",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services"
+                  ],
                   "query": [
-                    {"key": "page", "value": "1"},
-                    {"key": "limit", "value": "20"},
-                    {"key": "category", "value": ""},
-                    {"key": "search", "value": ""}
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "category",
+                      "value": ""
+                    },
+                    {
+                      "key": "search",
+                      "value": ""
+                    }
                   ]
                 },
                 "description": "Get list of available services"
@@ -388,8 +473,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/categories",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "categories"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "categories"
+                  ]
                 },
                 "description": "Get all service categories"
               }
@@ -401,12 +492,27 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/nearby?lat=14.5995&lng=120.9842&radius=10",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "nearby"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "nearby"
+                  ],
                   "query": [
-                    {"key": "lat", "value": "14.5995"},
-                    {"key": "lng", "value": "120.9842"},
-                    {"key": "radius", "value": "10"}
+                    {
+                      "key": "lat",
+                      "value": "14.5995"
+                    },
+                    {
+                      "key": "lng",
+                      "value": "120.9842"
+                    },
+                    {
+                      "key": "radius",
+                      "value": "10"
+                    }
                   ]
                 },
                 "description": "Get services near a location"
@@ -433,8 +539,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "{{serviceId}}"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "{{serviceId}}"
+                  ]
                 },
                 "description": "Get details of a specific service"
               }
@@ -446,8 +558,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/providers",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "{{serviceId}}", "providers"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "{{serviceId}}",
+                    "providers"
+                  ]
                 },
                 "description": "Get providers offering this service"
               }
@@ -459,8 +578,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/my-services",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "my-services"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "my-services"
+                  ]
                 },
                 "description": "Get services associated with my account"
               }
@@ -477,8 +601,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/providers/{{providerId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "providers", "{{providerId}}"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "providers",
+                    "{{providerId}}"
+                  ]
                 },
                 "description": "Get details of a service provider"
               }
@@ -490,8 +620,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/providers/{{providerId}}/services",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "providers", "{{providerId}}", "services"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "providers",
+                    "{{providerId}}",
+                    "services"
+                  ]
                 },
                 "description": "Get all services offered by a provider"
               }
@@ -531,8 +668,13 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings"
+                  ]
                 },
                 "description": "Create a new service booking"
               }
@@ -544,12 +686,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/my-bookings?page=1&limit=20&status=",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "my-bookings"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "my-bookings"
+                  ],
                   "query": [
-                    {"key": "page", "value": "1"},
-                    {"key": "limit", "value": "20"},
-                    {"key": "status", "value": ""}
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "status",
+                      "value": ""
+                    }
                   ]
                 },
                 "description": "Get all my bookings"
@@ -562,11 +718,22 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings?page=1&limit=20",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings"
+                  ],
                   "query": [
-                    {"key": "page", "value": "1"},
-                    {"key": "limit", "value": "20"}
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
                   ]
                 },
                 "description": "Get all bookings"
@@ -579,8 +746,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}"
+                  ]
                 },
                 "description": "Get details of a specific booking"
               }
@@ -601,8 +774,15 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/status",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "status"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "status"
+                  ]
                 },
                 "description": "Update booking status (cancel, complete, etc.)"
               }
@@ -624,8 +804,15 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/photos",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "photos"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "photos"
+                  ]
                 },
                 "description": "Upload photos for a booking"
               }
@@ -646,8 +833,15 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/review",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "review"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "review"
+                  ]
                 },
                 "description": "Add a review for a completed booking"
               }
@@ -668,8 +862,15 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/paypal/approve",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "paypal", "approve"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "paypal",
+                    "approve"
+                  ]
                 },
                 "description": "Approve PayPal payment for booking"
               }
@@ -693,15 +894,25 @@
               ],
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"providerId\": \"{{providerId}}\",\n  \"bookingDate\": \"2026-02-15T10:00:00.000Z\",\n  \"duration\": 120,\n  \"durationUnit\": \"minutes\",\n  \"timeSlot\": {\n    \"start\": \"10:00\",\n    \"end\": \"12:00\"\n  },\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Manila\",\n    \"state\": \"Metro Manila\",\n    \"zipCode\": \"1000\",\n    \"coordinates\": {\n      \"type\": \"Point\",\n      \"coordinates\": [120.9842, 14.5995]\n    }\n  },\n  \"recurring\": {\n    \"isRecurring\": true,\n    \"type\": \"weekly\",\n    \"daysOfWeek\": [\"monday\", \"thursday\"],\n    \"endDate\": \"2026-06-30\",\n    \"maxOccurrences\": 20\n  },\n  \"specialInstructions\": \"Please bring eco-friendly cleaning products\"\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings"
+                  ]
                 },
                 "description": "Create a recurring service booking"
               }
@@ -713,8 +924,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/number/{{bookingNumber}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "number", "{{bookingNumber}}"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "number",
+                    "{{bookingNumber}}"
+                  ]
                 },
                 "description": "Get booking by booking number"
               }
@@ -723,15 +941,27 @@
               "name": "Cancel Booking",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"reason\": \"Schedule conflict\",\n  \"reasonCode\": \"client_request\"\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/cancel",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "cancel"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "cancel"
+                  ]
                 },
                 "description": "Cancel a booking"
               }
@@ -740,15 +970,27 @@
               "name": "Reschedule Booking",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"newDate\": \"2026-02-20T14:00:00.000Z\",\n  \"reason\": \"Changed my availability\"\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/reschedule",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "reschedule"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "reschedule"
+                  ]
                 },
                 "description": "Reschedule a booking to a new date"
               }
@@ -760,10 +1002,19 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/upcoming?limit=10",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "upcoming"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "upcoming"
+                  ],
                   "query": [
-                    {"key": "limit", "value": "10"}
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
                   ]
                 },
                 "description": "Get upcoming bookings"
@@ -773,15 +1024,27 @@
               "name": "Sign Off Booking",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"signature\": \"base64_encoded_signature_image\"\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/signoff",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "signoff"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "signoff"
+                  ]
                 },
                 "description": "Sign off on completed service"
               }
@@ -790,15 +1053,27 @@
               "name": "Add Tip",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"amount\": 100,\n  \"method\": \"gcash\"\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tip",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "tip"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "tip"
+                  ]
                 },
                 "description": "Add a tip for the service provider"
               }
@@ -815,8 +1090,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tracking",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "tracking"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "tracking"
+                  ]
                 },
                 "description": "Get current provider location for active booking"
               }
@@ -828,8 +1110,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tracking/eta",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "tracking", "eta"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "tracking",
+                    "eta"
+                  ]
                 },
                 "description": "Get estimated time of arrival"
               }
@@ -841,8 +1131,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/tracking/status",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "tracking", "status"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "tracking",
+                    "status"
+                  ]
                 },
                 "description": "Get tracking status (arrived, in_progress, etc.)"
               }
@@ -856,15 +1154,27 @@
               "name": "Open Dispute",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"reason\": \"Service was not completed as described\",\n  \"reasonCode\": \"quality\",\n  \"description\": \"The provider did not clean the kitchen as agreed in the booking.\"\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "dispute"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "dispute"
+                  ]
                 },
                 "description": "Open a dispute for a booking"
               }
@@ -876,8 +1186,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "dispute"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "dispute"
+                  ]
                 },
                 "description": "Get dispute details for a booking"
               }
@@ -890,15 +1207,35 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    {"key": "file", "type": "file", "src": ""},
-                    {"key": "type", "value": "photo", "type": "text"},
-                    {"key": "description", "value": "Photo of uncleaned kitchen area", "type": "text"}
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": ""
+                    },
+                    {
+                      "key": "type",
+                      "value": "photo",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Photo of uncleaned kitchen area",
+                      "type": "text"
+                    }
                   ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/evidence",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "evidence"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "dispute",
+                    "evidence"
+                  ]
                 },
                 "description": "Add evidence to a dispute"
               }
@@ -907,15 +1244,28 @@
               "name": "Add Dispute Message",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"message\": \"I have attached photos showing the areas that were not cleaned.\"\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/messages",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "messages"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "dispute",
+                    "messages"
+                  ]
                 },
                 "description": "Add a message to the dispute thread"
               }
@@ -927,8 +1277,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/dispute/messages",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "dispute", "messages"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "dispute",
+                    "messages"
+                  ]
                 },
                 "description": "Get all messages in a dispute"
               }
@@ -940,12 +1298,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/disputes?status=&page=1&limit=20",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "disputes"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "disputes"
+                  ],
                   "query": [
-                    {"key": "status", "value": ""},
-                    {"key": "page", "value": "1"},
-                    {"key": "limit", "value": "20"}
+                    {
+                      "key": "status",
+                      "value": ""
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
                   ]
                 },
                 "description": "Get all my disputes"
@@ -960,15 +1332,27 @@
               "name": "Add Detailed Review",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent service! Very professional and thorough.\",\n  \"categories\": {\n    \"quality\": 5,\n    \"timeliness\": 5,\n    \"communication\": 4,\n    \"value\": 5\n  },\n  \"wouldRecommend\": true\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/review",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "review"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "review"
+                  ]
                 },
                 "description": "Add a detailed review with category ratings"
               }
@@ -981,13 +1365,25 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    {"key": "photos", "type": "file", "src": ""}
+                    {
+                      "key": "photos",
+                      "type": "file",
+                      "src": ""
+                    }
                   ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/bookings/{{bookingId}}/review/photos",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "bookings", "{{bookingId}}", "review", "photos"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "bookings",
+                    "{{bookingId}}",
+                    "review",
+                    "photos"
+                  ]
                 },
                 "description": "Upload photos to accompany your review"
               }
@@ -999,8 +1395,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/reviews/{{reviewId}}/helpful",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "reviews", "{{reviewId}}", "helpful"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "reviews",
+                    "{{reviewId}}",
+                    "helpful"
+                  ]
                 },
                 "description": "Mark a review as helpful"
               }
@@ -1012,12 +1415,28 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/reviews?page=1&limit=20&sort=recent",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "{{serviceId}}", "reviews"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "{{serviceId}}",
+                    "reviews"
+                  ],
                   "query": [
-                    {"key": "page", "value": "1"},
-                    {"key": "limit", "value": "20"},
-                    {"key": "sort", "value": "recent"}
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "recent"
+                    }
                   ]
                 },
                 "description": "Get reviews for a service"
@@ -1030,11 +1449,24 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/providers/{{providerId}}/reviews?page=1&limit=20",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "providers", "{{providerId}}", "reviews"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "providers",
+                    "{{providerId}}",
+                    "reviews"
+                  ],
                   "query": [
-                    {"key": "page", "value": "1"},
-                    {"key": "limit", "value": "20"}
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
                   ]
                 },
                 "description": "Get reviews for a provider"
@@ -1052,10 +1484,19 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/featured?limit=10",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "featured"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "featured"
+                  ],
                   "query": [
-                    {"key": "limit", "value": "10"}
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
                   ]
                 },
                 "description": "Get featured services"
@@ -1068,10 +1509,19 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/top-rated?limit=10",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "top-rated"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "top-rated"
+                  ],
                   "query": [
-                    {"key": "limit", "value": "10"}
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
                   ]
                 },
                 "description": "Get top rated services"
@@ -1084,15 +1534,39 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/search?q=cleaning&category=&minPrice=&maxPrice=&page=1&limit=20",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "search"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "search"
+                  ],
                   "query": [
-                    {"key": "q", "value": "cleaning"},
-                    {"key": "category", "value": ""},
-                    {"key": "minPrice", "value": ""},
-                    {"key": "maxPrice", "value": ""},
-                    {"key": "page", "value": "1"},
-                    {"key": "limit", "value": "20"}
+                    {
+                      "key": "q",
+                      "value": "cleaning"
+                    },
+                    {
+                      "key": "category",
+                      "value": ""
+                    },
+                    {
+                      "key": "minPrice",
+                      "value": ""
+                    },
+                    {
+                      "key": "maxPrice",
+                      "value": ""
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
                   ]
                 },
                 "description": "Full-text search for services"
@@ -1105,8 +1579,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/slug/{{serviceSlug}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "slug", "{{serviceSlug}}"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "slug",
+                    "{{serviceSlug}}"
+                  ]
                 },
                 "description": "Get service by URL slug"
               }
@@ -1118,13 +1599,32 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/category/{{categoryId}}?page=1&limit=20&sortBy=rating.average&sortOrder=-1",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "category", "{{categoryId}}"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "category",
+                    "{{categoryId}}"
+                  ],
                   "query": [
-                    {"key": "page", "value": "1"},
-                    {"key": "limit", "value": "20"},
-                    {"key": "sortBy", "value": "rating.average"},
-                    {"key": "sortOrder", "value": "-1"}
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "sortBy",
+                      "value": "rating.average"
+                    },
+                    {
+                      "key": "sortOrder",
+                      "value": "-1"
+                    }
                   ]
                 },
                 "description": "Get services by category with sorting"
@@ -1134,15 +1634,27 @@
               "name": "Calculate Service Price",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"quantity\": 1,\n  \"packageId\": \"{{packageId}}\",\n  \"addOnIds\": [\"{{addOnId}}\"],\n  \"promoCode\": \"CLEAN15\"\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/calculate-price",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "{{serviceId}}", "calculate-price"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "{{serviceId}}",
+                    "calculate-price"
+                  ]
                 },
                 "description": "Calculate total price with packages, add-ons, and promotions"
               }
@@ -1154,11 +1666,24 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/marketplace/services/{{serviceId}}/availability?date=2026-02-15&timeSlot=10:00",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["marketplace", "services", "{{serviceId}}", "availability"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "marketplace",
+                    "services",
+                    "{{serviceId}}",
+                    "availability"
+                  ],
                   "query": [
-                    {"key": "date", "value": "2026-02-15"},
-                    {"key": "timeSlot", "value": "10:00"}
+                    {
+                      "key": "date",
+                      "value": "2026-02-15"
+                    },
+                    {
+                      "key": "timeSlot",
+                      "value": "10:00"
+                    }
                   ]
                 },
                 "description": "Check if service is available on a specific date/time"
@@ -1179,14 +1704,33 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/jobs?page=1&limit=20&category=&search=&type=",
-              "host": ["{{baseUrl}}"],
-              "path": ["jobs"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jobs"
+              ],
               "query": [
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "20"},
-                {"key": "category", "value": ""},
-                {"key": "search", "value": ""},
-                {"key": "type", "value": ""}
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "category",
+                  "value": ""
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "type",
+                  "value": ""
+                }
               ]
             },
             "description": "Get list of available jobs"
@@ -1199,12 +1743,26 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/jobs/search?q=developer&location=Manila&type=full-time",
-              "host": ["{{baseUrl}}"],
-              "path": ["jobs", "search"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jobs",
+                "search"
+              ],
               "query": [
-                {"key": "q", "value": "developer"},
-                {"key": "location", "value": "Manila"},
-                {"key": "type", "value": "full-time"}
+                {
+                  "key": "q",
+                  "value": "developer"
+                },
+                {
+                  "key": "location",
+                  "value": "Manila"
+                },
+                {
+                  "key": "type",
+                  "value": "full-time"
+                }
               ]
             },
             "description": "Search for jobs"
@@ -1217,8 +1775,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/jobs/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["jobs", "categories"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jobs",
+                "categories"
+              ]
             },
             "description": "Get all job categories"
           }
@@ -1244,8 +1807,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/jobs/{{jobId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["jobs", "{{jobId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jobs",
+                "{{jobId}}"
+              ]
             },
             "description": "Get details of a specific job"
           }
@@ -1266,8 +1834,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/jobs/{{jobId}}/apply",
-              "host": ["{{baseUrl}}"],
-              "path": ["jobs", "{{jobId}}", "apply"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jobs",
+                "{{jobId}}",
+                "apply"
+              ]
             },
             "description": "Apply for a job"
           }
@@ -1279,11 +1853,22 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/jobs/my-applications?page=1&limit=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["jobs", "my-applications"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jobs",
+                "my-applications"
+              ],
               "query": [
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "20"}
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             },
             "description": "Get all my job applications"
@@ -1296,8 +1881,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/jobs/{{jobId}}/applications/{{applicationId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["jobs", "{{jobId}}", "applications", "{{applicationId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jobs",
+                "{{jobId}}",
+                "applications",
+                "{{applicationId}}"
+              ]
             },
             "description": "Withdraw a job application"
           }
@@ -1318,13 +1910,30 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/academy/courses?page=1&limit=20&category=&search=",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "courses"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "courses"
+                  ],
                   "query": [
-                    {"key": "page", "value": "1"},
-                    {"key": "limit", "value": "20"},
-                    {"key": "category", "value": ""},
-                    {"key": "search", "value": ""}
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "category",
+                      "value": ""
+                    },
+                    {
+                      "key": "search",
+                      "value": ""
+                    }
                   ]
                 },
                 "description": "Get list of available courses"
@@ -1337,8 +1946,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/academy/featured",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "featured"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "featured"
+                  ]
                 },
                 "description": "Get featured courses"
               }
@@ -1350,8 +1964,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/academy/categories",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "categories"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "categories"
+                  ]
                 },
                 "description": "Get all course categories"
               }
@@ -1377,8 +1996,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/academy/courses/{{courseId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "courses", "{{courseId}}"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "courses",
+                    "{{courseId}}"
+                  ]
                 },
                 "description": "Get details of a specific course"
               }
@@ -1399,8 +2024,15 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/academy/courses/{{courseId}}/enroll",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "courses", "{{courseId}}", "enroll"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "courses",
+                    "{{courseId}}",
+                    "enroll"
+                  ]
                 },
                 "description": "Enroll in a course"
               }
@@ -1421,8 +2053,15 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/academy/courses/{{courseId}}/progress",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "courses", "{{courseId}}", "progress"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "courses",
+                    "{{courseId}}",
+                    "progress"
+                  ]
                 },
                 "description": "Update progress on a course"
               }
@@ -1443,8 +2082,15 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/academy/courses/{{courseId}}/reviews",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "courses", "{{courseId}}", "reviews"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "courses",
+                    "{{courseId}}",
+                    "reviews"
+                  ]
                 },
                 "description": "Add a review for a course"
               }
@@ -1456,8 +2102,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/academy/courses/{{courseId}}/favorite",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "courses", "{{courseId}}", "favorite"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "courses",
+                    "{{courseId}}",
+                    "favorite"
+                  ]
                 },
                 "description": "Add course to favorites"
               }
@@ -1469,8 +2122,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/academy/courses/{{courseId}}/favorite",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "courses", "{{courseId}}", "favorite"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "courses",
+                    "{{courseId}}",
+                    "favorite"
+                  ]
                 },
                 "description": "Remove course from favorites"
               }
@@ -1487,11 +2147,22 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/academy/my-courses?page=1&limit=20",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "my-courses"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "my-courses"
+                  ],
                   "query": [
-                    {"key": "page", "value": "1"},
-                    {"key": "limit", "value": "20"}
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
                   ]
                 },
                 "description": "Get courses I'm enrolled in"
@@ -1504,8 +2175,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/academy/my-favorite-courses",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "my-favorite-courses"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "my-favorite-courses"
+                  ]
                 },
                 "description": "Get my favorited courses"
               }
@@ -1517,8 +2193,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/academy/certifications",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["academy", "certifications"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "academy",
+                    "certifications"
+                  ]
                 },
                 "description": "Get available certifications"
               }
@@ -1538,11 +2219,22 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/activities/feed?page=1&limit=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "feed"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "feed"
+              ],
               "query": [
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "20"}
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             },
             "description": "Get activity feed"
@@ -1555,11 +2247,22 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/activities/my?page=1&limit=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "my"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "my"
+              ],
               "query": [
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "20"}
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             },
             "description": "Get my activities"
@@ -1572,8 +2275,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/activities/{{activityId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "{{activityId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "{{activityId}}"
+              ]
             },
             "description": "Get a specific activity"
           }
@@ -1594,8 +2302,12 @@
             },
             "url": {
               "raw": "{{baseUrl}}/activities",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities"
+              ]
             },
             "description": "Create a new activity"
           }
@@ -1616,8 +2328,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/activities/{{activityId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "{{activityId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "{{activityId}}"
+              ]
             },
             "description": "Update an activity"
           }
@@ -1629,8 +2346,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/activities/{{activityId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "{{activityId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "{{activityId}}"
+              ]
             },
             "description": "Delete an activity"
           }
@@ -1651,8 +2373,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/activities/{{activityId}}/interactions",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "{{activityId}}", "interactions"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "{{activityId}}",
+                "interactions"
+              ]
             },
             "description": "Like or interact with an activity"
           }
@@ -1664,8 +2392,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/activities/{{activityId}}/interactions",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "{{activityId}}", "interactions"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "{{activityId}}",
+                "interactions"
+              ]
             },
             "description": "Remove interaction from an activity"
           }
@@ -1677,8 +2411,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/activities/stats/my",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "stats", "my"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "stats",
+                "my"
+              ]
             },
             "description": "Get my activity statistics"
           }
@@ -1690,8 +2430,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/activities/timeline",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "timeline"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "timeline"
+              ]
             },
             "description": "Get activity timeline"
           }
@@ -1703,8 +2448,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/activities/points",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "points"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "points"
+              ]
             },
             "description": "Get activity points"
           }
@@ -1716,8 +2466,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/activities/leaderboard",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "leaderboard"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "leaderboard"
+              ]
             },
             "description": "Get activity leaderboard"
           }
@@ -1729,8 +2484,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/activities/metadata",
-              "host": ["{{baseUrl}}"],
-              "path": ["activities", "metadata"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "activities",
+                "metadata"
+              ]
             },
             "description": "Get activity metadata"
           }
@@ -1748,12 +2508,25 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/ads?page=1&limit=20&category=",
-              "host": ["{{baseUrl}}"],
-              "path": ["ads"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ads"
+              ],
               "query": [
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "20"},
-                {"key": "category", "value": ""}
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "category",
+                  "value": ""
+                }
               ]
             },
             "description": "Get list of ads"
@@ -1766,8 +2539,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/ads/featured",
-              "host": ["{{baseUrl}}"],
-              "path": ["ads", "featured"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ads",
+                "featured"
+              ]
             },
             "description": "Get featured ads"
           }
@@ -1779,8 +2557,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/ads/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["ads", "categories"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ads",
+                "categories"
+              ]
             },
             "description": "Get ad categories"
           }
@@ -1792,8 +2575,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/ads/{{adId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["ads", "{{adId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ads",
+                "{{adId}}"
+              ]
             },
             "description": "Get ad details"
           }
@@ -1805,8 +2593,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/ads/{{adId}}/click",
-              "host": ["{{baseUrl}}"],
-              "path": ["ads", "{{adId}}", "click"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ads",
+                "{{adId}}",
+                "click"
+              ]
             },
             "description": "Track ad click"
           }
@@ -1824,11 +2618,21 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/agencies?page=1&limit=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["agencies"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agencies"
+              ],
               "query": [
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "20"}
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             },
             "description": "Get list of agencies"
@@ -1841,8 +2645,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/agencies/{{agencyId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["agencies", "{{agencyId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agencies",
+                "{{agencyId}}"
+              ]
             },
             "description": "Get agency details"
           }
@@ -1854,8 +2663,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/agencies/my/agencies",
-              "host": ["{{baseUrl}}"],
-              "path": ["agencies", "my", "agencies"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agencies",
+                "my",
+                "agencies"
+              ]
             },
             "description": "Get agencies I'm part of"
           }
@@ -1876,8 +2691,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/agencies/join",
-              "host": ["{{baseUrl}}"],
-              "path": ["agencies", "join"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agencies",
+                "join"
+              ]
             },
             "description": "Request to join an agency"
           }
@@ -1898,8 +2718,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/agencies/leave",
-              "host": ["{{baseUrl}}"],
-              "path": ["agencies", "leave"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agencies",
+                "leave"
+              ]
             },
             "description": "Leave an agency"
           }
@@ -1917,11 +2742,21 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/announcements?page=1&limit=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["announcements"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "announcements"
+              ],
               "query": [
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "20"}
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             },
             "description": "Get list of announcements"
@@ -1934,8 +2769,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/announcements/{{announcementId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["announcements", "{{announcementId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "announcements",
+                "{{announcementId}}"
+              ]
             },
             "description": "Get announcement details"
           }
@@ -1947,8 +2787,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/announcements/my/list",
-              "host": ["{{baseUrl}}"],
-              "path": ["announcements", "my", "list"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "announcements",
+                "my",
+                "list"
+              ]
             },
             "description": "Get announcements relevant to me"
           }
@@ -1960,8 +2806,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/announcements/{{announcementId}}/acknowledge",
-              "host": ["{{baseUrl}}"],
-              "path": ["announcements", "{{announcementId}}", "acknowledge"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "announcements",
+                "{{announcementId}}",
+                "acknowledge"
+              ]
             },
             "description": "Acknowledge an announcement"
           }
@@ -1982,8 +2834,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/announcements/{{announcementId}}/comments",
-              "host": ["{{baseUrl}}"],
-              "path": ["announcements", "{{announcementId}}", "comments"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "announcements",
+                "{{announcementId}}",
+                "comments"
+              ]
             },
             "description": "Add a comment to an announcement"
           }
@@ -2001,12 +2859,25 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/notifications?page=1&limit=20&read=",
-              "host": ["{{baseUrl}}"],
-              "path": ["notifications"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ],
               "query": [
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "20"},
-                {"key": "read", "value": ""}
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "read",
+                  "value": ""
+                }
               ]
             },
             "description": "Get all notifications"
@@ -2019,8 +2890,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/notifications/unread-count",
-              "host": ["{{baseUrl}}"],
-              "path": ["notifications", "unread-count"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "unread-count"
+              ]
             },
             "description": "Get unread notification count"
           }
@@ -2032,8 +2908,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
-              "host": ["{{baseUrl}}"],
-              "path": ["notifications", "{{notificationId}}", "read"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
             },
             "description": "Mark notification as read"
           }
@@ -2045,8 +2927,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/notifications/read-all",
-              "host": ["{{baseUrl}}"],
-              "path": ["notifications", "read-all"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
             },
             "description": "Mark all notifications as read"
           }
@@ -2058,8 +2945,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/notifications/{{notificationId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["notifications", "{{notificationId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notificationId}}"
+              ]
             },
             "description": "Delete a notification"
           }
@@ -2080,8 +2972,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/notifications/preferences",
-              "host": ["{{baseUrl}}"],
-              "path": ["notifications", "preferences"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "preferences"
+              ]
             },
             "description": "Update notification preferences"
           }
@@ -2099,8 +2996,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/finance/overview",
-              "host": ["{{baseUrl}}"],
-              "path": ["finance", "overview"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "finance",
+                "overview"
+              ]
             },
             "description": "Get financial overview"
           }
@@ -2112,12 +3014,26 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/finance/transactions?page=1&limit=20&type=",
-              "host": ["{{baseUrl}}"],
-              "path": ["finance", "transactions"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "finance",
+                "transactions"
+              ],
               "query": [
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "20"},
-                {"key": "type", "value": ""}
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "type",
+                  "value": ""
+                }
               ]
             },
             "description": "Get transaction history"
@@ -2139,8 +3055,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/finance/top-up",
-              "host": ["{{baseUrl}}"],
-              "path": ["finance", "top-up"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "finance",
+                "top-up"
+              ]
             },
             "description": "Request wallet top-up"
           }
@@ -2152,8 +3073,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/finance/top-ups/my-requests",
-              "host": ["{{baseUrl}}"],
-              "path": ["finance", "top-ups", "my-requests"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "finance",
+                "top-ups",
+                "my-requests"
+              ]
             },
             "description": "Get my top-up requests"
           }
@@ -2174,8 +3101,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/finance/wallet/settings",
-              "host": ["{{baseUrl}}"],
-              "path": ["finance", "wallet", "settings"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "finance",
+                "wallet",
+                "settings"
+              ]
             },
             "description": "Update wallet settings"
           }
@@ -2216,8 +3149,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/support/tickets",
-              "host": ["{{baseUrl}}"],
-              "path": ["support", "tickets"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support",
+                "tickets"
+              ]
             },
             "description": "Create a support ticket"
           }
@@ -2229,12 +3167,26 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/support/tickets?page=1&limit=20&status=",
-              "host": ["{{baseUrl}}"],
-              "path": ["support", "tickets"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support",
+                "tickets"
+              ],
               "query": [
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "20"},
-                {"key": "status", "value": ""}
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                }
               ]
             },
             "description": "Get my support tickets"
@@ -2247,8 +3199,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/support/tickets/{{ticketId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["support", "tickets", "{{ticketId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support",
+                "tickets",
+                "{{ticketId}}"
+              ]
             },
             "description": "Get ticket details"
           }
@@ -2269,8 +3227,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/support/tickets/{{ticketId}}/replies",
-              "host": ["{{baseUrl}}"],
-              "path": ["support", "tickets", "{{ticketId}}", "replies"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support",
+                "tickets",
+                "{{ticketId}}",
+                "replies"
+              ]
             },
             "description": "Add reply to a ticket"
           }
@@ -2282,8 +3247,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/support/tickets/{{ticketId}}/replies",
-              "host": ["{{baseUrl}}"],
-              "path": ["support", "tickets", "{{ticketId}}", "replies"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "support",
+                "tickets",
+                "{{ticketId}}",
+                "replies"
+              ]
             },
             "description": "Get all replies for a ticket"
           }
@@ -2301,8 +3273,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/referrals/my-code",
-              "host": ["{{baseUrl}}"],
-              "path": ["referrals", "my-code"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "referrals",
+                "my-code"
+              ]
             },
             "description": "Get my referral code"
           }
@@ -2314,8 +3291,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/referrals/my-referrals",
-              "host": ["{{baseUrl}}"],
-              "path": ["referrals", "my-referrals"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "referrals",
+                "my-referrals"
+              ]
             },
             "description": "Get people I've referred"
           }
@@ -2336,8 +3318,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/referrals/apply",
-              "host": ["{{baseUrl}}"],
-              "path": ["referrals", "apply"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "referrals",
+                "apply"
+              ]
             },
             "description": "Apply a referral code"
           }
@@ -2349,8 +3336,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/referrals/stats",
-              "host": ["{{baseUrl}}"],
-              "path": ["referrals", "stats"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "referrals",
+                "stats"
+              ]
             },
             "description": "Get my referral statistics"
           }
@@ -2368,10 +3360,17 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/favorites?type=",
-              "host": ["{{baseUrl}}"],
-              "path": ["favorites"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favorites"
+              ],
               "query": [
-                {"key": "type", "value": ""}
+                {
+                  "key": "type",
+                  "value": ""
+                }
               ]
             },
             "description": "Get all my favorites"
@@ -2393,8 +3392,12 @@
             },
             "url": {
               "raw": "{{baseUrl}}/favorites",
-              "host": ["{{baseUrl}}"],
-              "path": ["favorites"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favorites"
+              ]
             },
             "description": "Add item to favorites"
           }
@@ -2406,8 +3409,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/favorites/{{favoriteId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["favorites", "{{favoriteId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favorites",
+                "{{favoriteId}}"
+              ]
             },
             "description": "Remove item from favorites"
           }
@@ -2434,8 +3442,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/live-chat/sessions",
-              "host": ["{{baseUrl}}"],
-              "path": ["live-chat", "sessions"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "live-chat",
+                "sessions"
+              ]
             },
             "description": "Start a new chat session"
           }
@@ -2456,8 +3469,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/live-chat/sessions/{{sessionId}}/messages",
-              "host": ["{{baseUrl}}"],
-              "path": ["live-chat", "sessions", "{{sessionId}}", "messages"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "live-chat",
+                "sessions",
+                "{{sessionId}}",
+                "messages"
+              ]
             },
             "description": "Send a chat message"
           }
@@ -2469,8 +3489,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/live-chat/sessions/{{sessionId}}/messages",
-              "host": ["{{baseUrl}}"],
-              "path": ["live-chat", "sessions", "{{sessionId}}", "messages"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "live-chat",
+                "sessions",
+                "{{sessionId}}",
+                "messages"
+              ]
             },
             "description": "Get chat messages"
           }
@@ -2482,8 +3509,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/live-chat/sessions/{{sessionId}}/end",
-              "host": ["{{baseUrl}}"],
-              "path": ["live-chat", "sessions", "{{sessionId}}", "end"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "live-chat",
+                "sessions",
+                "{{sessionId}}",
+                "end"
+              ]
             },
             "description": "End chat session"
           }
@@ -2510,8 +3544,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/ai/marketplace/recommendations",
-              "host": ["{{baseUrl}}"],
-              "path": ["ai", "marketplace", "recommendations"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "marketplace",
+                "recommendations"
+              ]
             },
             "description": "Get AI-powered recommendations"
           }
@@ -2532,8 +3572,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/ai/marketplace/price-estimator",
-              "host": ["{{baseUrl}}"],
-              "path": ["ai", "marketplace", "price-estimator"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "marketplace",
+                "price-estimator"
+              ]
             },
             "description": "Get AI price estimation"
           }
@@ -2554,8 +3600,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/ai/marketplace/service-matcher",
-              "host": ["{{baseUrl}}"],
-              "path": ["ai", "marketplace", "service-matcher"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "marketplace",
+                "service-matcher"
+              ]
             },
             "description": "Match services to requirements"
           }
@@ -2576,8 +3628,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/ai/marketplace/booking-assistant",
-              "host": ["{{baseUrl}}"],
-              "path": ["ai", "marketplace", "booking-assistant"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "marketplace",
+                "booking-assistant"
+              ]
             },
             "description": "AI booking assistance"
           }
@@ -2598,8 +3656,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/ai/marketplace/scheduling-assistant",
-              "host": ["{{baseUrl}}"],
-              "path": ["ai", "marketplace", "scheduling-assistant"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "marketplace",
+                "scheduling-assistant"
+              ]
             },
             "description": "AI scheduling assistance"
           }
@@ -2620,8 +3684,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/ai/users/bio-generator",
-              "host": ["{{baseUrl}}"],
-              "path": ["ai", "users", "bio-generator"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "users",
+                "bio-generator"
+              ]
             },
             "description": "Generate user bio using AI"
           }
@@ -2639,13 +3709,29 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/search?q=cleaning&type=&page=1&limit=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["search"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search"
+              ],
               "query": [
-                {"key": "q", "value": "cleaning"},
-                {"key": "type", "value": ""},
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "20"}
+                {
+                  "key": "q",
+                  "value": "cleaning"
+                },
+                {
+                  "key": "type",
+                  "value": ""
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             },
             "description": "Search across all content"
@@ -2658,10 +3744,18 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/search/suggestions?q=clean",
-              "host": ["{{baseUrl}}"],
-              "path": ["search", "suggestions"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search",
+                "suggestions"
+              ],
               "query": [
-                {"key": "q", "value": "clean"}
+                {
+                  "key": "q",
+                  "value": "clean"
+                }
               ]
             },
             "description": "Get search suggestions"
@@ -2680,8 +3774,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/analytics/user",
-              "host": ["{{baseUrl}}"],
-              "path": ["analytics", "user"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "user"
+              ]
             },
             "description": "Get my personal analytics"
           }
@@ -2702,8 +3801,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/analytics/track",
-              "host": ["{{baseUrl}}"],
-              "path": ["analytics", "track"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "track"
+              ]
             },
             "description": "Track an analytics event"
           }
@@ -2721,8 +3825,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/settings",
-              "host": ["{{baseUrl}}"],
-              "path": ["settings"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings"
+              ]
             },
             "description": "Get application settings"
           }
@@ -2734,8 +3842,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/settings/user",
-              "host": ["{{baseUrl}}"],
-              "path": ["settings", "user"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings",
+                "user"
+              ]
             },
             "description": "Get user-specific settings"
           }
@@ -2756,8 +3869,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/settings/user",
-              "host": ["{{baseUrl}}"],
-              "path": ["settings", "user"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "settings",
+                "user"
+              ]
             },
             "description": "Update user settings"
           }
@@ -2787,8 +3905,14 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/2fa/setup",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "2fa", "setup"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "2fa",
+                    "setup"
+                  ]
                 },
                 "description": "Setup two-factor authentication. Returns QR code for authenticator apps."
               }
@@ -2809,8 +3933,14 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/2fa/verify",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "2fa", "verify"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "2fa",
+                    "verify"
+                  ]
                 },
                 "description": "Verify and activate 2FA with code from authenticator app"
               }
@@ -2822,8 +3952,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/2fa/status",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "2fa", "status"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "2fa",
+                    "status"
+                  ]
                 },
                 "description": "Get current 2FA status"
               }
@@ -2844,8 +3980,14 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/2fa/backup-codes",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "2fa", "backup-codes"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "2fa",
+                    "backup-codes"
+                  ]
                 },
                 "description": "Generate new backup codes (requires current 2FA code)"
               }
@@ -2866,8 +4008,13 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/2fa",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "2fa"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "2fa"
+                  ]
                 },
                 "description": "Disable two-factor authentication"
               }
@@ -2884,8 +4031,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/sessions",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "sessions"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "sessions"
+                  ]
                 },
                 "description": "Get all active login sessions"
               }
@@ -2897,8 +4049,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/sessions/{{sessionId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "sessions", "{{sessionId}}"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "sessions",
+                    "{{sessionId}}"
+                  ]
                 },
                 "description": "Revoke a specific session"
               }
@@ -2919,8 +4077,14 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/sessions/revoke-all",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "sessions", "revoke-all"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "sessions",
+                    "revoke-all"
+                  ]
                 },
                 "description": "Revoke all sessions except current"
               }
@@ -2949,8 +4113,14 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/password/reset-request",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "password", "reset-request"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "password",
+                    "reset-request"
+                  ]
                 },
                 "description": "Request a password reset link"
               }
@@ -2965,8 +4135,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/password/validate-token/{{resetToken}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "password", "validate-token", "{{resetToken}}"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "password",
+                    "validate-token",
+                    "{{resetToken}}"
+                  ]
                 },
                 "description": "Validate a password reset token"
               }
@@ -2990,8 +4167,14 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/password/reset",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "password", "reset"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "password",
+                    "reset"
+                  ]
                 },
                 "description": "Reset password with token"
               }
@@ -3012,8 +4195,14 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/password/change",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "password", "change"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "password",
+                    "change"
+                  ]
                 },
                 "description": "Change password (requires current password)"
               }
@@ -3030,8 +4219,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/trusted-devices",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "trusted-devices"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "trusted-devices"
+                  ]
                 },
                 "description": "Get list of trusted devices"
               }
@@ -3056,8 +4250,13 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/trusted-devices",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "trusted-devices"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "trusted-devices"
+                  ]
                 },
                 "description": "Add current device to trusted devices"
               }
@@ -3069,8 +4268,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/trusted-devices/{{deviceId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "trusted-devices", "{{deviceId}}"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "trusted-devices",
+                    "{{deviceId}}"
+                  ]
                 },
                 "description": "Remove a device from trusted devices"
               }
@@ -3087,8 +4292,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/security",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "security"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "security"
+                  ]
                 },
                 "description": "Get complete security overview"
               }
@@ -3100,10 +4310,18 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/login-history?limit=20",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "login-history"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "login-history"
+                  ],
                   "query": [
-                    {"key": "limit", "value": "20"}
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
                   ]
                 },
                 "description": "Get login history"
@@ -3127,8 +4345,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/oauth/providers",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "oauth", "providers"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "oauth",
+                    "providers"
+                  ]
                 },
                 "description": "Get all connected OAuth providers"
               }
@@ -3149,8 +4373,15 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/oauth/google/connect",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "oauth", "google", "connect"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "oauth",
+                    "google",
+                    "connect"
+                  ]
                 },
                 "description": "Connect Google account"
               }
@@ -3171,8 +4402,15 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/oauth/facebook/connect",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "oauth", "facebook", "connect"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "oauth",
+                    "facebook",
+                    "connect"
+                  ]
                 },
                 "description": "Connect Facebook account"
               }
@@ -3184,8 +4422,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/oauth/google/disconnect",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "oauth", "google", "disconnect"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "oauth",
+                    "google",
+                    "disconnect"
+                  ]
                 },
                 "description": "Disconnect an OAuth provider"
               }
@@ -3209,8 +4454,14 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/oauth/login",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "oauth", "login"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "oauth",
+                    "login"
+                  ]
                 },
                 "description": "Login or register with OAuth"
               }
@@ -3227,8 +4478,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/external-ids",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "external-ids"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "external-ids"
+                  ]
                 },
                 "description": "Get all external system IDs"
               }
@@ -3249,8 +4505,13 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/external-ids",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "external-ids"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "external-ids"
+                  ]
                 },
                 "description": "Link an external system ID"
               }
@@ -3262,8 +4523,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/external-ids/stripe",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "external-ids", "stripe"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "external-ids",
+                    "stripe"
+                  ]
                 },
                 "description": "Unlink an external system ID"
               }
@@ -3286,8 +4553,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/privacy",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "privacy"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "privacy"
+                  ]
                 },
                 "description": "Get complete privacy settings overview"
               }
@@ -3299,8 +4571,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/privacy/consent",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "privacy", "consent"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "privacy",
+                    "consent"
+                  ]
                 },
                 "description": "Get current consent status"
               }
@@ -3326,8 +4604,15 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/privacy/consent/gdpr",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "privacy", "consent", "gdpr"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "privacy",
+                    "consent",
+                    "gdpr"
+                  ]
                 },
                 "description": "Give GDPR consent"
               }
@@ -3339,8 +4624,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/privacy/consent/gdpr",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "privacy", "consent", "gdpr"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "privacy",
+                    "consent",
+                    "gdpr"
+                  ]
                 },
                 "description": "Withdraw GDPR consent"
               }
@@ -3361,8 +4653,15 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/privacy/consent/marketing",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "privacy", "consent", "marketing"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "privacy",
+                    "consent",
+                    "marketing"
+                  ]
                 },
                 "description": "Update marketing communication preferences"
               }
@@ -3383,8 +4682,14 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/privacy/do-not-sell",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "privacy", "do-not-sell"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "privacy",
+                    "do-not-sell"
+                  ]
                 },
                 "description": "Set Do Not Sell preference (CCPA compliance)"
               }
@@ -3405,8 +4710,14 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/privacy/do-not-track",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "privacy", "do-not-track"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "privacy",
+                    "do-not-track"
+                  ]
                 },
                 "description": "Set Do Not Track preference"
               }
@@ -3423,8 +4734,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/deletion",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "deletion"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "deletion"
+                  ]
                 },
                 "description": "Get account deletion request status"
               }
@@ -3445,8 +4761,13 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/deletion",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "deletion"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "deletion"
+                  ]
                 },
                 "description": "Request account deletion (30-day grace period)"
               }
@@ -3458,8 +4779,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/deletion",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "deletion"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "deletion"
+                  ]
                 },
                 "description": "Cancel account deletion request"
               }
@@ -3476,8 +4802,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/data/export",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "data", "export"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "data",
+                    "export"
+                  ]
                 },
                 "description": "Export all user data (GDPR right of access)"
               }
@@ -3489,8 +4821,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/data/download",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "data", "download"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "data",
+                    "download"
+                  ]
                 },
                 "description": "Download user data as JSON file"
               }
@@ -3507,8 +4845,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/agreements",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "agreements"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "agreements"
+                  ]
                 },
                 "description": "Get all accepted agreements"
               }
@@ -3529,8 +4872,13 @@
                 },
                 "url": {
                   "raw": "{{baseUrl}}/account/agreements",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "agreements"]
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "agreements"
+                  ]
                 },
                 "description": "Accept a terms/policy agreement"
               }
@@ -3542,17 +4890,859 @@
                 "header": [],
                 "url": {
                   "raw": "{{baseUrl}}/account/agreements/check?type=terms_of_service&version=2.0",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["account", "agreements", "check"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "account",
+                    "agreements",
+                    "check"
+                  ],
                   "query": [
-                    {"key": "type", "value": "terms_of_service"},
-                    {"key": "version", "value": "2.0"}
+                    {
+                      "key": "type",
+                      "value": "terms_of_service"
+                    },
+                    {
+                      "key": "version",
+                      "value": "2.0"
+                    }
                   ]
                 },
                 "description": "Check if a specific agreement version is accepted"
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "Communication & Messaging",
+      "item": [
+        {
+          "name": "Conversations",
+          "item": [
+            {
+              "name": "Get Conversations",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations?page=1&limit=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Conversation",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"participantId\": \"{{partnerId}}\",\n  \"jobId\": \"{{jobId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Conversation by ID",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Conversation",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Conversation With User",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversation-with/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversation-with",
+                    "{{userId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Search Conversations",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/search?q=hello",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "hello"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Unread Count",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/unread-count",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "unread-count"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Mark Conversation as Read",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}/read",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}",
+                    "read"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Messages",
+          "item": [
+            {
+              "name": "Get Messages",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}/messages?page=1&limit=50",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}",
+                    "messages"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Send Message",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"Hello!\",\n  \"type\": \"text\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}/messages",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}",
+                    "messages"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Message",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"Edited message\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}/messages/{{messageId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}",
+                    "messages",
+                    "{{messageId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Message",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}/messages/{{messageId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}",
+                    "messages",
+                    "{{messageId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notifications via Communication",
+          "item": [
+            {
+              "name": "Get User Notifications",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Notification Count",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/count",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "count"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Mark Notification Read",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/{{notificationId}}/read",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "{{notificationId}}",
+                    "read"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Mark All Read",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/read-all",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "read-all"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Notification",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/{{notificationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "{{notificationId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Send Email Notification",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"to\": \"user@example.com\",\n  \"subject\": \"Notification\",\n  \"body\": \"You have a message\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/email",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "email"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Send SMS Notification",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"to\": \"+63XXXXXXXXXX\",\n  \"message\": \"You have a new booking\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/sms",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "sms"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Push Notifications (FCM)",
+      "item": [
+        {
+          "name": "Register FCM Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"fcm-token-here\",\n  \"deviceId\": \"device-id\",\n  \"platform\": \"android\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/fcm-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "fcm-token"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove FCM Token",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/fcm-token/{{deviceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "fcm-token",
+                "{{deviceId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get FCM Tokens",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/fcm-tokens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "fcm-tokens"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Notification Settings",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "settings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check Notification Type",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/check/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "check",
+                "booking"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications?page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "unread-count"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send Notification (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"title\": \"Test Notification\",\n  \"body\": \"This is a test\",\n  \"type\": \"general\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "send"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send Bulk Notification (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"{{userId}}\"],\n  \"title\": \"Broadcast\",\n  \"body\": \"Important update\",\n  \"type\": \"announcement\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/send-bulk",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "send-bulk"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send Announcement Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"System Update\",\n  \"body\": \"Scheduled maintenance tonight\",\n  \"roles\": [\"all\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/announcement",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "announcement"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Test Push Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/test",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "test"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Masked Calls",
+      "item": [
+        {
+          "name": "Create Masked Call",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiverId\": \"{{providerId}}\",\n  \"jobId\": \"{{jobId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/masked-calls",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "masked-calls"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Masked Call",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/masked-calls/{{maskedCallId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "masked-calls",
+                "{{maskedCallId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Initiate Call",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/masked-calls/{{maskedCallId}}/initiate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "masked-calls",
+                "{{maskedCallId}}",
+                "initiate"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "Get My Subscriptions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/subscriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhooks",
+                "subscriptions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://your-server.com/webhook\",\n  \"events\": [\"booking.created\", \"booking.completed\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/subscriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhooks",
+                "subscriptions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Webhook Events",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhooks",
+                "events"
+              ]
+            }
+          }
         }
       ]
     }

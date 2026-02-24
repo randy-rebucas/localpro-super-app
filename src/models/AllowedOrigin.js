@@ -1,12 +1,3 @@
-const mongoose = require('mongoose');
-
-const AllowedOriginSchema = new mongoose.Schema({
-  origin: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
-  }
-}, { timestamps: true });
-
-module.exports = mongoose.model('AllowedOrigin', AllowedOriginSchema);
+// Canonical model moved to features/corsOrigins/models/AllowedOrigin
+// This re-export stub maintains backward compatibility.
+module.exports = require('../../features/corsOrigins/models/AllowedOrigin');

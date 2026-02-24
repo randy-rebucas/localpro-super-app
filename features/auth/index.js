@@ -26,7 +26,7 @@ const { auth, authorize } = require('../../src/middleware/auth');
 
 // ── Models ───────────────────────────────────────────────────────────────────
 const User        = require('../../src/models/User');
-const AccessToken = require('../../src/models/AccessToken');
+const AccessToken = require('../accessTokens/models/AccessToken');
 
 module.exports = {
   // Routes (mount in server.js)

@@ -73,8 +73,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
             },
             "description": "Register a new user with email and password. An OTP will be sent to the email for verification."
           }
@@ -115,8 +120,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             },
             "description": "Login with email and password. Returns access and refresh tokens."
           }
@@ -137,8 +147,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/send-code",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "send-code"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "send-code"
+              ]
             },
             "description": "Send SMS verification code to phone number"
           }
@@ -159,8 +174,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/verify-code",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "verify-code"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-code"
+              ]
             },
             "description": "Verify the SMS code sent to phone number"
           }
@@ -181,8 +201,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/verify-email-otp",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "verify-email-otp"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-email-otp"
+              ]
             },
             "description": "Verify the OTP sent to email"
           }
@@ -203,8 +228,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/check-email",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "check-email"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "check-email"
+              ]
             },
             "description": "Check if email is already registered"
           }
@@ -225,8 +255,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/set-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "set-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "set-password"
+              ]
             },
             "description": "Set password for phone-registered user"
           }
@@ -266,8 +301,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/refresh",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "refresh"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
             },
             "description": "Refresh access token using refresh token"
           }
@@ -279,8 +319,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
             },
             "description": "Get current authenticated user's profile"
           }
@@ -292,8 +337,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "profile"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "profile"
+              ]
             },
             "description": "Get current user profile (alias for /me)"
           }
@@ -314,8 +364,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "profile"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "profile"
+              ]
             },
             "description": "Update user profile information"
           }
@@ -337,8 +392,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/avatar",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "avatar"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "avatar"
+              ]
             },
             "description": "Upload user avatar image (max 2MB, JPEG/PNG)"
           }
@@ -360,8 +420,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/upload-portfolio",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "upload-portfolio"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "upload-portfolio"
+              ]
             },
             "description": "Upload portfolio images (max 5 images, 5MB each)"
           }
@@ -373,8 +438,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "logout"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
             },
             "description": "Logout current user and invalidate tokens"
           }
@@ -401,8 +471,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/mpin/set",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "mpin", "set"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "mpin",
+                "set"
+              ]
             },
             "description": "Set MPIN for the user (4-6 digits)"
           }
@@ -423,8 +499,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/mpin/verify",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "mpin", "verify"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "mpin",
+                "verify"
+              ]
             },
             "description": "Verify MPIN (authenticated)"
           }
@@ -465,8 +547,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/mpin/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "mpin", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "mpin",
+                "login"
+              ]
             },
             "description": "Login with phone number and MPIN"
           }
@@ -478,8 +566,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/mpin/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "mpin", "status"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "mpin",
+                "status"
+              ]
             },
             "description": "Get MPIN status (enabled, locked, attempts)"
           }
@@ -491,8 +585,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/mpin",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "mpin"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "mpin"
+              ]
             },
             "description": "Disable MPIN for the user"
           }
@@ -519,8 +618,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/2fa/setup",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "2fa", "setup"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "2fa",
+                "setup"
+              ]
             },
             "description": "Setup 2FA with method: 'sms', 'email', or 'authenticator'"
           }
@@ -541,8 +646,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/2fa/verify",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "2fa", "verify"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "2fa",
+                "verify"
+              ]
             },
             "description": "Verify the 2FA code and activate 2FA"
           }
@@ -554,8 +665,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/2fa/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "2fa", "status"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "2fa",
+                "status"
+              ]
             },
             "description": "Get current 2FA status and settings"
           }
@@ -567,8 +684,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/2fa/backup-codes",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "2fa", "backup-codes"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "2fa",
+                "backup-codes"
+              ]
             },
             "description": "Regenerate 2FA backup codes (invalidates old codes)"
           }
@@ -580,8 +703,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/2fa",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "2fa"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "2fa"
+              ]
             },
             "description": "Disable 2FA for the account"
           }
@@ -615,8 +743,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/sessions",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "sessions"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "sessions"
+              ]
             },
             "description": "Get list of all active sessions"
           }
@@ -628,8 +761,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/sessions/{{sessionId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "sessions", "{{sessionId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "sessions",
+                "{{sessionId}}"
+              ]
             },
             "description": "Revoke a specific session by ID"
           }
@@ -650,8 +789,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/sessions/revoke-all",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "sessions", "revoke-all"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "sessions",
+                "revoke-all"
+              ]
             },
             "description": "Revoke all sessions (optionally except current)"
           }
@@ -681,8 +826,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/password/reset-request",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "password", "reset-request"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "password",
+                "reset-request"
+              ]
             },
             "description": "Request password reset link via email or phone"
           }
@@ -697,8 +848,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/password/validate-token/{{resetToken}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "password", "validate-token", "{{resetToken}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "password",
+                "validate-token",
+                "{{resetToken}}"
+              ]
             },
             "description": "Validate password reset token before use"
           }
@@ -722,8 +880,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/password/reset",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "password", "reset"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "password",
+                "reset"
+              ]
             },
             "description": "Reset password using the token"
           }
@@ -744,8 +908,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/password/change",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "password", "change"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "password",
+                "change"
+              ]
             },
             "description": "Change password (requires authentication)"
           }
@@ -779,8 +949,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/trusted-devices",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "trusted-devices"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "trusted-devices"
+              ]
             },
             "description": "Get list of trusted devices"
           }
@@ -801,8 +976,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/trusted-devices",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "trusted-devices"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "trusted-devices"
+              ]
             },
             "description": "Add a device to trusted devices list"
           }
@@ -814,8 +994,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/trusted-devices/{{deviceId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "trusted-devices", "{{deviceId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "trusted-devices",
+                "{{deviceId}}"
+              ]
             },
             "description": "Remove a device from trusted devices"
           }
@@ -833,8 +1019,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/login-history?limit=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "login-history"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "login-history"
+              ],
               "query": [
                 {
                   "key": "limit",
@@ -852,8 +1043,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/security",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "security"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "security"
+              ]
             },
             "description": "Get comprehensive security overview"
           }
@@ -871,8 +1067,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/oauth/providers",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "oauth", "providers"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "oauth",
+                "providers"
+              ]
             },
             "description": "Get list of connected OAuth providers"
           }
@@ -893,8 +1095,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/oauth/google/connect",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "oauth", "google", "connect"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "oauth",
+                "google",
+                "connect"
+              ]
             },
             "description": "Connect Google account"
           }
@@ -915,8 +1124,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/oauth/facebook/connect",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "oauth", "facebook", "connect"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "oauth",
+                "facebook",
+                "connect"
+              ]
             },
             "description": "Connect Facebook account"
           }
@@ -937,8 +1153,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/oauth/apple/connect",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "oauth", "apple", "connect"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "oauth",
+                "apple",
+                "connect"
+              ]
             },
             "description": "Connect Apple account"
           }
@@ -950,8 +1173,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/oauth/google/disconnect",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "oauth", "google", "disconnect"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "oauth",
+                "google",
+                "disconnect"
+              ]
             },
             "description": "Disconnect an OAuth provider"
           }
@@ -992,8 +1222,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/oauth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "oauth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "oauth",
+                "login"
+              ]
             },
             "description": "Login or register using OAuth provider"
           }
@@ -1011,8 +1247,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/external-ids",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "external-ids"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "external-ids"
+              ]
             },
             "description": "Get all linked external system IDs"
           }
@@ -1033,8 +1274,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/external-ids",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "external-ids"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "external-ids"
+              ]
             },
             "description": "Link an external system ID"
           }
@@ -1046,8 +1292,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/external-ids/stripe",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "external-ids", "stripe"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "external-ids",
+                "stripe"
+              ]
             },
             "description": "Unlink an external system ID"
           }
@@ -1065,8 +1317,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/privacy",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "privacy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "privacy"
+              ]
             },
             "description": "Get privacy settings overview"
           }
@@ -1078,8 +1335,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/privacy/consent",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "privacy", "consent"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "privacy",
+                "consent"
+              ]
             },
             "description": "Get all consent statuses"
           }
@@ -1100,8 +1363,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/privacy/consent/gdpr",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "privacy", "consent", "gdpr"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "privacy",
+                "consent",
+                "gdpr"
+              ]
             },
             "description": "Give GDPR consent with version"
           }
@@ -1113,8 +1383,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/privacy/consent/gdpr",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "privacy", "consent", "gdpr"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "privacy",
+                "consent",
+                "gdpr"
+              ]
             },
             "description": "Withdraw GDPR consent"
           }
@@ -1135,8 +1412,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/privacy/consent/marketing",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "privacy", "consent", "marketing"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "privacy",
+                "consent",
+                "marketing"
+              ]
             },
             "description": "Update marketing consent preferences"
           }
@@ -1157,8 +1441,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/privacy/do-not-sell",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "privacy", "do-not-sell"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "privacy",
+                "do-not-sell"
+              ]
             },
             "description": "Set Do Not Sell preference (CCPA compliance)"
           }
@@ -1179,8 +1469,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/privacy/do-not-track",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "privacy", "do-not-track"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "privacy",
+                "do-not-track"
+              ]
             },
             "description": "Set Do Not Track preference"
           }
@@ -1198,8 +1494,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/deletion",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "deletion"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "deletion"
+              ]
             },
             "description": "Get account deletion status"
           }
@@ -1220,8 +1521,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/deletion",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "deletion"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "deletion"
+              ]
             },
             "description": "Request account deletion (30-day grace period)"
           }
@@ -1233,8 +1539,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/deletion",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "deletion"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "deletion"
+              ]
             },
             "description": "Cancel pending account deletion request"
           }
@@ -1252,8 +1563,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/data/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "data", "export"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "data",
+                "export"
+              ]
             },
             "description": "Export all user data (GDPR data portability)"
           }
@@ -1265,8 +1582,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/data/download",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "data", "download"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "data",
+                "download"
+              ]
             },
             "description": "Download user data as JSON file"
           }
@@ -1284,8 +1607,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/agreements",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "agreements"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "agreements"
+              ]
             },
             "description": "Get all accepted agreements"
           }
@@ -1306,8 +1634,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/account/agreements",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "agreements"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "agreements"
+              ]
             },
             "description": "Accept an agreement (type: terms_of_service, privacy_policy, etc.)"
           }
@@ -1319,8 +1652,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/account/agreements/check?type=terms_of_service&version=2.0",
-              "host": ["{{baseUrl}}"],
-              "path": ["account", "agreements", "check"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "agreements",
+                "check"
+              ],
               "query": [
                 {
                   "key": "type",
@@ -1348,8 +1687,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users?page=1&limit=20&status=active",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -1375,8 +1718,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/stats",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "stats"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "stats"
+              ]
             },
             "description": "Get user statistics (Admin only)"
           }
@@ -1388,8 +1736,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
             },
             "description": "Get user details by ID"
           }
@@ -1410,8 +1763,12 @@
             },
             "url": {
               "raw": "{{baseUrl}}/users",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
             },
             "description": "Create a new user (Admin only)"
           }
@@ -1432,8 +1789,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
             },
             "description": "Update user information"
           }
@@ -1454,8 +1816,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "status"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "status"
+              ]
             },
             "description": "Update user status (activate/suspend)"
           }
@@ -1476,8 +1844,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/verification",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "verification"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "verification"
+              ]
             },
             "description": "Update user verification status"
           }
@@ -1489,8 +1863,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/roles",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "roles"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "roles"
+              ]
             },
             "description": "Get user roles"
           }
@@ -1511,8 +1891,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/roles",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "roles"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "roles"
+              ]
             },
             "description": "Update user roles (Admin only)"
           }
@@ -1524,8 +1910,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/badges",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "badges"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "badges"
+              ]
             },
             "description": "Get user badges"
           }
@@ -1546,8 +1938,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/badges",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "badges"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "badges"
+              ]
             },
             "description": "Add badge to user"
           }
@@ -1559,8 +1957,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/badges/{{badgeId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "badges", "{{badgeId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "badges",
+                "{{badgeId}}"
+              ]
             },
             "description": "Remove badge from user"
           }
@@ -1581,8 +1986,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/ban",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "ban"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "ban"
+              ]
             },
             "description": "Ban user (Admin only)"
           }
@@ -1594,8 +2005,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
             },
             "description": "Soft delete user (Admin only)"
           }
@@ -1607,8 +2023,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/restore",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "restore"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "restore"
+              ]
             },
             "description": "Restore soft-deleted user (Admin only)"
           }
@@ -1629,8 +2051,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/reset-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "reset-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "reset-password"
+              ]
             },
             "description": "Reset user password (Admin only)"
           }
@@ -1651,8 +2079,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/send-email",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "send-email"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "send-email"
+              ]
             },
             "description": "Send email to user (Admin only)"
           }
@@ -1664,8 +2098,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "export"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "export"
+              ]
             },
             "description": "Export specific user's data (Admin only)"
           }
@@ -1677,8 +2117,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/{{userId}}/notes",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{userId}}", "notes"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "notes"
+              ]
             },
             "description": "Get notes for a user (Admin only)"
           }
@@ -1699,10 +2145,918 @@
             },
             "url": {
               "raw": "{{baseUrl}}/users/bulk",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "bulk"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "bulk"
+              ]
             },
             "description": "Bulk update users (Admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Communication & Messaging",
+      "item": [
+        {
+          "name": "Conversations",
+          "item": [
+            {
+              "name": "Get Conversations",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations?page=1&limit=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Conversation",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"participantId\": \"{{partnerId}}\",\n  \"jobId\": \"{{jobId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Conversation by ID",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Conversation",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Conversation With User",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversation-with/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversation-with",
+                    "{{userId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Search Conversations",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/search?q=hello",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "hello"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Unread Count",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/unread-count",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "unread-count"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Mark Conversation as Read",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}/read",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}",
+                    "read"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Messages",
+          "item": [
+            {
+              "name": "Get Messages",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}/messages?page=1&limit=50",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}",
+                    "messages"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Send Message",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"Hello!\",\n  \"type\": \"text\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}/messages",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}",
+                    "messages"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Message",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"Edited message\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}/messages/{{messageId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}",
+                    "messages",
+                    "{{messageId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Message",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/conversations/{{conversationId}}/messages/{{messageId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "conversations",
+                    "{{conversationId}}",
+                    "messages",
+                    "{{messageId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notifications via Communication",
+          "item": [
+            {
+              "name": "Get User Notifications",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Notification Count",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/count",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "count"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Mark Notification Read",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/{{notificationId}}/read",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "{{notificationId}}",
+                    "read"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Mark All Read",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/read-all",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "read-all"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Notification",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/{{notificationId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "{{notificationId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Send Email Notification",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"to\": \"user@example.com\",\n  \"subject\": \"Notification\",\n  \"body\": \"You have a message\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/email",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "email"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Send SMS Notification",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"to\": \"+63XXXXXXXXXX\",\n  \"message\": \"You have a new booking\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/communication/notifications/sms",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "communication",
+                    "notifications",
+                    "sms"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Push Notifications (FCM)",
+      "item": [
+        {
+          "name": "Register FCM Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"fcm-token-here\",\n  \"deviceId\": \"device-id\",\n  \"platform\": \"android\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/fcm-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "fcm-token"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove FCM Token",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/fcm-token/{{deviceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "fcm-token",
+                "{{deviceId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get FCM Tokens",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/fcm-tokens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "fcm-tokens"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Notification Settings",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "settings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check Notification Type",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/check/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "check",
+                "booking"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications?page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "unread-count"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send Notification (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"title\": \"Test Notification\",\n  \"body\": \"This is a test\",\n  \"type\": \"general\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "send"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send Bulk Notification (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"{{userId}}\"],\n  \"title\": \"Broadcast\",\n  \"body\": \"Important update\",\n  \"type\": \"announcement\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/send-bulk",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "send-bulk"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send Announcement Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"System Update\",\n  \"body\": \"Scheduled maintenance tonight\",\n  \"roles\": [\"all\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/announcement",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "announcement"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Test Push Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/test",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "test"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Masked Calls",
+      "item": [
+        {
+          "name": "Create Masked Call",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiverId\": \"{{partnerId}}\",\n  \"jobId\": \"{{jobId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/masked-calls",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "masked-calls"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Masked Call",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/masked-calls/{{maskedCallId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "masked-calls",
+                "{{maskedCallId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Initiate Call",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/masked-calls/{{maskedCallId}}/initiate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "masked-calls",
+                "{{maskedCallId}}",
+                "initiate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "End Call",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/masked-calls/{{maskedCallId}}/calls/{{callSid}}/end",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "masked-calls",
+                "{{maskedCallId}}",
+                "calls",
+                "{{callSid}}",
+                "end"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "Get My Subscriptions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/subscriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhooks",
+                "subscriptions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://your-server.com/webhook\",\n  \"events\": [\"booking.created\"],\n  \"description\": \"My webhook\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/subscriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhooks",
+                "subscriptions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Subscription",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/subscriptions/{{webhookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhooks",
+                "subscriptions",
+                "{{webhookId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Subscription",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/subscriptions/{{webhookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhooks",
+                "subscriptions",
+                "{{webhookId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Webhook Events",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhooks",
+                "events"
+              ]
+            }
           }
         }
       ]

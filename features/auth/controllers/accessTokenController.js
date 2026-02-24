@@ -1,5 +1,5 @@
-const AccessToken = require('../../../src/models/AccessToken');
-const ApiKey = require('../../../src/models/ApiKey');
+const AccessToken = require('../../accessTokens/models/AccessToken');
+const ApiKey = require('../../apiKeys/models/ApiKey');
 const User = require('../../../src/models/User');
 const { validationResult } = require('express-validator');
 const logger = require('../../../src/config/logger');
