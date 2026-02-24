@@ -13,10 +13,10 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // Import models
-const Provider = require('../src/models/Provider');
-const ProviderProfessionalInfo = require('../src/models/ProviderProfessionalInfo');
+const Provider = require('../features/provider/models/Provider');
+const ProviderProfessionalInfo = require('../features/provider/models/ProviderProfessionalInfo');
 const ServiceCategory = require('../src/models/ServiceCategory');
-const ProviderSkill = require('../src/models/ProviderSkill');
+const ProviderSkill = require('../features/provider/models/ProviderSkill');
 
 const logger = {
   info: (msg) => console.log(`[INFO] ${msg}`),

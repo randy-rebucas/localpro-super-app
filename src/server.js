@@ -8,79 +8,106 @@ require('dotenv').config({ path: '.env.local', override: true });
 
 const connectDB = require('./config/database');
 const logger = require('./config/logger');
+const { eventBus, EVENTS } = require('./events');
 const { StartupValidator, createDefaultChecks } = require('./utils/startupValidation');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const requestIdMiddleware = require('./middleware/requestId');
 const { requestCorrelation } = require('./middleware/requestCorrelation');
 const { auditGeneralOperations } = require('./middleware/auditLogger');
 const { activityTracker } = require('./middleware/activityTracker');
-const authRoutes = require('./routes/auth');
-const marketplaceRoutes = require('./routes/marketplace');
+// ── Shared infrastructure routes ─────────────────────────────────────────────
+const { routes: marketplaceRoutes } = require('../features/marketplace');
+
+// ── Feature Modules ───────────────────────────────────────────────────────────
+// Each features/<domain>/index.js is the public boundary for that domain.
+// server.js must only import routes (and shared services) through these.
 const { routes: suppliesRoutes } = require('../features/supplies');
-const academyRoutes = require('./routes/academy');
-const financeRoutes = require('./routes/finance');
-const rentalsRoutes = require('./routes/rentals');
-const adsRoutes = require('./routes/ads');
-const facilityCareRoutes = require('./routes/facilityCare');
-const localproPlusRoutes = require('./routes/localproPlus');
-const trustVerificationRoutes = require('./routes/trustVerification');
-const communicationRoutes = require('./routes/communication');
-const analyticsRoutes = require('./routes/analytics');
-const mapsRoutes = require('./routes/maps');
-const paypalRoutes = require('./routes/paypal');
-const paymayaRoutes = require('./routes/paymaya');
-const jobsRoutes = require('./routes/jobs');
-const jobCategoriesRoutes = require('./routes/jobCategories');
-const referralsRoutes = require('./routes/referrals');
-const agenciesRoutes = require('./routes/agencies');
-const settingsRoutes = require('./routes/settings');
-const errorMonitoringRoutes = require('./routes/errorMonitoring');
-const auditLogsRoutes = require('./routes/auditLogs');
-const providersRoutes = require('./routes/providers');
-const logsRoutes = require('./routes/logs');
-const userManagementRoutes = require('./routes/userManagement');
-const walletRoutes = require('./routes/wallet');
-const searchRoutes = require('./routes/search');
-const announcementsRoutes = require('./routes/announcements');
-const activitiesRoutes = require('./routes/activities');
-const feedsRoutes = require('./routes/feeds');
-const registrationRoutes = require('./routes/registration');
-const broadcasterRoutes = require('./routes/broadcaster');
-const favoritesRoutes = require('./routes/favorites');
-const monitoringRoutes = require('./routes/monitoring');
-const alertsRoutes = require('./routes/alerts');
-const databaseMonitoringRoutes = require('./routes/databaseMonitoring');
-const databaseOptimizationRoutes = require('./routes/databaseOptimization');
-const metricsStreamRoutes = require('./routes/metricsStream');
-const aiMarketplaceRoutes = require('./routes/aiMarketplace');
-const aiUsersRoutes = require('./routes/aiUsers');
-const aiBotRoutes = require('./routes/aiBot');
-const escrowRoutes = require('./routes/escrows');
-const escrowWebhookRoutes = require('./routes/escrowWebhooks');
-const liveChatRoutes = require('./routes/liveChat');
-const adminLiveChatRoutes = require('./routes/adminLiveChat');
-const notificationsRoutes = require('./routes/notifications');
-const webhookRoutes = require('./routes/webhookRoutes');
-const emailMarketingRoutes = require('./routes/emailMarketing');
-const partnersRoutes = require('./routes/partners');
-const staffRoutes = require('./routes/staff');
-const permissionsRoutes = require('./routes/permissions');
-const apiKeysRoutes = require('./routes/apiKeys');
-const oauthRoutes = require('./routes/oauth');
-const availabilityRoutes = require('./routes/availability');
-const schedulingRoutes = require('./routes/scheduling');
-const jobWorkflowRoutes = require('./routes/jobWorkflow');
-const quotesInvoicesRoutes = require('./routes/quotesInvoices');
-const maskedCallsRoutes = require('./routes/maskedCalls');
-const timeEntriesRoutes = require('./routes/timeEntries');
-const gpsLogsRoutes = require('./routes/gpsLogs');
-const geofenceEventsRoutes = require('./routes/geofenceEvents');
-const { metricsMiddleware } = require('./middleware/metricsMiddleware');
+
+const {
+  routes: authRoutes,
+  registrationRoutes,
+  oauthRoutes,
+  accountRoutes,
+} = require('../features/auth');
+
+const {
+  routes: jobsRoutes,
+  categoryRoutes: jobCategoriesRoutes,
+  workflowRoutes: jobWorkflowRoutes,
+} = require('../features/jobs');
+
+const { routes: academyRoutes }   = require('../features/academy');
+const { routes: adsRoutes, broadcasterRoutes } = require('../features/ads');
+const { routes: agenciesRoutes }  = require('../features/agencies');
+const { routes: feedsRoutes }     = require('../features/feeds');
+const { routes: providersRoutes } = require('../features/provider');
+const { routes: rentalsRoutes }   = require('../features/rentals');
+
+const {
+  routes: schedulingRoutes,
+  availabilityRoutes,
+} = require('../features/scheduling');
+
+const {
+  routes: financeRoutes,
+  walletRoutes,
+  escrowRoutes,
+  escrowWebhookRoutes,
+  quotesInvoicesRoutes,
+  referralsRoutes,
+  paypalRoutes,
+  paymayaRoutes,
+  paymongoRoutes,
+} = require('../features/finance');
+
+const {
+  routes: supportRoutes,
+  liveChatRoutes,
+  adminChatRoutes: adminLiveChatRoutes,
+  liveChatWebSocketService,
+} = require('../features/support');
+
+const { routes: facilityCareRoutes }     = require('../features/facilityCare');
+
+// ── src/ routes not yet promoted to a feature module ─────────────────────────
+const { routes: localproPlusRoutes } = require('../features/localproPlus');
+const { routes: trustVerificationRoutes } = require('../features/trustVerification');
+const { communicationRoutes,
+        notificationsRoutes } = require('../features/communication');
+const { routes: analyticsRoutes } = require('../features/analytics');
+const { routes: mapsRoutes }     = require('../features/maps');
+const { routes: settingsRoutes } = require('../features/settings');
+const { routes: errorMonitoringRoutes } = require('../features/errorMonitoring');
+const { routes: auditLogsRoutes } = require('../features/auditLogs');
+const { routes: logsRoutes }     = require('../features/logs');
+const { routes: userManagementRoutes } = require('../features/users');
+const { routes: searchRoutes }   = require('../features/search');
+const { routes: announcementsRoutes } = require('../features/announcements');
+const { routes: activitiesRoutes }  = require('../features/activities');
+// broadcasterRoutes now from features/ads (see above)
+const { routes: favoritesRoutes } = require('../features/favorites');
+const { routes: monitoringRoutes } = require('../features/monitoring');
+const alertsRoutes               = require('../features/alerts');
+const { routes: databaseMonitoringRoutes }   = require('../features/databaseMonitoring');
+const { routes: databaseOptimizationRoutes } = require('../features/databaseOptimization');
+const metricsStreamRoutes        = require('../features/metricsStream');
+const { aiBotRoutes, aiMarketplaceRoutes, aiUsersRoutes } = require('../features/ai');
+// notificationsRoutes now from features/communication (see above)
+const { routes: webhookRoutes }  = require('../features/webhooks');
+const { routes: emailMarketingRoutes } = require('../features/emailMarketing');
+const { routes: partnersRoutes } = require('../features/partners');
+const { routes: staffRoutes }    = require('../features/staff');
+const { routes: permissionsRoutes } = require('../features/permissions');
+const { routes: apiKeysRoutes }  = require('../features/apiKeys');
+const { routes: maskedCallsRoutes } = require('../features/maskedCalls');
+const { routes: timeEntriesRoutes } = require('../features/timeEntries');
+const { routes: gpsLogsRoutes }  = require('../features/gpsLogs');
+const { routes: geofenceEventsRoutes } = require('../features/geofenceEvents');
+
+// ── Cross-cutting utilities ───────────────────────────────────────────────────
+const { metricsMiddleware }                  = require('./middleware/metricsMiddleware');
 const { generalLimiter, marketplaceLimiter } = require('./middleware/rateLimiter');
-const liveChatWebSocketService = require('./services/liveChatWebSocketService');
-const AllowedOrigin = require('./models/AllowedOrigin');
-const supportRoutes = require('./routes/support');
-const accountRoutes = require('./routes/account');
+const { AllowedOrigin }                      = require('../features/corsOrigins');
 const app = express();
 
 // Trust proxy - necessary when behind reverse proxy/load balancer (e.g., Render, nginx)
@@ -570,6 +597,7 @@ function startServer() {
   app.use('/api/maps', mapsRoutes);
   app.use('/api/paypal', paypalRoutes);
   app.use('/api/paymaya', paymayaRoutes);
+  app.use('/api/paymongo', paymongoRoutes);
   app.use('/api/jobs', jobsRoutes);
   app.use('/api/job-categories', jobCategoriesRoutes);
   app.use('/api/referrals', referralsRoutes);
@@ -655,7 +683,7 @@ function startServer() {
   app.use(errorHandler);
 
   // Register CORS admin routes (after errorHandler, before 404)
-  const corsOriginsRoutes = require('./routes/corsOrigins');
+  const { routes: corsOriginsRoutes } = require('../features/corsOrigins');
   const { auth } = require('./middleware/auth');
   app.use('/api/admin/cors-origins', auth, corsOriginsRoutes);
 
@@ -689,6 +717,13 @@ function startServer() {
       logger.info(`📊 Logging enabled with Winston`);
       logger.info(`🔍 Error monitoring active`);
       logger.info(`💬 Live Chat WebSocket available at ws://localhost:${PORT}/ws/live-chat`);
+
+      // Notify internal listeners that the application is fully started
+      eventBus.emit(EVENTS.APP_STARTED, {
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString(),
+      });
     });
   }
 }
@@ -712,7 +747,7 @@ async function initializeAutomatedServices() {
 
     // Automated Booking Service (reminders, status transitions, review requests)
     if (process.env.ENABLE_AUTOMATED_BOOKINGS !== 'false') {
-      const automatedBookingService = require('./services/automatedBookingService');
+      const automatedBookingService = require('../features/scheduling/services/automatedBookingService');
       automatedBookingService.start();
       automatedServices.push(automatedBookingService);
       logger.info('✅ Automated booking service started');
@@ -728,7 +763,7 @@ async function initializeAutomatedServices() {
 
     // Automated Subscription Renewal Service
     if (process.env.ENABLE_AUTOMATED_SUBSCRIPTIONS !== 'false') {
-      const automatedSubscriptionService = require('./services/automatedSubscriptionService');
+      const automatedSubscriptionService = require('../features/finance/services/automatedSubscriptionService');
       automatedSubscriptionService.start();
       automatedServices.push(automatedSubscriptionService);
       logger.info('✅ Automated subscription service started');
@@ -736,7 +771,7 @@ async function initializeAutomatedServices() {
 
     // Automated Escrow Status Management Service
     if (process.env.ENABLE_AUTOMATED_ESCROWS !== 'false') {
-      const automatedEscrowService = require('./services/automatedEscrowService');
+      const automatedEscrowService = require('../features/finance/services/automatedEscrowService');
       automatedEscrowService.start();
       automatedServices.push(automatedEscrowService);
       logger.info('✅ Automated escrow service started');
@@ -744,7 +779,7 @@ async function initializeAutomatedServices() {
 
     // Automated Payment Status Synchronization (PayPal, PayMongo, etc.)
     if (process.env.ENABLE_AUTOMATED_PAYMENT_SYNC === 'true') {
-      const { automatedPaymentSyncService } = require('./services/automatedPaymentSyncService');
+      const { automatedPaymentSyncService } = require('../features/finance/services/automatedPaymentSyncService');
       automatedPaymentSyncService.start();
       logger.info('✅ Automated payment sync service started');
     }
@@ -772,42 +807,42 @@ async function initializeAutomatedServices() {
 
     // Automated Finance Reminders (loans / salary advances)
     if (process.env.ENABLE_AUTOMATED_FINANCE_REMINDERS === 'true') {
-      const automatedFinanceReminderService = require('./services/automatedFinanceReminderService');
+      const automatedFinanceReminderService = require('../features/finance/services/automatedFinanceReminderService');
       automatedFinanceReminderService.start();
       logger.info('✅ Automated finance reminder service started');
     }
 
     // Automated Rental Reminders (due soon / overdue)
     if (process.env.ENABLE_AUTOMATED_RENTAL_REMINDERS === 'true') {
-      const automatedRentalReminderService = require('./services/automatedRentalReminderService');
+      const automatedRentalReminderService = require('../features/rentals/services/automatedRentalReminderService');
       automatedRentalReminderService.start();
       logger.info('✅ Automated rental reminder service started');
     }
 
     // Automated Job Board Digest
     if (process.env.ENABLE_AUTOMATED_JOB_DIGEST === 'true') {
-      const automatedJobBoardDigestService = require('./services/automatedJobBoardDigestService');
+      const automatedJobBoardDigestService = require('../features/jobs/services/automatedJobBoardDigestService');
       automatedJobBoardDigestService.start();
       logger.info('✅ Automated job digest service started');
     }
 
     // Automated Academy Engagement
     if (process.env.ENABLE_AUTOMATED_ACADEMY_ENGAGEMENT === 'true') {
-      const automatedAcademyEngagementService = require('./services/automatedAcademyEngagementService');
+      const automatedAcademyEngagementService = require('../features/academy/services/automatedAcademyEngagementService');
       automatedAcademyEngagementService.start();
       logger.info('✅ Automated academy engagement service started');
     }
 
     // Automated Live Chat SLA Alerts
     if (process.env.ENABLE_AUTOMATED_LIVECHAT_SLA === 'true') {
-      const automatedLiveChatSlaService = require('./services/automatedLiveChatSlaService');
+      const automatedLiveChatSlaService = require('../features/support/services/automatedLiveChatSlaService');
       automatedLiveChatSlaService.start();
       logger.info('✅ Automated live chat SLA service started');
     }
 
     // Marketplace booking follow-ups (extra nudges, no state changes)
     if (process.env.ENABLE_AUTOMATED_BOOKING_FOLLOWUPS === 'true') {
-      const automatedMarketplaceBookingFollowUpService = require('./services/automatedMarketplaceBookingFollowUpService');
+      const automatedMarketplaceBookingFollowUpService = require('../features/scheduling/services/automatedMarketplaceBookingFollowUpService');
       automatedMarketplaceBookingFollowUpService.start();
       logger.info('✅ Automated marketplace booking follow-up service started');
     }
@@ -821,49 +856,49 @@ async function initializeAutomatedServices() {
 
     // Academy certificates pending alerts (admin)
     if (process.env.ENABLE_AUTOMATED_ACADEMY_CERTIFICATES === 'true') {
-      const automatedAcademyCertificateService = require('./services/automatedAcademyCertificateService');
+      const automatedAcademyCertificateService = require('../features/academy/services/automatedAcademyCertificateService');
       automatedAcademyCertificateService.start();
       logger.info('✅ Automated academy certificate service started');
     }
 
     // Job application follow-ups (employer reminders)
     if (process.env.ENABLE_AUTOMATED_JOB_APPLICATION_FOLLOWUPS === 'true') {
-      const automatedJobApplicationFollowUpService = require('./services/automatedJobApplicationFollowUpService');
+      const automatedJobApplicationFollowUpService = require('../features/jobs/services/automatedJobApplicationFollowUpService');
       automatedJobApplicationFollowUpService.start();
       logger.info('✅ Automated job application follow-up service started');
     }
 
     // Automated Availability Service (job start reminders, lateness alerts)
     if (process.env.ENABLE_AUTOMATED_AVAILABILITY !== 'false') {
-      const automatedAvailabilityService = require('./services/automatedAvailabilityService');
+      const automatedAvailabilityService = require('../features/scheduling/services/automatedAvailabilityService');
       automatedAvailabilityService.start();
       logger.info('✅ Automated availability service started');
     }
 
     // Automated Scheduling Service (cleanup expired rankings and suggestions)
     if (process.env.ENABLE_AUTOMATED_SCHEDULING !== 'false') {
-      const automatedSchedulingService = require('./services/automatedSchedulingService');
+      const automatedSchedulingService = require('../features/scheduling/services/automatedSchedulingService');
       automatedSchedulingService.start();
       logger.info('✅ Automated scheduling service started');
     }
 
     // Escrow dispute escalation (admin + party nudges)
     if (process.env.ENABLE_AUTOMATED_ESCROW_DISPUTE_ESCALATIONS === 'true') {
-      const automatedEscrowDisputeEscalationService = require('./services/automatedEscrowDisputeEscalationService');
+      const automatedEscrowDisputeEscalationService = require('../features/finance/services/automatedEscrowDisputeEscalationService');
       automatedEscrowDisputeEscalationService.start();
       logger.info('✅ Automated escrow dispute escalation service started');
     }
 
     // Referral tier milestones
     if (process.env.ENABLE_AUTOMATED_REFERRAL_TIER_MILESTONES === 'true') {
-      const automatedReferralTierMilestoneService = require('./services/automatedReferralTierMilestoneService');
+      const automatedReferralTierMilestoneService = require('../features/finance/services/automatedReferralTierMilestoneService');
       automatedReferralTierMilestoneService.start();
       logger.info('✅ Automated referral tier milestone service started');
     }
 
     // Marketplace booking no-show / overdue detection
     if (process.env.ENABLE_AUTOMATED_BOOKING_NO_SHOW === 'true') {
-      const automatedMarketplaceNoShowService = require('./services/automatedMarketplaceNoShowService');
+      const automatedMarketplaceNoShowService = require('../features/marketplace/services/automatedMarketplaceNoShowService');
       automatedMarketplaceNoShowService.start();
       logger.info('✅ Automated marketplace booking no-show service started');
     }
@@ -884,7 +919,7 @@ async function initializeAutomatedServices() {
 
     // LocalPro Plus subscription dunning reminders
     if (process.env.ENABLE_AUTOMATED_SUBSCRIPTION_DUNNING === 'true') {
-      const automatedLocalProPlusDunningService = require('./services/automatedLocalProPlusDunningService');
+      const automatedLocalProPlusDunningService = require('../features/localproPlus/services/automatedLocalProPlusDunningService');
       automatedLocalProPlusDunningService.start();
       logger.info('✅ Automated LocalPro Plus dunning service started');
     }
@@ -912,8 +947,8 @@ async function initializeAutomatedServices() {
 
     // AI Bot Service (AI Operating System)
     if (process.env.ENABLE_AI_BOT !== 'false') {
-      const aiBotService = require('./services/aiBotService');
-      const aiBotEventListener = require('./services/aiBotEventListener');
+      const aiBotService = require('../features/ai/services/aiBotService');
+      const aiBotEventListener = require('../features/ai/services/aiBotEventListener');
 
       // Initialize AI Bot
       await aiBotService.initialize();
@@ -958,13 +993,13 @@ async function gracefulShutdown(signal) {
               }
 
               // Stop database performance monitor
-              const dbMonitor = require('./services/databasePerformanceMonitor');
+              const dbMonitor = require('../features/databaseMonitoring/services/databasePerformanceMonitor');
               if (dbMonitor && typeof dbMonitor.stopMonitoring === 'function') {
                 dbMonitor.stopMonitoring();
               }
 
               // Cleanup metrics stream
-              const { cleanup: cleanupMetricsStream } = require('./routes/metricsStream');
+              const { cleanup: cleanupMetricsStream } = require('../features/metricsStream');
               if (cleanupMetricsStream) {
                 cleanupMetricsStream();
               }

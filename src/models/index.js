@@ -55,7 +55,7 @@ const Referral = require('./Referral');
 // ============================================================================
 // SETTINGS MODELS
 // ============================================================================
-const UserSettings = require('./UserSettings');
+const UserSettings = require('../../features/users/models/UserSettings');
 const AppSettings = require('./AppSettings');
 
 // ============================================================================

@@ -1,0 +1,1397 @@
+const { Finance } = require('../models/Finance');
+const User = require('../../../src/models/User');
+const EmailService = require('../../../src/services/emailService');
+const { Booking } = require('../../marketplace/models/Marketplace');
+const Referral = require('../models/Referral');
+const CloudinaryService = require('../../../src/services/cloudinaryService');
+const paymongoService = require('../../../src/services/paymongoService');
+const { logger } = require('../../../src/utils/logger');
+
+// @desc    Get user's financial overview
+// @route   GET /api/finance/overview
+// @access  Private
+const getFinancialOverview = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get user's financial data
+    const finance = await Finance.findOne({ user: userId });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    // Get recent transactions (sort and limit in memory)
+    const recentTransactions = finance.transactions
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(0, 10);
+
+    // Get monthly earnings
+    const currentMonth = new Date();
+    currentMonth.setDate(1);
+    currentMonth.setHours(0, 0, 0, 0);
+
+    const monthlyEarnings = await Booking.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: userId,
+          status: 'completed',
+          createdAt: { $gte: currentMonth }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: '$pricing.total' },
+          bookingCount: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get pending payments
+    const pendingPayments = await Booking.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: userId,
+          status: 'completed',
+          'payment.status': 'pending'
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalPending: { $sum: '$pricing.total' },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get referral earnings
+    const referralEarnings = await Referral.aggregate([
+      {
+        $match: {
+          referrer: userId,
+          status: 'completed'
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: '$rewardDistribution.referrerReward' },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        wallet: finance.wallet,
+        monthlyEarnings: monthlyEarnings[0] || { totalEarnings: 0, bookingCount: 0 },
+        pendingPayments: pendingPayments[0] || { totalPending: 0, count: 0 },
+        referralEarnings: referralEarnings[0] || { totalEarnings: 0, count: 0 },
+        recentTransactions: recentTransactions || []
+      }
+    });
+  } catch (error) {
+    console.error('Get financial overview error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get user's transactions
+// @route   GET /api/finance/transactions
+// @access  Private
+const getTransactions = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, type, status } = req.query;
+    const skip = (page - 1) * limit;
+
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    // Build filter
+    const filter = {};
+    if (type) filter.type = type;
+    if (status) filter.status = status;
+
+    const transactions = finance.transactions
+      .filter(transaction => {
+        if (type && transaction.type !== type) return false;
+        if (status && transaction.status !== status) return false;
+        return true;
+      })
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(skip, skip + Number(limit));
+
+    const total = finance.transactions.filter(transaction => {
+      if (type && transaction.type !== type) return false;
+      if (status && transaction.status !== status) return false;
+      return true;
+    }).length;
+
+    res.status(200).json({
+      success: true,
+      count: transactions.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: transactions
+    });
+  } catch (error) {
+    console.error('Get transactions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get user's earnings
+// @route   GET /api/finance/earnings
+// @access  Private
+const getEarnings = async (req, res) => {
+  try {
+    const { startDate, endDate, groupBy = 'month' } = req.query;
+
+    // Validate groupBy parameter
+    const validGroupBy = ['day', 'month', 'year'];
+    if (groupBy && !validGroupBy.includes(groupBy)) {
+      return res.status(400).json({
+        success: false,
+        message: `groupBy must be one of: ${validGroupBy.join(', ')}`
+      });
+    }
+
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+      if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
+    }
+
+    // Build group _id based on groupBy parameter
+    let groupId;
+    let sortFields;
+    
+    if (groupBy === 'day') {
+      groupId = {
+        year: { $year: '$createdAt' },
+        month: { $month: '$createdAt' },
+        day: { $dayOfMonth: '$createdAt' }
+      };
+      sortFields = { '_id.year': 1, '_id.month': 1, '_id.day': 1 };
+    } else if (groupBy === 'year') {
+      groupId = {
+        year: { $year: '$createdAt' }
+      };
+      sortFields = { '_id.year': 1 };
+    } else {
+      // Default to month
+      groupId = {
+        year: { $year: '$createdAt' },
+        month: { $month: '$createdAt' }
+      };
+      sortFields = { '_id.year': 1, '_id.month': 1 };
+    }
+
+    // Get earnings from completed bookings
+    const earnings = await Booking.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: req.user.id,
+          status: 'completed',
+          ...dateFilter
+        }
+      },
+      {
+        $group: {
+          _id: groupId,
+          totalEarnings: { $sum: '$pricing.total' },
+          bookingCount: { $sum: 1 },
+          averageEarning: { $avg: '$pricing.total' }
+        }
+      },
+      {
+        $sort: sortFields
+      }
+    ]);
+
+    // Get earnings by service category
+    const earningsByCategory = await Booking.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: req.user.id,
+          status: 'completed',
+          ...dateFilter
+        }
+      },
+      {
+        $lookup: {
+          from: 'marketplaces',
+          localField: 'service',
+          foreignField: '_id',
+          as: 'serviceData'
+        }
+      },
+      {
+        $unwind: '$serviceData'
+      },
+      {
+        $group: {
+          _id: '$serviceData.category',
+          totalEarnings: { $sum: '$pricing.total' },
+          bookingCount: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { totalEarnings: -1 }
+      }
+    ]);
+
+    // Get total earnings
+    const totalEarnings = await Booking.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: req.user.id,
+          status: 'completed',
+          ...dateFilter
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: '$pricing.total' },
+          totalBookings: { $sum: 1 }
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        earnings,
+        earningsByCategory,
+        totalEarnings: totalEarnings[0] || { totalEarnings: 0, totalBookings: 0 }
+      }
+    });
+  } catch (error) {
+    console.error('Get earnings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get user's expenses
+// @route   GET /api/finance/expenses
+// @access  Private
+const getExpenses = async (req, res) => {
+  try {
+    const { startDate, endDate, category } = req.query;
+
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.timestamp = {};
+      if (startDate) dateFilter.timestamp.$gte = new Date(startDate);
+      if (endDate) dateFilter.timestamp.$lte = new Date(endDate);
+    }
+
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    // Filter expenses
+    let expenses = finance.transactions.filter(transaction => 
+      transaction.type === 'expense' && transaction.amount < 0
+    );
+
+    if (startDate || endDate) {
+      expenses = expenses.filter(expense => {
+        const expenseDate = new Date(expense.timestamp);
+        if (startDate && expenseDate < new Date(startDate)) return false;
+        if (endDate && expenseDate > new Date(endDate)) return false;
+        return true;
+      });
+    }
+
+    if (category) {
+      expenses = expenses.filter(expense => expense.category === category);
+    }
+
+    // Group expenses by category
+    const expensesByCategory = expenses.reduce((acc, expense) => {
+      const category = expense.category || 'Other';
+      if (!acc[category]) {
+        acc[category] = { total: 0, count: 0 };
+      }
+      acc[category].total += Math.abs(expense.amount);
+      acc[category].count += 1;
+      return acc;
+    }, {});
+
+    // Get monthly expenses
+    const monthlyExpenses = expenses.reduce((acc, expense) => {
+      const date = new Date(expense.timestamp);
+      const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
+      if (!acc[monthKey]) {
+        acc[monthKey] = { total: 0, count: 0 };
+      }
+      acc[monthKey].total += Math.abs(expense.amount);
+      acc[monthKey].count += 1;
+      return acc;
+    }, {});
+
+    res.status(200).json({
+      success: true,
+      data: {
+        expenses,
+        expensesByCategory,
+        monthlyExpenses,
+        totalExpenses: expenses.reduce((sum, expense) => sum + Math.abs(expense.amount), 0)
+      }
+    });
+  } catch (error) {
+    console.error('Get expenses error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Add expense
+// @route   POST /api/finance/expenses
+// @access  Private
+const addExpense = async (req, res) => {
+  try {
+    const { amount, category, description, paymentMethod } = req.body;
+
+    if (!amount || !category || !description) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount, category, and description are required'
+      });
+    }
+
+    // Validate amount is a positive number
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be a positive number'
+      });
+    }
+
+    let finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      finance = await Finance.create({ user: req.user.id });
+    }
+
+    const expense = {
+      type: 'expense',
+      amount: -Math.abs(amount), // Negative amount for expenses
+      category,
+      description,
+      paymentMethod: paymentMethod || 'wallet',
+      status: 'completed',
+      timestamp: new Date()
+    };
+
+    finance.transactions.push(expense);
+
+    // Update wallet balance
+    finance.wallet.balance += expense.amount;
+    finance.wallet.lastUpdated = new Date();
+
+    await finance.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Expense added successfully',
+      data: expense
+    });
+  } catch (error) {
+    console.error('Add expense error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Request withdrawal
+// @route   POST /api/finance/withdraw
+// @access  Private
+const requestWithdrawal = async (req, res) => {
+  try {
+    const { amount, paymentMethod, accountDetails } = req.body;
+
+    if (!amount || !paymentMethod || !accountDetails) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount, payment method, and account details are required'
+      });
+    }
+
+    // Validate amount is a positive number
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be a positive number'
+      });
+    }
+
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    // Check if user has sufficient balance
+    if (finance.wallet.balance < amount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient balance'
+      });
+    }
+
+    // Check minimum withdrawal amount
+    const minWithdrawal = 100; // $100 minimum
+    if (amount < minWithdrawal) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum withdrawal amount is $${minWithdrawal}`
+      });
+    }
+
+    const withdrawal = {
+      type: 'withdrawal',
+      amount: -Math.abs(amount),
+      category: 'withdrawal',
+      description: `Withdrawal request via ${paymentMethod}`,
+      paymentMethod,
+      accountDetails,
+      status: 'pending',
+      timestamp: new Date()
+    };
+
+    finance.transactions.push(withdrawal);
+
+    // Hold the amount in pending balance
+    finance.wallet.balance -= amount;
+    finance.wallet.pendingBalance += amount;
+    finance.wallet.lastUpdated = new Date();
+
+    await finance.save();
+
+    // Send notification email to admin
+    await EmailService.sendEmail({
+      to: process.env.ADMIN_EMAIL,
+      subject: 'New Withdrawal Request',
+      template: 'withdrawal-request',
+      data: {
+        userName: `${req.user.firstName} ${req.user.lastName}`,
+        amount,
+        paymentMethod,
+        accountDetails
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Withdrawal request submitted successfully',
+      data: withdrawal
+    });
+  } catch (error) {
+    console.error('Request withdrawal error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get withdrawal history
+// @route   GET /api/finance/withdrawals
+// @access  Private
+const getWithdrawals = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status } = req.query;
+    const skip = (page - 1) * limit;
+
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found',
+        code: 'FINANCE_NOT_FOUND'
+      });
+    }
+
+    // Filter withdrawals from transactions
+    let withdrawals = finance.transactions.filter(t => 
+      t.type === 'withdrawal' || t.category === 'withdrawal'
+    );
+
+    // Filter by status if provided
+    if (status) {
+      withdrawals = withdrawals.filter(w => w.status === status);
+    }
+
+    // Sort by date (newest first)
+    withdrawals.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    // Calculate pagination
+    const total = withdrawals.length;
+    const paginatedWithdrawals = withdrawals.slice(skip, skip + parseInt(limit));
+
+    logger.info('Withdrawals retrieved', {
+      userId: req.user.id,
+      total,
+      page,
+      status
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Withdrawals retrieved successfully',
+      data: {
+        withdrawals: paginatedWithdrawals,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        },
+        summary: {
+          totalWithdrawals: total,
+          totalAmount: withdrawals.reduce((sum, w) => sum + Math.abs(w.amount), 0),
+          pendingCount: withdrawals.filter(w => w.status === 'pending').length,
+          completedCount: withdrawals.filter(w => w.status === 'completed').length,
+          rejectedCount: withdrawals.filter(w => w.status === 'rejected').length
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Get withdrawals error:', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.id
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      code: 'GET_WITHDRAWALS_ERROR'
+    });
+  }
+};
+
+// @desc    Process withdrawal
+// @route   PUT /api/finance/withdrawals/:withdrawalId/process
+// @access  Private (Admin only)
+const processWithdrawal = async (req, res) => {
+  try {
+    const { withdrawalId } = req.params;
+    const { status, adminNotes } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status is required'
+      });
+    }
+
+    // Validate status (accept 'approved'/'rejected' from API, map to enum values)
+    const validStatuses = ['approved', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status must be either "approved" or "rejected"'
+      });
+    }
+
+    // Find the user with this withdrawal
+    const finance = await Finance.findOne({
+      'transactions._id': withdrawalId,
+      'transactions.type': 'withdrawal'
+    });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Withdrawal not found'
+      });
+    }
+
+    const withdrawal = finance.transactions.id(withdrawalId);
+
+    if (!withdrawal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Withdrawal not found'
+      });
+    }
+
+    if (withdrawal.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Withdrawal has already been processed'
+      });
+    }
+
+    // Map API status to transaction enum status
+    // 'approved' -> 'completed', 'rejected' -> 'cancelled'
+    withdrawal.status = status === 'approved' ? 'completed' : 'cancelled';
+    withdrawal.adminNotes = adminNotes;
+    withdrawal.processedAt = new Date();
+    withdrawal.processedBy = req.user.id;
+
+    if (status === 'approved') {
+      // Move from pending to completed
+      finance.wallet.pendingBalance -= Math.abs(withdrawal.amount);
+    } else if (status === 'rejected') {
+      // Return amount to available balance
+      finance.wallet.balance += Math.abs(withdrawal.amount);
+      finance.wallet.pendingBalance -= Math.abs(withdrawal.amount);
+    }
+
+    finance.wallet.lastUpdated = new Date();
+    await finance.save();
+
+    // Send notification email to user
+    const user = await User.findById(finance.user);
+    await EmailService.sendEmail({
+      to: user.email,
+      subject: 'Withdrawal Request Update',
+      template: 'withdrawal-status-update',
+      data: {
+        userName: `${user.firstName} ${user.lastName}`,
+        amount: Math.abs(withdrawal.amount),
+        status,
+        adminNotes
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Withdrawal processed successfully',
+      data: withdrawal
+    });
+  } catch (error) {
+    console.error('Process withdrawal error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get tax documents
+// @route   GET /api/finance/tax-documents
+// @access  Private
+const getTaxDocuments = async (req, res) => {
+  try {
+    const { year } = req.query;
+
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    // Get earnings for the year
+    const yearFilter = year ? new Date(`${year}-01-01`) : new Date(new Date().getFullYear(), 0, 1);
+    const nextYear = new Date(yearFilter);
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
+
+    const earnings = await Booking.aggregate([
+      {
+        $match: {
+          type: 'booking',
+          provider: req.user.id,
+          status: 'completed',
+          createdAt: { $gte: yearFilter, $lt: nextYear }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: '$pricing.total' },
+          totalBookings: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get expenses for the year
+    const expenses = finance.transactions.filter(transaction => {
+      const transactionDate = new Date(transaction.timestamp);
+      return transaction.type === 'expense' && 
+             transactionDate >= yearFilter && 
+             transactionDate < nextYear;
+    });
+
+    const totalExpenses = expenses.reduce((sum, expense) => sum + Math.abs(expense.amount), 0);
+
+    // Get referral earnings for the year
+    const referralEarnings = await Referral.aggregate([
+      {
+        $match: {
+          referrer: req.user.id,
+          status: 'completed',
+          createdAt: { $gte: yearFilter, $lt: nextYear }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: '$rewardDistribution.referrerReward' },
+          totalReferrals: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const taxDocument = {
+      year: year || new Date().getFullYear(),
+      totalEarnings: earnings[0]?.totalEarnings || 0,
+      totalBookings: earnings[0]?.totalBookings || 0,
+      totalExpenses,
+      totalReferralEarnings: referralEarnings[0]?.totalEarnings || 0,
+      totalReferrals: referralEarnings[0]?.totalReferrals || 0,
+      netIncome: (earnings[0]?.totalEarnings || 0) + (referralEarnings[0]?.totalEarnings || 0) - totalExpenses,
+      expenses: expenses.map(expense => ({
+        date: expense.timestamp,
+        category: expense.category,
+        description: expense.description,
+        amount: Math.abs(expense.amount)
+      }))
+    };
+
+    res.status(200).json({
+      success: true,
+      data: taxDocument
+    });
+  } catch (error) {
+    console.error('Get tax documents error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get financial reports
+// @route   GET /api/finance/reports
+// @access  Private
+const getFinancialReports = async (req, res) => {
+  try {
+    const { startDate, endDate, reportType = 'summary' } = req.query;
+
+    // Build date filter
+    const dateFilter = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+      if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
+    }
+
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    let report = {};
+
+    switch (reportType) {
+      case 'summary': {
+        // Get summary report
+        const summary = await Booking.aggregate([
+          {
+            $match: {
+              type: 'booking',
+              provider: req.user.id,
+              status: 'completed',
+              ...dateFilter
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              totalEarnings: { $sum: '$pricing.total' },
+              totalBookings: { $sum: 1 },
+              averageEarning: { $avg: '$pricing.total' }
+            }
+          }
+        ]);
+
+        const expenses = finance.transactions.filter(transaction => {
+          const transactionDate = new Date(transaction.timestamp);
+          if (startDate && transactionDate < new Date(startDate)) return false;
+          if (endDate && transactionDate > new Date(endDate)) return false;
+          return transaction.type === 'expense';
+        });
+
+        const totalExpenses = expenses.reduce((sum, expense) => sum + Math.abs(expense.amount), 0);
+
+        report = {
+          totalEarnings: summary[0]?.totalEarnings || 0,
+          totalBookings: summary[0]?.totalBookings || 0,
+          averageEarning: summary[0]?.averageEarning || 0,
+          totalExpenses,
+          netIncome: (summary[0]?.totalEarnings || 0) - totalExpenses,
+          expenseCount: expenses.length
+        };
+        break;
+      }
+
+      case 'detailed': {
+        // Get detailed report
+        const detailedEarnings = await Booking.aggregate([
+          {
+            $match: {
+              type: 'booking',
+              provider: req.user.id,
+              status: 'completed',
+              ...dateFilter
+            }
+          },
+          {
+            $lookup: {
+              from: 'marketplaces',
+              localField: 'service',
+              foreignField: '_id',
+              as: 'serviceData'
+            }
+          },
+          {
+            $unwind: '$serviceData'
+          },
+          {
+            $project: {
+              date: '$createdAt',
+              serviceTitle: '$serviceData.title',
+              category: '$serviceData.category',
+              amount: '$pricing.total',
+              client: '$client'
+            }
+          },
+          {
+            $sort: { date: -1 }
+          }
+        ]);
+
+        const expenses = finance.transactions.filter(transaction => {
+          const transactionDate = new Date(transaction.timestamp);
+          if (startDate && transactionDate < new Date(startDate)) return false;
+          if (endDate && transactionDate > new Date(endDate)) return false;
+          return transaction.type === 'expense';
+        });
+
+        report = {
+          earnings: detailedEarnings,
+          expenses: expenses.map(expense => ({
+            date: expense.timestamp,
+            category: expense.category,
+            description: expense.description,
+            amount: Math.abs(expense.amount)
+          }))
+        };
+        break;
+      }
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid report type'
+        });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: report
+    });
+  } catch (error) {
+    console.error('Get financial reports error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Update wallet settings
+// @route   PUT /api/finance/wallet/settings
+// @access  Private
+const updateWalletSettings = async (req, res) => {
+  try {
+    const { autoWithdraw, minBalance, notificationSettings } = req.body;
+
+    let finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      finance = await Finance.create({ user: req.user.id });
+    }
+
+    // Update wallet settings
+    if (autoWithdraw !== undefined) finance.wallet.autoWithdraw = autoWithdraw;
+    if (minBalance !== undefined) finance.wallet.minBalance = minBalance;
+    if (notificationSettings) finance.wallet.notificationSettings = notificationSettings;
+
+    finance.wallet.lastUpdated = new Date();
+    await finance.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Wallet settings updated successfully',
+      data: finance.wallet
+    });
+  } catch (error) {
+    console.error('Update wallet settings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Request top-up (add money to account)
+// @route   POST /api/finance/top-up
+// @access  Private
+const requestTopUp = async (req, res) => {
+  try {
+    const { amount, paymentMethod, reference, notes } = req.body;
+
+    // Validate required fields
+    if (!amount || !paymentMethod) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount and payment method are required'
+      });
+    }
+
+    // Validate amount is a positive number
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be a positive number'
+      });
+    }
+
+    // Check minimum top-up amount
+    const minTopUp = 10; // $10 minimum
+    if (amount < minTopUp) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum top-up amount is $${minTopUp}`
+      });
+    }
+
+    // Validate receipt image is uploaded
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Receipt image is required'
+      });
+    }
+
+    // Get or create finance record
+    let finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      finance = await Finance.create({ user: req.user.id });
+    }
+
+    // Upload receipt to Cloudinary
+    const uploadResult = await CloudinaryService.uploadFile(
+      req.file,
+      'localpro/finance/receipts'
+    );
+
+    if (!uploadResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload receipt image',
+        error: uploadResult.error
+      });
+    }
+
+    // Create top-up request
+    const topUpRequest = {
+      amount: parseFloat(amount),
+      receipt: {
+        url: uploadResult.data.secure_url,
+        publicId: uploadResult.data.public_id
+      },
+      paymentMethod,
+      reference: reference || undefined,
+      notes: notes || undefined,
+      status: 'pending',
+      requestedAt: new Date()
+    };
+
+    // If PayMongo, create payment authorization
+    let paymongoResult;
+    if (paymentMethod === 'paymongo') {
+      try {
+        paymongoResult = await paymongoService.createAuthorization({
+          amount: Math.round(parseFloat(amount) * 100), // Convert to cents
+          currency: 'PHP',
+          description: `LocalPro Super App Top-Up by ${req.user.firstName} ${req.user.lastName}`,
+          clientId: req.user.id,
+          bookingId: `topup_${req.user.id}_${Date.now()}`
+        });
+
+        if (paymongoResult.success) {
+          topUpRequest.paymongoIntentId = paymongoResult.holdId;
+          topUpRequest.status = 'authorized'; // Mark as authorized pending capture
+        }
+      } catch (paymongoError) {
+        console.error('PayMongo top-up authorization error:', paymongoError);
+        // Fall back to manual approval
+      }
+    }
+
+    finance.topUpRequests.push(topUpRequest);
+    await finance.save();
+
+    // Send notification email to admin
+    await EmailService.sendEmail({
+      to: process.env.ADMIN_EMAIL,
+      subject: 'New Top-Up Request',
+      template: 'topup-request',
+      data: {
+        userName: `${req.user.firstName} ${req.user.lastName}`,
+        userEmail: req.user.email,
+        amount: parseFloat(amount),
+        paymentMethod,
+        reference: reference || 'N/A',
+        receiptUrl: uploadResult.data.secure_url,
+        paymentStatus: paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId ? 'PayMongo authorized, awaiting capture' : 'Manual approval required'
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId 
+        ? 'Top-up initiated with PayMongo. Please complete the payment.'
+        : 'Top-up request submitted successfully. Please wait for admin approval.',
+      data: {
+        topUpRequest: {
+          _id: finance.topUpRequests[finance.topUpRequests.length - 1]._id,
+          amount: topUpRequest.amount,
+          paymentMethod: topUpRequest.paymentMethod,
+          status: topUpRequest.status,
+          requestedAt: topUpRequest.requestedAt,
+            paymongoDetails: paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId ? {
+              intentId: topUpRequest.paymongoIntentId,
+              clientSecret: paymongoResult?.clientSecret,
+              publishableKey: paymongoResult?.publishableKey
+            } : undefined
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Request top-up error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get all top-up requests (Admin only)
+// @route   GET /api/finance/top-ups
+// @access  Private (Admin only)
+const getTopUpRequests = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Build filter for top-up requests
+    const filter = {};
+    if (status) {
+      filter['topUpRequests.status'] = status;
+    }
+
+    // Find all finance records with top-up requests
+    const financeRecords = await Finance.find({
+      topUpRequests: { $exists: true, $ne: [] },
+      ...filter
+    })
+      .populate('user', 'firstName lastName email profile.avatar')
+      .select('user topUpRequests')
+      .lean();
+
+    // Extract and flatten top-up requests with user info
+    let allTopUpRequests = [];
+    financeRecords.forEach(finance => {
+      finance.topUpRequests.forEach(request => {
+        // Apply status filter if provided
+        if (!status || request.status === status) {
+          allTopUpRequests.push({
+            ...request,
+            user: finance.user
+          });
+        }
+      });
+    });
+
+    // Sort by requestedAt (newest first)
+    allTopUpRequests.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+
+    // Apply pagination
+    const total = allTopUpRequests.length;
+    const paginatedRequests = allTopUpRequests.slice(skip, skip + Number(limit));
+
+    res.status(200).json({
+      success: true,
+      count: paginatedRequests.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: paginatedRequests
+    });
+  } catch (error) {
+    console.error('Get top-up requests error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Get user's top-up requests
+// @route   GET /api/finance/top-ups/my-requests
+// @access  Private
+const getMyTopUpRequests = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status } = req.query;
+    const skip = (page - 1) * limit;
+
+    const finance = await Finance.findOne({ user: req.user.id });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Financial data not found'
+      });
+    }
+
+    // Filter top-up requests by status if provided
+    let topUpRequests = finance.topUpRequests;
+    if (status) {
+      topUpRequests = topUpRequests.filter(req => req.status === status);
+    }
+
+    // Sort by requestedAt (newest first)
+    topUpRequests.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+
+    // Apply pagination
+    const total = topUpRequests.length;
+    const paginatedRequests = topUpRequests.slice(skip, skip + Number(limit));
+
+    res.status(200).json({
+      success: true,
+      count: paginatedRequests.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      data: paginatedRequests
+    });
+  } catch (error) {
+    console.error('Get my top-up requests error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// @desc    Process top-up request (Admin only)
+// @route   PUT /api/finance/top-ups/:topUpId/process
+// @access  Private (Admin only)
+const processTopUp = async (req, res) => {
+  try {
+    const { topUpId } = req.params;
+    const { status, adminNotes } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status is required'
+      });
+    }
+
+    // Validate status
+    const validStatuses = ['approved', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status must be either "approved" or "rejected"'
+      });
+    }
+
+    // Find the user with this top-up request
+    const finance = await Finance.findOne({
+      'topUpRequests._id': topUpId
+    });
+
+    if (!finance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Top-up request not found'
+      });
+    }
+
+    const topUpRequest = finance.topUpRequests.id(topUpId);
+
+    if (!topUpRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Top-up request not found'
+      });
+    }
+
+    if (topUpRequest.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Top-up request has already been processed'
+      });
+    }
+
+    // Update top-up request status
+    topUpRequest.status = status;
+    topUpRequest.adminNotes = adminNotes;
+    topUpRequest.processedAt = new Date();
+    topUpRequest.processedBy = req.user.id;
+
+    if (status === 'approved') {
+      // Capture PayMongo payment if applicable
+      if (topUpRequest.paymentMethod === 'paymongo' && topUpRequest.paymongoIntentId) {
+        try {
+          const captureResult = await paymongoService.capturePayment(topUpRequest.paymongoIntentId);
+          if (captureResult.success) {
+            topUpRequest.paymongoChargeId = captureResult.captureId;
+          } else {
+            console.error('PayMongo capture failed:', captureResult.message);
+          }
+        } catch (captureError) {
+          console.error('PayMongo capture error:', captureError);
+        }
+      }
+
+      // Add transaction to user's account
+      const transaction = {
+        type: 'topup',
+        amount: topUpRequest.amount,
+        category: 'topup',
+        description: `Top-up via ${topUpRequest.paymentMethod}`,
+        paymentMethod: topUpRequest.paymentMethod,
+        status: 'completed',
+        timestamp: new Date(),
+        reference: topUpRequest.reference,
+        processedAt: new Date(),
+        processedBy: req.user.id,
+        paymongoIntentId: topUpRequest.paymongoIntentId,
+        paymongoChargeId: topUpRequest.paymongoChargeId
+      };
+
+      finance.transactions.push(transaction);
+
+      // Update wallet balance
+      finance.wallet.balance += topUpRequest.amount;
+      finance.wallet.lastUpdated = new Date();
+    }
+
+    await finance.save();
+
+    // Send notification email to user
+    const user = await User.findById(finance.user);
+    await EmailService.sendEmail({
+      to: user.email,
+      subject: 'Top-Up Request Update',
+      template: 'topup-status-update',
+      data: {
+        userName: `${user.firstName} ${user.lastName}`,
+        amount: topUpRequest.amount,
+        status,
+        adminNotes: adminNotes || 'No additional notes provided'
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Top-up request ${status} successfully`,
+      data: {
+        topUpRequest: {
+          _id: topUpRequest._id,
+          amount: topUpRequest.amount,
+          status: topUpRequest.status,
+          processedAt: topUpRequest.processedAt,
+          adminNotes: topUpRequest.adminNotes
+        },
+        newBalance: status === 'approved' ? finance.wallet.balance : undefined
+      }
+    });
+  } catch (error) {
+    console.error('Process top-up error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+module.exports = {
+  getFinancialOverview,
+  getTransactions,
+  getEarnings,
+  getExpenses,
+  addExpense,
+  requestWithdrawal,
+  getWithdrawals,
+  processWithdrawal,
+  getTaxDocuments,
+  getFinancialReports,
+  updateWalletSettings,
+  requestTopUp,
+  getTopUpRequests,
+  getMyTopUpRequests,
+  processTopUp
+};

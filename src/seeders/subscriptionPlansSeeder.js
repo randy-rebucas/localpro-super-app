@@ -1,4 +1,4 @@
-const { SubscriptionPlan } = require('../models/LocalProPlus');
+const { SubscriptionPlan } = require('../../features/localproPlus/models/LocalProPlus');
 const logger = require('../config/logger');
 
 const defaultPlans = [

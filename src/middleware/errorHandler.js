@@ -9,7 +9,7 @@ const {
   sendServerError
 } = require('../utils/responseHelper');
 const logger = require('../config/logger');
-const errorMonitoringService = require('../services/errorMonitoringService');
+const errorMonitoringService = require('../../features/errorMonitoring/services/errorMonitoringService');
 
 /**
  * Async error wrapper

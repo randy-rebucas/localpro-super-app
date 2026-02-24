@@ -8,7 +8,7 @@
  */
 
 const MaskedCall = require('../models/MaskedCall');
-const { Conversation } = require('../models/Communication');
+const { Conversation } = require('../../features/communication/models/Communication');
 const User = require('../models/User');
 const logger = require('../config/logger');
 

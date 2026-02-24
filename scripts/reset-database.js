@@ -11,8 +11,8 @@ require('dotenv').config();
 // Import all models
 const User = require('../src/models/User');
 const AppSettings = require('../src/models/AppSettings');
-const UserSettings = require('../src/models/UserSettings');
-const Agency = require('../src/models/Agency');
+const UserSettings = require('../features/users/models/UserSettings');
+const Agency = require('../features/agencies/models/Agency');
 
 // Colors for console output
 const colors = {

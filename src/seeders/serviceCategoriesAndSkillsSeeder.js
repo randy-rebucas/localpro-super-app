@@ -1,4 +1,4 @@
-const ProviderSkill = require('../models/ProviderSkill');
+const ProviderSkill = require('../../features/provider/models/ProviderSkill');
 const ServiceCategory = require('../models/ServiceCategory');
 const logger = require('../config/logger');
 

@@ -1,4 +1,4 @@
-const StaffPermission = require('../models/StaffPermission');
+const StaffPermission = require('../../features/staff/models/StaffPermission');
 const { getUserPermissions } = require('./authorize');
 
 /**

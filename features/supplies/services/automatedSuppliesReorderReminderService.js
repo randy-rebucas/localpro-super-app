@@ -1,8 +1,8 @@
 const cron = require('node-cron');
 const logger = require('../../../src/config/logger');
 const { Order } = require('../models/Supplies');
-const NotificationService = require('../../../src/services/notificationService');
-const { Notification } = require('../../../src/models/Communication');
+const NotificationService = require('../../communication/services/notificationService');
+const { Notification } = require('../../communication/models/Communication');
 
 /**
  * Automated Supplies Reorder Reminders

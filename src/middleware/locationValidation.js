@@ -93,7 +93,7 @@ const validateAndGeocodeAddress = (addressField = 'address', requireCoordinates 
 const validateServiceArea = (serviceField = 'serviceId', addressField = 'address') => {
   return async (req, res, next) => {
     try {
-      const { Service } = require('../models/Marketplace');
+      const { Service } = require('../../features/marketplace/models/Marketplace');
       const serviceId = req.body[serviceField];
       const address = req.body[addressField];
 
