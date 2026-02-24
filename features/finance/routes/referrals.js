@@ -1,5 +1,6 @@
 const express = require('express');
 const { auth, authorize } = require('../../../src/middleware/auth');
+const { referralsLimiter } = require('../../../src/middleware/rateLimiter');
 const {
   getMyReferrals,
   getReferralStats,
@@ -15,6 +16,9 @@ const {
 } = require('../controllers/referralController');
 
 const router = express.Router();
+
+// Apply rate limit to all referrals routes
+router.use(referralsLimiter);
 
 /**
  * @swagger

@@ -1732,6 +1732,36 @@ const stats = await client.rentals.getStatistics();
 
 ---
 
+## Referrals
+
+```js
+// Public (no auth)
+const valid   = await client.referrals.validateCode({ code: 'ABC123' });
+await client.referrals.trackClick({ code: 'ABC123' });
+const leaders = await client.referrals.getLeaderboard({ limit: 10 });
+
+// Authenticated user
+const myRefs  = await client.referrals.getMyReferrals({ page: 1, limit: 10 });
+const stats   = await client.referrals.getStats();
+const links   = await client.referrals.getLinks();
+const rewards = await client.referrals.getRewards({ status: 'paid' });
+
+await client.referrals.sendInvitation({
+  emails: ['friend@example.com'],
+  method: 'email',
+  message: 'Join me on LocalPro!'
+});
+await client.referrals.updatePreferences({ emailNotifications: true });
+
+// Admin only
+await client.referrals.processCompletion({ referralId: '<id>', triggerAction: 'booking_completed' });
+const analytics = await client.referrals.getAnalytics({ timeRange: 30, groupBy: 'day' });
+```
+
+> **Further reading:** [docs/REFERRALS_FEATURE.md](./docs/REFERRALS_FEATURE.md)
+
+---
+
 ## API Authentication
 
 The SDK uses API key authentication. You need to:

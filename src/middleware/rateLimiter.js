@@ -161,6 +161,17 @@ const rentalsLimiter = make({
   message: { success: false, message: 'Too many rental requests – please slow down.', code: 'RENTALS_RATE_LIMIT' }
 });
 
+/**
+ * Referrals endpoints – 60 req / min per IP.
+ * Public /validate and /track endpoints are especially exposed to bot abuse;
+ * a per-minute window keeps automated farming in check.
+ */
+const referralsLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many referral requests – please slow down.', code: 'REFERRALS_RATE_LIMIT' }
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
@@ -175,6 +186,7 @@ module.exports = {
   suppliesLimiter,
   settingsLimiter,
   schedulingLimiter,
-  rentalsLimiter
+  rentalsLimiter,
+  referralsLimiter
 };
 

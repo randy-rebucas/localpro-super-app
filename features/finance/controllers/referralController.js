@@ -2,6 +2,7 @@ const Referral = require('../models/Referral');
 const User = require('../../../src/models/User');
 const ReferralService = require('../services/referralService');
 const EmailService = require('../../../src/services/emailService');
+const logger = require('../../../src/config/logger');
 
 // @desc    Get user's referral information
 // @route   GET /api/referrals/me
@@ -44,7 +45,7 @@ const getMyReferrals = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get my referrals error:', error);
+    logger.error('Get my referrals error', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -67,7 +68,7 @@ const getReferralStats = async (req, res) => {
       data: stats
     });
   } catch (error) {
-    console.error('Get referral stats error:', error);
+    logger.error('Get referral stats error', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -88,7 +89,7 @@ const getReferralLinks = async (req, res) => {
       data: referralLinks
     });
   } catch (error) {
-    console.error('Get referral links error:', error);
+    logger.error('Get referral links error', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -117,7 +118,7 @@ const validateReferralCode = async (req, res) => {
       data: validation
     });
   } catch (error) {
-    console.error('Validate referral code error:', error);
+    logger.error('Validate referral code error', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -146,7 +147,7 @@ const trackReferralClick = async (req, res) => {
       message: 'Referral click tracked'
     });
   } catch (error) {
-    console.error('Track referral click error:', error);
+    logger.error('Track referral click error', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -171,7 +172,7 @@ const getReferralLeaderboard = async (req, res) => {
       data: leaderboard
     });
   } catch (error) {
-    console.error('Get referral leaderboard error:', error);
+    logger.error('Get referral leaderboard error', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -210,8 +211,8 @@ const sendReferralInvitation = async (req, res) => {
           });
           results.push({ email, status: 'sent' });
         } catch (error) {
-          console.error(`Failed to send email to ${email}:`, error);
-          results.push({ email, status: 'failed', error: error.message });
+          logger.error(`Failed to send referral email to ${email}`, { error: error.message });
+          results.push({ email, status: 'failed', error: 'Failed to send invitation' });
         }
       }
     }
@@ -224,8 +225,8 @@ const sendReferralInvitation = async (req, res) => {
           // await TwilioService.sendSMS(phoneNumber, referralLinks.shareOptions.sms);
           results.push({ phoneNumber, status: 'sent' });
         } catch (error) {
-          console.error(`Failed to send SMS to ${phoneNumber}:`, error);
-          results.push({ phoneNumber, status: 'failed', error: error.message });
+          logger.error(`Failed to send referral SMS to ${phoneNumber}`, { error: error.message });
+          results.push({ phoneNumber, status: 'failed', error: 'Failed to send invitation' });
         }
       }
     }
@@ -236,7 +237,7 @@ const sendReferralInvitation = async (req, res) => {
       data: results
     });
   } catch (error) {
-    console.error('Send referral invitation error:', error);
+    logger.error('Send referral invitation error', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -277,7 +278,7 @@ const updateReferralPreferences = async (req, res) => {
       data: referral.referralPreferences
     });
   } catch (error) {
-    console.error('Update referral preferences error:', error);
+    logger.error('Update referral preferences error', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -359,7 +360,7 @@ const getReferralRewards = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get referral rewards error:', error);
+    logger.error('Get referral rewards error', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -389,10 +390,10 @@ const processReferralCompletion = async (req, res) => {
       data: referral
     });
   } catch (error) {
-    console.error('Process referral completion error:', error);
+    logger.error('Process referral completion error', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
-      message: error.message || 'Server error'
+      message: 'Server error'
     });
   }
 };
@@ -505,7 +506,7 @@ const getReferralAnalytics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get referral analytics error:', error);
+    logger.error('Get referral analytics error', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Server error'

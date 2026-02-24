@@ -1,6 +1,23 @@
 /**
- * Referrals API Module
- * Handles referral system functionality including links, tracking, rewards, and analytics
+ * @classdesc Provides access to LocalPro Referrals API endpoints.
+ * Covers public code validation and click tracking, authenticated user
+ * operations (my referrals, stats, links, rewards, invitations, preferences),
+ * and admin-only analytics and completion processing.
+ *
+ * @example
+ * const sdk = new LocalProSDK({ baseURL: 'https://api.localpro.ph', token });
+ *
+ * // Validate a referral code before registration
+ * const valid = await sdk.referrals.validateCode({ code: 'ABC123' });
+ *
+ * // Send invitations
+ * await sdk.referrals.sendInvitation({ emails: ['friend@example.com'], method: 'email' });
+ *
+ * // Check own referral stats
+ * const stats = await sdk.referrals.getStats();
+ *
+ * // Admin: view analytics
+ * const analytics = await sdk.referrals.getAnalytics({ timeRange: 30, groupBy: 'day' });
  */
 class ReferralsAPI {
   constructor(client) {
@@ -14,6 +31,9 @@ class ReferralsAPI {
    * @returns {Promise<Object>}
    */
   async validateCode(data) {
+    if (!data || !data.code) {
+      throw new Error('Referral code is required');
+    }
     return this.client.post('/api/referrals/validate', data);
   }
 
@@ -24,6 +44,9 @@ class ReferralsAPI {
    * @returns {Promise<Object>}
    */
   async trackClick(data) {
+    if (!data || !data.code) {
+      throw new Error('Referral code is required');
+    }
     return this.client.post('/api/referrals/track', data);
   }
 
@@ -34,7 +57,7 @@ class ReferralsAPI {
    * @returns {Promise<Object>}
    */
   async getLeaderboard(params = {}) {
-    return this.client.get('/api/referrals/leaderboard', { params });
+    return this.client.get('/api/referrals/leaderboard', params);
   }
 
   /**
@@ -45,15 +68,15 @@ class ReferralsAPI {
    * @returns {Promise<Object>}
    */
   async getMyReferrals(params = {}) {
-    return this.client.get('/api/referrals/me', { params });
+    return this.client.get('/api/referrals/me', params);
   }
 
   /**
    * Get referral statistics
    * @returns {Promise<Object>}
    */
-  async getStats() {
-    return this.client.get('/api/referrals/stats');
+  async getStats(params = {}) {
+    return this.client.get('/api/referrals/stats', params);
   }
 
   /**
@@ -64,12 +87,13 @@ class ReferralsAPI {
     return this.client.get('/api/referrals/links');
   }
 
+
   /**
    * Get referral rewards
    * @returns {Promise<Object>}
    */
-  async getRewards() {
-    return this.client.get('/api/referrals/rewards');
+  async getRewards(params = {}) {
+    return this.client.get('/api/referrals/rewards', params);
   }
 
   /**
@@ -80,6 +104,9 @@ class ReferralsAPI {
    * @returns {Promise<Object>}
    */
   async sendInvitation(data) {
+    if (!data || (!data.emails && !data.phoneNumbers)) {
+      throw new Error('At least one email or phone number is required');
+    }
     return this.client.post('/api/referrals/invite', data);
   }
 
@@ -89,6 +116,9 @@ class ReferralsAPI {
    * @returns {Promise<Object>}
    */
   async updatePreferences(data) {
+    if (!data || typeof data !== 'object') {
+      throw new Error('Preferences data is required');
+    }
     return this.client.put('/api/referrals/preferences', data);
   }
 
@@ -98,6 +128,9 @@ class ReferralsAPI {
    * @returns {Promise<Object>}
    */
   async processCompletion(data) {
+    if (!data || !data.referralId || !data.triggerAction) {
+      throw new Error('Referral ID and trigger action are required');
+    }
     return this.client.post('/api/referrals/process', data);
   }
 
@@ -107,7 +140,7 @@ class ReferralsAPI {
    * @returns {Promise<Object>}
    */
   async getAnalytics(params = {}) {
-    return this.client.get('/api/referrals/analytics', { params });
+    return this.client.get('/api/referrals/analytics', params);
   }
 }
 
