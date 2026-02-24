@@ -11,7 +11,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // Import models to ensure they're registered
 require('../src/models/ServiceCategory');
-require('../src/models/ProviderSkill');
+require('../features/provider/models/ProviderSkill');
 
 const { seedAll, clearAll } = require('../src/seeders/serviceCategoriesAndSkillsSeeder');
 

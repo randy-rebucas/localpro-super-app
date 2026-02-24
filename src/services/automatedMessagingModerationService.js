@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const logger = require('../config/logger');
-const { Message, Notification } = require('../models/Communication');
-const NotificationService = require('./notificationService');
+const { Message, Notification } = require('../../features/communication/models/Communication');
+const NotificationService = require('../../features/communication/services/notificationService');
 const User = require('../models/User');
 
 /**

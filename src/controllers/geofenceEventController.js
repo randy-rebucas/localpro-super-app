@@ -1,5 +1,5 @@
 const GeofenceEvent = require('../models/GeofenceEvent');
-const Job = require('../models/Job');
+const Job = require('../../features/jobs/models/Job');
 const logger = require('../config/logger');
 const { 
   validatePagination, 

@@ -5,7 +5,7 @@
 
 const EmailCampaign = require('../models/EmailCampaign');
 const EmailSubscriber = require('../models/EmailSubscriber');
-const { EmailEvent, EmailDailyStats } = require('../models/EmailAnalytics');
+const { EmailEvent, EmailDailyStats } = require('../../features/analytics/models/EmailAnalytics');
 const EmailService = require('./emailService');
 const templateEngine = require('../utils/templateEngine');
 const logger = require('../config/logger');

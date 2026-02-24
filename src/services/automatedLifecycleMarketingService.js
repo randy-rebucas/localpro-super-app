@@ -6,13 +6,13 @@ const EmailMarketingService = require('./emailMarketingService');
 const EmailCampaign = require('../models/EmailCampaign');
 const EmailSubscriber = require('../models/EmailSubscriber');
 const User = require('../models/User');
-const UserSettings = require('../models/UserSettings');
-const UserActivity = require('../models/UserActivity');
-const { Booking } = require('../models/Marketplace');
+const UserSettings = require('../../features/users/models/UserSettings');
+const UserActivity = require('../../features/users/models/UserActivity');
+const { Booking } = require('../../features/marketplace/models/Marketplace');
 const { Order } = require('../../features/supplies');
-const UserReferral = require('../models/UserReferral');
-const { Service } = require('../models/Marketplace');
-const { UserSubscription } = require('../models/LocalProPlus');
+const UserReferral = require('../../features/finance/models/UserReferral');
+const { Service } = require('../../features/marketplace/models/Marketplace');
+const { UserSubscription } = require('../../features/localproPlus/models/LocalProPlus');
 
 /**
  * Automated Lifecycle Marketing Service

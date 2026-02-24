@@ -1,4 +1,4 @@
-const { UserSubscription, FeatureUsage } = require('../models/LocalProPlus');
+const { UserSubscription, FeatureUsage } = require('../../features/localproPlus/models/LocalProPlus');
 
 class UsageTrackingService {
   /**

@@ -1,17 +1,17 @@
 const cron = require('node-cron');
 const logger = require('../config/logger');
-const NotificationService = require('./notificationService');
+const NotificationService = require('../../features/communication/services/notificationService');
 
 const User = require('../models/User');
-const UserSettings = require('../models/UserSettings');
-const UserActivity = require('../models/UserActivity');
-const UserReferral = require('../models/UserReferral');
-const Provider = require('../models/Provider');
-const ProviderProfessionalInfo = require('../models/ProviderProfessionalInfo');
+const UserSettings = require('../../features/users/models/UserSettings');
+const UserActivity = require('../../features/users/models/UserActivity');
+const UserReferral = require('../../features/finance/models/UserReferral');
+const Provider = require('../../features/provider/models/Provider');
+const ProviderProfessionalInfo = require('../../features/provider/models/ProviderProfessionalInfo');
 
-const { Booking, Service } = require('../models/Marketplace');
-const { UserSubscription } = require('../models/LocalProPlus');
-const { Notification } = require('../models/Communication');
+const { Booking, Service } = require('../../features/marketplace/models/Marketplace');
+const { UserSubscription } = require('../../features/localproPlus/models/LocalProPlus');
+const { Notification } = require('../../features/communication/models/Communication');
 
 /**
  * Automated Lifecycle Mobile Notifications (Option A)

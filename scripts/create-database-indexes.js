@@ -11,15 +11,15 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // Import models to ensure indexes are registered
 require('../src/models/User');
-require('../src/models/Provider');
-require('../src/models/ProviderProfessionalInfo');
-require('../src/models/ProviderSkill');
+require('../features/provider/models/Provider');
+require('../features/provider/models/ProviderProfessionalInfo');
+require('../features/provider/models/ProviderSkill');
 require('../src/models/ServiceCategory');
 require('../src/models/Job');
 require('../src/models/Marketplace');
-require('../src/models/Academy');
+require('../features/academy/models/Academy');
 require('../features/supplies');
-require('../src/models/Rentals');
+require('../features/rentals/models/Rentals');
 
 const logger = {
   info: (msg, data) => console.log(`[INFO] ${msg}`, data || ''),

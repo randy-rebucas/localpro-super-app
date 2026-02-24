@@ -24,7 +24,7 @@
 
 const mongoose = require('mongoose');
 require('dotenv').config();
-const { Service } = require('../src/models/Marketplace');
+const { Service } = require('../features/marketplace/models/Marketplace');
 const GoogleMapsService = require('../src/services/googleMapsService');
 const { normalizeServiceArea } = require('../src/utils/serviceAreaHelper');
 

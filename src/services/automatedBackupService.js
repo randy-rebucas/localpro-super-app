@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const databaseOptimizationService = require('./databaseOptimizationService');
+const databaseOptimizationService = require('../../features/databaseOptimization/services/databaseOptimizationService');
 const logger = require('../config/logger');
 const fs = require('fs');
 const path = require('path');

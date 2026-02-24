@@ -1,6 +1,6 @@
 const TimeEntry = require('../models/TimeEntry');
 const User = require('../models/User');
-const Job = require('../models/Job');
+const Job = require('../../features/jobs/models/Job');
 const logger = require('../config/logger');
 const { 
   validatePagination, 

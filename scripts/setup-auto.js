@@ -21,27 +21,27 @@ require('dotenv').config();
 // Import all models
 const User = require('../src/models/User');
 const AppSettings = require('../src/models/AppSettings');
-const UserSettings = require('../src/models/UserSettings');
+const UserSettings = require('../features/users/models/UserSettings');
 const UserWallet = require('../src/models/UserWallet');
 const WalletTransaction = require('../src/models/WalletTransaction');
-const Agency = require('../src/models/Agency');
-const { Service, Booking } = require('../src/models/Marketplace');
+const Agency = require('../features/agencies/models/Agency');
+const { Service, Booking } = require('../features/marketplace/models/Marketplace');
 const Job = require('../src/models/Job');
-const { Course, Enrollment, Certification } = require('../src/models/Academy');
+const { Course, Enrollment, Certification } = require('../features/academy/models/Academy');
 const { Product, SubscriptionKit, Order } = require('../features/supplies');
-const { RentalItem, Rental } = require('../src/models/Rentals');
+const { RentalItem, Rental } = require('../features/rentals/models/Rentals');
 const { SubscriptionPlan, UserSubscription, Payment, FeatureUsage } = require('../src/models/LocalProPlus');
 const Referral = require('../src/models/Referral');
 const TrustVerification = require('../src/models/TrustVerification');
-const Analytics = require('../src/models/Analytics');
-const Activity = require('../src/models/Activity');
+const Analytics = require('../features/analytics/models/Analytics');
+const Activity = require('../features/activities/models/Activity');
 const Communication = require('../src/models/Communication');
 const Finance = require('../src/models/Finance');
 const Log = require('../src/models/Log');
-const Announcement = require('../src/models/Announcement');
-const Ads = require('../src/models/Ads');
+const Announcement = require('../features/announcements/models/Announcement');
+const Ads = require('../features/ads/models/Ads');
 const FacilityCare = require('../src/models/FacilityCare');
-const Provider = require('../src/models/Provider');
+const Provider = require('../features/provider/models/Provider');
 
 // Colors for console output
 const colors = {
@@ -531,7 +531,7 @@ class AutoSetup {
       }
 
       // Get Provider document
-      const Provider = require('../src/models/Provider');
+      const Provider = require('../features/provider/models/Provider');
       const provider = await Provider.findOne({ userId: user._id });
       if (!provider) {
         this.logWarning(`No Provider document found for user ${user.email}, skipping professional info population`);
@@ -539,7 +539,7 @@ class AutoSetup {
       }
 
       // Get ProviderProfessionalInfo
-      const ProviderProfessionalInfo = require('../src/models/ProviderProfessionalInfo');
+      const ProviderProfessionalInfo = require('../features/provider/models/ProviderProfessionalInfo');
       let professionalInfo = await ProviderProfessionalInfo.findOne({ provider: provider._id });
       if (!professionalInfo) {
         // Create if it doesn't exist (should have been created by Provider post-save hook)
@@ -548,8 +548,8 @@ class AutoSetup {
       }
 
       // Try to get ServiceCategory and ProviderSkill
-      const ServiceCategory = require('../src/models/ServiceCategory');
-      const ProviderSkill = require('../src/models/ProviderSkill');
+      const ServiceCategory = require('../features/marketplace/models/ServiceCategory');
+      const ProviderSkill = require('../features/provider/models/ProviderSkill');
 
       const cleaningCategory = await ServiceCategory.findOne({ key: 'cleaning' });
       

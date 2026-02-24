@@ -11,19 +11,19 @@ require('dotenv').config();
 // Import all models
 const User = require('../src/models/User');
 const AppSettings = require('../src/models/AppSettings');
-const UserSettings = require('../src/models/UserSettings');
-const Agency = require('../src/models/Agency');
-const { Service, Booking } = require('../src/models/Marketplace');
-const { Course, Enrollment, Certification } = require('../src/models/Academy');
+const UserSettings = require('../features/users/models/UserSettings');
+const Agency = require('../features/agencies/models/Agency');
+const { Service, Booking } = require('../features/marketplace/models/Marketplace');
+const { Course, Enrollment, Certification } = require('../features/academy/models/Academy');
 const Job = require('../src/models/Job');
 const { Product, SubscriptionKit, Order } = require('../features/supplies');
-const { RentalItem, Rental } = require('../src/models/Rentals');
+const { RentalItem, Rental } = require('../features/rentals/models/Rentals');
 const { Loan, SalaryAdvance, Transaction } = require('../src/models/Finance');
 const Referral = require('../src/models/Referral');
-const Provider = require('../src/models/Provider');
-const ProviderProfessionalInfo = require('../src/models/ProviderProfessionalInfo');
-const ServiceCategory = require('../src/models/ServiceCategory');
-const ProviderSkill = require('../src/models/ProviderSkill');
+const Provider = require('../features/provider/models/Provider');
+const ProviderProfessionalInfo = require('../features/provider/models/ProviderProfessionalInfo');
+const ServiceCategory = require('../features/marketplace/models/ServiceCategory');
+const ProviderSkill = require('../features/provider/models/ProviderSkill');
 
 // Colors for console output
 const colors = {

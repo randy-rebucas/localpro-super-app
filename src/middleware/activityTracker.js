@@ -5,7 +5,7 @@
  * It intercepts successful API calls and creates activity records accordingly.
  */
 
-const activityService = require('../services/activityService');
+const activityService = require('../../features/activities/services/activityService');
 const { logger } = require('../utils/logger');
 
 /**

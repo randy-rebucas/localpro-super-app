@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 const crypto = require('crypto');
-const UserReferral = require('./UserReferral');
-const UserActivity = require('./UserActivity');
-const UserWallet = require('./UserWallet');
-const UserTrust = require('./UserTrust');
-const UserManagement = require('./UserManagement');
-const UserAgency = require('./UserAgency');
-const Provider = require('./Provider');
+const UserReferral = require('../../features/finance/models/UserReferral');
+const UserActivity = require('../../features/users/models/UserActivity');
+const UserWallet = require('../../features/finance/models/UserWallet');
+const UserTrust = require('../../features/users/models/UserTrust');
+const UserManagement = require('../../features/users/models/UserManagement');
+const UserAgency = require('../../features/agencies/models/UserAgency');
+const Provider = require('../../features/provider/models/Provider');
 
 // ============================================
 // CONSTANTS

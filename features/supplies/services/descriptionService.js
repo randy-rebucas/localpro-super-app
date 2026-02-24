@@ -1,4 +1,4 @@
-const aiService = require('../../../src/services/aiService');
+const aiService = require('../../ai/services/aiService');
 const logger = require('../../../src/config/logger');
 const { ValidationError, ExternalServiceError } = require('../errors/SuppliesErrors');
 
