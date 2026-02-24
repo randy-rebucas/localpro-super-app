@@ -183,6 +183,17 @@ const providersLimiter = make({
   message: { success: false, message: 'Too many provider requests – please slow down.', code: 'PROVIDERS_RATE_LIMIT' }
 });
 
+/**
+ * Partners endpoints – 30 req / min per IP.
+ * Covers public onboarding flow (start, business-info, verification, api-setup, activate)
+ * and admin partner management.  Tighter window reflects privileged API-key operations.
+ */
+const partnersLimiter = make({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { success: false, message: 'Too many partner requests – please slow down.', code: 'PARTNERS_RATE_LIMIT' }
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
@@ -199,6 +210,7 @@ module.exports = {
   schedulingLimiter,
   rentalsLimiter,
   referralsLimiter,
-  providersLimiter
+  providersLimiter,
+  partnersLimiter
 };
 

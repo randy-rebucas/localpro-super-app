@@ -36,7 +36,6 @@ const createPartner = async (req, res) => {
       $or: [{ email }, { slug }],
       deleted: { $ne: true }
     });
-    console.log(existingPartner);
     if (existingPartner) {
       return res.status(409).json({
         success: false,
@@ -371,17 +370,6 @@ const updatePartner = async (req, res) => {
       }
     });
   } catch (error) {
-    // Log detailed error information for debugging
-    console.error('Error updating partner:', {
-      message: error.message,
-      name: error.name,
-      code: error.code,
-      keyPattern: error.keyPattern,
-      keyValue: error.keyValue,
-      errors: error.errors,
-      stack: error.stack
-    });
-
     logger.error('Failed to update partner', {
       error: error.message,
       stack: error.stack,
@@ -802,7 +790,6 @@ const updateBusinessInfo = async (req, res) => {
 
       // Save manually
       await partner.save();
-      console.log('Manual save successful');
     }
     logger.info('Partner business info updated', {
       partnerId: partner._id,
@@ -821,17 +808,6 @@ const updateBusinessInfo = async (req, res) => {
       }
     });
   } catch (error) {
-    // Log detailed error information for debugging
-    console.error('Error updating business info:', {
-      message: error.message,
-      name: error.name,
-      code: error.code,
-      keyPattern: error.keyPattern,
-      keyValue: error.keyValue,
-      errors: error.errors,
-      stack: error.stack
-    });
-
     logger.error('Failed to update business info', {
       error: error.message,
       stack: error.stack,
@@ -1479,7 +1455,6 @@ const deleteAttachedDocumentForVerification = async (req, res) => {
 const getPartnerAnalytics = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Fetching analytics for partner ID:', id);  
     const user = req.user;
     // Fetch the partner to check ownership
     const partner = await Partner.findById(id);
@@ -1520,7 +1495,8 @@ const getPartnerAnalytics = async (req, res) => {
     };
     res.status(200).json({ success: true, data: analytics });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    logger.error('Failed to get partner analytics', { error: error.message, stack: error.stack });
+    res.status(500).json({ success: false, message: 'Server error', code: 'ANALYTICS_ERROR' });
   }
 };
 

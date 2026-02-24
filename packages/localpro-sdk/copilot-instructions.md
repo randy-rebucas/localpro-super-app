@@ -161,6 +161,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | `rentalsLimiter` | 1 min | 60 req | All `client.rentals.*` routes — public browse + auth-gated write/booking routes |
 | `referralsLimiter` | 1 min | 60 req | All `client.referrals.*` routes — public /validate + /track + /leaderboard and auth-gated routes |
 | `providersLimiter` | 1 min | 60 req | All `client.providers.*` routes — public browse/skills + auth-gated profile/dashboard/admin routes |
+| `partnersLimiter` | 1 min | 30 req | All `client.partners.*` routes — public onboarding flow + admin management routes |
 | (auth limiter) | — | — | login, register, OTP endpoints |
 
 ---
@@ -181,6 +182,7 @@ When a backend route gains a rate limiter, note the limit in the SDK method's JS
 | `RENTALS_FEATURE.md` | Rentals — public browse + owner CRUD + booking lifecycle + reviews + AI descriptions + admin stats; 16 SDK methods; v2 fix log (missing rate limiter, wildcard route shadowing /my-rentals /my-bookings /statistics, missing getStatistics SDK method) |
 | `REFERRALS_FEATURE.md` | Referrals (in finance feature) — public code validation + click tracking + leaderboard, auth-gated user ops + invitations, admin analytics; 11 SDK methods; v2 fix log (no rate limiter, console.error→logger, error.message leak in processCompletion + invitation inner catches, { params } SDK wrapper bug) |
 | `PROVIDERS_FEATURE.md` | Providers — public browse + skills, authenticated profile management + onboarding + documents + dashboard/analytics/reviews, admin ops; 15 SDK methods; v2 fix log (no rate limiter, error.message leak in getProvider, 4 missing SDK methods: getMetrics/getActivity/getReviews/respondToReview) |
+| `PARTNERS_FEATURE.md` | Partners — public onboarding flow (start→business-info→docs→verification→api-setup→activate), admin CRUD + notes + analytics; 16 SDK methods; v2 fix log (no rate limiter, console.log/console.error debug calls, error.message leak in getAnalytics, SDK was placeholder: wrong /api prefix, { params } bug, 10 missing methods) |
 
 > **Rule — Documentation is mandatory, not optional.**  
 > After completing **any** feature work, audit, or hardening session, you **must** create or

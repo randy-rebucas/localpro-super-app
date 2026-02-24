@@ -1796,6 +1796,44 @@ await client.providers.respondToReview('<reviewId>', { responseText: 'Thank you 
 
 ---
 
+## Partners
+
+```js
+// Public onboarding flow
+const { data } = await client.partners.startOnboarding({
+  name: 'Acme Corp',
+  email: 'acme@example.com',
+  phoneNumber: '+639001234567'
+});
+const id = data.partner.id;
+await client.partners.updateBusinessInfo(id, { businessInfo: { companyName: 'Acme Corp', industry: 'Tech' } });
+await client.partners.uploadDocument(id, formData);
+await client.partners.attachDocument(id, 'business_permit', formData);
+await client.partners.completeVerification(id);
+await client.partners.completeApiSetup(id, { webhookUrl: 'https://acme.com/hook' });
+const activated = await client.partners.activate(id);
+// activated.data.partner.apiCredentials.apiKey
+
+// Public lookups
+const partner = await client.partners.getBySlug('acme-corp');
+
+// Authenticated
+const mine    = await client.partners.getByManageId('<userId>');
+const stats   = await client.partners.getAnalytics(id);
+
+// Admin
+const list    = await client.partners.list({ status: 'active', page: 1 });
+const detail  = await client.partners.getById(id);
+const created = await client.partners.create({ name: 'Beta Corp', email: 'beta@example.com', phoneNumber: '+639009999999' });
+await client.partners.update(id, { status: 'suspended' });
+await client.partners.addNote(id, { content: 'Follow up next month.' });
+await client.partners.delete(id);
+```
+
+> **Further reading:** [docs/PARTNERS_FEATURE.md](./docs/PARTNERS_FEATURE.md)
+
+---
+
 ## API Authentication
 
 The SDK uses API key authentication. You need to:

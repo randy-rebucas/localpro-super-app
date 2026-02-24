@@ -5,6 +5,7 @@ const { uploadDocumentsForVerification } = require('../controllers/partnerContro
 const express = require('express');
 const router = express.Router();
 const { auth, authorize } = require('../../../src/middleware/auth');
+const { partnersLimiter } = require('../../../src/middleware/rateLimiter');
 const { body, param } = require('express-validator');
 const {
   createPartner,
@@ -162,6 +163,7 @@ const validateNote = [
  *         description: Onboarding started
  */
 // Public routes (no authentication required)
+router.use(partnersLimiter);
 router.post('/onboarding/start', validateOnboardingStart, startPartnerOnboarding);
 
 /**
