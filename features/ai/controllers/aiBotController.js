@@ -8,6 +8,7 @@ const aiBotService = require('../services/aiBotService');
 const aiBotEventListener = require('../services/aiBotEventListener');
 const logger = require('../../../src/config/logger');
 const { validationResult } = require('express-validator');
+const { sendServerError } = require('../../../src/utils/responseHelper');
 
 /**
  * @desc    Process an event through AI Bot
@@ -47,16 +48,8 @@ const processEvent = async (req, res) => {
       ...result
     });
   } catch (error) {
-    logger.error('AI Bot event processing failed', {
-      error: error.message,
-      stack: error.stack
-    });
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to process event',
-      message: error.message
-    });
+    logger.error('AI Bot event processing failed', { error: error.message, stack: error.stack });
+    return sendServerError(res, error, 'Failed to process event', 'AI_EVENT_ERROR');
   }
 };
 
@@ -110,11 +103,7 @@ const getInteractions = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get interactions', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get interactions',
-      message: error.message
-    });
+    return sendServerError(res, error, 'Failed to get interactions', 'AI_INTERACTIONS_ERROR');
   }
 };
 
@@ -142,11 +131,7 @@ const getInteractionById = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get interaction', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get interaction',
-      message: error.message
-    });
+    return sendServerError(res, error, 'Failed to get interaction', 'AI_INTERACTION_ERROR');
   }
 };
 
@@ -167,11 +152,7 @@ const getAnalytics = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get analytics', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get analytics',
-      message: error.message
-    });
+    return sendServerError(res, error, 'Failed to get analytics', 'AI_ANALYTICS_ERROR');
   }
 };
 
@@ -192,11 +173,7 @@ const emitAppEvent = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to emit app event', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to emit app event',
-      message: error.message
-    });
+    return sendServerError(res, error, 'Failed to emit app event', 'AI_APP_EVENT_ERROR');
   }
 };
 
@@ -217,11 +194,7 @@ const emitPOSEvent = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to emit POS event', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to emit POS event',
-      message: error.message
-    });
+    return sendServerError(res, error, 'Failed to emit POS event', 'AI_POS_EVENT_ERROR');
   }
 };
 
@@ -242,11 +215,7 @@ const emitPaymentEvent = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to emit payment event', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to emit payment event',
-      message: error.message
-    });
+    return sendServerError(res, error, 'Failed to emit payment event', 'AI_PAYMENT_EVENT_ERROR');
   }
 };
 
@@ -267,11 +236,7 @@ const emitGPSEvent = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to emit GPS event', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to emit GPS event',
-      message: error.message
-    });
+    return sendServerError(res, error, 'Failed to emit GPS event', 'AI_GPS_EVENT_ERROR');
   }
 };
 
@@ -292,11 +257,7 @@ const emitCRMEvent = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to emit CRM event', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to emit CRM event',
-      message: error.message
-    });
+    return sendServerError(res, error, 'Failed to emit CRM event', 'AI_CRM_EVENT_ERROR');
   }
 };
 
@@ -325,11 +286,7 @@ const assignEscalation = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to assign escalation', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to assign escalation',
-      message: error.message
-    });
+    return sendServerError(res, error, 'Failed to assign escalation', 'AI_ESCALATION_ASSIGN_ERROR');
   }
 };
 
@@ -359,11 +316,7 @@ const resolveEscalation = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to resolve escalation', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to resolve escalation',
-      message: error.message
-    });
+    return sendServerError(res, error, 'Failed to resolve escalation', 'AI_ESCALATION_RESOLVE_ERROR');
   }
 };
 
@@ -409,11 +362,7 @@ const getEscalatedInteractions = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get escalated interactions', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get escalated interactions',
-      message: error.message
-    });
+    return sendServerError(res, error, 'Failed to get escalated interactions', 'AI_ESCALATIONS_ERROR');
   }
 };
 

@@ -1,11 +1,13 @@
 const express = require('express');
 const { auth } = require('../../../src/middleware/auth');
+const { aiLimiter } = require('../../../src/middleware/rateLimiter');
 const { generateUserBio } = require('../controllers/aiUserController');
 
 const router = express.Router();
 
-// All AI user routes require authentication
+// All AI user routes require authentication and are subject to AI rate limiting
 router.use(auth);
+router.use(aiLimiter);
 
 /**
  * @swagger

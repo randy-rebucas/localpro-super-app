@@ -20,6 +20,7 @@ const {
 } = require('../controllers/aiBotController');
 const { auth, authorize } = require('../../../src/middleware/auth');
 const { body } = require('express-validator');
+const { aiLimiter } = require('../../../src/middleware/rateLimiter');
 
 /**
  * @route   POST /api/ai-bot/events
@@ -29,6 +30,7 @@ const { body } = require('express-validator');
 router.post(
   '/events',
   auth,
+  aiLimiter,
   [
     body('type').notEmpty().withMessage('Event type is required'),
     body('source').notEmpty().withMessage('Event source is required')

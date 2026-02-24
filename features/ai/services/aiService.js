@@ -4,6 +4,9 @@
 const axios = require('axios');
 const logger = require('../../../src/config/logger');
 
+// Dev-only debug logger — no-op in production to avoid logging sensitive payloads
+const debugLog = process.env.NODE_ENV !== 'production' ? logger.debug.bind(logger) : () => {};
+
 class AIService {
   constructor() {
     this.provider = process.env.AI_PROVIDER || 'openai';
@@ -54,8 +57,7 @@ class AIService {
         model: requestConfig.model,
         messagesCount: messages.length,
         maxTokens: requestConfig.max_tokens,
-        hasApiKey: !!this.apiKey,
-        apiKeyPrefix: this.apiKey ? `${this.apiKey.substring(0, 7)}...` : 'none'
+        hasApiKey: !!this.apiKey
       });
 
       const response = await axios.post(
@@ -380,27 +382,27 @@ class AIService {
     
     const maxTokens = length === 'long' ? 600 : length === 'short' ? 200 : 400;
     
-    logger.info('AI Description Generation - Request', {
+    debugLog('AI Description Generation - Request', {
       serviceTitle,
       options,
       maxTokens,
       promptLength: prompt.length
     });
-    
-    const response = await this.makeAICall(prompt, systemPrompt, { 
+
+    const response = await this.makeAICall(prompt, systemPrompt, {
       max_tokens: maxTokens,
-      temperature: 0.7 
+      temperature: 0.7
     });
-    
+
     // Debug: Log raw response
-    logger.info('AI Description Generation - Raw Response', {
+    debugLog('AI Description Generation - Raw Response', {
       hasContent: !!response.content,
       contentLength: response.content?.length || 0,
       contentPreview: response.content?.substring(0, 200) || 'No content',
       hasUsage: !!response.usage,
       success: response.success
     });
-    
+
     try {
       // Try to extract JSON from response (handle markdown code blocks)
       let contentToParse = response.content || '';
@@ -415,7 +417,7 @@ class AIService {
       const parsed = JSON.parse(contentToParse);
       
       // Debug: Log parsed result
-      logger.info('AI Description Generation - Parsed Successfully', {
+      debugLog('AI Description Generation - Parsed Successfully', {
         hasDescription: !!parsed.description,
         descriptionLength: parsed.description?.length || 0,
         hasKeyFeatures: Array.isArray(parsed.keyFeatures),

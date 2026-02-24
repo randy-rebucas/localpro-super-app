@@ -86,6 +86,16 @@ const marketplaceLimiter = make({
   message: { success: false, message: 'Too many requests.', code: 'MARKETPLACE_RATE_LIMIT' }
 });
 
+/**
+ * AI endpoints – 20 req / 10 min per IP.
+ * AI calls invoke paid external APIs (OpenAI); strict throttling protects cost and prevents abuse.
+ */
+const aiLimiter = make({
+  windowMs: 10 * 60 * 1000,
+  max: 20,
+  message: { success: false, message: 'Too many AI requests – please wait before retrying.', code: 'AI_RATE_LIMIT' }
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
@@ -93,6 +103,7 @@ module.exports = {
   searchLimiter,
   uploadLimiter,
   paymentLimiter,
-  marketplaceLimiter
+  marketplaceLimiter,
+  aiLimiter
 };
 

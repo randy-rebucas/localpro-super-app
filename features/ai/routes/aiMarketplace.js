@@ -1,5 +1,6 @@
 const express = require('express');
 const { auth, authorize } = require('../../../src/middleware/auth');
+const { aiLimiter } = require('../../../src/middleware/rateLimiter');
 const {
   aiNaturalLanguageSearch,
   priceEstimator,
@@ -19,8 +20,9 @@ const {
 
 const router = express.Router();
 
-// All AI routes require authentication
+// All AI routes require authentication and are subject to AI rate limiting
 router.use(auth);
+router.use(aiLimiter);
 
 /**
  * @swagger

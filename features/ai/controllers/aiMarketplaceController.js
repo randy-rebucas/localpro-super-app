@@ -1,7 +1,14 @@
 const aiService = require('../services/aiService');
 const { Service, Booking } = require('../../marketplace/models/Marketplace');
+const User = require('../../../src/models/User');
 const logger = require('../../../src/config/logger');
 const { sendServerError } = require('../../../src/utils/responseHelper');
+
+// Dev-only debug logger — no-op in production
+const debugLog = process.env.NODE_ENV !== 'production' ? logger.debug.bind(logger) : () => {};
+
+// Escape special regex metacharacters to prevent ReDoS on user-supplied strings
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // @desc    Natural language search for marketplace
 // @route   POST /api/ai/marketplace/recommendations
@@ -26,7 +33,7 @@ const aiNaturalLanguageSearch = async (req, res) => {
     if (searchParams.category) filter.category = searchParams.category;
     if (searchParams.subcategory) filter.subcategory = searchParams.subcategory;
     if (searchParams.location) {
-      filter.serviceArea = { $in: [new RegExp(searchParams.location, 'i')] };
+      filter.serviceArea = { $in: [new RegExp(escapeRegex(searchParams.location), 'i')] };
     }
     if (searchParams.minPrice || searchParams.maxPrice) {
       filter['pricing.basePrice'] = {};
@@ -34,12 +41,9 @@ const aiNaturalLanguageSearch = async (req, res) => {
       if (searchParams.maxPrice) filter['pricing.basePrice'].$lte = Number(searchParams.maxPrice);
     }
 
-    // Text search if keywords provided
-    if (searchParams.keywords) {
-      filter.$or = [
-        { title: new RegExp(searchParams.keywords.join('|'), 'i') },
-        { description: new RegExp(searchParams.keywords.join('|'), 'i') }
-      ];
+    // Use MongoDB text search via existing index instead of raw $regex on user input
+    if (searchParams.keywords && Array.isArray(searchParams.keywords) && searchParams.keywords.length > 0) {
+      filter.$text = { $search: searchParams.keywords.join(' ') };
     }
 
     const services = await Service.find(filter)
@@ -148,7 +152,7 @@ const serviceMatcher = async (req, res) => {
     const serviceFilter = { isActive: true };
     if (filters?.category) serviceFilter.category = filters.category;
     if (filters?.location) {
-      serviceFilter.serviceArea = { $in: [new RegExp(filters.location, 'i')] };
+      serviceFilter.serviceArea = { $in: [new RegExp(escapeRegex(filters.location), 'i')] };
     }
 
     const availableServices = await Service.find(serviceFilter)
@@ -161,14 +165,21 @@ const serviceMatcher = async (req, res) => {
       return res.status(200).json({
         success: true,
         message: 'No services available for matching',
-        data: {
-          matches: [],
-          count: 0
-        }
+        data: { matches: [], count: 0 }
       });
     }
 
-    const aiResponse = await aiService.matchService(requirements, availableServices);
+    // Trim to essential fields before sending to AI to avoid token bloat
+    const servicesForAI = availableServices.map(s => ({
+      _id: s._id,
+      title: s.title,
+      category: s.category,
+      subcategory: s.subcategory,
+      basePrice: s.pricing?.basePrice,
+      ratingAvg: s.rating?.average
+    }));
+
+    const aiResponse = await aiService.matchService(requirements, servicesForAI);
     const matches = aiResponse.parsed || [];
 
     // Sort by score and enrich with service data
@@ -498,7 +509,9 @@ const demandForecast = async (req, res) => {
 // @access  AUTHENTICATED (Provider)
 const reviewInsights = async (req, res) => {
   try {
-    const { serviceId, providerId, limit = 50 } = req.body;
+    const { serviceId, providerId, limit: rawLimit = 50 } = req.body;
+    // Cap limit to prevent sending thousands of reviews to OpenAI
+    const limit = Math.min(Number(rawLimit) || 50, 50);
 
     if (!serviceId && !providerId) {
       return res.status(400).json({
@@ -785,8 +798,8 @@ const generateDescriptionFromTitle = async (req, res) => {
     
     const aiResponse = await aiService.generateDescriptionFromTitle(title.trim(), validOptions);
     
-    // Debug: Log AI response structure
-    logger.info('AI Response received', {
+    // Debug-only response structure logging
+    debugLog('AI Response received', {
       hasParsed: !!aiResponse.parsed,
       hasContent: !!aiResponse.content,
       hasUsage: !!aiResponse.usage,
@@ -800,7 +813,7 @@ const generateDescriptionFromTitle = async (req, res) => {
     let result = {};
     if (aiResponse.parsed) {
       result = aiResponse.parsed;
-      logger.info('Using parsed result', {
+      debugLog('Using parsed result', {
         hasDescription: !!result.description,
         descriptionType: typeof result.description,
         descriptionLength: result.description?.length || 0
@@ -834,7 +847,7 @@ const generateDescriptionFromTitle = async (req, res) => {
     }
 
     // Ensure description is a string and not empty
-    logger.info('Processing result description', {
+    debugLog('Processing result description', {
       descriptionExists: !!result.description,
       descriptionType: typeof result.description,
       descriptionValue: result.description ? String(result.description).substring(0, 100) : 'undefined'
@@ -864,15 +877,17 @@ const generateDescriptionFromTitle = async (req, res) => {
       if (result.description && typeof result.description === 'string') {
         const words = result.description.trim().split(/\s+/).filter(word => word.length > 0);
         result.wordCount = words.length;
-        logger.info('Calculated word count', { wordCount: result.wordCount });
+        debugLog('Calculated word count', { wordCount: result.wordCount });
       } else {
         result.wordCount = 0;
         logger.warn('Could not calculate word count, description is not a string');
       }
     }
 
-    // Check if debug mode is requested
-    const includeDebug = req.query.debug === 'true' || req.body.debug === true;
+    // Check if debug mode is requested — admin only to prevent internal info leakage
+    const userRoles = req.user?.roles || [];
+    const isAdmin = req.user?.hasRole ? req.user.hasRole('admin') : userRoles.includes('admin');
+    const includeDebug = isAdmin && (req.query.debug === 'true' || req.body.debug === true);
 
     logger.info('Service description generated from title', {
       title: title.trim(),
@@ -948,7 +963,6 @@ const formPrefiller = async (req, res) => {
     // Get user context if available
     let userContext = {};
     if (userId) {
-      const User = require('../../../src/models/User');
       const user = await User.findById(userId)
         .select('profile.serviceAreas profile.specialties profile.businessName profile.businessType')
         .lean();
