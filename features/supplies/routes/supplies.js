@@ -1,5 +1,6 @@
 const express = require('express');
 const { auth, authorize } = require('../../../src/middleware/auth');
+const { suppliesLimiter } = require('../../../src/middleware/rateLimiter');
 const {
   getSupplies,
   getSupply,
@@ -133,6 +134,7 @@ router.get('/:id([a-fA-F0-9]{24})', getSupply); // ensure only ObjectId-like val
 
 // Protected routes
 router.use(auth);
+router.use(suppliesLimiter);
 
 // AI-powered routes
 router.post('/generate-description', authorize('supplier', 'admin'), generateSupplyDescription);

@@ -5,6 +5,8 @@ const descriptionService = require('../services/descriptionService');
 const statisticsService = require('../services/statisticsService');
 const { AppError } = require('../errors/SuppliesErrors');
 const logger = require('../../../src/config/logger');
+const { sendServerError } = require('../../../src/utils/responseHelper');
+const { isValidObjectId } = require('../../../src/utils/objectIdUtils');
 
 const handleError = (res, error, fallbackMessage) => {
   if (error instanceof AppError) {
@@ -14,8 +16,7 @@ const handleError = (res, error, fallbackMessage) => {
       ...(error.details && { details: error.details })
     });
   }
-  logger.error(fallbackMessage, { error: error.message, stack: error.stack });
-  return res.status(500).json({ success: false, message: 'Server error' });
+  return sendServerError(res, error, fallbackMessage);
 };
 
 // @desc    Get all supplies
@@ -33,6 +34,9 @@ const getSupplies = async (req, res) => {
 // @route   GET /api/supplies/:id
 const getSupply = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid supply id format.' });
+    }
     const result = await suppliesService.getSupplyDetail(req.params.id, req.query);
     return res.status(200).json({ success: true, message: 'Supply details retrieved successfully', data: result });
   } catch (error) {
@@ -55,6 +59,9 @@ const createSupply = async (req, res) => {
 // @route   PUT /api/supplies/:id
 const updateSupply = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid supply id format.' });
+    }
     const supply = await suppliesService.updateSupply(req.params.id, req.body, req.user);
     return res.status(200).json({ success: true, message: 'Supply item updated successfully', data: supply });
   } catch (error) {
@@ -66,6 +73,9 @@ const updateSupply = async (req, res) => {
 // @route   PATCH /api/supplies/:id
 const patchSupply = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid supply id format.' });
+    }
     const result = await suppliesService.patchSupply(req.params.id, req.body, req.user);
     return res.status(200).json({ success: true, message: 'Supply item updated successfully', data: result });
   } catch (error) {
@@ -77,6 +87,9 @@ const patchSupply = async (req, res) => {
 // @route   DELETE /api/supplies/:id
 const deleteSupply = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid supply id format.' });
+    }
     await suppliesService.deleteSupply(req.params.id, req.user);
     return res.status(200).json({ success: true, message: 'Supply item deleted successfully' });
   } catch (error) {
@@ -88,6 +101,9 @@ const deleteSupply = async (req, res) => {
 // @route   POST /api/supplies/:id/images
 const uploadSupplyImages = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid supply id format.' });
+    }
     const uploads = await suppliesService.uploadImages(req.params.id, req.files, req.user);
     return res.status(200).json({ success: true, message: `${uploads.length} image(s) uploaded successfully`, data: uploads });
   } catch (error) {
@@ -99,6 +115,12 @@ const uploadSupplyImages = async (req, res) => {
 // @route   DELETE /api/supplies/:id/images/:imageId
 const deleteSupplyImage = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid supply id format.' });
+    }
+    if (!isValidObjectId(req.params.imageId)) {
+      return res.status(400).json({ success: false, message: 'Invalid image id format.' });
+    }
     await suppliesService.deleteImage(req.params.id, req.params.imageId, req.user);
     return res.status(200).json({ success: true, message: 'Image deleted successfully' });
   } catch (error) {
@@ -110,6 +132,9 @@ const deleteSupplyImage = async (req, res) => {
 // @route   POST /api/supplies/:id/order
 const orderSupply = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid supply id format.' });
+    }
     const order = await orderService.createOrder(req.params.id, req.body, req.user);
     return res.status(201).json({ success: true, message: 'Supply item ordered successfully', data: order });
   } catch (error) {
@@ -121,6 +146,12 @@ const orderSupply = async (req, res) => {
 // @route   PUT /api/supplies/:id/orders/:orderId/status
 const updateOrderStatus = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid supply id format.' });
+    }
+    if (!isValidObjectId(req.params.orderId)) {
+      return res.status(400).json({ success: false, message: 'Invalid order id format.' });
+    }
     const order = await orderService.updateOrderStatus(req.params.id, req.params.orderId, req.body.status, req.user);
     return res.status(200).json({ success: true, message: 'Order status updated successfully', data: order });
   } catch (error) {
@@ -132,6 +163,9 @@ const updateOrderStatus = async (req, res) => {
 // @route   POST /api/supplies/:id/reviews
 const addSupplyReview = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid supply id format.' });
+    }
     const review = await reviewService.addReview(req.params.id, req.body, req.user.id);
     return res.status(201).json({ success: true, message: 'Review added successfully', data: review });
   } catch (error) {

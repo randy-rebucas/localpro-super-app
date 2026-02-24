@@ -1,5 +1,29 @@
 /**
- * Supplies API methods for LocalPro SDK
+ * SuppliesAPI — browse, manage, and order supply products. Covers full supplier
+ * CRUD, image management, order workflow, reviews, and admin statistics.
+ *
+ * Public routes (list, getById, getCategories, getFeatured, getNearby) require
+ * no authentication. All write routes require a valid Bearer token and are
+ * protected by `suppliesLimiter` (60 req / min).
+ *
+ * @example
+ * const client = new LocalPro({ apiKey, apiSecret });
+ *
+ * // Browse supplies
+ * const { supplies } = await client.supplies.list({ category: 'tools', page: 1 });
+ *
+ * // Supplier: create a product
+ * const product = await client.supplies.create({
+ *   name: 'Heavy-duty drill bit set',
+ *   price: 1250,
+ *   category: 'tools'
+ * });
+ *
+ * // Order a product
+ * const order = await client.supplies.order(product.data._id, {
+ *   quantity: 2,
+ *   deliveryAddress: { street: '123 Main St', city: 'Manila' }
+ * });
  */
 class SuppliesAPI {
   constructor(client) {
@@ -241,6 +265,16 @@ class SuppliesAPI {
    */
   async getMyOrders(filters = {}) {
     return await this.client.get('/api/supplies/my-orders', filters);
+  }
+
+  /**
+   * Get supply statistics (Admin only).
+   *
+   * @returns {Promise<Object>} Aggregated stats: totalProducts, totalOrders, totalRevenue, etc.
+   * @throws {LocalProAuthorizationError} If the authenticated user is not an admin.
+   */
+  async getStatistics() {
+    return await this.client.get('/api/supplies/statistics');
   }
 
   /**

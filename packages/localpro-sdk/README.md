@@ -1527,6 +1527,46 @@ const stats = await client.trustVerification.getStatistics();
 
 ---
 
+## Supplies API
+
+Browse, manage, and order supply products. Covers full supplier CRUD, image management, order workflow, reviews, and admin statistics.
+
+```javascript
+// Browse supplies
+const { supplies } = await client.supplies.list({ category: 'tools', page: 1, limit: 20 });
+
+// Get a product with reviews and related items
+const product = await client.supplies.getById('supply-id');
+
+// Supplier: create a product
+const newProduct = await client.supplies.create({
+  name: 'Heavy-duty drill bit set',
+  price: 1250,
+  category: 'tools'
+});
+
+// Order a product
+const order = await client.supplies.order(newProduct.data._id, {
+  quantity: 2,
+  deliveryAddress: { street: '123 Main St', city: 'Manila' }
+});
+
+// Supplier: update order status
+await client.supplies.updateOrderStatus(newProduct.data._id, order.data._id, {
+  status: 'processing'
+});
+
+// Add a review
+await client.supplies.addReview('supply-id', { rating: 5, comment: 'Great product!' });
+
+// Admin: get statistics
+const stats = await client.supplies.getStatistics();
+```
+
+> **Further reading:** [docs/SUPPLIES_FEATURE.md](./docs/SUPPLIES_FEATURE.md)
+
+---
+
 ## API Authentication
 
 The SDK uses API key authentication. You need to:

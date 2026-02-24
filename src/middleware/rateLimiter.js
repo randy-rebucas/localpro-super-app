@@ -118,6 +118,16 @@ const trustVerificationLimiter = make({
   message: { success: false, message: 'Too many trust verification requests – please slow down.', code: 'TRUST_VERIFICATION_RATE_LIMIT' }
 });
 
+/**
+ * Supplies / marketplace-products endpoints – 60 req / min per IP.
+ * Covers product browse, ordering, and review submission.
+ */
+const suppliesLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many supply requests – please slow down.', code: 'SUPPLIES_RATE_LIMIT' }
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
@@ -128,6 +138,7 @@ module.exports = {
   marketplaceLimiter,
   aiLimiter,
   userManagementLimiter,
-  trustVerificationLimiter
+  trustVerificationLimiter,
+  suppliesLimiter
 };
 
