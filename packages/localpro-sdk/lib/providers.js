@@ -1,5 +1,26 @@
 /**
- * Providers API methods for LocalPro SDK
+ * @classdesc Provides access to LocalPro Providers API endpoints.
+ * Covers public provider browse and skills lookup, authenticated profile
+ * management (create, update, patch, onboarding, documents), provider
+ * dashboard and analytics, reviews, and admin operations.
+ *
+ * @example
+ * const sdk = new LocalProSDK({ baseURL: 'https://api.localpro.ph', token });
+ *
+ * // Browse providers
+ * const { data } = await sdk.providers.list({ providerType: 'individual', page: 1 });
+ *
+ * // Create a provider profile
+ * const profile = await sdk.providers.createProfile({
+ *   providerType: 'individual',
+ *   professionalInfo: { specialties: [{ category: 'cleaning', serviceAreas: ['Manila'] }] }
+ * });
+ *
+ * // Get dashboard overview
+ * const dashboard = await sdk.providers.getDashboard();
+ *
+ * // Respond to a review
+ * await sdk.providers.respondToReview('<reviewId>', { responseText: 'Thank you!' });
  */
 class ProvidersAPI {
   constructor(client) {
@@ -125,6 +146,56 @@ class ProvidersAPI {
    */
   async getAnalytics(options = {}) {
     return await this.client.get('/api/providers/analytics/performance', options);
+  }
+
+  /**
+   * Get real-time provider metrics (today + this week performance)
+   * @returns {Promise<Object>} Real-time metrics
+   */
+  async getMetrics() {
+    return await this.client.get('/api/providers/dashboard/metrics');
+  }
+
+  /**
+   * Get provider activity feed
+   * @param {Object} [options] - Pagination and filter options
+   * @param {number} [options.page] - Page number
+   * @param {number} [options.limit] - Items per page
+   * @param {string} [options.type] - Activity type (booking, review, payment, message)
+   * @returns {Promise<Object>} Activity feed
+   */
+  async getActivity(options = {}) {
+    return await this.client.get('/api/providers/dashboard/activity', options);
+  }
+
+  /**
+   * Get provider reviews
+   * @param {Object} [options] - Filter and pagination options
+   * @param {number} [options.page] - Page number
+   * @param {number} [options.limit] - Items per page
+   * @param {number} [options.rating] - Filter by rating (1-5)
+   * @param {string} [options.sortBy] - Sort field (createdAt, rating)
+   * @returns {Promise<Object>} Provider reviews
+   */
+  async getReviews(options = {}) {
+    return await this.client.get('/api/providers/reviews', options);
+  }
+
+  /**
+   * Respond to a review (Provider only)
+   * @param {string} reviewId - Review ID
+   * @param {Object} data - Response data
+   * @param {string} data.responseText - Response text (max 1000 chars)
+   * @returns {Promise<Object>} Updated review
+   */
+  async respondToReview(reviewId, data) {
+    if (!reviewId) {
+      throw new Error('Review ID is required');
+    }
+    if (!data || !data.responseText) {
+      throw new Error('Response text is required');
+    }
+    return await this.client.post(`/api/providers/reviews/${reviewId}/respond`, data);
   }
 }
 

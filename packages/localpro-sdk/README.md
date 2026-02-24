@@ -1762,6 +1762,40 @@ const analytics = await client.referrals.getAnalytics({ timeRange: 30, groupBy: 
 
 ---
 
+## Providers
+
+```js
+// Public browse
+const { data } = await client.providers.list({ providerType: 'individual', category: 'cleaning' });
+const provider  = await client.providers.getById('<providerId>');
+const skills    = await client.providers.getSkills({ category: 'plumbing' });
+
+// Authenticated — own profile
+const me     = await client.providers.getMyProfile();
+const created = await client.providers.createProfile({
+  providerType: 'individual',
+  professionalInfo: { specialties: [{ category: 'cleaning', serviceAreas: ['Manila'] }] }
+});
+await client.providers.updateProfile({ /* full update */ });
+await client.providers.patchProfile({ settings: { profileVisibility: 'public' } });
+await client.providers.updateOnboardingStep({ step: 'business_info', data: { businessName: 'ABC Services' } });
+await client.providers.uploadDocuments(formData);
+
+// Dashboard & analytics
+const dashboard = await client.providers.getDashboard();
+const metrics   = await client.providers.getMetrics();
+const activity  = await client.providers.getActivity({ page: 1, limit: 20, type: 'booking' });
+const analytics = await client.providers.getAnalytics({ timeframe: '30d' });
+
+// Reviews
+const reviews = await client.providers.getReviews({ rating: 5, sortBy: 'createdAt' });
+await client.providers.respondToReview('<reviewId>', { responseText: 'Thank you for your kind words!' });
+```
+
+> **Further reading:** [docs/PROVIDERS_FEATURE.md](./docs/PROVIDERS_FEATURE.md)
+
+---
+
 ## API Authentication
 
 The SDK uses API key authentication. You need to:

@@ -608,8 +608,7 @@ const getProvider = async (req, res) => {
     
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve provider',
-      error: error.message
+      message: 'Failed to retrieve provider'
     });
   }
 };

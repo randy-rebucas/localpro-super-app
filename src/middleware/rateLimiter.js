@@ -172,6 +172,17 @@ const referralsLimiter = make({
   message: { success: false, message: 'Too many referral requests – please slow down.', code: 'REFERRALS_RATE_LIMIT' }
 });
 
+/**
+ * Providers endpoints – 60 req / min per IP.
+ * Covers public browse + authenticated profile management, dashboard, and
+ * analytics endpoints.  Admin operations share this budget.
+ */
+const providersLimiter = make({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Too many provider requests – please slow down.', code: 'PROVIDERS_RATE_LIMIT' }
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
@@ -187,6 +198,7 @@ module.exports = {
   settingsLimiter,
   schedulingLimiter,
   rentalsLimiter,
-  referralsLimiter
+  referralsLimiter,
+  providersLimiter
 };
 

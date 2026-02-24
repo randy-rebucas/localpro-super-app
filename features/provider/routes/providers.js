@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { auth, authorize } = require('../../../src/middleware/auth');
+const { providersLimiter } = require('../../../src/middleware/rateLimiter');
 const { body, param, query } = require('express-validator');
 const multer = require('multer');
 const {
@@ -163,6 +164,7 @@ const validateOnboardingStep = [
  *         $ref: '#/components/responses/ValidationError'
  */
 // Public routes (no authentication required)
+router.use(providersLimiter);
 router.get('/skills', getProviderSkills);
 router.get('/', getProviders);
 
