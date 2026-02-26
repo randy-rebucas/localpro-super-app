@@ -1,0 +1,35 @@
+{
+  "name": "@localpro/escrow",
+  "version": "1.0.0",
+  "description": "Official Escrow SDK for LocalPro Super App - manage escrow lifecycle, disputes, payouts, and proof of work",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish:public": "npm publish --access public",
+    "publish:patch": "npm version patch && npm publish --access public",
+    "publish:minor": "npm version minor && npm publish --access public",
+    "publish:major": "npm version major && npm publish --access public"
+  },
+  "keywords": [
+    "localpro",
+    "escrow",
+    "payment",
+    "payout",
+    "dispute",
+    "hold",
+    "sdk"
+  ],
+  "author": "LocalPro",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.12.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/localpro/localpro-super-app.git",
+    "directory": "packages/localpro-escrow"
+  }
+}
